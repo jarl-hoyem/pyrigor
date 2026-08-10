@@ -1,0 +1,92 @@
+#file: noinspection YAMLSchemaValidation
+# Keeping repository quality high.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: debug-statements  # Check for debugger imports and breakpoint() in python files.
+      - id: check-ast  # Check whether files parse as valid python.
+      - id: fix-byte-order-marker  # Removes UTF-8 byte order marker.
+      - id: check-json
+      - id: detect-private-key
+      - id: check-toml
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-shebang-scripts-are-executable
+      - id: check-case-conflict  # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
+      - id: end-of-file-fixer  # Makes sure files end in a newline and only a newline.
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+  - repo: https://github.com/pycqa/pylint
+    rev: v4.0.2
+    hooks:
+      - id: pylint
+        additional_dependencies: [ ]  # add pyrigor's runtime deps here as they're introduced
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies: [ ]  # add pyrigor's runtime deps here as they're introduced
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.13
+    hooks:
+      - id: ruff
+      - id: ruff-format
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        language: python
+        entry: >
+          python -c "import subprocess, sys;
+          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[dev]']);
+          sys.exit(subprocess.call([sys.executable, '-m', 'pyright']))"
+        pass_filenames: false
+        types: [ python ]
+        additional_dependencies: [ "pyright==1.1.408" ]
+        args:
+          - --project=pyproject.toml
+      - id: ty
+        name: ty
+        language: python
+        entry: >
+          python -c "import subprocess, sys;
+          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[dev]']);
+          sys.exit(subprocess.call([sys.executable, '-m', 'ty', 'check', '.']))"
+        pass_filenames: false
+        types: [ python ]
+        additional_dependencies: [ "ty>=0.0.69" ]
+      - id: pytest
+        name: pytest
+        language: python
+        entry: >
+          python -c "import subprocess, sys;
+          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[test]']);
+          sys.exit(subprocess.call([sys.executable, '-m', 'pytest']))"
+        additional_dependencies: [ "pytest>=8.3.5,<9.0.0", "pytest-cov>=5.0,<6.0" ]
+        pass_filenames: false
+        stages: [ pre-push ]  # Only run on push instead of every commit.
+      - id: xenon
+        name: xenon
+        language: python
+        entry: xenon
+        pass_filenames: false
+        types: [ python ]
+        additional_dependencies: [ "xenon==0.9.3" ]
+        args:
+          - --max-absolute=B
+          - --max-modules=A
+          - --max-average=A
+          - pyrigor/
+      - id: radon-maintainability
+        name: radon maintainability
+        entry: radon mi
+        language: python
+        types: [ python ]
+        args: [ "--min", "A", "--exclude", "tests/", "pyrigor" ]
+        additional_dependencies: [ "radon==6.0.1" ]
+        pass_filenames: false
