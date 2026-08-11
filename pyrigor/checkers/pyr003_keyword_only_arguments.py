@@ -12,7 +12,7 @@ class Violation(NamedTuple):
     message: str
 
 
-def _has_violation(node: ast.FunctionDef) -> bool:
+def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """Check whether a function definition violates PYR003.
 
     Args:
@@ -44,7 +44,7 @@ def find_violations(source: str) -> list[Violation]:
     violations = []
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and _has_violation(node):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_violation(node):
             violations.append(
                 Violation(
                     line=node.lineno,

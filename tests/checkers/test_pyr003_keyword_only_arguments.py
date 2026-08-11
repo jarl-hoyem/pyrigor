@@ -82,3 +82,15 @@ def apply_correction(*args, weight, **kwargs):
     violations = find_pyr003_violations(source)
 
     assert not violations
+
+
+def test_flags_async_function_with_positional_parameter() -> None:
+    """An async function with a positional param should still be flagged."""
+    source = """
+async def apply_correction(weight, bias):
+    ...
+"""
+    violations = find_pyr003_violations(source)
+
+    assert len(violations) == 1
+    assert violations[0].function_name == "apply_correction"
