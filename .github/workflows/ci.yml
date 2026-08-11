@@ -64,7 +64,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run mutation testing
-        run: uv run mutmut run --CI
+        run: uv run mutmut run
 
       - name: Show results
         if: always()

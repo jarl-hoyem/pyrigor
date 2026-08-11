@@ -67,4 +67,4 @@ source = ["pyrigor"]
 convention = "google"
 
 [tool.mutmut]
-paths_to_mutate = "pyrigor/"
+source_paths = "pyrigor/"
