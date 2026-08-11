@@ -118,3 +118,27 @@ sort_key = lambda weight, bias: weight + bias
     violations = find_pyr003_violations(source)
 
     assert not violations
+
+
+def test_known_limitation_staticmethod_with_only_self_param() -> None:
+    """A @staticmethod whose only param is misleadingly named `self` escapes detection.
+
+    This is a known, accepted limitation, not a bug we're fixing: the checker
+    exempts the first positional param named `self`/`cls` without checking for
+    @staticmethod or class context. If you name a @staticmethod's parameter
+    `self`, you've done this to yourself — pyrigor isn't going to save you
+    from that particular act of self-sabotage.
+    """
+    source = """
+class Foo:
+    @staticmethod
+    def bar(self):
+        ...
+"""
+    violations = find_pyr003_violations(source)
+
+    # Documenting current (incorrect but accepted) behavior: this SHOULD be
+    # flagged (self isn't special here — it is a plain, badly named param),
+    # but isn't, because the checker doesn't inspect decorators or class
+    # context before applying the self/cls exemption.
+    assert not violations
