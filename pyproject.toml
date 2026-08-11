@@ -10,26 +10,26 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-    { name = "Jarl Hoyem (@jarl-hoyem)" }
+  { name = "Jarl Hoyem (@jarl-hoyem)" }
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 dependencies = []
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8",
-    "pytest-cov>=5",
-    "mypy>=1.10",
-    "pyright>=1.1.411",
-    "ty>=0.0.69",
-    "ruff>=0.6",
+  "pytest>=8",
+  "pytest-cov>=5",
+  "mypy>=1.10",
+  "pyright>=1.1.411",
+  "ty>=0.0.69",
+  "ruff>=0.6",
 ]
 
 [tool.setuptools.packages.find]
@@ -46,9 +46,17 @@ line-length = 120
 
 [tool.pytest.ini_options]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-addopts = "-m 'not slow' --cov=pyrigor --cov-report=html --cov-report=term-missing"
+addopts = [
+  "-m", "not slow",
+  "--cov=pyrigor",
+  "--cov-report=html",
+  "--cov-report=term-missing",
+  "--cov-fail-under=100",
+  "--strict-markers",
+  "-W", "error",
+]
 
 [tool.coverage.run]
 source = ["pyrigor"]

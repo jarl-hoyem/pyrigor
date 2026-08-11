@@ -22,11 +22,6 @@ repos:
     hooks:
       - id: pylint
         additional_dependencies: [ ]  # add pyrigor's runtime deps here as they're introduced
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
-    hooks:
-      - id: mypy
-        additional_dependencies: [ ]  # add pyrigor's runtime deps here as they're introduced
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.13
     hooks:
@@ -36,40 +31,34 @@ repos:
     rev: 6.3.0
     hooks:
       - id: pydocstyle
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
   - repo: local
     hooks:
       - id: pyright
         name: pyright
-        language: python
-        entry: >
-          python -c "import subprocess, sys;
-          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[dev]']);
-          sys.exit(subprocess.call([sys.executable, '-m', 'pyright']))"
-        pass_filenames: false
-        types: [ python ]
-        additional_dependencies: [ "pyright==1.1.408" ]
+        language: system
+        entry: uv run --extra dev pyright
         args:
           - --project=pyproject.toml
+        pass_filenames: false
       - id: ty
         name: ty
-        language: python
-        entry: >
-          python -c "import subprocess, sys;
-          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[dev]']);
-          sys.exit(subprocess.call([sys.executable, '-m', 'ty', 'check', '.']))"
+        language: system
+        entry: uv run --extra dev ty
+        args:
+          - check
+          - .
         pass_filenames: false
-        types: [ python ]
-        additional_dependencies: [ "ty>=0.0.69" ]
-      - id: pytest
-        name: pytest
-        language: python
-        entry: >
-          python -c "import subprocess, sys;
-          subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-e', '.[test]']);
-          sys.exit(subprocess.call([sys.executable, '-m', 'pytest']))"
-        additional_dependencies: [ "pytest>=8.3.5,<9.0.0", "pytest-cov>=5.0,<6.0" ]
+      - id: mypy
+        name: mypy
+        language: system
+        entry: uv run --extra dev mypy
+        args:
+          - .
         pass_filenames: false
-        stages: [ pre-push ]  # Only run on push instead of every commit.
       - id: xenon
         name: xenon
         language: python
@@ -78,7 +67,7 @@ repos:
         types: [ python ]
         additional_dependencies: [ "xenon==0.9.3" ]
         args:
-          - --max-absolute=B
+          - --max-absolute=A
           - --max-modules=A
           - --max-average=A
           - pyrigor/
@@ -90,3 +79,14 @@ repos:
         args: [ "--min", "A", "--exclude", "tests/", "pyrigor" ]
         additional_dependencies: [ "radon==6.0.1" ]
         pass_filenames: false
+      - id: uv-lock-check
+        name: uv lock check
+        language: python
+        entry: uv lock --check
+        pass_filenames: false
+      - id: pytest
+        name: pytest
+        language: system
+        entry: uv run --extra dev pytest
+        pass_filenames: false
+      # Saved for later: stages: [pre-push] # Only run on push instead of every commit.
