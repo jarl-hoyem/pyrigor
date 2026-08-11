@@ -30,6 +30,7 @@ dev = [
   "pyright>=1.1.411",
   "ty>=0.0.69",
   "ruff>=0.6",
+  "mutmut>=3",
 ]
 
 [tool.setuptools.packages.find]
@@ -51,6 +52,7 @@ markers = [
 addopts = [
   "-m", "not slow",
   "--cov=pyrigor",
+  "--cov-branch",
   "--cov-report=html",
   "--cov-report=term-missing",
   "--cov-fail-under=100",
@@ -63,3 +65,6 @@ source = ["pyrigor"]
 
 [tool.pydocstyle]
 convention = "google"
+
+[tool.mutmut]
+paths_to_mutate = "pyrigor/"
