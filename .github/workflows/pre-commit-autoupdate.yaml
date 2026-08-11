@@ -1,0 +1,35 @@
+name: Update pre-commit hooks
+on:
+  schedule:
+    - cron: "0 6 1 * *"  # First of each month, 06:00 in London.
+  workflow_dispatch:
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Run autoupdate
+        run: uv run pre-commit autoupdate
+
+      - name: Open PR if anything changed
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: autoupdate pre-commit hooks"
+          title: "chore: autoupdate pre-commit hooks"
+          branch: pre-commit-autoupdate
+          delete-branch: true
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number
+        run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
