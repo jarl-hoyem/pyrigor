@@ -94,3 +94,27 @@ async def apply_correction(weight, bias):
 
     assert len(violations) == 1
     assert violations[0].function_name == "apply_correction"
+
+
+def test_flags_nested_function_with_positional_parameter() -> None:
+    """A nested function with a positional param should still be flagged."""
+    source = """
+def outer():
+    def inner(weight, bias):
+        ...
+    return inner
+"""
+    violations = find_pyr003_violations(source)
+
+    assert len(violations) == 1
+    assert violations[0].function_name == "inner"
+
+
+def test_no_violation_for_lambda_with_positional_parameters() -> None:
+    """A lambda is exempt from PYR003, regardless of its parameters."""
+    source = """
+sort_key = lambda weight, bias: weight + bias
+"""
+    violations = find_pyr003_violations(source)
+
+    assert not violations
