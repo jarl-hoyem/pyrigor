@@ -23,4 +23,16 @@ def apply_correction(*, weight, bias):
 """
     violations = find_violations(source)
 
-    assert violations == []
+    assert not violations
+
+
+def test_no_violation_for_method_with_only_self() -> None:
+    """A method with only `self` before the keyword-only params should not be flagged."""
+    source = """
+class Foo:
+    def bar(self, *, weight, bias):
+        ...
+"""
+    violations = find_violations(source)
+
+    assert not violations

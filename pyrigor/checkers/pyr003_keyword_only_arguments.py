@@ -12,8 +12,27 @@ class Violation(NamedTuple):
     message: str
 
 
+def _has_violation(node: ast.FunctionDef) -> bool:
+    """Check whether a function definition violates PYR003.
+
+    Args:
+        node: The function definition to check.
+
+    Returns:
+        True if the function has positional parameters beyond an
+        optional leading `self`/`cls`.
+    """
+    positional_args = node.args.args
+    if positional_args and positional_args[0].arg in ("self", "cls"):
+        positional_args = positional_args[1:]
+
+    return bool(positional_args)
+
+
 def find_violations(source: str) -> list[Violation]:
     """Find PYR003 violations in a source string.
+
+    PYR003: all parameters should be keyword-only.
 
     Args:
         source: Python source code to check.
@@ -25,15 +44,14 @@ def find_violations(source: str) -> list[Violation]:
     violations = []
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            if node.args.args:
-                violations.append(
-                    Violation(
-                        line=node.lineno,
-                        function_name=node.name,
-                        message=f"Function '{node.name}' has positional parameters; "
-                                f"all parameters should be keyword-only (PYR003).",
-                    )
+        if isinstance(node, ast.FunctionDef) and _has_violation(node):
+            violations.append(
+                Violation(
+                    line=node.lineno,
+                    function_name=node.name,
+                    message=f"Function '{node.name}' has positional parameters; "
+                    f"all parameters should be keyword-only (PYR003).",
                 )
+            )
 
     return violations
