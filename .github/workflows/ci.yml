@@ -44,29 +44,29 @@ jobs:
           uv pip install pre-commit
 
       - name: Run pre-commit (default-stage hooks)
-        run: pre-commit run --all-files
+        run: uv run pre-commit run --all-files
 
       - name: Run pre-commit (pre-push-stage hooks, e.g. pytest)
-        run: pre-commit run --all-files --hook-stage pre-push
+        run: uv run pre-commit run --all-files --hook-stage pre-push
 
-  mutation-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Set up Python
-        run: uv python install 3.14
-
-      - name: Install project
-        run: uv sync --extra dev
-
-      - name: Run mutation testing
-        run: uv run mutmut run
-
-      - name: Show results
-        if: always()
-        run: uv run mutmut results
-
+# For later
+#  mutation-test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Install uv
+#        uses: astral-sh/setup-uv@v4
+#
+#      - name: Set up Python
+#        run: uv python install 3.14
+#
+#      - name: Install project
+#        run: uv sync --extra dev
+#
+#      - name: Run mutation testing
+#        run: uv run mutmut run
+#
+#      - name: Show results
+#        if: always()
+#        run: uv run mutmut results

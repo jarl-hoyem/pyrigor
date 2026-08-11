@@ -19,12 +19,12 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
   - repo: https://github.com/pycqa/pylint
-    rev: v4.0.2
+    rev: v4.0.7
     hooks:
       - id: pylint
         additional_dependencies: [ ]  # add pyrigor's runtime deps here as they're introduced
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+    rev: v0.16.2
     hooks:
       - id: ruff
       - id: ruff-format
@@ -33,11 +33,11 @@ repos:
     hooks:
       - id: pydocstyle
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.21.2
+    rev: v8.30.0
     hooks:
       - id: gitleaks
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.9.1
+    rev: v4.17.0
     hooks:
       - id: commitizen
         stages: [ commit-msg ]
