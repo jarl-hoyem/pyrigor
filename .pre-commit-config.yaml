@@ -1,5 +1,6 @@
 #file: noinspection YAMLSchemaValidation
 # Keeping repository quality high.
+default_install_hook_types: [ pre-commit, commit-msg ]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -35,6 +36,11 @@ repos:
     rev: v8.21.2
     hooks:
       - id: gitleaks
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.9.1
+    hooks:
+      - id: commitizen
+        stages: [ commit-msg ]
   - repo: local
     hooks:
       - id: pyright
