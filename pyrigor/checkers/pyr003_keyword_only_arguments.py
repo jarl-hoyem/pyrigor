@@ -22,7 +22,7 @@ def _has_violation(node: ast.FunctionDef) -> bool:
         True if the function has positional parameters beyond an
         optional leading `self`/`cls`.
     """
-    positional_args = node.args.args
+    positional_args = list(node.args.posonlyargs) + list(node.args.args)
     if positional_args and positional_args[0].arg in ("self", "cls"):
         positional_args = positional_args[1:]
 
