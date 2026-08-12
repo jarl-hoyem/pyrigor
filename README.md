@@ -77,7 +77,6 @@ instead.
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the setup and workflow.
 
-```
 
 ## License
 
