@@ -59,3 +59,19 @@ def test_whitespace_around_colon_and_commas_is_tolerated() -> None:
     result = filter_suppressed(violations=violations, source=source)
 
     assert not result
+
+
+def test_suppression_comment_with_reason_is_parsed() -> None:
+    """A # pyrigor: CODE # reason comment should suppress and capture the reason text."""
+    source = (
+        "def apply_correction(weight, bias):  "
+        "# pyrigor: 402 # pytest fixture injection is positional-only\n"
+        "    ...\n"
+    )
+    violations = [
+        Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402, message="..."),
+    ]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    assert not result

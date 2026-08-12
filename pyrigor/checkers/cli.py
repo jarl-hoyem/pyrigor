@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from pyrigor.checkers import find_pyr402_violations
+from pyrigor.suppression import filter_suppressed
 
 
 def main(paths: list[str]) -> int:
@@ -20,6 +21,7 @@ def main(paths: list[str]) -> int:
     for path in paths:
         source = Path(path).read_text(encoding="utf-8")
         violations = find_pyr402_violations(source)
+        violations = filter_suppressed(violations=violations, source=source)
 
         for violation in violations:
             location = f"{path}:{violation.line}:{violation.column}"

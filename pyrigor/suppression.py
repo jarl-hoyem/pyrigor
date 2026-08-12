@@ -8,27 +8,41 @@ tolerated.
 """
 
 import re
-
+from typing import NamedTuple
 from pyrigor.checkers.pyr402_keyword_only_arguments import Violation
+
+
+class _SuppressionInfo(NamedTuple):
+    """Parsed contents of a `# pyrigor:` suppression comment."""
+
+    tokens: set[str]
+    reason: str | None
+
 
 _SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s*:\s*(?P<tokens>.+)$")
 
 
-def _suppressed_tokens(*, line: str) -> set[str]:
-    """Extracts the suppression tokens from a single source line.
+def _suppressed_tokens(*, line: str) -> _SuppressionInfo:
+    """Get the suppression tokens and optional reason from a source line.
 
     Args:
         line: One line of source code.
 
     Returns:
-        The tokens, which are listed after `# pyrigor:` on this line, or
-        an empty set if there is no suppression comment.
+        The suppression information, which is found on this line, or an empty
+        _SuppressionInfo if there is no suppression comment.
     """
     match = _SUPPRESSION_PATTERN.search(line)
     if match is None:
-        return set()
+        return _SuppressionInfo(tokens=set(), reason=None)
 
-    return {token.strip() for token in match.group("tokens").split(",")}
+    body = match.group("tokens")
+    codes_part, _, reason_part = body.partition("#")
+
+    tokens = {token.strip() for token in codes_part.split(",")}
+    reason = reason_part.strip() or None
+
+    return _SuppressionInfo(tokens=tokens, reason=reason)
 
 
 def _matches_suppression(*, violation: Violation, tokens: set[str]) -> bool:
@@ -64,9 +78,9 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> list[Viola
     result = []
     for violation in violations:
         line_text = lines[violation.line - 1] if 0 < violation.line <= len(lines) else ""
-        tokens = _suppressed_tokens(line=line_text)
+        suppression = _suppressed_tokens(line=line_text)
 
-        if not _matches_suppression(violation=violation, tokens=tokens):
+        if not _matches_suppression(violation=violation, tokens=suppression.tokens):
             result.append(violation)
 
     return result
