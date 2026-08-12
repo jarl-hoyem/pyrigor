@@ -48,6 +48,8 @@ Already in use — every `no-any-return` error caught this session is exactly th
 
 ## 6. Never use mutable default arguments
 
+_Planned as PYR404._
+
 ```python
 # Bad — shared mutable state across every call
 def f(items: list = []):

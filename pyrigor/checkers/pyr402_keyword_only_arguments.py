@@ -1,11 +1,11 @@
-"""PYR003 checker: flag functions with parameters before a bare `*`."""
+"""PYR402 checker: flag functions with parameters before a bare `*`."""
 
 import ast
 from typing import NamedTuple
 
 
 class Violation(NamedTuple):
-    """A single PYR003 rule violation."""
+    """A single PYR402 rule violation."""
 
     line: int
     column: int
@@ -14,7 +14,7 @@ class Violation(NamedTuple):
 
 
 def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    """Check whether a function definition violates PYR003.
+    """Check whether a function definition violates PYR402.
 
     Args:
         node: The function definition to check.
@@ -22,7 +22,7 @@ def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     Returns:
         True if the function has two or more parameters with at least
         one positional (beyond an optional leading `self`/`cls`).
-        Single-parameter functions are exempt — see PYR004.
+        Single-parameter functions are exempt — see PYR403.
     """
     positional_args = list(node.args.posonlyargs) + list(node.args.args)
     if positional_args and positional_args[0].arg in ("self", "cls"):
@@ -36,9 +36,9 @@ def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
 
 def find_violations(source: str) -> list[Violation]:
-    """Find PYR003 violations in a source string.
+    """Find PYR402 violations in a source string.
 
-    PYR003: all parameters should be keyword-only.
+    PYR402: all parameters should be keyword-only.
 
     Args:
         source: Python source code to check.
@@ -57,7 +57,7 @@ def find_violations(source: str) -> list[Violation]:
                     column=node.col_offset + 1,
                     function_name=node.name,
                     message=f"Function '{node.name}' has positional parameters; "
-                    f"all parameters should be keyword-only (PYR003).",
+                    f"all parameters should be keyword-only (PYR402).",
                 )
             )
 

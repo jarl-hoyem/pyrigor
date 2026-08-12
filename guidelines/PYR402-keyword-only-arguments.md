@@ -1,11 +1,11 @@
-# PYR003 — Force keyword-only arguments for all parameters
+# PYR402 — Force keyword-only arguments for all parameters
 
 ## Rule
 
 All function parameters beyond `self`/`cls` must be keyword-only —
 enforced with a bare `*` at the start of the parameter list. This
 applies even when every argument has a distinct type and even when
-[PYR002](./PYR002-newtype-same-typed-values.md) is already in use.
+[PYR201](PYR201-newtype-same-typed-values.md) is already in use.
 
 ```python
 # Bad
@@ -19,7 +19,7 @@ def compute_gradient(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> Gra
 
 ## Rationale
 
-[PYR002](./PYR002-newtype-same-typed-values.md) makes same-typed values
+[PYR201](PYR201-newtype-same-typed-values.md) makes same-typed values
 nominally distinct, and to be precise about what that buys you: if
 both values are wrapped at their point of origin and that
 distinction survives to the call site, mypy *does* catch a positional
@@ -33,14 +33,14 @@ def apply_correction(weight: Weight, bias: Bias) -> float:
     ...
 
 # mypy catches this: bias_value is typed Bias, first parameter expects
-# Weight. PYR002 alone is sufficient here, *if* every value in the
+# Weight. PYR201 alone is sufficient here, *if* every value in the
 # chain retained its NewType through to this call.
 apply_correction(bias_value, weight_value)
 ```
 
-So PYR003 is not closing a static-type blind spot PYR002 leaves open —
-it is addressing three things PYR002’s protection is
-*contingent* on, plus one PYR002 cannot address at all:
+So PYR402 is not closing a static-type blind spot PYR201 leaves open —
+it is addressing three things PYR201’s protection is
+*contingent* on, plus one PYR201 cannot address at all:
 
 **1. Mypy has to actually run, and has to see the chain.**
 `NewType` protection is static-only. If a value is unwrapped for
@@ -65,10 +65,10 @@ binding is by name, so a parameter reorder in the function definition
 cannot corrupt any existing call site.
 
 **3. Differently typed arguments get the same protection for free.**
-PYR002 only applies where confusion between same-typed values is
-plausible. PYR003 applies uniformly to every parameter, so the
+PYR201 only applies where confusion between same-typed values is
+plausible. PYR402 applies uniformly to every parameter, so the
 signature-reordering protection in point 2 above holds regardless of
-whether PYR002 was ever relevant to this particular function.
+whether PYR201 was ever relevant to this particular function.
 
 **4. Human readability at the point of writing.**
 Even where mypy would eventually catch a mistake, a keyword-only call site
@@ -76,33 +76,33 @@ states its own argument mapping in plain text — both when it is written
 and every time it is read again later. That is closer to design-by-contract
 than relying on a type-checker run to surface the error after the fact.
 
-None of this makes [PYR002](./PYR002-newtype-same-typed-values.md)
+None of this makes [PYR201](PYR201-newtype-same-typed-values.md)
 redundant — `NewType` still gives mypy the chance to catch a bare,
 unwrapped value landing in the wrong slot, which keyword-only calling
 alone does not. A keyword call with the *wrong keyword name* used by
-mistake is still a real, if less common, way to swap values. PYR003
+mistake is still a real, if less common, way to swap values. PYR402
 is defense in depth: a language-level guarantee that holds even when
 the static-analysis guarantee’s preconditions are not met.
 
-Combined with [PYR001](./PYR001-namedtuple-returns.md) and
-[PYR002](./PYR002-newtype-same-typed-values.md), this closes the
+Combined with [PYR401](PYR401-namedtuple-returns.md) and
+[PYR201](PYR201-newtype-same-typed-values.md), this closes the
 remaining gaps in the full picture:
 
 - Argument-order swaps for differently typed args → plain type
-  annotations catch a type mismatch. PYR003 adds robustness against
+  annotations catch a type mismatch. PYR402 adds robustness against
   signature reordering and against mypy not running.
 - Argument-order swaps for same-typed args → `NewType`
-  (PYR002) catches it *when* type distinction survives to the call
-  site. PYR003 adds the same robustness on top.
+  (PYR201) catches it *when* type distinction survives to the call
+  site. PYR402 adds the same robustness on top.
 - Return-unpacking mislabeling for differently typed return values →
-  `NamedTuple` (PYR001)
+  `NamedTuple` (PYR401)
 - Return-unpacking mislabeling for same-typed return fields →
-  `NamedTuple` + `NewType` (PYR001 + PYR002)
+  `NamedTuple` + `NewType` (PYR401 + PYR201)
 
 ## When this does not apply
 
 - Single-parameter functions, where there is no argument order to
-  confuse. See [PYR004](./PYR004-keyword-only-single-argument.md) for
+  confuse. See [PYR403](./PYR403-keyword-only-single-argument.md) for
   a separate, independently adoptable rule covering this case under a
   different rationale.
 - Well-established positional conventions from the standard library or
@@ -116,11 +116,11 @@ remaining gaps in the full picture:
 
 ## Related
 
-- [PYR001](./PYR001-namedtuple-returns.md) — use `NamedTuple` for any
+- [PYR401](PYR401-namedtuple-returns.md) — use `NamedTuple` for any
   function returning more than one value.
-- [PYR002](./PYR002-newtype-same-typed-values.md) — use `NewType` for
-  same-typed values at risk of being swapped. PYR003 closes the
-  residual call-site-ordering gap that PYR002 alone does not.
+- [PYR201](PYR201-newtype-same-typed-values.md) — use `NewType` for
+  same-typed values at risk of being swapped. PYR402 closes the
+  residual call-site-ordering gap that PYR201 alone does not.
 
 ## Enforced by
 

@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-from pyrigor.checkers import find_pyr003_violations
+from pyrigor.checkers import find_pyr402_violations
 
 
 def main(paths: list[str]) -> int:
@@ -19,10 +19,10 @@ def main(paths: list[str]) -> int:
 
     for path in paths:
         source = Path(path).read_text(encoding="utf-8")
-        violations = find_pyr003_violations(source)
+        violations = find_pyr402_violations(source)
 
         for violation in violations:
-            print(f"{path}:{violation.line}:{violation.column}: PYR003 {violation.message}")
+            print(f"{path}:{violation.line}:{violation.column}: PYR402 {violation.message}")
             exit_code = 1
 
     return exit_code
