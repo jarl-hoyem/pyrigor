@@ -23,9 +23,33 @@ in progress. Plugin integration (pylint, possibly ruff) is a future goal,
 not a current feature.
 
 - [x] Guideline documentation
-- [ ] Standalone AST-based checkers (pre-commit local hooks)
+- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR402 implemented.
+  PYR201, PYR202, PYR401, PYR403 documented but not yet enforced.
 - [ ] pylint plugin
 - [ ] ruff plugin (stretch goal — contingent on learning Rust)
+
+## Usage
+
+```bash
+pip install pyrigor
+pyrigor path/to/file.py [path/to/another.py ...]
+```
+
+Only PYR402 is enforced today. A violation exits non-zero and prints
+`path:line:col: PYR402 message (keyword-only-arguments)`.
+
+To suppress a specific violation, add a same-line comment with a
+reason:
+
+```python
+def f(weight, bias):  # pyrigor: PYR402 # matches a fixed external API
+    ...
+```
+
+Codes may be given as the full code (`PYR402`), the bare number
+(`402`), or the rule’s symbolic name (`keyword-only-arguments`).
+Multiple codes: `# pyrigor: 402,403 # reason`. A suppression comment
+without a reason is ignored, and a warning is printed.
 
 ## Guidelines
 
@@ -35,11 +59,13 @@ enforcing check.
 
 Guidelines documented so far:
 
-| ID     | Rule                                                                | Enforced by         |
-|--------|---------------------------------------------------------------------|---------------------|
-| PYR401 | Use `NamedTuple` for any function returning more than one value     | Not yet implemented |
-| PYR201 | Use `NewType` for same-typed values at risk of being swapped        | Not yet implemented |
-| PYR402 | Force keyword-only arguments for all function parameters (bare `*`) | Not yet implemented |
+| ID     | Rule                                                                  | Enforced by                     |
+|--------|-----------------------------------------------------------------------|---------------------------------|
+| PYR401 | Use `NamedTuple` for any function returning more than one value       | Not yet implemented             |
+| PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
+| PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
+| PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
+| PYR403 | Force keyword-only arguments for single-parameter functions           | Not yet implemented             |
 
 ## Philosophy
 
@@ -49,8 +75,9 @@ instead.
 
 ## Contributing
 
-Not yet accepting contributions — still finding its shape. We will update this
-section once there is a stable core to contribute to.
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the setup and workflow.
+
+```
 
 ## License
 
