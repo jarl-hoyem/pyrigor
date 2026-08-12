@@ -37,9 +37,9 @@ Guidelines documented so far:
 
 | ID     | Rule                                                                | Enforced by         |
 |--------|---------------------------------------------------------------------|---------------------|
-| PYR001 | Use `NamedTuple` for any function returning more than one value     | Not yet implemented |
-| PYR002 | Use `NewType` for same-typed values at risk of being swapped        | Not yet implemented |
-| PYR003 | Force keyword-only arguments for all function parameters (bare `*`) | Not yet implemented |
+| PYR401 | Use `NamedTuple` for any function returning more than one value     | Not yet implemented |
+| PYR201 | Use `NewType` for same-typed values at risk of being swapped        | Not yet implemented |
+| PYR402 | Force keyword-only arguments for all function parameters (bare `*`) | Not yet implemented |
 
 ## Philosophy
 
