@@ -68,3 +68,6 @@ convention = "google"
 
 [tool.mutmut]
 source_paths = "pyrigor/"
+
+[tool.pylint.format]
+max-line-length = 120

@@ -1,4 +1,4 @@
-# PYR001 — Use `NamedTuple` for multi-value returns
+# PYR401 — Use `NamedTuple` for multi-value returns
 
 ## Rule
 
@@ -57,7 +57,7 @@ result.dj_dw  # always the weights
 
 ## Related
 
-- [PYR002](./PYR002-newtype-same-typed-values.md) — use `NewType` on
+- [PYR201](./PYR201-newtype-same-typed-values.md) — use `NewType` on
   `NamedTuple` fields (or function arguments) that share an underlying
   type and are at risk of being swapped even with named access.
 

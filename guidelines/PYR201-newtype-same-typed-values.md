@@ -1,4 +1,4 @@
-# PYR002 — Use `NewType` for same-typed values at risk of being swapped
+# PYR201 — Use `NewType` for same-typed values at risk of being swapped
 
 ## Rule
 
@@ -47,7 +47,7 @@ def apply_correction(weight: Weight, bias: Bias) -> float:
 apply_correction(bias, weight)  # error: expected Weight, got Bias
 ```
 
-This is not redundant with [PYR001](./PYR001-namedtuple-returns.md).
+This is not redundant with [PYR401](PYR401-namedtuple-returns.md).
 `NamedTuple` closes the *return-unpacking* gap — it stops a caller from
 mislabeling fields by position. But if a `NamedTuple`'s fields are
 still bare same-typed values, two fields can still be constructed in
@@ -80,7 +80,7 @@ def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) 
     return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
 ```
 
-Combined, [PYR001](./PYR001-namedtuple-returns.md) and PYR002 catch:
+Combined, [PYR401](./PYR401-namedtuple-returns.md) and PYR201 catch:
 
 - Argument-order swaps for differently typed args → plain type
   annotations (no extra tooling needed)
@@ -107,9 +107,9 @@ argument against using it wherever confusion is plausible.
 
 ## Related
 
-- [PYR001](./PYR001-namedtuple-returns.md) — use `NamedTuple` for any
-  function returning more than one value. PYR001 and PYR002 are
-  complementary: PYR001 removes positional-unpacking ambiguity, PYR002
+- [PYR401](PYR401-namedtuple-returns.md) — use `NamedTuple` for any
+  function returning more than one value. PYR401 and PYR201 are
+  complementary: PYR401 removes positional-unpacking ambiguity, PYR201
   removes same-type confusion that named access alone does not catch.
 
 ## Enforced by
