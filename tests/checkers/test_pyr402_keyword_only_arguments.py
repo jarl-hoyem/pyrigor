@@ -1,6 +1,7 @@
 """Tests for the PYR402 checker (force keyword-only arguments)."""
 
 from pyrigor.checkers import find_pyr402_violations
+from pyrigor.rules import Rule
 
 
 def test_flags_function_with_positional_parameter() -> None:
@@ -168,13 +169,12 @@ def main(paths):
     assert not violations
 
 
-def test_violation_has_correct_rule_code_and_name() -> None:
-    """A PYR402 violation should carry the correct rule_code and rule_name."""
+def test_violation_has_correct_rule() -> None:
+    """A PYR402 violation should carry Rule PYR403."""
     source = """
 def apply_correction(weight, bias):
     ...
 """
     violations = find_pyr402_violations(source)
 
-    assert violations[0].rule_code == "PYR402"
-    assert violations[0].rule_name == "keyword-only-arguments"
+    assert violations[0].rule == Rule.PYR402
