@@ -104,3 +104,17 @@ def test_suppression_without_reason_does_not_suppress(capsys: CaptureFixture[str
     captured = capsys.readouterr()
     assert result == violations
     assert "missing required reason" in captured.err
+
+
+def test_near_miss_comment_warns(capsys: CaptureFixture[str]) -> None:
+    """A comment mentioning 'pyrigor' that doesn't match the suppression pattern should warn."""
+    source = "def apply_correction(weight, bias):  # pyrigor 402 missing colon\n    ...\n"
+    violations = [
+        Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402, message="..."),
+    ]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    captured = capsys.readouterr()
+    assert result == violations
+    assert "doesn't match" in captured.err

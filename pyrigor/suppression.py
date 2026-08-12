@@ -22,6 +22,7 @@ class _SuppressionInfo(NamedTuple):
 
 
 _SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s*:\s*(?P<tokens>.+)$")
+_NEAR_MISS_PATTERN = re.compile(r"#.*pyrigor", re.IGNORECASE)
 
 
 def _suppressed_tokens(*, line: str) -> _SuppressionInfo:
@@ -31,11 +32,19 @@ def _suppressed_tokens(*, line: str) -> _SuppressionInfo:
         line: One line of source code.
 
     Returns:
-        The suppression information, which is found on this line, or an empty
-        _SuppressionInfo if there is no suppression comment.
+        The suppression information is found on this line, or an empty
+        _SuppressionInfo if there is no suppression comment. If a
+        comment mentions "pyrigor" but doesn't match the expected
+        pattern, a warning is printed.
     """
     match = _SUPPRESSION_PATTERN.search(line)
     if match is None:
+        if _NEAR_MISS_PATTERN.search(line):
+            print(
+                f"Warning: comment mentions 'pyrigor' but doesn't match "
+                f"'# pyrigor: CODE[,CODE] # reason' -- ignoring: {line.strip()}",
+                file=sys.stderr,
+            )
         return _SuppressionInfo(tokens=set(), reason=None)
 
     body = match.group("tokens")
