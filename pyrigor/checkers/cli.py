@@ -31,5 +31,10 @@ def main(paths: list[str]) -> int:
     return exit_code
 
 
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))  # pragma: no cover
+def run() -> None:
+    """Console-script entry point: parse argv and run main()."""
+    sys.exit(main(paths=sys.argv[1:]))
+
+
+if __name__ == "__main__":  # pragma: no cover
+    run()

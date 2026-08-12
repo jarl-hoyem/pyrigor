@@ -2,9 +2,10 @@
 
 from pathlib import Path
 
+import pytest
 from pytest import CaptureFixture
 
-from pyrigor.checkers.cli import main
+from pyrigor.checkers.cli import main, run
 
 
 def test_main_reports_violation_and_returns_nonzero(  # pyrigor: 402 # pytest fixture injection is positional-only.
@@ -34,3 +35,18 @@ def test_main_does_not_report_suppressed_violation(  # pyrigor: 402 # pytest fix
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out == ""
+
+
+def test_run_delegates_to_main_using_sys_argv(  # pyrigor: 402 # pytest fixture injection is positional-only
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """run() should parse sys.argv and pass it to main(), exiting with its return code."""
+    clean_file = tmp_path / "clean.py"
+    clean_file.write_text("def apply_correction(*, weight, bias):\n    ...\n")
+
+    monkeypatch.setattr("sys.argv", ["pyrigor", str(clean_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
