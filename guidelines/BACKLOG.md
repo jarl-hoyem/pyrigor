@@ -31,6 +31,8 @@ should be mutable after construction unless it needs to be.
 
 ## 4. `Enum` instead of magic strings/bools for state
 
+_Written up as PYR202._
+
 ```python
 from enum import Enum, auto
 
@@ -47,6 +49,8 @@ Prevents typos like `"convergd"` from doing nothing silently. The tool mypy catc
 Already in use — every `no-any-return` error caught this session is exactly this discipline working.
 
 ## 6. Never use mutable default arguments
+
+_Planned as PYR404._
 
 ```python
 # Bad — shared mutable state across every call
@@ -116,7 +120,7 @@ silently receive the wrong value.
 Use NewType for any same-typed values — whether function arguments or NamedTuple fields — that could plausibly be
 swapped or confused (for exampleWeight/Bias when both might be represented as float or same-shaped ndarray). Skip it
 where
-confusion isn't realistically possible.
+confusion is not realistically possible.
 
 Why:
 
@@ -131,10 +135,9 @@ mypy
 checks the type at each position but not the name the caller gives it. A caller can unpack into misleadingly named
 variables (dj_db_temp, dj_dw_temp = ... when the function actually returns dj_dw, dj_db), and mypy will not catch it,
 because the types still line up positionally — only the semantics are wrong. This is a silent bug that surfaces only
-when the mislabeled variable is later used in a way that exposes its true type (for example, calling .tolist() on
-what you
-thought was a float), which is a runtime crash, not a caught error.
-NamedTuple field access removes the positional slot entirely, so there's nothing to mislabel.
+when the mislabeled variable is later used in a way that exposes its true type. For example, calling '.tolist()' on
+what you thought was a float, a runtime crash, not a caught error.
+NamedTuple field access removes the positional slot entirely, so there is nothing to mislabel.
 
 Combined, these two will catch:
 
@@ -164,3 +167,20 @@ return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
 3. No wildcard imports (#9) — mechanical fix
 4. No mutable defaults (#6) — mechanical fix
 5. Everything else, as the codebase grows, and the payoff becomes clearer.
+
+## Future tooling ideas
+
+### Suppression audit report
+
+`filter_suppressed` already parses an optional free-text reason from
+`# pyrigor: CODE # reason` comments (captured, not yet surfaced
+anywhere). A natural follow-on: a report command walks a
+codebase, collects every active suppression comment and its reason,
+and outputs a summary — useful for a team lead reviewing what is being
+silenced and why, the same way an old, unreviewed `# noqa` comment
+tends to accumulate unexamined on larger codebases.
+
+Not yet designed. Would likely need its own CLI subcommand (separate
+from the per-checker `main()` entry points) and its own output
+format — deliberately out of scope for the initial suppression
+mechanism itself.
