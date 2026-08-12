@@ -99,25 +99,12 @@ remaining gaps in the full picture:
 - Return-unpacking mislabeling for same-typed return fields →
   `NamedTuple` + `NewType` (PYR001 + PYR002)
 
-Combined with [PYR001](./PYR001-namedtuple-returns.md) and
-[PYR002](./PYR002-newtype-same-typed-values.md), this closes the
-remaining gap in the full picture:
-
-- Argument-order swaps for differently typed args → plain type
-  annotations catch a type mismatch. PYR003 prevents the swap from
-  being expressible at all.
-- Argument-order swaps for same-typed args → `NewType`
-  (PYR002) catches a bare-value mismatch. PYR003 prevents a
-  correctly typed swap from being expressible at all.
-- Return-unpacking mislabeling for differently typed return values →
-  `NamedTuple` (PYR001)
-- Return-unpacking mislabeling for same-typed return fields →
-  `NamedTuple` + `NewType` (PYR001 + PYR002)
-
 ## When this does not apply
 
 - Single-parameter functions, where there is no argument order to
-  confuse.
+  confuse. See [PYR004](./PYR004-keyword-only-single-argument.md) for
+  a separate, independently adoptable rule covering this case under a
+  different rationale.
 - Well-established positional conventions from the standard library or
   a widely used third-party API that this codebase wraps or extends,
   where keyword-only would fight the convention callers already expect

@@ -61,10 +61,23 @@ def apply_correction(*args, **kwargs):
     assert not violations
 
 
-def test_flags_function_with_named_param_before_args() -> None:
-    """A named positional param before *args should still be flagged, even though *args itself is exempt."""
+def test_no_violation_for_single_named_param_before_args() -> None:
+    """A single named param before *args is exempt from PYR003 (see PYR004).
+
+    The arguments *args/**kwargs are already exempt, leaving only one real param."""
     source = """
 def apply_correction(weight, *args, **kwargs):
+    ...
+"""
+    violations = find_pyr003_violations(source)
+
+    assert not violations
+
+
+def test_flags_two_named_params_before_args() -> None:
+    """Two named params before *args should still be flagged."""
+    source = """
+def apply_correction(weight, bias, *args, **kwargs):
     ...
 """
     violations = find_pyr003_violations(source)
@@ -141,4 +154,15 @@ class Foo:
     # flagged (self isn't special here — it is a plain, badly named param),
     # but isn't, because the checker doesn't inspect decorators or class
     # context before applying the self/cls exemption.
+    assert not violations
+
+
+def test_no_violation_for_single_parameter_function() -> None:
+    """A single-parameter function is exempt from PYR003 (see PYR004 instead)."""
+    source = """
+def main(paths):
+    ...
+"""
+    violations = find_pyr003_violations(source)
+
     assert not violations
