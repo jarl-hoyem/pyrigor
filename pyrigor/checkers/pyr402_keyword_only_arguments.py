@@ -5,11 +5,13 @@ from typing import NamedTuple
 
 
 class Violation(NamedTuple):
-    """A single PYR402 rule violation."""
+    """A single rule violation found by one of pyrigor's checkers."""
 
     line: int
     column: int
     function_name: str
+    rule_code: str
+    rule_name: str
     message: str
 
 
@@ -56,6 +58,8 @@ def find_violations(source: str) -> list[Violation]:
                     line=node.lineno,
                     column=node.col_offset + 1,
                     function_name=node.name,
+                    rule_code="PYR402",
+                    rule_name="keyword-only-arguments",
                     message=f"Function '{node.name}' has positional parameters; "
                     f"all parameters should be keyword-only (PYR402).",
                 )

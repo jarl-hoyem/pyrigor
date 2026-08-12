@@ -22,7 +22,8 @@ def main(paths: list[str]) -> int:
         violations = find_pyr402_violations(source)
 
         for violation in violations:
-            print(f"{path}:{violation.line}:{violation.column}: PYR402 {violation.message}")
+            location = f"{path}:{violation.line}:{violation.column}"
+            print(f"{location}: {violation.rule_code} {violation.message} ({violation.rule_name})")
             exit_code = 1
 
     return exit_code

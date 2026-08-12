@@ -166,3 +166,15 @@ def main(paths):
     violations = find_pyr402_violations(source)
 
     assert not violations
+
+
+def test_violation_has_correct_rule_code_and_name() -> None:
+    """A PYR402 violation should carry the correct rule_code and rule_name."""
+    source = """
+def apply_correction(weight, bias):
+    ...
+"""
+    violations = find_pyr402_violations(source)
+
+    assert violations[0].rule_code == "PYR402"
+    assert violations[0].rule_name == "keyword-only-arguments"

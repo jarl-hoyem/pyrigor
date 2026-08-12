@@ -17,3 +17,4 @@ def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: Capt
     captured = capsys.readouterr()
     assert exit_code == 1
     assert f"{bad_file}:1:1: PYR402" in captured.out
+    assert "(keyword-only-arguments)" in captured.out
