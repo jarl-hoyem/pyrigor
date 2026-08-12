@@ -124,7 +124,6 @@ remaining gaps in the full picture:
 
 ## Enforced by
 
-Not yet implemented. Planned as pyrigor’s first AST-based checker —
-detecting function definitions with any parameter before a bare `*`
-(other than `self`/`cls`) is a mechanical, low-ambiguity check, making
-this the intended first target for the checker stage.
+The `pyr402` checker (`pyrigor/checkers/pyr402_keyword_only_arguments.py`),
+wired in as a pre-commit hook and available via the `pyrigor` CLI
+(`pip install pyrigor`, then `pyrigor path/to/file.py`).
