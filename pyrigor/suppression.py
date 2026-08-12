@@ -8,7 +8,9 @@ tolerated.
 """
 
 import re
+import sys
 from typing import NamedTuple
+
 from pyrigor.checkers.pyr402_keyword_only_arguments import Violation
 
 
@@ -45,22 +47,33 @@ def _suppressed_tokens(*, line: str) -> _SuppressionInfo:
     return _SuppressionInfo(tokens=tokens, reason=reason)
 
 
-def _matches_suppression(*, violation: Violation, tokens: set[str]) -> bool:
-    """Check whether a violation is suppressed by the given tokens.
+def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo) -> bool:
+    """Check whether a violation is suppressed by the given suppression information.
 
     Args:
         violation: The violation to check.
-        tokens: Suppression tokens, which are found on the violation's line.
+        suppression: Suppression information parsed from the violation's line.
 
     Returns:
         True if the violation's rule code, numeric shorthand, or
-        symbolic name is present in tokens.
+        symbolic name is present in suppression tokens, and a reason
+        is present. Suppression with codes but no reason does not
+        suppress. Instead, a warning is printed.
     """
-    code = violation.rule.name  # "PYR402"
-    shorthand = code.removeprefix("PYR")  # "402"
-    name = violation.rule.value  # "keyword-only-arguments"
+    code = violation.rule.name
+    shorthand = code.removeprefix("PYR")
+    name = violation.rule.value
 
-    return bool(tokens & {code, shorthand, name})
+    code_matches = bool(suppression.tokens & {code, shorthand, name})
+
+    if code_matches and suppression.reason is None:
+        print(
+            f"Warning: suppression on line {violation.line} for {code} is missing required reason, ignoring.",
+            file=sys.stderr,
+        )
+        return False
+
+    return code_matches
 
 
 def filter_suppressed(*, violations: list[Violation], source: str) -> list[Violation]:
@@ -80,7 +93,7 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> list[Viola
         line_text = lines[violation.line - 1] if 0 < violation.line <= len(lines) else ""
         suppression = _suppressed_tokens(line=line_text)
 
-        if not _matches_suppression(violation=violation, tokens=suppression.tokens):
+        if not _matches_suppression(violation=violation, suppression=suppression):
             result.append(violation)
 
     return result

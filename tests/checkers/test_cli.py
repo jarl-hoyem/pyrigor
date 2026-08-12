@@ -27,7 +27,7 @@ def test_main_does_not_report_suppressed_violation(  # pyrigor 402 pytest fixtur
 ) -> None:
     """A violation suppressed via # pyrigor: comment should not be printed, and the exit code should be 0."""
     suppressed_file = tmp_path / "suppressed.py"
-    suppressed_file.write_text("def apply_correction(weight, bias):  # pyrigor: 402\n    ...\n")
+    suppressed_file.write_text("def apply_correction(weight, bias):  # pyrigor: 402 # positional swap risk\n    ...\n")
 
     exit_code = main(paths=[str(suppressed_file)])
 
