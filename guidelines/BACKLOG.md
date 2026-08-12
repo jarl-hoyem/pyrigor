@@ -31,6 +31,8 @@ should be mutable after construction unless it needs to be.
 
 ## 4. `Enum` instead of magic strings/bools for state
 
+_Written up as PYR202._
+
 ```python
 from enum import Enum, auto
 
