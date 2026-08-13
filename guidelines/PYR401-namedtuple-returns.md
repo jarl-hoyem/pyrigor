@@ -60,6 +60,11 @@ result.dj_dw  # always the weights
 - [PYR201](./PYR201-newtype-same-typed-values.md) — use `NewType` on
   `NamedTuple` fields (or function arguments) that share an underlying
   type and are at risk of being swapped even with named access.
+- [PYR301](./PYR301-namedtuple-not-bare-tuple.md) — the general form
+  of this rule for bare tuple types anywhere other than a function
+  signature (variables, dataclass fields, dict values).
+- [PYR405](./PYR405-namedtuple-not-bare-tuple-parameter.md) — the same
+  rule applied to function parameters instead of return values.
 
 ## Enforced by
 
