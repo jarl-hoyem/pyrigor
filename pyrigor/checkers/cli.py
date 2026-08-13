@@ -3,6 +3,7 @@
 import ast
 import sys
 import time
+from collections import Counter
 from importlib.metadata import version
 from pathlib import Path
 
@@ -96,18 +97,18 @@ def _run_checkers(*, path: str, source: str) -> list[Violation]:
     return [v for checker in CHECKERS for v in checker(tree)]
 
 
-def _check_file(*, path: str) -> int:
+def _check_file(*, path: str) -> list[Violation]:
     """Check a single file and print any violations found.
 
     Args:
         path: The file to check.
 
     Returns:
-        The number of violations found in this file.
+        Every violation that is found in this file.
     """
     source = _read_source(path=path)
     if source is None:
-        return 0
+        return []
 
     violations = _run_checkers(path=path, source=source)
     violations = filter_suppressed(violations=violations, source=source)
@@ -119,7 +120,36 @@ def _check_file(*, path: str) -> int:
             f"{violation.rule.problem} ({violation.rule.symbolic_name})"
         )
 
-    return len(violations)
+    return violations
+
+
+def _format_rule_breakdown(*, violations: list[Violation]) -> str:
+    """Build a per-rule violation count breakdown string.
+
+    Args:
+        violations: Every violation found across all files.
+
+    Returns:
+        A comma-separated "Rule: count" breakdown, for example, "PYR401: 2, PYR402: 5".
+    """
+    counts = Counter(v.rule.name for v in violations)
+    return ", ".join(f"{rule}: {count}" for rule, count in sorted(counts.items()))
+
+
+def _print_summary(*, files: list[str], elapsed: float, violations: list[Violation]) -> None:
+    """Print the timing summary and per-rule breakdown.
+
+    Args:
+        files: The files that were checked.
+        elapsed: Elapsed time in seconds.
+        violations: Every violation found across all files.
+    """
+    file_word = "file" if len(files) == 1 else "files"
+    violation_word = "violation" if len(violations) == 1 else "violations"
+    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s — {len(violations)} {violation_word}")
+
+    if violations:
+        print(_format_rule_breakdown(violations=violations))
 
 
 def main(paths: list[str]) -> int:
@@ -134,14 +164,11 @@ def main(paths: list[str]) -> int:
     files = _collect_python_files(paths=paths)
     start = time.perf_counter()
 
-    violation_counts = [_check_file(path=path) for path in files]
-    total_violations = sum(violation_counts)
-    exit_code = 1 if total_violations else 0
+    all_violations = [v for path in files for v in _check_file(path=path)]
+    exit_code = 1 if all_violations else 0
 
     elapsed = time.perf_counter() - start
-    file_word = "file" if len(files) == 1 else "files"
-    violation_word = "violation" if total_violations == 1 else "violations"
-    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s — {total_violations} {violation_word}")
+    _print_summary(files=files, elapsed=elapsed, violations=all_violations)
 
     return exit_code
 

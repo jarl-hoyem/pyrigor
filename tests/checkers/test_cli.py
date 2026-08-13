@@ -157,3 +157,14 @@ def test_run_prints_version_and_exits(monkeypatch: pytest.MonkeyPatch, capsys: C
     captured = capsys.readouterr()
     assert exc_info.value.code == 0
     assert "pyrigor" in captured.out
+
+
+def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """The summary should break violations down by rule."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "PYR401: 1" in captured.out
+    assert "PYR402: 1" in captured.out
