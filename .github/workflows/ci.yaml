@@ -48,6 +48,20 @@ jobs:
 
       - name: Run pre-commit (pre-push-stage hooks, e.g. pytest)
         run: uv run pre-commit run --all-files --hook-stage pre-push
+  stdlib-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install project
+        run: uv sync --extra dev
+      - name: Run pyrigor against the stdlib, must not crash
+        run: uv run pyrigor $(python -c "import sysconfig; print(sysconfig.get_path('stdlib'))")
 
 # For later
 #  mutation-test:

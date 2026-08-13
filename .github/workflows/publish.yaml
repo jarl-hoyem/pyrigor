@@ -25,10 +25,25 @@ jobs:
         with:
           name: release-dists
           path: dist/
+  large-repo-smoke-test:
+    runs-on: ubuntu-latest
+    needs:
+      - release-build
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Clone a large external repo
+        run: git clone --depth 1 https://github.com/home-assistant/core.git /tmp/core
+      - name: Install project
+        run: uv sync --extra dev
+      - name: Run pyrigor against it, must not crash
+        run: uv run pyrigor /tmp/core
   pypi-publish:
     runs-on: ubuntu-latest
     needs:
       - release-build
+      - large-repo-smoke-test
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
