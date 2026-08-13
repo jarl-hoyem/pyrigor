@@ -184,3 +184,38 @@ Not yet designed. Would likely need its own CLI subcommand (separate
 from the per-checker `main()` entry points) and its own output
 format — deliberately out of scope for the initial suppression
 mechanism itself.
+
+### Proper `.gitignore`-aware file discovery
+
+`_collect_python_files()` currently uses a small hardcoded exclude
+list (`.venv`, `.git`, `__pycache__`, `node_modules`, ...) when
+walking directories, rather than respecting the repo’s actual
+`.gitignore`. Good enough for now — the goal was avoiding wasted
+time/noise on vendored or generated code, not building a general
+file-discovery engine. Worth revisiting if the hardcoded list proves
+not enough in practice (a real project with unusual excludes not on
+the default list), or once there is a concrete reason to match `git
+ls-files`/`.gitignore` semantics exactly.
+
+### Per-rule directory/file excludes
+
+Right now, excluding a path from pyrigor entirely means excluding it
+at the pre-commit level (`exclude: ^tests/` in
+`.pre-commit-config.yaml`) — all-or-nothing across every rule. A more
+precise mechanism would let a project exclude specific rules from
+specific paths (for example, "PYR402 does not apply under `tests/`, but PYR401
+still does"), like ruff's `per-file-ignores`. Not yet designed. Would likely
+live in a project-level pyrigor config file (`pyproject.toml` section,
+or a dedicated config file), which does not exist yet.
+
+### Detect unnecessary suppression comments
+
+The tool mypy (and other type checkers) can flag a `# type: ignore` that’s no
+longer suppressing anything, because the underlying issue was fixed,
+and the suppression became dead weight. The tool pyrigor’s suppression comments
+have the same problem: a `# pyrigor: CODE # reason` sitting on a line
+that no longer actually violates that rule (because the code changed,
+or the rule’s logic changed) is not flagged as unnecessary —
+it just silently does nothing forever. Worth detecting and warning on
+stale/unnecessary suppressions, the same way `filter_suppressed`
+already warns on malformed or missing-reason ones.

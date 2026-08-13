@@ -95,6 +95,7 @@ repos:
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli
         types: [ python ]
+        exclude: ^tests/
       - id: pytest
         name: pytest
         language: system
