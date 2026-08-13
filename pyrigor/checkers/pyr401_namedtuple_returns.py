@@ -13,7 +13,7 @@ def _is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
         annotation: The function's return annotation node, or None.
 
     Returns:
-        True if the annotation is tuple[A, B, ...]. And has two or more
+        True if the annotation is tuple[A, B, ...]. With two or more
         type arguments.
     """
     if not isinstance(annotation, ast.Subscript):
@@ -25,16 +25,15 @@ def _is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
     return isinstance(annotation.slice, ast.Tuple) and len(annotation.slice.elts) >= 2
 
 
-def find_violations(source: str) -> list[Violation]:
-    """Find PYR401 violations in a source string.
+def find_violations(tree: ast.Module) -> list[Violation]:
+    """Find PYR401 violations in a parsed source tree.
 
     Args:
-        source: Python source code to check.
+        tree: The parsed AST of a Python source file.
 
     Returns:
         A list of violations found, one per offending function.
     """
-    tree = ast.parse(source)
     violations = []
 
     for node in ast.walk(tree):

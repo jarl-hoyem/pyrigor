@@ -1,5 +1,6 @@
 """Command-line entry point for pyrigor's checkers."""
 
+import ast
 import sys
 import time
 from pathlib import Path
@@ -86,25 +87,26 @@ def _run_checkers(*, path: str, source: str) -> list[Violation]:
         couldn't be parsed.
     """
     try:
-        return [v for checker in CHECKERS for v in checker(source)]
+        tree = ast.parse(source)
     except SyntaxError as error:
         print(f"Warning: skipping {path}: {error}", file=sys.stderr)
         return []
 
+    return [v for checker in CHECKERS for v in checker(tree)]
 
-def _check_file(*, path: str) -> bool:
+
+def _check_file(*, path: str) -> int:
     """Check a single file and print any violations found.
 
     Args:
         path: The file to check.
 
     Returns:
-        True if any violation was printed (that is this file should
-        contribute to a non-zero exit code).
+        The number of violations found in this file.
     """
     source = _read_source(path=path)
     if source is None:
-        return False
+        return 0
 
     violations = _run_checkers(path=path, source=source)
     violations = filter_suppressed(violations=violations, source=source)
@@ -116,7 +118,7 @@ def _check_file(*, path: str) -> bool:
             f"{violation.rule.problem} ({violation.rule.symbolic_name})"
         )
 
-    return bool(violations)
+    return len(violations)
 
 
 def main(paths: list[str]) -> int:
@@ -131,15 +133,14 @@ def main(paths: list[str]) -> int:
     files = _collect_python_files(paths=paths)
     start = time.perf_counter()
 
-    # A list, not a generator: any() must not short-circuit here, since every
-    # file needs to run through _check_file() and print its violations, not
-    # just the first one returning True.
-    violated_files = [_check_file(path=path) for path in files]  # pylint: disable=use-a-generator
-    exit_code = 1 if any(violated_files) else 0
+    violation_counts = [_check_file(path=path) for path in files]
+    total_violations = sum(violation_counts)
+    exit_code = 1 if total_violations else 0
 
     elapsed = time.perf_counter() - start
     file_word = "file" if len(files) == 1 else "files"
-    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s")
+    violation_word = "violation" if total_violations == 1 else "violations"
+    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s — {total_violations} {violation_word}")
 
     return exit_code
 

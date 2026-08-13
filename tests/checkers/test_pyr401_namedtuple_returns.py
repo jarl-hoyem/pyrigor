@@ -1,5 +1,7 @@
 """Tests for the PYR401 checker (NamedTuple returns)."""
 
+import ast
+
 from pyrigor.checkers.pyr401_namedtuple_returns import find_violations
 
 
@@ -9,7 +11,7 @@ def test_flags_function_with_tuple_return_annotation() -> None:
 def compute_gradient(*, x, y, w, b) -> tuple[float, float]:
     ...
 """
-    violations = find_violations(source)
+    violations = find_violations(ast.parse(source))
 
     assert len(violations) == 1
     assert violations[0].function_name == "compute_gradient"
@@ -21,7 +23,7 @@ def test_no_violation_for_unannotated_return() -> None:
 def compute_gradient(*, x, y, w, b):
     ...
 """
-    violations = find_violations(source)
+    violations = find_violations(ast.parse(source))
 
     assert not violations
 
@@ -32,7 +34,7 @@ def test_no_violation_for_non_tuple_return() -> None:
 def compute_cost(*, x, y, w, b) -> float:
     ...
 """
-    violations = find_violations(source)
+    violations = find_violations(ast.parse(source))
 
     assert not violations
 
@@ -43,7 +45,7 @@ def test_no_violation_for_single_element_tuple_return() -> None:
 def compute_something(*, x) -> tuple[float]:
     ...
 """
-    violations = find_violations(source)
+    violations = find_violations(ast.parse(source))
 
     assert not violations
 
@@ -54,6 +56,6 @@ def test_no_violation_for_non_tuple_subscript_return() -> None:
 def load_config(*, path) -> dict[str, int]:
     ...
 """
-    violations = find_violations(source)
+    violations = find_violations(ast.parse(source))
 
     assert not violations

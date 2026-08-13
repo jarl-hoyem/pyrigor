@@ -135,3 +135,13 @@ def test_unparseable_file_is_skipped_with_warning(tmp_path: Path, capsys: Captur
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "bad_syntax.py" in captured.err
+
+
+def test_main_prints_violation_count(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """The summary line should include a total violation count."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two(c, d):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "2 violations" in captured.out

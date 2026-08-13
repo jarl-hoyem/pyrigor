@@ -14,7 +14,7 @@ def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
     Returns:
         True if the function has two or more parameters with at least
-        one positional (beyond an optional leading `self`/`cls`).
+        one positional (beyond an optional leading self/cls).
         Single-parameter functions are exempt — see PYR403.
     """
     positional_args = list(node.args.posonlyargs) + list(node.args.args)
@@ -28,18 +28,15 @@ def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return bool(positional_args)
 
 
-def find_violations(source: str) -> list[Violation]:
-    """Find PYR402 violations in a source string.
-
-    PYR402: all parameters should be keyword-only.
+def find_violations(tree: ast.Module) -> list[Violation]:
+    """Find PYR402 violations in a parsed source tree.
 
     Args:
-        source: Python source code to check.
+        tree: The parsed AST of a Python source file.
 
     Returns:
         A list of violations found, one per offending function.
     """
-    tree = ast.parse(source)
     violations = []
 
     for node in ast.walk(tree):

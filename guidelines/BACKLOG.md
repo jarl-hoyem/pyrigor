@@ -185,6 +185,17 @@ from the per-checker `main()` entry points) and its own output
 format — deliberately out of scope for the initial suppression
 mechanism itself.
 
+### Per-rule violation counts, and a full summary report
+
+The current summary line reports a single total violation count.
+Worth extending into a proper breakdown — for example, the "PYR401: 12
+violations, PYR402: 64 violations" — and eventually a fuller report
+(most-violated files, the most common rule, trend over time if run
+repeatedly). Natural pairing with the suppression audit report idea
+above. Both are "summarize what pyrigor found/did across a run"
+features and might share infrastructure or even a CLI flag
+(`--report`) once designed together.
+
 ### Proper `.gitignore`-aware file discovery
 
 `_collect_python_files()` currently uses a small hardcoded exclude
