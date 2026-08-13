@@ -30,6 +30,11 @@ class Rule(Enum):
         problem="has positional parameters; all parameters should be keyword-only",
     )
 
+    PYR405 = RuleInfo(
+        symbolic_name="namedtuple-parameters",
+        problem="has a parameter typed as a bare multi-value tuple; use a NamedTuple instead",
+    )
+
     @property
     def symbolic_name(self) -> str:
         """The symbolic name of the rule, for suppression comments and output."""
