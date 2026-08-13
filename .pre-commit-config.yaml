@@ -96,8 +96,8 @@ repos:
         entry: uv run --extra dev pytest
         pass_filenames: false
       # Saved for later: stages: [pre-push] # Only run on push instead of every commit.
-      - id: pyr402
-        name: PYR402 - keyword-only arguments
+      - id: pyrigor
+        name: pyrigor
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli
         types: [ python ]

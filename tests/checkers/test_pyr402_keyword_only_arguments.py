@@ -1,6 +1,6 @@
 """Tests for the PYR402 checker (force keyword-only arguments)."""
 
-from pyrigor.checkers import find_pyr402_violations
+from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations
 from pyrigor.rules import Rule
 
 
@@ -10,7 +10,7 @@ def test_flags_function_with_positional_parameter() -> None:
 def apply_correction(weight, bias):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert len(violations) == 1
     assert violations[0].function_name == "apply_correction"
@@ -22,7 +22,7 @@ def test_no_violation_for_already_keyword_only_function() -> None:
 def apply_correction(*, weight, bias):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -34,7 +34,7 @@ class Foo:
     def bar(self, *, weight, bias):
         ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -45,7 +45,7 @@ def test_flags_function_with_positional_only_parameter() -> None:
 def apply_correction(weight, bias, /):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert len(violations) == 1
     assert violations[0].function_name == "apply_correction"
@@ -57,7 +57,7 @@ def test_no_violation_for_args_kwargs_only_function() -> None:
 def apply_correction(*args, **kwargs):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -70,7 +70,7 @@ def test_no_violation_for_single_named_param_before_args() -> None:
 def apply_correction(weight, *args, **kwargs):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -81,7 +81,7 @@ def test_flags_two_named_params_before_args() -> None:
 def apply_correction(weight, bias, *args, **kwargs):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert len(violations) == 1
     assert violations[0].function_name == "apply_correction"
@@ -93,7 +93,7 @@ def test_no_violation_for_keyword_only_after_args() -> None:
 def apply_correction(*args, weight, **kwargs):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -104,7 +104,7 @@ def test_flags_async_function_with_positional_parameter() -> None:
 async def apply_correction(weight, bias):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert len(violations) == 1
     assert violations[0].function_name == "apply_correction"
@@ -118,7 +118,7 @@ def outer():
         ...
     return inner
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert len(violations) == 1
     assert violations[0].function_name == "inner"
@@ -129,7 +129,7 @@ def test_no_violation_for_lambda_with_positional_parameters() -> None:
     source = """
 sort_key = lambda weight, bias: weight + bias
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -149,7 +149,7 @@ class Foo:
     def bar(self):
         ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     # Documenting current (incorrect but accepted) behavior: this SHOULD be
     # flagged (self isn't special here — it is a plain, badly named param),
@@ -164,7 +164,7 @@ def test_no_violation_for_single_parameter_function() -> None:
 def main(paths):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert not violations
 
@@ -175,6 +175,6 @@ def test_violation_has_correct_rule() -> None:
 def apply_correction(weight, bias):
     ...
 """
-    violations = find_pyr402_violations(source)
+    violations = find_violations(source)
 
     assert violations[0].rule == Rule.PYR402
