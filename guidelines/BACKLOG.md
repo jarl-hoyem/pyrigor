@@ -219,3 +219,14 @@ or the rule’s logic changed) is not flagged as unnecessary —
 it just silently does nothing forever. Worth detecting and warning on
 stale/unnecessary suppressions, the same way `filter_suppressed`
 already warns on malformed or missing-reason ones.
+
+### `--version` flag
+
+The `pyrigor` CLI has no way to report its own installed version —
+found while trying to confirm, which pyrigor version was installed in
+a separate downstream project (`uv pip show pyrigor` was the
+workaround). Small, standard, and genuinely useful once pyrigor is
+used across multiple projects. Should be quick to add whenever
+picked up — likely just a `--version`/`-V` flag in `run()` that reads
+the installed package’s own version and exits, without needing to
+touch `main()`'s actual checking logic.
