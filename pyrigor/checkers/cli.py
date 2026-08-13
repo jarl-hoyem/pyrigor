@@ -3,6 +3,7 @@
 import ast
 import sys
 import time
+from importlib.metadata import version
 from pathlib import Path
 
 from pyrigor.checkers import CHECKERS
@@ -147,6 +148,10 @@ def main(paths: list[str]) -> int:
 
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
+    if "--version" in sys.argv:
+        print(f"pyrigor {version('pyrigor')}")
+        sys.exit(0)
+
     sys.exit(main(paths=sys.argv[1:]))
 
 

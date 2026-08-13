@@ -145,3 +145,15 @@ def test_main_prints_violation_count(tmp_path: Path, capsys: CaptureFixture[str]
 
     captured = capsys.readouterr()
     assert "2 violations" in captured.out
+
+
+def test_run_prints_version_and_exits(monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]) -> None:
+    """run() with --version should print the installed version and exit 0, without checking any files."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--version"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 0
+    assert "pyrigor" in captured.out
