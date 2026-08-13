@@ -1,5 +1,73 @@
 # pyrigor
 
+[![PyPI version](https://img.shields.io/pypi/v/pyrigor.svg)](https://pypi.org/project/pyrigor/)
+[![CI](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml)
+[![Publish](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml)
+[![Python 3.11-3.14](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/downloads/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
+[![Type hints: Pyright](https://img.shields.io/badge/type%20hints-Pyright-brightgreen.svg)](https://github.com/microsoft/pyright)
+[![Type hints: mypy](https://img.shields.io/badge/type%20hints-mypy-brightgreen.svg)](http://mypy-lang.org/)
+[![Type hints: ty](https://img.shields.io/badge/type%20hints-ty-brightgreen.svg)](https://github.com/astral-sh/ty)
+[![Pylint](https://img.shields.io/badge/pylint-checked-brightgreen)](https://pylint.pycqa.org/)
+[![pydocstyle](https://img.shields.io/badge/docstrings-pydocstyle-brightgreen)](http://www.pydocstyle.org/)
+[![Complexity: xenon](https://img.shields.io/badge/complexity-xenon-brightgreen)](https://xenon.readthedocs.io/)
+[![Code complexity: radon](https://img.shields.io/badge/code%20complexity-radon-brightgreen)](https://radon.readthedocs.io/)
+[![pytest: 100% coverage](https://img.shields.io/badge/pytest-100%25%20coverage-brightgreen)](https://pytest.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## The problem, in one example
+
+The Mars Climate Orbiter was lost because two teams silently
+disagreed about units. The code for that class of bug still compiles
+and passes mypy today.
+
+```python
+Thrust = NewType("Thrust", float)
+FuelMass = NewType("FuelMass", float)
+
+def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float:
+    ...
+
+# Both floats. Nothing about a bare float stops this from compiling,
+# type-checking cleanly, and silently swapping the two values.
+compute_burn_time(thrust=fuel_mass, fuel_mass=thrust)
+```
+
+This is pyrigor’s PYR201 rule, `NewType` for same-typed values at
+risk of being swapped. It is documented today, not yet enforced.
+What pyrigor already catches, right now:
+
+```bash
+$ pyrigor launch_sequence.py
+launch_sequence.py:12:1: PYR402 Function 'compute_burn_time' has
+positional parameters; all parameters should be keyword-only
+(keyword-only-arguments)
+```
+
+## Usage
+
+```bash
+pip install pyrigor
+pyrigor path/to/file.py [path/to/another.py ...]
+```
+
+PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
+exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
+
+To suppress a specific violation, add a same-line comment with a
+reason:
+
+```python
+def f(weight, bias):  # pyrigor: PYR402 # matches a fixed external API
+    ...
+```
+
+Codes may be given as the full code (`PYR402`), the bare number
+(`402`), or the rule’s symbolic name (`keyword-only-arguments`).
+Multiple codes: `# pyrigor: 402,403 # reason`. A suppression comment
+without a reason is ignored, and a warning is printed.
+
 Disciplined Python patterns for catching bugs that type checkers and
 standard linters miss — inspired by safety-critical coding guidelines from
 other languages, adapted for a language and ecosystem they were not written
@@ -29,29 +97,6 @@ yet enforced.
   enforced.
 - [ ] pylint plugin
 - [ ] ruff plugin (stretch goal — contingent on learning Rust)
-
-## Usage
-
-```bash
-pip install pyrigor
-pyrigor path/to/file.py [path/to/another.py ...]
-```
-
-PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
-exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
-
-To suppress a specific violation, add a same-line comment with a
-reason:
-
-```python
-def f(weight, bias):  # pyrigor: PYR402 # matches a fixed external API
-    ...
-```
-
-Codes may be given as the full code (`PYR402`), the bare number
-(`402`), or the rule’s symbolic name (`keyword-only-arguments`).
-Multiple codes: `# pyrigor: 402,403 # reason`. A suppression comment
-without a reason is ignored, and a warning is printed.
 
 ## Guidelines
 
@@ -92,7 +137,17 @@ the inconsistency pyrigor exists to close.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the setup and workflow.
+1. Browse or open an issue on [GitHub Issues](https://github.com/jarl-hoyem/pyrigor/issues)
+2. Adding a new rule? Follow [`guidelines/ADDING_A_RULE.md`](./guidelines/ADDING_A_RULE.md) step by step.
+3. Run `pre-commit run --all-files` before pushing.
+4. Open a Pull Request.
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.
+
+## Contact
+
+Maintained by [jarl-hoyem](https://github.com/jarl-hoyem). For
+questions or ideas, open an issue.
 
 ## License
 
