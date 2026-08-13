@@ -4,6 +4,8 @@ Reference notes from the ML course sessions. Not urgent — revisit and adopt gr
 
 ## 1. Never use direct float equality
 
+_Written up as PYR204._
+
 ```python
 # Bad
 converging = (cost - new_cost) == 0
@@ -27,6 +29,8 @@ LEARNING_RATE: Final = 0.001
 The mypy errors, if anything, later tries to rebind it.
 
 ## 3. Frozen structures for all multi-field states
+
+_Written up as PYR302._
 
 Use `NamedTuple` or `@dataclass(frozen=True)` for any structured data passed around — not just function returns. Nothing
 should be mutable after construction unless it needs to be.
@@ -52,7 +56,7 @@ Already in use — every `no-any-return` error caught this session is exactly th
 
 ## 6. Never use mutable default arguments
 
-_Planned as PYR404._
+_Written up as PYR404._
 
 ```python
 # Bad — shared mutable state across every call
@@ -65,6 +69,8 @@ def f(items: list | None = None):
 ```
 
 ## 7. `assert_never` for exhaustiveness checking
+
+_Written up as PYR501._
 
 ```python
 from typing import assert_never
@@ -83,6 +89,8 @@ match status:
 If a new enum member is added later, and a branch is missed, mypy flags it at type-check time.
 
 ## 8. Explicit precondition checks, not implicit trust
+
+_Written up as PYR502._
 
 ```python
 def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:

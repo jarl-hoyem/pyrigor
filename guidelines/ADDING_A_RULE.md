@@ -8,6 +8,19 @@ file misnamed with the wrong rule number colliding with an already
 reserved one, and a fully built, fully tested checker that sat
 unregistered and never actually ran for several commits.
 
+## 0. Check it is not already covered
+
+Before writing anything, check whether ruff, pylint, or mypy strict
+mode already catches the pattern. Pyrigor exists to fill gaps other
+tools miss, not to re-implement checks they already do well. This
+was skipped once already: PYR404 (mutable default arguments)
+overlaps with the ruff's `B006` and pylint's `W0102`, discovered only
+after the guideline doc was fully written.
+
+If the pattern is already covered, do not write the rule. Add it to
+[`REJECTED.md`](./REJECTED.md) instead, so the idea is not lost but
+also is not rebuilt or re-debated later.
+
 ## 1. Pick a number
 
 See [`NUMBERING.md`](./NUMBERING.md) for the bucket scheme. Check

@@ -64,11 +64,16 @@ Guidelines documented so far:
 | PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
 | PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
 | PYR203 | Use `Final` named constants instead of magic numbers                  | Not yet implemented             |
+| PYR204 | Never compare floats with `==`; use tolerance-based comparison        | Not yet implemented             |
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
+| PYR302 | Use `frozen=True` for dataclasses holding structured state            | Not yet implemented             |
 | PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Force keyword-only arguments for single-parameter functions           | Not yet implemented             |
+| PYR404 | Use immutable default argument values, never mutable ones             | Not yet implemented             |
 | PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | Not yet implemented             |
+| PYR501 | End a `match` over a closed set with `case _: assert_never(...)`      | Not yet implemented             |
+| PYR502 | State implicit input assumptions as explicit `assert` preconditions   | Not yet implemented             |
 
 ## Philosophy
 
