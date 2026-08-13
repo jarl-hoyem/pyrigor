@@ -71,7 +71,7 @@ def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo)
     """
     code = violation.rule.name
     shorthand = code.removeprefix("PYR")
-    name = violation.rule.value
+    name = violation.rule.symbolic_name
 
     code_matches = bool(suppression.tokens & {code, shorthand, name})
 

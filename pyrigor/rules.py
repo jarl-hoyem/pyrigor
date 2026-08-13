@@ -1,28 +1,41 @@
 """Registry of all pyrigor rules.
 
-Each Rule member's name is the rule's code (for example, PYR402), and its
-value is the rule's symbolic name (for example, "keyword-only-arguments") —
-matching the pylint-style dual-identifier convention pyrigor's own
-output and suppression comments use.
+Each Rule member's value is a RuleInfo — the symbolic name (used in
+suppression comments and output) paired with the rule-specific
+problem description (used to build violation messages). One
+declaration per rule. No separate lookup table to drift out of sync
+with the enum itself.
 """
 
 from enum import Enum
+from typing import NamedTuple
 
 
-# pyrigor/rules.py
+class RuleInfo(NamedTuple):
+    """The symbolic name of a rule and problem description."""
+
+    symbolic_name: str
+    problem: str
+
+
 class Rule(Enum):
     """All pyrigor rules implemented or planned."""
 
-    PYR401 = "namedtuple-returns"
-    PYR402 = "keyword-only-arguments"
+    PYR401 = RuleInfo(
+        symbolic_name="namedtuple-returns",
+        problem="returns a bare multi-value tuple; use a NamedTuple instead",
+    )
+    PYR402 = RuleInfo(
+        symbolic_name="keyword-only-arguments",
+        problem="has positional parameters; all parameters should be keyword-only",
+    )
+
+    @property
+    def symbolic_name(self) -> str:
+        """The symbolic name of the rule, for suppression comments and output."""
+        return self.value.symbolic_name
 
     @property
     def problem(self) -> str:
         """The rule-specific problem description, for violation messages."""
-        return _RULE_PROBLEMS[self]
-
-
-_RULE_PROBLEMS: dict[Rule, str] = {
-    Rule.PYR401: "returns a bare multi-value tuple; use a NamedTuple instead",
-    Rule.PYR402: "has positional parameters; all parameters should be keyword-only",
-}
+        return self.value.problem

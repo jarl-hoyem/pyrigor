@@ -27,7 +27,7 @@ def main(paths: list[str]) -> int:
             location = f"{path}:{violation.line}:{violation.column}"
             print(
                 f"{location}: {violation.rule.name} Function '{violation.function_name}' "
-                f"{violation.rule.problem} ({violation.rule.value})"
+                f"{violation.rule.problem} ({violation.rule.symbolic_name})"
             )
             exit_code = 1
 
