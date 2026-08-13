@@ -86,3 +86,13 @@ def test_main_prints_timing_summary(tmp_path: Path, capsys: CaptureFixture[str])
     captured = capsys.readouterr()
     assert "1 file" in captured.out
     assert "s" in captured.out  # seconds unit present somewhere in the summary
+
+
+def test_check_file_handles_bom(tmp_path: Path) -> None:
+    """A file with a UTF-8 Byte Order Mark (BOM) should be parsed correctly, not crash."""
+    bom_file = tmp_path / "bom.py"
+    bom_file.write_bytes("def apply_correction(*, weight, bias):\n    ...\n".encode("utf-8-sig"))
+
+    exit_code = main(paths=[str(bom_file)])
+
+    assert exit_code == 0

@@ -56,7 +56,7 @@ def _check_file(*, path: str) -> bool:
         True if any violation was printed (this file should
         contribute to a non-zero exit code).
     """
-    source = Path(path).read_text(encoding="utf-8")
+    source = Path(path).read_text(encoding="utf-8-sig")
     violations = [v for checker in CHECKERS for v in checker(source)]
     violations = filter_suppressed(violations=violations, source=source)
 
