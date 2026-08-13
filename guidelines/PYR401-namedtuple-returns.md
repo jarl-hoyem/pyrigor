@@ -64,3 +64,14 @@ result.dj_dw  # always the weights
 ## Enforced by
 
 Not yet implemented.
+
+## Detection scope
+
+PYR401's checker operates on return type annotations, not runtime
+inference of what a function actually returns. A function with no
+return annotation at all is outside this checker's scope — pyrigor
+assumes mypy (or an equivalent type checker) is already enforcing
+annotated returns project-wide, and treats "no annotation" as a
+separate, already-covered concern rather than something PYR401 needs
+to detect itself.
+
