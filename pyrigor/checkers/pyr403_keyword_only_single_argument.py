@@ -1,4 +1,4 @@
-"""PYR402 checker: flag functions with parameters before a bare `*`."""
+"""PYR403 checker: flag single-parameter functions with a positional parameter."""
 
 import ast
 
@@ -8,25 +8,25 @@ from pyrigor.violations import Violation
 
 
 def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    """Check whether a function definition violates PYR402.
+    """Check whether a function definition violates PYR403.
 
     Args:
         node: The function definition to check.
 
     Returns:
-        True if the function has two or more parameters with at least
-        one positional (beyond an optional leading self/cls).
-        Single-parameter functions are exempt — see PYR403.
+        True if the function has exactly one parameter (beyond an
+        optional leading self/cls), and that parameter is positional
+        rather than already keyword-only.
     """
     counts = count_parameters(node=node)
-    if counts.total_params < 2:
+    if counts.total_params != 1:
         return False
 
     return bool(counts.positional_args)
 
 
 def find_violations(*, tree: ast.Module) -> list[Violation]:
-    """Find PYR402 violations in a parsed source tree.
+    """Find PYR403 violations in a parsed source tree.
 
     Args:
         tree: The parsed AST of a Python source file.
@@ -34,4 +34,4 @@ def find_violations(*, tree: ast.Module) -> list[Violation]:
     Returns:
         A list of violations found, one per offending function.
     """
-    return find_violations_by_predicate(tree=tree, predicate=_has_violation, rule=Rule.PYR402)
+    return find_violations_by_predicate(tree=tree, predicate=_has_violation, rule=Rule.PYR403)

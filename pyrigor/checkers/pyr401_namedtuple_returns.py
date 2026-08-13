@@ -2,12 +2,25 @@
 
 import ast
 
-from pyrigor.checkers._shared import is_bare_multi_value_tuple
+from pyrigor.checkers._shared import find_violations_by_predicate, is_bare_multi_value_tuple
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation, make_violation
+from pyrigor.violations import Violation
 
 
-def find_violations(tree: ast.Module) -> list[Violation]:
+def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Check whether a function definition violates PYR401.
+
+    Args:
+        node: The function definition to check.
+
+    Returns:
+        True if the function's return annotation is a bare
+        multi-value tuple.
+    """
+    return is_bare_multi_value_tuple(annotation=node.returns)
+
+
+def find_violations(*, tree: ast.Module) -> list[Violation]:
     """Find PYR401 violations in a parsed source tree.
 
     Args:
@@ -16,12 +29,4 @@ def find_violations(tree: ast.Module) -> list[Violation]:
     Returns:
         A list of violations found, one per offending function.
     """
-    violations = []
-
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and is_bare_multi_value_tuple(
-            annotation=node.returns
-        ):
-            violations.append(make_violation(node=node, rule=Rule.PYR401))
-
-    return violations
+    return find_violations_by_predicate(tree=tree, predicate=_has_violation, rule=Rule.PYR401)

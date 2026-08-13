@@ -13,7 +13,7 @@ def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: Capt
     bad_file = tmp_path / "bad.py"
     bad_file.write_text("def apply_correction(weight, bias):\n    ...\n")
 
-    exit_code = main([str(bad_file)])
+    exit_code = main(paths=[str(bad_file)])
 
     captured = capsys.readouterr()
     assert exit_code == 1

@@ -30,6 +30,11 @@ class Rule(Enum):
         problem="has positional parameters; all parameters should be keyword-only",
     )
 
+    PYR403 = RuleInfo(
+        symbolic_name="keyword-only-single-argument",
+        problem="has a single positional parameter; it should be keyword-only",
+    )
+
     PYR405 = RuleInfo(
         symbolic_name="namedtuple-parameters",
         problem="has a parameter typed as a bare multi-value tuple; use a NamedTuple instead",

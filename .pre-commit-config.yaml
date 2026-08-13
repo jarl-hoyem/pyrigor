@@ -93,12 +93,13 @@ repos:
       - id: pyrigor
         name: pyrigor
         language: system
-        entry: uv run --extra dev python -m pyrigor.checkers.cli
+        entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor
         types: [ python ]
         exclude: ^tests/
+        pass_filenames: false
       - id: pytest
         name: pytest
         language: system
         entry: uv run --extra dev pytest
         pass_filenames: false
-      # Saved for later: stages: [pre-push] # Only run on push instead of every commit.
+        # Saved for later: stages: [pre-push] # Only run on push instead of every commit.

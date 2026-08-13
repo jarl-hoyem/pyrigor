@@ -94,7 +94,7 @@ def _run_checkers(*, path: str, source: str) -> list[Violation]:
         print(f"Warning: skipping {path}: {error}", file=sys.stderr)
         return []
 
-    return [v for checker in CHECKERS for v in checker(tree)]
+    return [v for checker in CHECKERS for v in checker(tree=tree)]
 
 
 def _check_file(*, path: str) -> list[Violation]:
@@ -146,13 +146,13 @@ def _print_summary(*, files: list[str], elapsed: float, violations: list[Violati
     """
     file_word = "file" if len(files) == 1 else "files"
     violation_word = "violation" if len(violations) == 1 else "violations"
-    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s — {len(violations)} {violation_word}")
+    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s -- {len(violations)} {violation_word}")
 
     if violations:
         print(_format_rule_breakdown(violations=violations))
 
 
-def main(paths: list[str]) -> int:
+def main(*, paths: list[str]) -> int:
     """Run all checkers against the given file paths.
 
     Args:

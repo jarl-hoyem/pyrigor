@@ -7,7 +7,7 @@ from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
 
-def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """Check whether any parameter's annotation is a bare multi-value tuple.
 
     Args:
@@ -21,7 +21,7 @@ def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return any(is_bare_multi_value_tuple(annotation=arg.annotation) for arg in all_args)
 
 
-def find_violations(tree: ast.Module) -> list[Violation]:
+def find_violations(*, tree: ast.Module) -> list[Violation]:
     """Find PYR405 violations in a parsed source tree.
 
     Args:
@@ -33,7 +33,7 @@ def find_violations(tree: ast.Module) -> list[Violation]:
     violations = []
 
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_violation(node):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_violation(node=node):
             violations.append(make_violation(node=node, rule=Rule.PYR405))
 
     return violations
