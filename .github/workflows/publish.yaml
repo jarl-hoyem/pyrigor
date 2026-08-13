@@ -39,8 +39,11 @@ jobs:
         run: uv sync --extra dev
       - name: Run pyrigor against it, must not crash
         run: |
+          set +e
           uv run pyrigor /tmp/core
-          if [ $? -eq 2 ]; then exit 1; fi
+          exit_code=$?
+          set -e
+          if [ "$exit_code" -eq 2 ]; then exit 1; fi
   pypi-publish:
     runs-on: ubuntu-latest
     needs:
