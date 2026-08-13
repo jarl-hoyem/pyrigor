@@ -92,6 +92,11 @@ with no sibling values to enumerate against.
   problem for a closed set of named states, addressed with `Enum`
   rather than `Final`.
 
+- [PYR205](./PYR205-final-constants.md) — the structurally
+  detectable subset of this rule: a numeric literal duplicated
+  across a file, independently adoptable, not a stricter or looser
+  mode of the same rule.
+
 ## Enforced by
 
 Not yet implemented.

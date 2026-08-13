@@ -67,6 +67,7 @@ Guidelines documented so far:
 | PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
 | PYR203 | Use `Final` named constants instead of magic numbers                  | Not yet implemented             |
 | PYR204 | Never compare floats with `==`; use tolerance-based comparison        | Not yet implemented             |
+| PYR205 | Use a `Final` constant for a numeric literal duplicated in a file     | Not yet implemented             |
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
 | PYR302 | Use `frozen=True` for dataclasses holding structured state            | Not yet implemented             |
 | PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
