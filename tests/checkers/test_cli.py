@@ -50,3 +50,20 @@ def test_run_delegates_to_main_using_sys_argv(  # pyrigor: 402 # pytest fixture 
         run()
 
     assert exc_info.value.code == 0
+
+
+def test_main_walks_a_directory_for_python_files(  # pyrigor: 402 # pytest fixture injection is positional-only
+    tmp_path: Path, capsys: CaptureFixture[str]
+) -> None:
+    """Passing a directory should recursively find and check every .py file inside it."""
+    (tmp_path / "bad.py").write_text("def apply_correction(weight, bias):\n    ...\n")
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    (subdir / "also_bad.py").write_text("def another(a, b):\n    ...\n")
+
+    exit_code = main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "bad.py" in captured.out
+    assert "also_bad.py" in captured.out
