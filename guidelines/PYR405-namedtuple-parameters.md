@@ -37,7 +37,7 @@ def step_bot(*, action: tuple[int, int]) -> None:
 step_bot(action=(3, 7))
 ```
 
-[PYR402](./PYR402-keyword-only-arguments.md) forces `action` itself to
+[PYR402](PYR402-keyword-only-arguments.md) forces `action` itself to
 be passed by a keyword, but that only protects the outer call — it does
 nothing for the two `int`s living inside the tuple. Once you are past
 `action=`, the ambiguity PYR401 was written to remove on returns is
@@ -65,7 +65,7 @@ construction (`BotAction(row=3, col=7)`, unambiguous) and at use
 - [PYR301](./PYR301-namedtuple-values.md) — the general form
   of this rule for bare tuple types anywhere other than a function
   signature (variables, dataclass fields, dict values).
-- [PYR402](./PYR402-keyword-only-arguments.md) — forces the parameter
+- [PYR402](PYR402-keyword-only-arguments.md) — forces the parameter
   itself to be passed by a keyword. Complementary, not a substitute —
   PYR402 protects the outer call, PYR405 protects what is inside the
   tuple.

@@ -69,3 +69,10 @@ case by case, not a reason to abandon mandate-naming as the default.
    add a `-not-X` qualifier.
 4. Keep it short — this string appears in every suppression comment
    for this rule.
+
+## Enforced automatically
+
+`tests/test_rules_docs_sync.py` checks that every `Rule` enum member
+has a matching `guidelines/PYRxxx-<symbolic-name>.md` file — a
+mismatch (wrong filename, wrong symbolic name) fails the test suite,
+not just a manual review.

@@ -68,7 +68,9 @@ result.dj_dw  # always the weights
 
 ## Enforced by
 
-Not yet implemented.
+The `pyr401` checker (`pyrigor/checkers/pyr401_namedtuple_returns.py`),
+wired in as a pre-commit hook and available via the `pyrigor` CLI
+(`pip install pyrigor`, then `pyrigor path/to/file.py`).
 
 ## Detection scope
 

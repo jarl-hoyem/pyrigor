@@ -18,13 +18,13 @@ them — aimed at closing those gaps.
 
 ## Status
 
-Early stage. As of 2026-08, a set of documented guidelines. AST-based checks are
-in progress. Plugin integration (pylint, possibly ruff) is a future goal,
-not a current feature.
+Early stage. As of mid 2026, two rules are implemented and enforced
+(PYR401, PYR402). Five more are documented but not yet enforced.
 
 - [x] Guideline documentation
-- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR402 implemented.
-  PYR201, PYR202, PYR401, PYR403 documented but not yet enforced.
+- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR401,
+  PYR402 implemented. PYR201, PYR202, PYR301, PYR403, PYR405 are documented
+  but not yet enforced.
 - [ ] pylint plugin
 - [ ] ruff plugin (stretch goal — contingent on learning Rust)
 
@@ -35,8 +35,8 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-Only PYR402 is enforced today. A violation exits non-zero and prints
-`path:line:col: PYR402 message (keyword-only-arguments)`.
+PYR401 and PYR402 are enforced today. A violation exits non-zero and
+prints `path:line:col: PYR40x message (symbolic-name)`.
 
 To suppress a specific violation, add a same-line comment with a
 reason:
@@ -64,7 +64,7 @@ Guidelines documented so far:
 | PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
 | PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
-| PYR401 | Use `NamedTuple` for any function returning more than one value       | Not yet implemented             |
+| PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Force keyword-only arguments for single-parameter functions           | Not yet implemented             |
 | PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | Not yet implemented             |
