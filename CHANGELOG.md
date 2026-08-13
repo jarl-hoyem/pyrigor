@@ -11,6 +11,33 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- PYR403 (keyword-only single argument) is now enforced, a fourth
+  rule.
+
+### Changed
+
+- `count_parameters` and `find_violations_by_predicate` extracted
+  into `pyrigor/checkers/_shared.py`, removing duplicated logic
+  across all four checkers. Two new `Protocol` types
+  (`_PredicateFun`, `_CheckerFun`) added, since a bare `Callable`
+  type hint cannot express a keyword-only calling convention.
+- Every checker’s own `_has_violation` and `find_violations`, plus
+  `cli.py`'s `main`, are now keyword-only themselves, fixing nine
+  real PYR403 violations pyrigor found in its own source the moment
+  the rule went live.
+- `.pre-commit-config.yaml`'s `pyrigor` hook now uses
+  `pass_filenames: false` and always checks the whole `pyrigor/`
+  directory, matching every other whole-project tool already
+  configured that way, instead of receiving batched, per-commit
+  filenames from pre-commit’s default behavior.
+
+### Fixed
+
+- The summary line’s em dash was displayed as a garbled non-printable
+  character in PowerShell. Replaced with a plain ASCII double hyphen.
+
 ## [0.3.0] 2026-08-13
 
 ### Added
@@ -38,6 +65,14 @@ is usable for.
   reserving 1 for "ran fine, found violations." Found via the new
   stdlib CI smoke test, which was failing on real violations rather
   than an actual crash.
+- The CI smoke test steps' `if [ $? -eq 2 ]` check never actually
+  ran: GitHub Actions fails a `run:` step immediately on any
+  non-zero exit code by default, so the step already failed on
+  pyrigor’s own exit code 1 (violations found) before the shell ever
+  reached the check. Both `ci.yml` and `publish.yaml`'s smoke test
+  steps now use `set +e` around the pyrigor call, capture `$?`
+  immediately into a variable, then re-enable `set -e` before
+  checking it.
 
 ## [0.2.3] 2026-08-13
 

@@ -18,13 +18,15 @@ them — aimed at closing those gaps.
 
 ## Status
 
-Early stage. As of mid 2026, two rules are implemented and enforced
-(PYR401, PYR402). Five more are documented but not yet enforced.
+Early stage. As of mid 2026, four rules are implemented and enforced
+(PYR401, PYR402, PYR403, PYR405). Nine more are documented but not
+yet enforced.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks) — PYR401,
-  PYR402 implemented. PYR201, PYR202, PYR301, PYR403, PYR405 are documented
-  but not yet enforced.
+  PYR402, PYR403, and PYR405 are implemented. PYR201, PYR202, PYR203, PYR204,
+  PYR301, PYR302, PYR404, PYR501, PYR502 are documented but not yet
+  enforced.
 - [ ] pylint plugin
 - [ ] ruff plugin (stretch goal — contingent on learning Rust)
 
@@ -35,8 +37,8 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-PYR401 and PYR402 are enforced today. A violation exits non-zero and
-prints `path:line:col: PYR40x message (symbolic-name)`.
+PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
+exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
 
 To suppress a specific violation, add a same-line comment with a
 reason:
@@ -69,9 +71,9 @@ Guidelines documented so far:
 | PYR302 | Use `frozen=True` for dataclasses holding structured state            | Not yet implemented             |
 | PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
-| PYR403 | Force keyword-only arguments for single-parameter functions           | Not yet implemented             |
+| PYR403 | Force keyword-only arguments for single-parameter functions           | `pyrigor` CLI (pre-commit hook) |
 | PYR404 | Use immutable default argument values, never mutable ones             | Not yet implemented             |
-| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | Not yet implemented             |
+| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | `pyrigor` CLI (pre-commit hook) |
 | PYR501 | End a `match` over a closed set with `case _: assert_never(...)`      | Not yet implemented             |
 | PYR502 | State implicit input assumptions as explicit `assert` preconditions   | Not yet implemented             |
 
