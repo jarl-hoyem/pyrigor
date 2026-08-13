@@ -1,6 +1,7 @@
 """Command-line entry point for pyrigor's checkers."""
 
 import sys
+import time
 from pathlib import Path
 
 from pyrigor.checkers import CHECKERS
@@ -45,29 +46,51 @@ def _collect_python_files(*, paths: list[str]) -> list[str]:
     return files
 
 
+def _check_file(*, path: str) -> bool:
+    """Check a single file and print any violations found.
+
+    Args:
+        path: The file to check.
+
+    Returns:
+        True if any violation was printed (this file should
+        contribute to a non-zero exit code).
+    """
+    source = Path(path).read_text(encoding="utf-8")
+    violations = [v for checker in CHECKERS for v in checker(source)]
+    violations = filter_suppressed(violations=violations, source=source)
+
+    for violation in violations:
+        location = f"{path}:{violation.line}:{violation.column}"
+        print(
+            f"{location}: {violation.rule.name} Function '{violation.function_name}' "
+            f"{violation.rule.problem} ({violation.rule.symbolic_name})"
+        )
+
+    return bool(violations)
+
+
 def main(paths: list[str]) -> int:
     """Run all checkers against the given file paths.
 
     Args:
-        paths: File paths to check.
+        paths: File or directory paths to check.
 
     Returns:
         0 if no violations were found, 1 otherwise.
     """
-    exit_code = 0
+    files = _collect_python_files(paths=paths)
+    start = time.perf_counter()
 
-    for path in _collect_python_files(paths=paths):
-        source = Path(path).read_text(encoding="utf-8")
-        violations = [v for checker in CHECKERS for v in checker(source)]
-        violations = filter_suppressed(violations=violations, source=source)
+    # A list, not a generator: any() must not short-circuit here, since every
+    # file needs to run through _check_file() and print its violations, not
+    # just the first one returning True.
+    violated_files = [_check_file(path=path) for path in files]  # pylint: disable=use-a-generator
+    exit_code = 1 if any(violated_files) else 0
 
-        for violation in violations:
-            location = f"{path}:{violation.line}:{violation.column}"
-            print(
-                f"{location}: {violation.rule.name} Function '{violation.function_name}' "
-                f"{violation.rule.problem} ({violation.rule.symbolic_name})"
-            )
-            exit_code = 1
+    elapsed = time.perf_counter() - start
+    file_word = "file" if len(files) == 1 else "files"
+    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s")
 
     return exit_code
 

@@ -30,7 +30,8 @@ def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: Captu
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert captured.out == ""
+    assert "PYR402" not in captured.out
+    assert "Checked 1 file" in captured.out
 
 
 def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -74,3 +75,14 @@ def test_directory_walk_excludes_venv(tmp_path: Path, capsys: CaptureFixture[str
     assert exit_code == 1
     assert "real.py" in captured.out
     assert "vendored.py" not in captured.out
+
+
+def test_main_prints_timing_summary(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """main() should print how many files were checked and how long it took."""
+    (tmp_path / "clean.py").write_text("def apply_correction(*, weight, bias):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "1 file" in captured.out
+    assert "s" in captured.out  # seconds unit present somewhere in the summary
