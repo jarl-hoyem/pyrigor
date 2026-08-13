@@ -16,6 +16,8 @@ Floats rarely land exactly on a value due to rounding. This is a real latent bug
 
 ## 2. `Final` for values that should never be reassigned
 
+_Written up as PYR203._
+
 ```python
 from typing import Final
 
@@ -195,6 +197,15 @@ repeatedly). Natural pairing with the suppression audit report idea
 above. Both are "summarize what pyrigor found/did across a run"
 features and might share infrastructure or even a CLI flag
 (`--report`) once designed together.
+
+### Structured argument parsing
+
+The CLI parses flags manually (`"--version" in sys.argv`),
+fine for a single flag. Once a second or third flag exists (per-rule
+excludes and a `--report` flag are both already noted above), this
+should move to `argparse` (the standard library, no new dependency)
+rather than continuing to hand-check `sys.argv` for each new flag.
+Not urgent with only one flag today.
 
 ### Proper `.gitignore`-aware file discovery
 

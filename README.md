@@ -63,6 +63,7 @@ Guidelines documented so far:
 |--------|-----------------------------------------------------------------------|---------------------------------|
 | PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
 | PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
+| PYR203 | Use `Final` named constants instead of magic numbers                  | Not yet implemented             |
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
 | PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
