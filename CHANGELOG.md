@@ -30,6 +30,15 @@ is usable for.
 - Every checker now runs against a single shared `ast.parse()` per
   file instead of each parsing independently.
 
+### Fixed
+
+- `main()` returned exit code 1 for both "violations found" and any
+  genuine crash, so nothing could reliably distinguish the two.
+  `run()` now catches unexpected exceptions and exits with code 2,
+  reserving 1 for "ran fine, found violations." Found via the new
+  stdlib CI smoke test, which was failing on real violations rather
+  than an actual crash.
+
 ## [0.2.3] 2026-08-13
 
 ### Fixed

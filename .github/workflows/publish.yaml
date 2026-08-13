@@ -38,7 +38,9 @@ jobs:
       - name: Install project
         run: uv sync --extra dev
       - name: Run pyrigor against it, must not crash
-        run: uv run pyrigor /tmp/core
+        run: |
+          uv run pyrigor /tmp/core
+          if [ $? -eq 2 ]; then exit 1; fi
   pypi-publish:
     runs-on: ubuntu-latest
     needs:

@@ -179,7 +179,13 @@ def run() -> None:
         print(f"pyrigor {version('pyrigor')}")
         sys.exit(0)
 
-    sys.exit(main(paths=sys.argv[1:]))
+    try:
+        exit_code = main(paths=sys.argv[1:])
+    except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+        print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
+        sys.exit(2)
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":  # pragma: no cover

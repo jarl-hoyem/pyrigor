@@ -168,3 +168,18 @@ def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: CaptureFixture[s
     captured = capsys.readouterr()
     assert "PYR401: 1" in captured.out
     assert "PYR402: 1" in captured.out
+
+
+def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
+
+    # noinspection PyUnusedLocal
+    def _boom(*, paths: list[str]) -> int:
+        raise RuntimeError("something genuinely broke")
+
+    monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
