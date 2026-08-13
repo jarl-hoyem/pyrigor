@@ -61,11 +61,13 @@ Guidelines documented so far:
 
 | ID     | Rule                                                                  | Enforced by                     |
 |--------|-----------------------------------------------------------------------|---------------------------------|
-| PYR401 | Use `NamedTuple` for any function returning more than one value       | Not yet implemented             |
 | PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
 | PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
+| PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
+| PYR401 | Use `NamedTuple` for any function returning more than one value       | Not yet implemented             |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Force keyword-only arguments for single-parameter functions           | Not yet implemented             |
+| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | Not yet implemented             |
 
 ## Philosophy
 
@@ -73,10 +75,15 @@ Prefer explicit over implicit. Make illegal states unrepresentable. Do not
 rely on convention or code review where a tool can enforce correctness
 instead.
 
+The tool pyrigor is prescriptive by design: each guideline does not just flag a
+risky pattern, it commits to one specific, verified fix. This is a
+deliberate choice, not an oversight — a codebase where every developer
+independently improvises their own fix for the same problem is exactly
+the inconsistency pyrigor exists to close.
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the setup and workflow.
-
 
 ## License
 

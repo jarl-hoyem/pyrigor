@@ -60,10 +60,10 @@ result.dj_dw  # always the weights
 - [PYR201](./PYR201-newtype-same-typed-values.md) — use `NewType` on
   `NamedTuple` fields (or function arguments) that share an underlying
   type and are at risk of being swapped even with named access.
-- [PYR301](./PYR301-namedtuple-not-bare-tuple.md) — the general form
+- [PYR301](./PYR301-namedtuple-values.md) — the general form
   of this rule for bare tuple types anywhere other than a function
   signature (variables, dataclass fields, dict values).
-- [PYR405](./PYR405-namedtuple-not-bare-tuple-parameter.md) — the same
+- [PYR405](./PYR405-namedtuple-parameters.md) — the same
   rule applied to function parameters instead of return values.
 
 ## Enforced by
@@ -72,11 +72,10 @@ Not yet implemented.
 
 ## Detection scope
 
-PYR401's checker operates on return type annotations, not runtime
+PYR401’s checker operates on return type annotations, not runtime
 inference of what a function actually returns. A function with no
-return annotation at all is outside this checker's scope — pyrigor
+return annotation at all is outside this checker’s scope. The tool pyrigor
 assumes mypy (or an equivalent type checker) is already enforcing
-annotated returns project-wide, and treats "no annotation" as a
+annotated returns project-wide and treats "no annotation" as a
 separate, already-covered concern rather than something PYR401 needs
 to detect itself.
-

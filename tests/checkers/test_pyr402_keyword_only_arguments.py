@@ -170,7 +170,7 @@ def main(paths):
 
 
 def test_violation_has_correct_rule() -> None:
-    """A PYR402 violation should carry Rule PYR403."""
+    """A PYR402 violation should carry Rule PYR402."""
     source = """
 def apply_correction(weight, bias):
     ...

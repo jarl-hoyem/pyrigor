@@ -1,19 +1,9 @@
 """PYR402 checker: flag functions with parameters before a bare `*`."""
 
 import ast
-from typing import NamedTuple
 
 from pyrigor.rules import Rule
-
-
-class Violation(NamedTuple):
-    """A single rule violation found by one of pyrigor's checkers."""
-
-    line: int
-    column: int
-    function_name: str
-    rule: Rule
-    message: str
+from pyrigor.violations import Violation, make_violation
 
 
 def _has_violation(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -54,15 +44,6 @@ def find_violations(source: str) -> list[Violation]:
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_violation(node):
-            violations.append(
-                Violation(
-                    line=node.lineno,
-                    column=node.col_offset + 1,
-                    function_name=node.name,
-                    rule=Rule.PYR402,
-                    message=f"Function '{node.name}' has positional parameters; "
-                    f"all parameters should be keyword-only (PYR402).",
-                )
-            )
+            violations.append(make_violation(node=node, rule=Rule.PYR402))
 
     return violations

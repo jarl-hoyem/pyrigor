@@ -24,7 +24,7 @@ def step_bot(*, action: BotAction) -> None:
 
 This is [PYR401](./PYR401-namedtuple-returns.md)’s failure mode on the
 other side of the function boundary. PYR401 stops a function from
-*returning* a positionally ambiguous multi-value tuple; PYR405 stops a
+*returning* a positionally ambiguous multi-value tuple. PYR405 stops a
 function from *accepting* one as a parameter.
 
 ```python
@@ -38,9 +38,9 @@ step_bot(action=(3, 7))
 ```
 
 [PYR402](./PYR402-keyword-only-arguments.md) forces `action` itself to
-be passed by keyword, but that only protects the outer call — it does
-nothing for the two `int`s living inside the tuple. Once you’re past
-`action=`, the ambiguity PYR401 was written to eliminate on returns is
+be passed by a keyword, but that only protects the outer call — it does
+nothing for the two `int`s living inside the tuple. Once you are past
+`action=`, the ambiguity PYR401 was written to remove on returns is
 right back, just moved to the input side.
 
 `NamedTuple` closes it the same way it does for returns: named field
@@ -62,12 +62,12 @@ construction (`BotAction(row=3, col=7)`, unambiguous) and at use
 
 - [PYR401](./PYR401-namedtuple-returns.md) — the same rule applied to
   function return values instead of parameters.
-- [PYR301](./PYR301-namedtuple-not-bare-tuple.md) — the general form
+- [PYR301](./PYR301-namedtuple-values.md) — the general form
   of this rule for bare tuple types anywhere other than a function
   signature (variables, dataclass fields, dict values).
 - [PYR402](./PYR402-keyword-only-arguments.md) — forces the parameter
-  itself to be passed by keyword; complementary, not a substitute —
-  PYR402 protects the outer call, PYR405 protects what’s inside the
+  itself to be passed by a keyword. Complementary, not a substitute —
+  PYR402 protects the outer call, PYR405 protects what is inside the
   tuple.
 
 ## Enforced by

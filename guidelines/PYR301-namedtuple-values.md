@@ -4,9 +4,9 @@
 
 Any value with a fixed-length `tuple` type annotation, where each
 position has a distinct meaning, must use a `NamedTuple` instead —
-whether it’s a variable, a dataclass/attrs field, a dict value, or any
+whether it is a variable, a dataclass/attrs field, a dict value, or any
 other typed value. Function parameters and return types are covered
-by their own, more specific rules; see “Related” below.
+by their own, more specific rules. See “Related” below.
 
 ```python
 # Bad
@@ -39,7 +39,7 @@ col, row = last_position
 
 This is the same failure shape
 [PYR401](./PYR401-namedtuple-returns.md) addresses for function
-returns and [PYR405](./PYR405-namedtuple-not-bare-tuple-parameter.md)
+returns and [PYR405](./PYR405-namedtuple-parameters.md)
 addresses for function parameters — PYR301 is the general form,
 covering every other place a bare positional tuple can appear: a
 plain variable, a `dataclass` field, a value stored in a `dict`, an
@@ -66,7 +66,7 @@ construction and at every point of use.
 
 - [PYR401](./PYR401-namedtuple-returns.md) — the same rule, scoped
   specifically to function return values.
-- [PYR405](./PYR405-namedtuple-not-bare-tuple-parameter.md) — the same
+- [PYR405](./PYR405-namedtuple-parameters.md) — the same
   rule, scoped specifically to function parameters.
 
 ## Enforced by

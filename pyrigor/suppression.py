@@ -11,7 +11,7 @@ import re
 import sys
 from typing import NamedTuple
 
-from pyrigor.checkers.pyr402_keyword_only_arguments import Violation
+from pyrigor.violations import Violation
 
 
 class _SuppressionInfo(NamedTuple):
