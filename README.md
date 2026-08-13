@@ -16,6 +16,11 @@
 [![pytest: 100% coverage](https://img.shields.io/badge/pytest-100%25%20coverage-brightgreen)](https://pytest.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+Disciplined Python patterns for catching bugs that type checkers and
+standard linters miss — inspired by safety-critical coding guidelines from
+other languages, adapted for a language and ecosystem they were not written
+for.
+
 ## The problem, in one example
 
 The Mars Climate Orbiter was lost because two teams silently
@@ -67,11 +72,6 @@ Codes may be given as the full code (`PYR402`), the bare number
 (`402`), or the rule’s symbolic name (`keyword-only-arguments`).
 Multiple codes: `# pyrigor: 402,403 # reason`. A suppression comment
 without a reason is ignored, and a warning is printed.
-
-Disciplined Python patterns for catching bugs that type checkers and
-standard linters miss — inspired by safety-critical coding guidelines from
-other languages, adapted for a language and ecosystem they were not written
-for.
 
 ## What this is
 
