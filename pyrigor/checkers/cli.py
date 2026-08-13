@@ -6,9 +6,21 @@ from pathlib import Path
 
 from pyrigor.checkers import CHECKERS
 from pyrigor.suppression import filter_suppressed
+from pyrigor.violations import Violation
 
 _DEFAULT_EXCLUDES = frozenset(
-    {".venv", "venv", ".git", "__pycache__", "node_modules", ".tox", "build", "dist", ".eggs"}
+    {
+        ".venv",
+        "venv",
+        ".git",
+        "__pycache__",
+        "node_modules",
+        ".tox",
+        "build",
+        "dist",
+        ".eggs",
+        "site-packages",
+    }
 )
 
 
@@ -46,6 +58,40 @@ def _collect_python_files(*, paths: list[str]) -> list[str]:
     return files
 
 
+def _read_source(*, path: str) -> str | None:
+    """Read a file's source, handling decode/OS errors gracefully.
+
+    Args:
+        path: The file to read.
+
+    Returns:
+        The file's source text, or None if it couldn't be read.
+    """
+    try:
+        return Path(path).read_text(encoding="utf-8-sig")
+    except (UnicodeDecodeError, OSError) as error:
+        print(f"Warning: skipping {path}: {error}", file=sys.stderr)
+        return None
+
+
+def _run_checkers(*, path: str, source: str) -> list[Violation]:
+    """Run every registered checker against a source string, handling parse errors.
+
+    Args:
+        path: The file's path, for the warning message on failure.
+        source: The file's source text.
+
+    Returns:
+        Every violation found, or an empty list if the source
+        couldn't be parsed.
+    """
+    try:
+        return [v for checker in CHECKERS for v in checker(source)]
+    except SyntaxError as error:
+        print(f"Warning: skipping {path}: {error}", file=sys.stderr)
+        return []
+
+
 def _check_file(*, path: str) -> bool:
     """Check a single file and print any violations found.
 
@@ -53,11 +99,14 @@ def _check_file(*, path: str) -> bool:
         path: The file to check.
 
     Returns:
-        True if any violation was printed (this file should
+        True if any violation was printed (that is this file should
         contribute to a non-zero exit code).
     """
-    source = Path(path).read_text(encoding="utf-8-sig")
-    violations = [v for checker in CHECKERS for v in checker(source)]
+    source = _read_source(path=path)
+    if source is None:
+        return False
+
+    violations = _run_checkers(path=path, source=source)
     violations = filter_suppressed(violations=violations, source=source)
 
     for violation in violations:

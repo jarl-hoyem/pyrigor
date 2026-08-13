@@ -96,3 +96,42 @@ def test_check_file_handles_bom(tmp_path: Path) -> None:
     exit_code = main(paths=[str(bom_file)])
 
     assert exit_code == 0
+
+
+def test_directory_walk_excludes_site_packages(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """Files inside any site-packages directory should be excluded, regardless of the venv folder's own name."""
+    (tmp_path / "real.py").write_text("def apply_correction(*, weight, bias):\n    ...\n")
+    weird_venv = tmp_path / ".venv_old_py314" / "Lib" / "site-packages" / "somelib"
+    weird_venv.mkdir(parents=True)
+    (weird_venv / "vendored.py").write_text("def another(a, b):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "vendored.py" not in captured.out
+
+
+def test_unreadable_file_is_skipped_with_warning(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """A file that cannot be decoded or parsed should be skipped with a warning, not crash the run."""
+    bad_file = tmp_path / "bad_encoding.py"
+    bad_file.write_bytes(b"\xa4\xa4 not valid utf-8 at all")
+    good_file = tmp_path / "good.py"
+    good_file.write_text("def apply_correction(*, weight, bias):\n    ...\n")
+
+    exit_code = main(paths=[str(bad_file), str(good_file)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "bad_encoding.py" in captured.err
+
+
+def test_unparseable_file_is_skipped_with_warning(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """A file with invalid Python syntax should be skipped with a warning, not crash the run."""
+    bad_syntax_file = tmp_path / "bad_syntax.py"
+    bad_syntax_file.write_text("def broken(:\n    pass\n")
+
+    exit_code = main(paths=[str(bad_syntax_file)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "bad_syntax.py" in captured.err
