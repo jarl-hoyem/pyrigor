@@ -11,28 +11,24 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.3.0] 2026-08-13
+
 ### Added
 
-- `--version` flag on the `pyrigor` CLI, reading the installed
-  package version via `importlib.metadata`.
-- Per-rule violation count breakdown in the summary line (for
-  example `PYR401: 2, PYR402: 5`).
-- `PERFORMANCE.md`, documenting real timing and violation counts
-  gathered against three codebases of increasing size.
-- `guidelines/PYR203-final-not-magic-numbers.md`.
-- `guidelines/NUMBERING.md` and `guidelines/ADDING_A_RULE.md`,
-  formalizing the rule-numbering bucket scheme and the checklist for
-  adding a new rule.
+- PYR405 (NamedTuple parameters) is now enforced, a third rule.
+- `--version` flag on the `pyrigor` CLI.
+- Per-rule violation count breakdown in the summary line.
+- CI: a standard library smoke test on every commit, and a Home Assistant core
+  smoke test before every release, gating the "publish" script if pyrigor
+  crashes against it.
+- `PERFORMANCE.md`, `guidelines/PYR203-final-not-magic-numbers.md`,
+  `guidelines/NUMBERING.md`, `guidelines/ADDING_A_RULE.md`,
+  `guidelines/REJECTED.md`.
 
 ### Changed
 
 - Every checker now runs against a single shared `ast.parse()` per
-  file instead of each parsing independently. About 15% faster on
-  a large-codebase test with only two checkers registered. The benefit
-  compounds as more checkers are added.
-- `is_bare_multi_value_tuple` extracted out of the PYR401 checker
-  into `pyrigor/checkers/_shared.py`, ahead of PYR405 needing the
-  same logic.
+  file instead of each parsing independently.
 
 ## [0.2.3] 2026-08-13
 

@@ -260,3 +260,23 @@ used across multiple projects. Should be quick to add whenever
 picked up — likely just a `--version`/`-V` flag in `run()` that reads
 the installed package’s own version and exits, without needing to
 touch `main()`'s actual checking logic.
+
+### Changelog draft generator
+
+`publish.yaml` could write the real release date into `CHANGELOG.md`
+automatically, reading `github.event.release.published_at` and
+replacing the matching version heading's `TODO`. Small, mechanical,
+worth doing whenever picked up.
+
+Generating the actual content is a different, harder problem, not
+worth doing the same way. A tool that dumps every commit message
+since the last tag tends to produce a noisy, unhelpful changelog,
+especially given this project’s own commit messages are often long
+and detailed for their own sake, not written as changelog-ready
+one-liners. A better middle ground: since commit messages already
+follow Conventional Commits (enforced by the `commitizen` hook), a
+script could group commits by type (`feat`, `fix`, `docs`, `chore`)
+since the last tag and generate a draft `CHANGELOG.md` section,
+reviewed and trimmed by hand before a release rather than written
+from scratch. Real, buildable, but a genuinely new tool, not a small
+addition.
