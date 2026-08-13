@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyrigor"
-version = "0.3.0"
+version = "0.4.0"
 description = "A Python coding discipline guideline collection and (eventually) linter."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -26,13 +26,13 @@ pyrigor = "pyrigor.checkers.cli:run"
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8",
-  "pytest-cov>=5",
-  "mypy>=1.10",
+  "pytest>=9.1.1",
+  "pytest-cov>=6.3.0",
+  "mypy>=2.3.0",
   "pyright>=1.1.411",
-  "ty>=0.0.69",
-  "ruff>=0.6",
-  "mutmut>=3",
+  "ty>=0.0.71",
+  "ruff>=0.16.3",
+  "mutmut>=3.4.0",
 ]
 
 [tool.setuptools.packages.find]

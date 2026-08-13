@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.4.0] 2026-08-13
+
 ### Added
 
 - PYR403 (keyword-only single argument) is now enforced, a fourth
