@@ -220,3 +220,16 @@ def test_summary_line_prints_after_per_rule_and_per_file_breakdown(tmp_path: Pat
     per_file_index = captured.out.index("bad.py: 1")
 
     assert per_file_index < summary_index
+
+
+def test_per_rule_breakdown_prints_after_per_file_breakdown(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """The per-rule breakdown should print after the per-file breakdown, not before it."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    per_file_index = captured.out.index("bad.py: 1")
+    per_rule_index = captured.out.index("PYR402: 1")
+
+    assert per_file_index < per_rule_index

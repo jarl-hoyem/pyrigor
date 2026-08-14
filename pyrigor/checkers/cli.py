@@ -150,7 +150,7 @@ def _print_file_breakdown(*, violations_by_file: dict[str, list[Violation]]) -> 
 def _print_summary(
     *, files: list[str], elapsed: float, violations: list[Violation], violations_by_file: dict[str, list[Violation]]
 ) -> None:
-    """Print the per-rule breakdown, per-file breakdown, and timing summary, in that order.
+    """Print the per-file breakdown, per-rule breakdown, and timing summary, in that order.
 
     Args:
         files: The files that were checked.
@@ -159,8 +159,8 @@ def _print_summary(
         violations_by_file: Each checked file's own violations.
     """
     if violations:
-        print(_format_rule_breakdown(violations=violations))
         _print_file_breakdown(violations_by_file=violations_by_file)
+        print(_format_rule_breakdown(violations=violations))
 
     file_word = "file" if len(files) == 1 else "files"
     violation_word = "violation" if len(violations) == 1 else "violations"
