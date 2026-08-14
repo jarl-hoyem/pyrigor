@@ -6,13 +6,13 @@ large-scale use. All runs used pyrigor’s local, unreleased source
 (via `uv run` from within the pyrigor project itself), on a Windows
 machine, Python 3.14.
 
-All measurements below predate PYR403 (added after this document was
-first written) and reflect either two or three enforced checkers
-depending on the run, not the current four. Kept as historical data
-rather than re-run, since the qualitative findings, per-file cost
-scaling with code complexity rather than file count, no crash across
-either large codebase, remain the relevant takeaways regardless of
-exact checker count.
+All measurements below predate PYR301 and PYR403 (both added after
+this document was first written) and reflect two, three, or four
+enforced checkers depending on the run, not the current five. Kept
+as historical data rather than re-run, since the qualitative
+findings, per-file cost scales with code complexity, not file count,
+no crashes on either large codebase, remain the relevant takeaways
+regardless of exact checker count.
 
 ## Results
 

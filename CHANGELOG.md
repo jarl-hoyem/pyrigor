@@ -11,6 +11,37 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- PYR301 (NamedTuple values) is now enforced, a fifth rule. Covers
+  a bare multi-value tuple annotation on a plain variable, dataclass
+  field, or attribute assignment, complementing PYR401 (returns) and
+  PYR405 (parameters).
+
+### Changed
+
+- Violation.function_name renamed to context_name, and make_violation
+  generalized to accept ast.AnnAssign nodes alongside function nodes,
+  since PYR301 is not a function-shaped rule.
+- find_violations_by_predicate split into find_function_violations
+  and find_assign_violations, one dispatcher per node shape, rather
+  than one generic dispatcher over a three-way union (a single
+  generic version hit real Protocol contravariance problems).
+- is_bare_multi_value_tuple now exempts tuple[X, ...], the unbounded
+  homogeneous form, found via pyrigor’s own CHECKERS tuple
+  immediately triggering a false positive once PYR301 went live
+  against its own source.
+- PYR203 rewritten to a strict, mechanical rule (any number other
+  than 0, 1, or –1 must be a Final constant). Following Steve
+  McConnell’s actual Code Complete formulation, replacing an earlier,
+  softer "self-explanatory" exemption that reintroduced the exact
+  judgment call the rule was meant to eliminate.
+
+### Fixed
+
+- BACKLOG.md’s item #5 removed a stray "this session" reference,
+  meaningless outside a live coding session.
+
 ## [0.4.0] 2026-08-13
 
 ### Added

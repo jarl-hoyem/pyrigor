@@ -57,7 +57,7 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
+PYR301, PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
 exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
 
 To suppress a specific violation, add a same-line comment with a
@@ -86,17 +86,16 @@ them — aimed at closing those gaps.
 
 ## Status
 
-Early stage. As of mid 2026, four rules are implemented and enforced
-(PYR401, PYR402, PYR403, PYR405). Nine more are documented but not
-yet enforced.
+Early stage. As of mid 2026, five rules are implemented and enforced
+(PYR301, PYR401, PYR402, PYR403, PYR405). Nine more are documented but
+not yet enforced.
 
 - [x] Guideline documentation
-- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR401,
-  PYR402, PYR403, and PYR405 are implemented. PYR201, PYR202, PYR203, PYR204,
-  PYR301, PYR302, PYR404, PYR501, PYR502 are documented but not yet
-  enforced.
+- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR301,
+  PYR401, PYR402, PYR403, and PYR405 are implemented. PYR201, PYR202,
+  PYR203, PYR204, PYR205, PYR302, PYR404, PYR501, PYR502 are documented
+  but not yet enforced.
 - [ ] pylint plugin
-- [ ] ruff plugin (stretch goal — contingent on learning Rust)
 
 ## Guidelines
 
@@ -106,22 +105,22 @@ enforcing check.
 
 Guidelines documented so far:
 
-| ID     | Rule                                                                  | Enforced by                     |
-|--------|-----------------------------------------------------------------------|---------------------------------|
-| PYR201 | Use `NewType` for same-typed values at risk of being swapped          | Not yet implemented             |
-| PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states | Not yet implemented             |
-| PYR203 | Use `Final` named constants instead of magic numbers                  | Not yet implemented             |
-| PYR204 | Never compare floats with `==`; use tolerance-based comparison        | Not yet implemented             |
-| PYR205 | Use a `Final` constant for a numeric literal duplicated in a file     | Not yet implemented             |
-| PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type          | Not yet implemented             |
-| PYR302 | Use `frozen=True` for dataclasses holding structured state            | Not yet implemented             |
-| PYR401 | Use `NamedTuple` for any function returning more than one value       | `pyrigor` CLI (pre-commit hook) |
-| PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)    | `pyrigor` CLI (pre-commit hook) |
-| PYR403 | Force keyword-only arguments for single-parameter functions           | `pyrigor` CLI (pre-commit hook) |
-| PYR404 | Use immutable default argument values, never mutable ones             | Not yet implemented             |
-| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`    | `pyrigor` CLI (pre-commit hook) |
-| PYR501 | End a `match` over a closed set with `case _: assert_never(...)`      | Not yet implemented             |
-| PYR502 | State implicit input assumptions as explicit `assert` preconditions   | Not yet implemented             |
+| ID     | Rule                                                                    | Enforced by                     |
+|--------|-------------------------------------------------------------------------|---------------------------------|
+| PYR201 | Use `NewType` for same-typed values at risk of being swapped            | Not yet implemented             |
+| PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states   | Not yet implemented             |
+| PYR203 | Use `Final` named constants for any number other than `0`, `1`, or `-1` | Not yet implemented             |
+| PYR204 | Never compare floats with `==`; use tolerance-based comparison          | Not yet implemented             |
+| PYR205 | Use a `Final` constant for a numeric literal duplicated in a file       | Not yet implemented             |
+| PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type            | `pyrigor` CLI (pre-commit hook) |
+| PYR302 | Use `frozen=True` for dataclasses holding structured state              | Not yet implemented             |
+| PYR401 | Use `NamedTuple` for any function returning more than one value         | `pyrigor` CLI (pre-commit hook) |
+| PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)      | `pyrigor` CLI (pre-commit hook) |
+| PYR403 | Force keyword-only arguments for single-parameter functions             | `pyrigor` CLI (pre-commit hook) |
+| PYR404 | Use immutable default argument values, never mutable ones               | Not yet implemented             |
+| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`      | `pyrigor` CLI (pre-commit hook) |
+| PYR501 | End a `match` over a closed set with `case _: assert_never(...)`        | Not yet implemented             |
+| PYR502 | State implicit input assumptions as explicit `assert` preconditions     | Not yet implemented             |
 
 ## Philosophy
 
