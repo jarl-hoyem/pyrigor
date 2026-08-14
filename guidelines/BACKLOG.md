@@ -495,3 +495,5 @@ work retroactively surfaced two real, untested cases:
   confirming that is the intended behavior (versus erroring explicitly)
   and adding a test either way.
 -
+
+Investigate vulture, culler, uncalled and dead.
