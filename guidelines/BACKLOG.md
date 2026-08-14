@@ -366,3 +366,54 @@ Ruff has a shields.io-style badge projects can add to their own
 README, signaling "checked with ruff." Worth building the same for
 pyrigor, once there is a real audience of adopting projects for it
 to matter to.
+
+### Distinguish "unadopted convention" rules from "avoidable footgun" rules in reporting
+
+Found while running pyrigor against mypy’s own codebase: PYR402 and
+PYR403 fired thousands of times, high counts that mostly reflect a
+community-wide convention (bare `*` for keyword-only arguments)
+essentially no pre-existing codebase has adopted, not carelessness.
+PYR301, PYR401, and PYR405 fired far less (3, 225, and 24 respectively
+across 441 files), a more genuinely meaningful signal, since these
+catch a specific, well-known, avoidable bug (positionally ambiguous
+multi-value data) rather than an unadopted stylistic choice.
+
+A low count in the second category is real evidence of deliberate
+discipline. A low count on the first category mostly is not. Worth
+surfacing this distinction in future reporting, PERFORMANCE.md, a
+future `--report` output, or documentation, rather than presenting
+every rule’s violation count with equal weight, which invites
+exactly the kind of misread a raw total would otherwise cause.
+
+### CLI flag to filter, which rules run: `--only`
+
+Design worked out, not yet applied. `pyrigor --only PYR301,PYR401
+path` should run and report only the specified rules, filtering
+`CHECKERS` before the checker loop, rather than running everything
+and discarding unwanted output. Multiple rules comma-separated, one
+flag, matching the suppression comment’s own convention. Should
+accept the same lenient forms suppression comments already do, full
+code, bare number, or symbolic name, not just the full `PYRxxx` form.
+
+Found genuinely useful while comparing pyrigor’s own findings
+against real public style guides (Google’s Python Style Guide in
+particular), wanting to isolate one rule’s results against a large
+repo without the other four rules’ output in the way.
+
+Needs `main()` itself to accept an optional filter set, not just
+`run()` parsing argv, since `main()` is what actually knows about
+`CHECKERS`. First test drafted:
+
+```python
+def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """With only={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
+    (tmp_path / "bad.py").write_text(
+        "def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n"
+    )
+
+    main(paths=[str(tmp_path)], only={"PYR401"})
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+```
