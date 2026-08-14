@@ -178,7 +178,7 @@ Like C++'s `[[nodiscard]]` or Rust's `#[must_use]`. A function’s
 return value being silently discarded, called as a bare statement,
 is very likely a bug if that return value is meaningful, `x = f()`
 intended, `f()` written by mistake. Cannot be detected by inference
-alone, same lesson as PYR203’s original mistake, most discarded
+alone, same lesson as PYR203’s original mistake. Most discarded
 return values are entirely intentional (`print(...)`, `logging.info(...)`,
 `list.append(...)`). Needs an explicit marker the developer applies,
 a decorator most likely, then a mechanical check that a decorated
@@ -186,6 +186,18 @@ function is never called as a bare expression statement.
 
 Worth checking overlap before writing the full doc, not confidently
 verified whether ruff or pylint already cover this pattern.
+
+## 12. Suppression counts per rule in the summary
+
+Half-designed, not yet applied. The function filter_suppressed(violations, source)
+returns only the kept violations, silently discarding that
+ones were suppressed and under which rule. To add "PYR402: 3
+suppressed" to the summary alongside the existing per-rule and
+per-file violation counts, filter suppressed needs to return both
+lists, likely a SuppressionResult(kept, suppressed) NamedTuple rather
+than a bare list. This is a real, breaking change to
+filter suppressed’s return type, every existing caller and test
+needs updating, not just cli.py.
 
 **Suggested order to actually adopt these, when ready:**
 
