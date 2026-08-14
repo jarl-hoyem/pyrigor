@@ -309,3 +309,60 @@ since the last tag and generate a draft `CHANGELOG.md` section,
 reviewed and trimmed by hand before a release rather than written
 from scratch. Real, buildable, but a genuinely new tool, not a small
 addition.
+
+### Run mutmut locally on pre-push, not just CI
+
+The tool mutmut only run, when it runs at all, as a manual or CI
+step. Worth adding as a pre-push hook (not pre-commit, too slow for
+every commit) so mutation-testing feedback happens locally before
+pushing, not only after.
+
+### Review tool exemptions carried over from Pickomino
+
+Several tool-level exemptions, exclusions, or ignored rules in,
+`.pre-commit-config.yaml` and `pyproject.toml` were copied directly
+from Pickomino’s own config as a starting template, not re-evaluated
+for whether they actually apply to pyrigor. Worth a deliberate pass
+checking each one against pyrigor’s own codebase and needs, rather
+than carrying Pickomino-specific exceptions forward by default.
+
+### A Rust implementation for a single file or module
+
+Explicitly a learning exercise, not a performance need (see
+`PERFORMANCE.md`'s own reasoning for why a full Rust rewrite is not
+justified now). Worth trying on one small,
+self-contained
+module first, to learn the shape of a Python/Rust boundary (`PyO3`
+or similar) before considering anything larger.
+
+### Rule: No variable names without vowels
+
+A readability rule, `wrd` or `cnt` where `word` or `count` would be
+clear. Needs a real design decision on scope and exceptions
+(genuine abbreviations, loop indexes) before it could avoid being
+noisy the way an early, unscoped magic-number rule would have been.
+
+### Rule: No variable names under four characters, with exceptions
+
+In the same category as the vowel rule, a readability constraint, not a
+correctness one. Needs the exception list worked out carefully,
+loop counters (`i`, `j`), coordinates (`x`, `y`), and common,
+well-understood short names would need explicit carve-outs, or this
+would be noisy on real code.
+
+### Adoption guide split: New project versus legacy codebase
+
+The current README and CONTRIBUTING content assumes a reader
+starting fresh. A real legacy codebase adopting pyrigor for the
+first time has a very different experience, hundreds or thousands
+of pre-existing violations, likely needing a gradual, per-rule
+rollout strategy. Adopt one rule, fix it, add the next rather than
+turning on all rules at once. Worth a dedicated adoption guide
+covering both paths.
+
+### A pyrigor badge, like ruff's own
+
+Ruff has a shields.io-style badge projects can add to their own
+README, signaling "checked with ruff." Worth building the same for
+pyrigor, once there is a real audience of adopting projects for it
+to matter to.
