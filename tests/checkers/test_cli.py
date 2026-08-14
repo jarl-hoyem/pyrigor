@@ -236,3 +236,14 @@ def test_per_rule_breakdown_prints_after_per_file_breakdown(tmp_path: Path, caps
     per_rule_index = captured.out.index("PYR402: 1")
 
     assert per_file_index < per_rule_index
+
+
+def test_summary_aggregates_multiple_suppressions_under_same_rule(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """Multiple suppressed violations under the same rule should sum correctly in the summary."""
+    (tmp_path / "a.py").write_text("def one(a, b):  # pyrigor: 402 # matches a fixed external API\n    ...\n")
+    (tmp_path / "b.py").write_text("def two(c, d):  # pyrigor: 402 # matches a fixed external API\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "PYR402: 2 suppressed" in captured.out
