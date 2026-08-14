@@ -7,24 +7,60 @@ from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
 
-def is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
-    """Check whether a type annotation is a bare tuple[...] with 2+ elements.
+def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:
+    """Check whether a tuple[...] slice is the unbounded tuple[X, ...] form.
 
     Args:
-        annotation: The annotation to check (a return annotation or a
-            parameter annotation), or None.
+        elts: The elements of the tuple subscript's slice.
+
+    Returns:
+        True if this is tuple[X, ...], homogeneous and unbounded,
+        with no fixed positional meaning.
+    """
+    return len(elts) == 2 and isinstance(elts[1], ast.Constant) and elts[1].value is Ellipsis
+
+
+def _get_tuple_subscript_slice(*, annotation: ast.expr | None) -> ast.Tuple | None:
+    """Return the tuple slice of a bare tuple[...] subscript annotation, if it is one.
+
+    Args:
+        annotation: The annotation to check.
+
+    Returns:
+        The tuple slice (tuple[A, B, ...]'s A, B, ...) if annotation
+        is a bare tuple[...] subscript, otherwise None.
+    """
+    if not (isinstance(annotation, ast.Subscript) and isinstance(annotation.value, ast.Name)):
+        return None
+
+    if annotation.value.id != "tuple" or not isinstance(annotation.slice, ast.Tuple):
+        return None
+
+    return annotation.slice
+
+
+def is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
+    """Check whether a type annotation is a bare tuple[...] with 2+ fixed elements.
+
+    Args:
+        annotation: The annotation to check (a return annotation, a
+            parameter annotation, or a variable/field annotation), or None.
 
     Returns:
         True if the annotation is tuple[A, B, ...]. With two or more
-        type arguments.
+        distinct type arguments. False for an unbounded homogeneous
+        tuple, tuple[X, ...], which has no positional meaning to
+        confuse.
     """
-    if not isinstance(annotation, ast.Subscript):
+    slice_node = _get_tuple_subscript_slice(annotation=annotation)
+    if slice_node is None:
         return False
 
-    if not (isinstance(annotation.value, ast.Name) and annotation.value.id == "tuple"):
+    elts = slice_node.elts
+    if _is_unbounded_homogeneous_tuple(elts=elts):
         return False
 
-    return isinstance(annotation.slice, ast.Tuple) and len(annotation.slice.elts) >= 2
+    return len(elts) >= 2
 
 
 class _ParameterCounts(NamedTuple):
@@ -52,27 +88,49 @@ def count_parameters(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> _Parame
     return _ParameterCounts(positional_args=positional_args, total_params=total_params)
 
 
-class _PredicateFun(Protocol):  # pylint: disable=too-few-public-methods
-    """A function checking whether a node violates some rule, called by a keyword."""
+class _FunctionPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
+    """A function checking whether a function node violates some rule."""
 
     def __call__(self, *, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool: ...
 
 
-def find_violations_by_predicate(*, tree: ast.Module, predicate: _PredicateFun, rule: Rule) -> list[Violation]:
-    """Walk a tree, flagging every function matching a predicate as a violation.
+class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
+    """A function checking whether an annotated-assignment node violates some rule."""
+
+    def __call__(self, *, node: ast.AnnAssign) -> bool: ...
+
+
+def find_function_violations(*, tree: ast.Module, predicate: _FunctionPredicateFun, rule: Rule) -> list[Violation]:
+    """Walk a tree, flagging every function node matching a predicate as a violation.
 
     Args:
         tree: The parsed AST of a Python source file.
-        predicate: Returns True for a function that violates the rule.
+        predicate: Returns True for a function node that violates the rule.
         rule: Which rule to record the violation against.
 
     Returns:
         A list of violations found, one per matching function.
     """
     violations = []
-
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and predicate(node=node):
             violations.append(make_violation(node=node, rule=rule))
+    return violations
 
+
+def find_assign_violations(*, tree: ast.Module, predicate: _AssignPredicateFun, rule: Rule) -> list[Violation]:
+    """Walk a tree, flagging every annotated-assignment node matching a predicate as a violation.
+
+    Args:
+        tree: The parsed AST of a Python source file.
+        predicate: Returns True for an annotated assignment that violates the rule.
+        rule: Which rule to record the violation against.
+
+    Returns:
+        A list of violations found, one per matching assignment.
+    """
+    violations = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.AnnAssign) and predicate(node=node):
+            violations.append(make_violation(node=node, rule=rule))
     return violations

@@ -14,7 +14,7 @@ def load_config(path):
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "load_config"
+    assert violations[0].context_name == "load_config"
 
 
 def test_no_violation_for_already_keyword_only_single_parameter() -> None:
@@ -49,7 +49,7 @@ class Loader:
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "load"
+    assert violations[0].context_name == "load"
 
 
 def test_no_violation_for_zero_parameters() -> None:

@@ -52,8 +52,7 @@ Prevents typos like `"convergd"` from doing nothing silently. The tool mypy catc
 
 ## 5. Keep mypy `--strict`, resist `Any` leaking in
 
-Already in use — every `no-any-return` error caught this session is exactly this discipline working.
-
+Already in use — every `no-any-return` error caught by this discipline confirms it is working.
 ## 6. Never use mutable default arguments
 
 _Written up as PYR404._

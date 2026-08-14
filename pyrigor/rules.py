@@ -21,6 +21,11 @@ class RuleInfo(NamedTuple):
 class Rule(Enum):
     """All pyrigor rules implemented or planned."""
 
+    PYR301 = RuleInfo(
+        symbolic_name="namedtuple-values",
+        problem="is annotated as a bare multi-value tuple; use a NamedTuple instead",
+    )
+
     PYR401 = RuleInfo(
         symbolic_name="namedtuple-returns",
         problem="returns a bare multi-value tuple; use a NamedTuple instead",

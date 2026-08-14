@@ -3,6 +3,7 @@
 import ast
 from typing import Protocol
 
+from pyrigor.checkers.pyr301_namedtuple_values import find_violations as _pyr301
 from pyrigor.checkers.pyr401_namedtuple_returns import find_violations as _pyr401
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations as _pyr402
 from pyrigor.checkers.pyr403_keyword_only_single_argument import find_violations as _pyr403
@@ -16,6 +17,6 @@ class _CheckerFun(Protocol):  # pylint: disable=too-few-public-methods
     def __call__(self, *, tree: ast.Module) -> list[Violation]: ...
 
 
-CHECKERS: tuple[_CheckerFun, ...] = (_pyr401, _pyr402, _pyr403, _pyr405)
+CHECKERS: tuple[_CheckerFun, ...] = (_pyr301, _pyr401, _pyr402, _pyr403, _pyr405)
 
 __all__ = ["CHECKERS"]

@@ -11,25 +11,34 @@ class Violation(NamedTuple):
 
     line: int
     column: int
-    function_name: str
+    context_name: str
     rule: Rule
 
 
-# pyrigor/violations.py
-def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef, rule: Rule) -> Violation:
-    """Build a Violation from a function node and rule.
+def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssign, rule: Rule) -> Violation:
+    """Build a Violation from a function or annotated-assignment node and rule.
 
     Args:
-        node: The function definition the violation was found on.
+        node: The node the violation was found on.
         rule: Which rule was violated — its problem text is looked up
             automatically, so it can never be mismatched at the call site.
 
     Returns:
         A populated Violation.
     """
+    if isinstance(node, ast.AnnAssign):
+        if isinstance(node.target, ast.Name):
+            name = node.target.id
+        elif isinstance(node.target, ast.Attribute):
+            name = node.target.attr
+        else:
+            name = "<unknown>"
+    else:
+        name = node.name
+
     return Violation(
         line=node.lineno,
         column=node.col_offset + 1,
-        function_name=node.name,
+        context_name=name,
         rule=rule,
     )

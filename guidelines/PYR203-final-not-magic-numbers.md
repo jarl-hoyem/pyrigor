@@ -1,9 +1,11 @@
-# PYR203 — Use `Final` named constants instead of magic numbers
+# PYR203 — Use `Final` named constants for any number other than `0`, `1`, or `-1`
 
 ## Rule
 
-A bare numeric literal carrying a specific, reused meaning must
-be replaced with a named `Final` constant.
+Every numeric literal other than `0`, `1`, or `-1` must be replaced
+with a named `Final` constant. This is a mechanical rule, not a
+judgment call: no other number is exempt on the grounds of seeming
+self-explanatory.
 
 ```python
 # Bad
@@ -60,42 +62,50 @@ if attempt_count >= MAX_RETRIES:
 
 `Final` also gives mypy a real check to run: if anything later tries
 to rebind the constant (`MAX_RETRIES = 5` somewhere else), mypy flags
-it as an error, rather than silently allowing a "constant" to
-stop being constant.
+it as an error, rather than silently allowing a "constant" to stop
+being constant.
+
+Why draw the line at exactly `0`, `1`, and `-1`: all three are used
+overwhelmingly as arithmetic or structural identities rather than
+business-meaningful values. The numbers `0` and `1` as plain arithmetic identity
+elements (`x + 0`, `x * 1`), or as the first index and count in a
+sequence. Likewise `-1` carries its own, equally structural meaning in Python
+specifically: indexing and slicing use it as the canonical way to
+reference the last element (`items[-1]`) or reverse a sequence
+(`items[::-1]`), a language-level convention, not a business decision.
+In all three cases, naming the value would not add real information,
+since its meaning is already fully carried by its syntactic role. Any
+other number is far more likely to encode a real decision, a count, a
+limit, a version, that deserves a name and carries a real risk of
+silently diverging if left unnamed in more than one place.
 
 This is the same underlying failure shape as
 [PYR202](./PYR202-enum-not-magic-strings.md) — the unnamed literal
 standing in for a value that should be a documented, singular source
-of truth. It is applied to numeric values with a specific significance,
-rather than to values from a closed set of named states. Use
-[PYR202](./PYR202-enum-not-magic-strings.md) when the numbers
-represent a fixed set of named alternatives (`Enum`). Use PYR203 when
-the number is a single, specific threshold, limit, or coefficient
-with no sibling values to enumerate against.
+of truth. It is applied to numeric values with a specific
+significance, rather than to values from a closed set of named
+states. Use [PYR202](./PYR202-enum-not-magic-strings.md) when the
+numbers represent a fixed set of named alternatives (`Enum`). Use
+PYR203 when the number is a single, specific threshold, limit, or
+coefficient with no sibling values to enumerate against.
 
 ## When this does not apply
 
-- Genuinely self-explanatory numbers with no reuse risk and no
-  meaningful name to give them — `0` and `1` used as plain arithmetic
-  identities (`x + 0`, indexes, loop bounds like `range(len(items))`),
-  not as configuration or business-rule values.
-- A single, local, one-off value used exactly once, where a named
-  constant would add a layer of indirection without adding clarity
-  (a test asserting an arbitrary but fixed input value, for example).
-- Numbers whose meaning is already fully carried by their immediate
-  context and unlikely to ever be reused or need to change in
-  lockstep elsewhere.
+- The literal is `0`, `1`, or `-1`. This is the only exemption.
+- Genuinely ephemeral test or example code where the number is
+  explicitly arbitrary, and the point of the code is unaffected by
+  its exact value, still worth naming if reused more than once in
+  the same file.
 
 ## Related
 
 - [PYR202](./PYR202-enum-not-magic-strings.md) — the same underlying
   problem for a closed set of named states, addressed with `Enum`
   rather than `Final`.
-
-- [PYR205](./PYR205-final-constants.md) — the structurally
-  detectable subset of this rule: a numeric literal duplicated
-  across a file, independently adoptable, not a stricter or looser
-  mode of the same rule.
+- [PYR205](./PYR205-final-constants.md) — a narrower, independently
+  adoptable rule catching only the subset of this problem where the
+  same literal is duplicated across a file, a lighter starting point
+  for a codebase not yet ready to adopt PYR203’s full scope.
 
 ## Enforced by
 

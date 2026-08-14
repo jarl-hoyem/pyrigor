@@ -14,7 +14,7 @@ def step_bot(*, action: tuple[int, int]) -> None:
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "step_bot"
+    assert violations[0].context_name == "step_bot"
 
 
 def test_no_violation_for_normal_parameters() -> None:
@@ -71,4 +71,4 @@ class Bot:
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "step"
+    assert violations[0].context_name == "step"

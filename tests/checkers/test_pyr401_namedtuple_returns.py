@@ -14,7 +14,7 @@ def compute_gradient(*, x, y, w, b) -> tuple[float, float]:
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "compute_gradient"
+    assert violations[0].context_name == "compute_gradient"
 
 
 def test_no_violation_for_unannotated_return() -> None:

@@ -15,7 +15,7 @@ def apply_correction(weight, bias):
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "apply_correction"
+    assert violations[0].context_name == "apply_correction"
 
 
 def test_no_violation_for_already_keyword_only_function() -> None:
@@ -50,7 +50,7 @@ def apply_correction(weight, bias, /):
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "apply_correction"
+    assert violations[0].context_name == "apply_correction"
 
 
 def test_no_violation_for_args_kwargs_only_function() -> None:
@@ -86,7 +86,7 @@ def apply_correction(weight, bias, *args, **kwargs):
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "apply_correction"
+    assert violations[0].context_name == "apply_correction"
 
 
 def test_no_violation_for_keyword_only_after_args() -> None:
@@ -109,7 +109,7 @@ async def apply_correction(weight, bias):
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "apply_correction"
+    assert violations[0].context_name == "apply_correction"
 
 
 def test_flags_nested_function_with_positional_parameter() -> None:
@@ -123,7 +123,7 @@ def outer():
     violations = find_violations(tree=ast.parse(source))
 
     assert len(violations) == 1
-    assert violations[0].function_name == "inner"
+    assert violations[0].context_name == "inner"
 
 
 def test_no_violation_for_lambda_with_positional_parameters() -> None:

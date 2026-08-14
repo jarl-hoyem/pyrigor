@@ -15,7 +15,7 @@ from pyrigor.violations import Violation
 def test_suppressed_violation_is_filtered_out() -> None:
     """A violation on a line with a matching # pyrigor: CODE # reason comment should be removed."""
     source = "def apply_correction(weight, bias):  # pyrigor: PYR402 # positional swap risk\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -25,7 +25,7 @@ def test_suppressed_violation_is_filtered_out() -> None:
 def test_unsuppressed_violation_is_kept() -> None:
     """A violation on a line with no suppression comment should be kept."""
     source = "def apply_correction(weight, bias):\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -35,7 +35,7 @@ def test_unsuppressed_violation_is_kept() -> None:
 def test_multiple_suppressed_codes_on_one_line() -> None:
     """Multiple codes in one # pyrigor: comment should each suppress their matching violation."""
     source = "def apply_correction(weight, bias):  # pyrigor: 402,201 # some reason\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -45,7 +45,7 @@ def test_multiple_suppressed_codes_on_one_line() -> None:
 def test_symbolic_name_suppresses_violation() -> None:
     """A suppression comment using the symbolic name should work, as well as the code."""
     source = "def apply_correction(weight, bias):  # pyrigor: keyword-only-arguments # some reason\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -55,7 +55,7 @@ def test_symbolic_name_suppresses_violation() -> None:
 def test_whitespace_around_colon_and_commas_is_tolerated() -> None:
     """Irregular spacing around the colon and commas should still parse correctly."""
     source = "def apply_correction(weight, bias):  #pyrigor:  402 , 201 # some reason\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -67,7 +67,7 @@ def test_suppression_comment_with_reason_is_parsed() -> None:
     source = (
         "def apply_correction(weight, bias):  # pyrigor: 402 # pytest fixture injection is positional-only\n    ...\n"
     )
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -87,7 +87,7 @@ def test_suppression_comment_reason_is_parsed_correctly() -> None:
 def test_suppression_without_reason_does_not_suppress(capsys: CaptureFixture[str]) -> None:
     """A suppression comment with no reason should not suppress and should warn."""
     source = "def apply_correction(weight, bias):  # pyrigor: 402\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 
@@ -99,7 +99,7 @@ def test_suppression_without_reason_does_not_suppress(capsys: CaptureFixture[str
 def test_near_miss_comment_warns(capsys: CaptureFixture[str]) -> None:
     """A comment mentioning 'pyrigor' that doesn't match the suppression pattern should warn."""
     source = "def apply_correction(weight, bias):  # pyrigor 402 missing colon\n    ...\n"
-    violations = [Violation(line=1, column=1, function_name="apply_correction", rule=Rule.PYR402)]
+    violations = [Violation(line=1, column=1, context_name="apply_correction", rule=Rule.PYR402)]
 
     result = filter_suppressed(violations=violations, source=source)
 

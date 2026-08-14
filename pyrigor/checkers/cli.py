@@ -116,7 +116,7 @@ def _check_file(*, path: str) -> list[Violation]:
     for violation in violations:
         location = f"{path}:{violation.line}:{violation.column}"
         print(
-            f"{location}: {violation.rule.name} Function '{violation.function_name}' "
+            f"{location}: {violation.rule.name} Function '{violation.context_name}' "
             f"{violation.rule.problem} ({violation.rule.symbolic_name})"
         )
 
