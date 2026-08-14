@@ -71,7 +71,9 @@ def f(weight, bias):  # pyrigor: PYR402 # matches a fixed external API
 Codes may be given as the full code (`PYR402`), the bare number
 (`402`), or the rule’s symbolic name (`keyword-only-arguments`).
 Multiple codes: `# pyrigor: 402,403 # reason`. A suppression comment
-without a reason is ignored, and a warning is printed.
+without a reason is ignored, and a warning is printed. Suppressed
+violations are counted per rule in the summary (`PYR402: 1
+suppressed`), not silently discarded.
 
 ## What this is
 

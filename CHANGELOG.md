@@ -9,9 +9,30 @@ carry the same backward-compatibility guarantee they would after
 bumps are reserved for changes that shift what pyrigor
 is usable for.
 
-## [Unreleased] 2026-08-14
+## [Unreleased]
 
-## [0.5.0]
+### Added
+
+- Per-rule suppressed-violation counts in the summary (`PYR402: 1
+  suppressed`), alongside the existing per-rule and per-file
+  violation breakdowns.
+- `PYR502`'s guideline doc corrected: recommends `raise` instead of
+  `assert` for correctness checks, since Python's `-O` flag strips
+  every `assert` from compiled bytecode entirely.
+
+### Changed
+
+- `filter_suppressed` now returns `SuppressionResult(kept,
+  suppressed)` instead of a bare list, so suppressed violations can
+  be counted and reported rather than silently discarded.
+
+### Fixed
+
+- Per-rule breakdown and per-file breakdown print order: both were
+  still printing before the per-file list on a second pass, only the
+  total line had actually been fixed the first time.
+
+## [0.5.0] 2026-08-14
 
 ### Added
 
