@@ -247,3 +247,38 @@ def test_summary_aggregates_multiple_suppressions_under_same_rule(tmp_path: Path
 
     captured = capsys.readouterr()
     assert "PYR402: 2 suppressed" in captured.out
+
+
+def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """With only={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+
+    main(paths=[str(tmp_path)], only={"PYR401"})
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+def test_run_parses_only_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]) -> None:
+    """run() should parse --only=CODE, CODE out of argv and pass it to main()."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """--only should accept a rule's symbolic-name, not just its code."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+
+    main(paths=[str(tmp_path)], only={"namedtuple-returns"})
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out

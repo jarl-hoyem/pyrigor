@@ -8,7 +8,8 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import NamedTuple
 
-from pyrigor.checkers import CHECKERS
+from pyrigor.checkers import CHECKERS, RegisteredChecker
+from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import Violation
 
@@ -78,12 +79,13 @@ def _read_source(*, path: str) -> str | None:
         return None
 
 
-def _run_checkers(*, path: str, source: str) -> list[Violation]:
+def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, ...]) -> list[Violation]:
     """Run every registered checker against a source string, handling parse errors.
 
     Args:
         path: The file's path, for the warning message on failure.
         source: The file's source text.
+        checkers: The checkers to run.
 
     Returns:
         Every violation found, or an empty list if the source
@@ -95,7 +97,7 @@ def _run_checkers(*, path: str, source: str) -> list[Violation]:
         print(f"Warning: skipping {path}: {error}", file=sys.stderr)
         return []
 
-    return [v for checker in CHECKERS for v in checker(tree=tree)]
+    return [v for entry in checkers for v in entry.find_violations(tree=tree)]
 
 
 class FileCheckResult(NamedTuple):
@@ -105,11 +107,12 @@ class FileCheckResult(NamedTuple):
     suppressed: list[Violation]
 
 
-def _check_file(*, path: str) -> FileCheckResult:
+def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCheckResult:
     """Check a single file and print any kept violations found.
 
     Args:
         path: The file to check.
+        checkers: The checkers to run.
 
     Returns:
         The kept violations (printed) and the suppressed ones.
@@ -118,7 +121,7 @@ def _check_file(*, path: str) -> FileCheckResult:
     if source is None:
         return FileCheckResult(kept=[], suppressed=[])
 
-    violations = _run_checkers(path=path, source=source)
+    violations = _run_checkers(path=path, source=source, checkers=checkers)
     result = filter_suppressed(violations=violations, source=source)
 
     for violation in result.kept:
@@ -258,19 +261,54 @@ def _aggregate_results(*, results_by_file: dict[str, FileCheckResult]) -> _Check
     )
 
 
-def main(*, paths: list[str]) -> int:
+def _matches_rule_filter(*, rule: Rule, only: set[str]) -> bool:
+    """Check whether a rule matches a lenient --only filter set.
+
+    Args:
+        rule: The rule to check.
+        only: Tokens from --only, each a full code, bare number, or symbolic name.
+
+    Returns:
+        True if the rule's code, numeric shorthand, or symbolic name is in only.
+    """
+    code = rule.name
+    shorthand = code.removeprefix("PYR")
+    name = rule.symbolic_name
+
+    return bool(only & {code, shorthand, name})
+
+
+def _filter_checkers(*, only: set[str] | None) -> tuple[RegisteredChecker, ...]:
+    """Filter CHECKERS down to only the rules matching --only, if given.
+
+    Args:
+        only: Tokens from --only, or None to run every registered checker.
+
+    Returns:
+        The filtered checker tuple, or all of CHECKERS if only is None.
+    """
+    if only is None:
+        return CHECKERS
+
+    return tuple(entry for entry in CHECKERS if _matches_rule_filter(rule=entry.rule, only=only))
+
+
+def main(*, paths: list[str], only: set[str] | None = None) -> int:
     """Run all checkers against the given file paths.
 
     Args:
         paths: File or directory paths to check.
+        only: Rule codes/shorthand/symbolic names to restrict checking
+            to, or None to run every registered checker.
 
     Returns:
         0 if no violations were found, 1 otherwise.
     """
     files = _collect_python_files(paths=paths)
+    checkers = _filter_checkers(only=only)
     start = time.perf_counter()
 
-    results_by_file = {path: _check_file(path=path) for path in files}
+    results_by_file = {path: _check_file(path=path, checkers=checkers) for path in files}
     results = _aggregate_results(results_by_file=results_by_file)
     exit_code = 1 if results.all_violations else 0
 
@@ -292,8 +330,16 @@ def run() -> None:
         print(f"pyrigor {version('pyrigor')}")
         sys.exit(0)
 
+    args = list(sys.argv[1:])
+    only = None
+    for i, arg in enumerate(args):
+        if arg.startswith("--only="):
+            only = set(arg.removeprefix("--only=").split(","))
+            del args[i]
+            break
+
     try:
-        exit_code = main(paths=sys.argv[1:])
+        exit_code = main(paths=args, only=only)
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(2)

@@ -460,3 +460,23 @@ truthiness check against a structured type, not a bare tuple
 annotation. Not yet numbered or scoped. Needs its own design pass on
 how to detect "this name is bound to a NamedTuple/dataclass instance"
 reliably via AST alone before it is tractable to build.
+
+### Auto fix for PYR402/PYR403
+
+The only rules where auto fix is genuinely tractable: inserting `*,`
+before the first parameter is fully mechanical, no judgment involved
+in what the fix is. Every other current rule (PYR301/401/405, needs
+invented names for a new NamedTuple and its fields. PYR203/205, needs
+a meaningful constant name) requires real judgment a tool cannot
+supply, and auto generating placeholder names would produce worse
+code than the violation it replaced.
+
+Real complication even for PYR402/PYR403: changing a signature this
+way breaks every existing positional caller, unlike a formatter’s
+fix, which is behavior-preserving by construction. Needs a design
+decision: rewrite every call site to the keyword form too (much more
+invasive, closer to a real refactoring tool than a linter), or only
+fix the signature and let resulting TypeErrors at call sites surface
+the remaining work. Given the earlier documented caution about
+`ruff --fix` "messing everything up," worth treating any auto fix
+here as opt-in and clearly scoped, not a default behavior.
