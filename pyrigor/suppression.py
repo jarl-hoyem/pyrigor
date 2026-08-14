@@ -21,6 +21,13 @@ class _SuppressionInfo(NamedTuple):
     reason: str | None
 
 
+class SuppressionResult(NamedTuple):
+    """The result of filtering violations by suppression comments."""
+
+    kept: list[Violation]
+    suppressed: list[Violation]
+
+
 _SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s*:\s*(?P<tokens>.+)$")
 _NEAR_MISS_PATTERN = re.compile(r"#.*pyrigor", re.IGNORECASE)
 
@@ -85,24 +92,27 @@ def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo)
     return code_matches
 
 
-def filter_suppressed(*, violations: list[Violation], source: str) -> list[Violation]:
-    """Remove violations suppressed by a same-line `# pyrigor:` comment.
+def filter_suppressed(*, violations: list[Violation], source: str) -> SuppressionResult:
+    """Split violations into kept and suppressed, based on same-line # pyrigor: comments.
 
     Args:
         violations: Violations to filter.
         source: The source code the violations were found in.
 
     Returns:
-        Violations that are not suppressed.
+        The violations that are kept, and the ones that were suppressed.
     """
     lines = source.splitlines()
 
-    result = []
+    kept = []
+    suppressed = []
     for violation in violations:
         line_text = lines[violation.line - 1] if 0 < violation.line <= len(lines) else ""
         suppression = _suppressed_tokens(line=line_text)
 
-        if not _matches_suppression(violation=violation, suppression=suppression):
-            result.append(violation)
+        if _matches_suppression(violation=violation, suppression=suppression):
+            suppressed.append(violation)
+        else:
+            kept.append(violation)
 
-    return result
+    return SuppressionResult(kept=kept, suppressed=suppressed)

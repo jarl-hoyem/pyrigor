@@ -19,7 +19,7 @@ def test_suppressed_violation_is_filtered_out() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert not result
+    assert not result.kept
 
 
 def test_unsuppressed_violation_is_kept() -> None:
@@ -29,7 +29,7 @@ def test_unsuppressed_violation_is_kept() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert result == violations
+    assert result.kept == violations
 
 
 def test_multiple_suppressed_codes_on_one_line() -> None:
@@ -39,7 +39,7 @@ def test_multiple_suppressed_codes_on_one_line() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert not result
+    assert not result.kept
 
 
 def test_symbolic_name_suppresses_violation() -> None:
@@ -49,7 +49,7 @@ def test_symbolic_name_suppresses_violation() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert not result
+    assert not result.kept
 
 
 def test_whitespace_around_colon_and_commas_is_tolerated() -> None:
@@ -59,7 +59,7 @@ def test_whitespace_around_colon_and_commas_is_tolerated() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert not result
+    assert not result.kept
 
 
 def test_suppression_comment_with_reason_is_parsed() -> None:
@@ -71,7 +71,7 @@ def test_suppression_comment_with_reason_is_parsed() -> None:
 
     result = filter_suppressed(violations=violations, source=source)
 
-    assert not result
+    assert not result.kept
 
 
 def test_suppression_comment_reason_is_parsed_correctly() -> None:
@@ -92,7 +92,7 @@ def test_suppression_without_reason_does_not_suppress(capsys: CaptureFixture[str
     result = filter_suppressed(violations=violations, source=source)
 
     captured = capsys.readouterr()
-    assert result == violations
+    assert result.kept == violations
     assert "missing required reason" in captured.err
 
 
@@ -104,5 +104,5 @@ def test_near_miss_comment_warns(capsys: CaptureFixture[str]) -> None:
     result = filter_suppressed(violations=violations, source=source)
 
     captured = capsys.readouterr()
-    assert result == violations
+    assert result.kept == violations
     assert "doesn't match" in captured.err

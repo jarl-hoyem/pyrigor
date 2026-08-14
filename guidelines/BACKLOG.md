@@ -418,25 +418,6 @@ def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[st
     assert "PYR402" not in captured.out
 ```
 
-### PYR502 recommends `assert`, which is stripped under Python’s -O flag
-
-Found via OSSF’s Secure Coding Guide for Python (pyscg-0037,
-"Presume Assertions May Be Disabled In Production"). Python's `-O`
-and `-OO` optimization flags remove every `assert` statement from
-compiled bytecode entirely. PYR502’s own doc recommends
-`assert x.shape == y.shape, "..."` as its worked example, which
-would silently vanish in an optimized build, exactly the kind of gap
-this guide exists to catch.
-
-The real fix needed, not just a note: PYR502 should recommend `if not
-condition: raise ValueError(...)` for anything genuinely
-correctness- or security-relevant, reserving `assert` only for
-internal, debug-only invariants where being stripped in production
-is acceptable. Needs its own decision about whether PYR502 should
-distinguish these two cases explicitly (a "these are genuinely
-different, use raise for one and assert for the other" rule) or
-switch its own recommendation to raise-based checks entirely.
-
 ### PYR406 (return-value-must-be-used) has a real precedent
 
 OSSF’s Secure Coding Guide for Python, pyscg-0036 ("Check Return
@@ -458,3 +439,24 @@ fuller pass across all ten sections (encoding, neutralization,
 exception handling, logging, concurrency, cryptography included) for
 further overlap or corroboration, given how directly relevant the
 three checked so far turned out to be.
+
+### Rule: `not x` / truthiness check a NamedTuple or dataclass is almost always wrong.
+
+Found live today: `filter_suppressed`'s return type changed from a
+bare `list[Violation]` to `SuppressionResult(kept, suppressed)`, a
+`NamedTuple`. Every existing `assert not result` silently kept
+compiling and kept meaning something, just the wrong thing — a
+2-element `NamedTuple` is never falsy regardless of its contents, so
+`not result` always evaluates `False`, always failing, but for a
+completely different reason than the test intended to check.
+
+This is a real, checkable pattern: `not x` or `if x:` on a value
+statically known to be a `NamedTuple` or `dataclass` instance (not a
+`bool`, not a container) is seldom the actual intent, since
+these types do not override truthiness and default to always-truthy.
+Structurally like to PYR301/401/405’s own concern — a refactor
+silently changes behavior with no error —, but the trigger here is a
+truthiness check against a structured type, not a bare tuple
+annotation. Not yet numbered or scoped. Needs its own design pass on
+how to detect "this name is bound to a NamedTuple/dataclass instance"
+reliably via AST alone before it is tractable to build.

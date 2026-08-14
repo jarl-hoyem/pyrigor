@@ -104,23 +104,23 @@ def _check_file(*, path: str) -> list[Violation]:
         path: The file to check.
 
     Returns:
-        Every violation that is found in this file.
+        Every violation that is found in this file, after suppression.
     """
     source = _read_source(path=path)
     if source is None:
         return []
 
     violations = _run_checkers(path=path, source=source)
-    violations = filter_suppressed(violations=violations, source=source)
+    result = filter_suppressed(violations=violations, source=source)
 
-    for violation in violations:
+    for violation in result.kept:
         location = f"{path}:{violation.line}:{violation.column}"
         print(
             f"{location}: {violation.rule.name} Function '{violation.context_name}' "
             f"{violation.rule.problem} ({violation.rule.symbolic_name})"
         )
 
-    return violations
+    return result.kept
 
 
 def _format_rule_breakdown(*, violations: list[Violation]) -> str:
