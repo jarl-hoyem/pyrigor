@@ -417,3 +417,44 @@ def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[st
     assert "PYR401" in captured.out
     assert "PYR402" not in captured.out
 ```
+
+### PYR502 recommends `assert`, which is stripped under Python’s -O flag
+
+Found via OSSF’s Secure Coding Guide for Python (pyscg-0037,
+"Presume Assertions May Be Disabled In Production"). Python's `-O`
+and `-OO` optimization flags remove every `assert` statement from
+compiled bytecode entirely. PYR502’s own doc recommends
+`assert x.shape == y.shape, "..."` as its worked example, which
+would silently vanish in an optimized build, exactly the kind of gap
+this guide exists to catch.
+
+The real fix needed, not just a note: PYR502 should recommend `if not
+condition: raise ValueError(...)` for anything genuinely
+correctness- or security-relevant, reserving `assert` only for
+internal, debug-only invariants where being stripped in production
+is acceptable. Needs its own decision about whether PYR502 should
+distinguish these two cases explicitly (a "these are genuinely
+different, use raise for one and assert for the other" rule) or
+switch its own recommendation to raise-based checks entirely.
+
+### PYR406 (return-value-must-be-used) has a real precedent
+
+OSSF’s Secure Coding Guide for Python, pyscg-0036 ("Check Return
+Values"), is a direct, independent match for the reserved PYR406
+idea (disallow ignoring a return value marked as required). Cites
+MITRE CWE-252 (Unchecked Return Value) and equivalent SEI CERT rules
+for Java (EXP00-J) and C (EXP12-C). Worth citing directly when
+PYR406’s full guideline doc is eventually written, real, credible,
+independent corroboration, not just an analogy to C++/Rust.
+
+### OSSF Secure Coding Guide for Python, a broader review worth doing.
+
+https://github.com/ossf/wg-best-practices-os-developers/tree/main/docs/Secure-Coding-Guide-for-Python
+A real, structured, numbered guideline set (pyscg-NNNN), similar in
+spirit to pyrigor’s own PYRxxx documents, compliant/noncompliant
+example code per rule. Only three of its ~15+ guidelines were
+checked today (numbers section, coding-standards section). Worth a
+fuller pass across all ten sections (encoding, neutralization,
+exception handling, logging, concurrency, cryptography included) for
+further overlap or corroboration, given how directly relevant the
+three checked so far turned out to be.
