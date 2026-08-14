@@ -22,7 +22,10 @@ def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: Capt
 
 
 def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
-    """A violation suppressed via # pyrigor: comment should not be printed, and the exit code should be 0."""
+    """A violation suppressed via # pyrigor: comment should not be printed as a violation.
+
+    The exit code should be 0.
+    """
     suppressed_file = tmp_path / "suppressed.py"
     suppressed_file.write_text("def apply_correction(weight, bias):  # pyrigor: 402 # positional swap risk\n    ...\n")
 
@@ -30,8 +33,8 @@ def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: Captu
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "PYR402" not in captured.out
-    assert "Checked 1 file" in captured.out
+    assert "apply_correction" not in captured.out
+    assert "PYR402: 1 suppressed" in captured.out
 
 
 def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

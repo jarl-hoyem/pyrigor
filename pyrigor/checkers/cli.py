@@ -6,6 +6,7 @@ import time
 from collections import Counter
 from importlib.metadata import version
 from pathlib import Path
+from typing import NamedTuple
 
 from pyrigor.checkers import CHECKERS
 from pyrigor.suppression import filter_suppressed
@@ -97,18 +98,25 @@ def _run_checkers(*, path: str, source: str) -> list[Violation]:
     return [v for checker in CHECKERS for v in checker(tree=tree)]
 
 
-def _check_file(*, path: str) -> list[Violation]:
-    """Check a single file and print any violations found.
+class FileCheckResult(NamedTuple):
+    """A single file's checked violations, split by suppression."""
+
+    kept: list[Violation]
+    suppressed: list[Violation]
+
+
+def _check_file(*, path: str) -> FileCheckResult:
+    """Check a single file and print any kept violations found.
 
     Args:
         path: The file to check.
 
     Returns:
-        Every violation that is found in this file, after suppression.
+        The kept violations (printed) and the suppressed ones.
     """
     source = _read_source(path=path)
     if source is None:
-        return []
+        return FileCheckResult(kept=[], suppressed=[])
 
     violations = _run_checkers(path=path, source=source)
     result = filter_suppressed(violations=violations, source=source)
@@ -120,7 +128,7 @@ def _check_file(*, path: str) -> list[Violation]:
             f"{violation.rule.problem} ({violation.rule.symbolic_name})"
         )
 
-    return result.kept
+    return FileCheckResult(kept=result.kept, suppressed=result.suppressed)
 
 
 def _format_rule_breakdown(*, violations: list[Violation]) -> str:
@@ -136,6 +144,19 @@ def _format_rule_breakdown(*, violations: list[Violation]) -> str:
     return ", ".join(f"{rule}: {count}" for rule, count in sorted(counts.items()))
 
 
+def _format_suppressed_breakdown(*, suppressed: list[Violation]) -> str:
+    """Build a per-rule suppressed-violation count breakdown string.
+
+    Args:
+        suppressed: Every violation that was suppressed across all files.
+
+    Returns:
+        A comma-separated "Rule: count suppressed" breakdown.
+    """
+    counts = Counter(v.rule.name for v in suppressed)
+    return ", ".join(f"{rule}: {count} suppressed" for rule, count in sorted(counts.items()))
+
+
 def _print_file_breakdown(*, violations_by_file: dict[str, list[Violation]]) -> None:
     """Print each file's own violation count, skipping clean files.
 
@@ -148,23 +169,93 @@ def _print_file_breakdown(*, violations_by_file: dict[str, list[Violation]]) -> 
 
 
 def _print_summary(
-    *, files: list[str], elapsed: float, violations: list[Violation], violations_by_file: dict[str, list[Violation]]
+    *,
+    files: list[str],
+    elapsed: float,
+    violations: list[Violation],
+    violations_by_file: dict[str, list[Violation]],
+    suppressed: list[Violation],
 ) -> None:
-    """Print the per-file breakdown, per-rule breakdown, and timing summary, in that order.
+    """Print the per-file breakdown, per-rule breakdown, suppression breakdown, and timing summary.
 
     Args:
         files: The files that were checked.
         elapsed: Elapsed time in seconds.
         violations: Every violation found across all files.
         violations_by_file: Each checked file's own violations.
+        suppressed: Every violation that was suppressed across all files.
     """
     if violations:
         _print_file_breakdown(violations_by_file=violations_by_file)
         print(_format_rule_breakdown(violations=violations))
 
+    if suppressed:
+        print(_format_suppressed_breakdown(suppressed=suppressed))
+
     file_word = "file" if len(files) == 1 else "files"
     violation_word = "violation" if len(violations) == 1 else "violations"
     print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s -- {len(violations)} {violation_word}")
+
+
+class _CheckResults(NamedTuple):
+    """Aggregated results across every checked file."""
+
+    all_violations: list[Violation]
+    all_suppressed: list[Violation]
+    kept_by_file: dict[str, list[Violation]]
+
+
+def _collect_all_violations(*, results_by_file: dict[str, FileCheckResult]) -> list[Violation]:
+    """Flatten every file's kept violations into one list.
+
+    Args:
+        results_by_file: Each file's own kept and suppressed violations.
+
+    Returns:
+        Every kept violation across all files.
+    """
+    return [v for result in results_by_file.values() for v in result.kept]
+
+
+def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> list[Violation]:
+    """Flatten every file's suppressed violations into one list.
+
+    Args:
+        results_by_file: Each file's own kept and suppressed violations.
+
+    Returns:
+        Every suppressed violation across all files.
+    """
+    return [v for result in results_by_file.values() for v in result.suppressed]
+
+
+def _kept_by_file(*, results_by_file: dict[str, FileCheckResult]) -> dict[str, list[Violation]]:
+    """Extract each file's kept violations, for the per-file breakdown.
+
+    Args:
+        results_by_file: Each file's own kept and suppressed violations.
+
+    Returns:
+        A path-to-kept-violations mapping.
+    """
+    return {path: result.kept for path, result in results_by_file.items()}
+
+
+def _aggregate_results(*, results_by_file: dict[str, FileCheckResult]) -> _CheckResults:
+    """Flatten per-file check results into overall totals.
+
+    Args:
+        results_by_file: Each file's own kept and suppressed violations.
+
+    Returns:
+        Every kept violation, every suppressed violation, and a
+        path-to-kept-violations mapping for the per-file breakdown.
+    """
+    return _CheckResults(
+        all_violations=_collect_all_violations(results_by_file=results_by_file),
+        all_suppressed=_collect_all_suppressed(results_by_file=results_by_file),
+        kept_by_file=_kept_by_file(results_by_file=results_by_file),
+    )
 
 
 def main(*, paths: list[str]) -> int:
@@ -179,12 +270,18 @@ def main(*, paths: list[str]) -> int:
     files = _collect_python_files(paths=paths)
     start = time.perf_counter()
 
-    violations_by_file = {path: _check_file(path=path) for path in files}
-    all_violations = [v for file_violations in violations_by_file.values() for v in file_violations]
-    exit_code = 1 if all_violations else 0
+    results_by_file = {path: _check_file(path=path) for path in files}
+    results = _aggregate_results(results_by_file=results_by_file)
+    exit_code = 1 if results.all_violations else 0
 
     elapsed = time.perf_counter() - start
-    _print_summary(files=files, elapsed=elapsed, violations=all_violations, violations_by_file=violations_by_file)
+    _print_summary(
+        files=files,
+        elapsed=elapsed,
+        violations=results.all_violations,
+        violations_by_file=results.kept_by_file,
+        suppressed=results.all_suppressed,
+    )
 
     return exit_code
 
