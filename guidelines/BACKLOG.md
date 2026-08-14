@@ -53,6 +53,7 @@ Prevents typos like `"convergd"` from doing nothing silently. The tool mypy catc
 ## 5. Keep mypy `--strict`, resist `Any` leaking in
 
 Already in use — every `no-any-return` error caught by this discipline confirms it is working.
+
 ## 6. Never use mutable default arguments
 
 _Written up as PYR404._
@@ -168,6 +169,23 @@ return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
 ```
 
 ---
+
+## 11. Disallow ignoring a return value marked as required
+
+_Reserved as PYR406. Not yet written up._
+
+Like C++'s `[[nodiscard]]` or Rust's `#[must_use]`. A function’s
+return value being silently discarded, called as a bare statement,
+is very likely a bug if that return value is meaningful, `x = f()`
+intended, `f()` written by mistake. Cannot be detected by inference
+alone, same lesson as PYR203’s original mistake, most discarded
+return values are entirely intentional (`print(...)`, `logging.info(...)`,
+`list.append(...)`). Needs an explicit marker the developer applies,
+a decorator most likely, then a mechanical check that a decorated
+function is never called as a bare expression statement.
+
+Worth checking overlap before writing the full doc, not confidently
+verified whether ruff or pylint already cover this pattern.
 
 **Suggested order to actually adopt these, when ready:**
 

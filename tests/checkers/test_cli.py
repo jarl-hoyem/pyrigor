@@ -207,3 +207,16 @@ def test_per_file_breakdown_skips_clean_files(tmp_path: Path, capsys: CaptureFix
     captured = capsys.readouterr()
     assert "bad.py: 1" in captured.out
     assert "clean.py" not in captured.out
+
+
+def test_summary_line_prints_after_per_rule_and_per_file_breakdown(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """The 'Checked N files...' totals line should print last, after the breakdowns, not first."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    summary_index = captured.out.index("Checked 1 file")
+    per_file_index = captured.out.index("bad.py: 1")
+
+    assert per_file_index < summary_index
