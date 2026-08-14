@@ -266,7 +266,7 @@ def _matches_rule_filter(*, rule: Rule, only: set[str]) -> bool:
 
     Args:
         rule: The rule to check.
-        only: Tokens from --only, each a full code, bare number, or symbolic name.
+        only: Tokens from --only, each is a full code, bare number, or symbolic name.
 
     Returns:
         True if the rule's code, numeric shorthand, or symbolic name is in only.
@@ -279,13 +279,13 @@ def _matches_rule_filter(*, rule: Rule, only: set[str]) -> bool:
 
 
 def _filter_checkers(*, only: set[str] | None) -> tuple[RegisteredChecker, ...]:
-    """Filter CHECKERS down to only the rules matching --only, if given.
+    """Filter CHECKERS down to only the rules matching --only if given.
 
     Args:
         only: Tokens from --only, or None to run every registered checker.
 
     Returns:
-        The filtered checker tuple, or all of CHECKERS if only is None.
+        The filtered checker tuple, or all the CHECKERS if only is None.
     """
     if only is None:
         return CHECKERS
@@ -324,6 +324,24 @@ def main(*, paths: list[str], only: set[str] | None = None) -> int:
     return exit_code
 
 
+def _extract_only_flag(*, args: list[str]) -> set[str] | None:
+    """Find and remove a --only=CODE, CODE argument from args, if present.
+
+    Args:
+        args: The argv list to search (mutated in place if found).
+
+    Returns:
+        The parsed set of tokens, or None if no --only= flag was given.
+    """
+    for i, arg in enumerate(args):
+        if arg.startswith("--only="):
+            only = {token.strip() for token in arg.removeprefix("--only=").split(",")}
+            del args[i]
+            return only
+
+    return None
+
+
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
     if "--version" in sys.argv:
@@ -331,12 +349,7 @@ def run() -> None:
         sys.exit(0)
 
     args = list(sys.argv[1:])
-    only = None
-    for i, arg in enumerate(args):
-        if arg.startswith("--only="):
-            only = set(arg.removeprefix("--only=").split(","))
-            del args[i]
-            break
+    only = _extract_only_flag(args=args)
 
     try:
         exit_code = main(paths=args, only=only)

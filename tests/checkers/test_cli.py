@@ -282,3 +282,18 @@ def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: CaptureFixture[
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
     assert "PYR402" not in captured.out
+
+
+def test_run_only_flag_tolerates_whitespace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]
+) -> None:
+    """--only=CODE, CODE with a space after the comma should still work."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401, PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" in captured.out

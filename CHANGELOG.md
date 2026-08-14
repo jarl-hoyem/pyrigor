@@ -19,12 +19,20 @@ is usable for.
 - `PYR502`'s guideline doc corrected: recommends `raise` instead of
   `assert` for correctness checks, since Python's `-O` flag strips
   every `assert` from compiled bytecode entirely.
+-
+    - `--only=CODE,CODE` CLI flag to restrict checking to specific
+      rules. Accepts full code, bare number, or symbolic name.
 
 ### Changed
 
 - `filter_suppressed` now returns `SuppressionResult(kept,
   suppressed)` instead of a bare list, so suppressed violations can
   be counted and reported rather than silently discarded.
+-
+    - `CHECKERS` restructured to explicit `RegisteredChecker(rule,
+  find_violations)` pairs, removing an implicit, unenforced
+      assumption that `CHECKERS` and `Rule` shared the same declaration
+      order.
 
 ### Fixed
 
