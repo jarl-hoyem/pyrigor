@@ -136,13 +136,27 @@ def _format_rule_breakdown(*, violations: list[Violation]) -> str:
     return ", ".join(f"{rule}: {count}" for rule, count in sorted(counts.items()))
 
 
-def _print_summary(*, files: list[str], elapsed: float, violations: list[Violation]) -> None:
-    """Print the timing summary and per-rule breakdown.
+def _print_file_breakdown(*, violations_by_file: dict[str, list[Violation]]) -> None:
+    """Print each file's own violation count, skipping clean files.
+
+    Args:
+        violations_by_file: Each checked file's own violations.
+    """
+    for path, file_violations in violations_by_file.items():
+        if file_violations:
+            print(f"{path}: {len(file_violations)}")
+
+
+def _print_summary(
+    *, files: list[str], elapsed: float, violations: list[Violation], violations_by_file: dict[str, list[Violation]]
+) -> None:
+    """Print the timing summary, per-rule breakdown, and per-file breakdown.
 
     Args:
         files: The files that were checked.
         elapsed: Elapsed time in seconds.
         violations: Every violation found across all files.
+        violations_by_file: Each checked file's own violations.
     """
     file_word = "file" if len(files) == 1 else "files"
     violation_word = "violation" if len(violations) == 1 else "violations"
@@ -150,6 +164,7 @@ def _print_summary(*, files: list[str], elapsed: float, violations: list[Violati
 
     if violations:
         print(_format_rule_breakdown(violations=violations))
+        _print_file_breakdown(violations_by_file=violations_by_file)
 
 
 def main(*, paths: list[str]) -> int:
@@ -164,11 +179,12 @@ def main(*, paths: list[str]) -> int:
     files = _collect_python_files(paths=paths)
     start = time.perf_counter()
 
-    all_violations = [v for path in files for v in _check_file(path=path)]
+    violations_by_file = {path: _check_file(path=path) for path in files}
+    all_violations = [v for file_violations in violations_by_file.values() for v in file_violations]
     exit_code = 1 if all_violations else 0
 
     elapsed = time.perf_counter() - start
-    _print_summary(files=files, elapsed=elapsed, violations=all_violations)
+    _print_summary(files=files, elapsed=elapsed, violations=all_violations, violations_by_file=violations_by_file)
 
     return exit_code
 

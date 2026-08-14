@@ -183,3 +183,27 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
         run()
 
     assert exc_info.value.code == 2
+
+
+def test_main_prints_per_file_breakdown(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """The summary should list each file's own violation count."""
+    (tmp_path / "bad_a.py").write_text("def one(a, b):\n    ...\n")
+    (tmp_path / "bad_b.py").write_text("def two(c, d):\n    ...\n\ndef three(e, f):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "bad_a.py: 1" in captured.out
+    assert "bad_b.py: 2" in captured.out
+
+
+def test_per_file_breakdown_skips_clean_files(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """A clean file, with no violations, should not appear in the per-file breakdown."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
+    (tmp_path / "clean.py").write_text("def two(*, a, b):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert "bad.py: 1" in captured.out
+    assert "clean.py" not in captured.out
