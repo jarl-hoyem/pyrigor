@@ -103,3 +103,9 @@ repos:
         entry: uv run --extra dev pytest
         pass_filenames: false
         # Saved for later: stages: [pre-push] # Only run on push instead of every commit.
+      - id: dod-check
+        name: DoD - warn on likely missed doc/changelog updates
+        language: system
+        entry: uv run --extra dev python scripts/check_definition_of_done.py
+        pass_filenames: false
+        always_run: true

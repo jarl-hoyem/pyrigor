@@ -31,6 +31,11 @@ pre-commit install
 `pre-commit install` sets up both the pre-commit and commit-msg hooks in one step
 (configured via `default_install_hook_types` in `.pre-commit-config.yaml`).
 
+A `dod-check` pre-commit hook prints warn-only notes (never blocks a
+commit) if a version bump or checker change looks like it might be
+missing a matching documentation update. See
+[`guidelines/DEFINITION_OF_DONE.md`](./guidelines/DEFINITION_OF_DONE.md).
+
 ## Before Submitting a Pull Request
 
 - Run all pre-commit checks: `pre-commit run --all-files`

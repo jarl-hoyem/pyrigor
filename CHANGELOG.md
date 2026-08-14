@@ -19,9 +19,13 @@ is usable for.
 - `PYR502`'s guideline doc corrected: recommends `raise` instead of
   `assert` for correctness checks, since Python's `-O` flag strips
   every `assert` from compiled bytecode entirely.
--
-    - `--only=CODE,CODE` CLI flag to restrict checking to specific
-      rules. Accepts full code, bare number, or symbolic name.
+- `--only=CODE,CODE` CLI flag to restrict checking to specific
+  rules. Accepts full code, bare number, or symbolic name.
+- `scripts/check_dod.py`, a warn-only pre-commit hook. Prints a note
+  (never fails the commit) if the `pyproject.toml`'s version changed
+  without a matching `CHANGELOG.md` entry, or if
+  `pyrigor/checkers/`/`rules.py` changed without a `README.md`
+  change, pointing at `guidelines/DEFINITION_OF_DONE.md`.
 
 ### Changed
 
