@@ -106,3 +106,14 @@ def test_near_miss_comment_warns(capsys: CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
     assert result.kept == violations
     assert "doesn't match" in captured.err
+
+
+def test_violation_with_out_of_range_line_number_is_kept_not_crashed() -> None:
+    """A violation whose line number exceeds the source's actual length should be kept, not crash."""
+    source = "def apply_correction(weight, bias):\n    ...\n"
+    violations = [Violation(line=999, column=1, context_name="apply_correction", rule=Rule.PYR402)]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    assert result.kept == violations
+    assert not result.suppressed

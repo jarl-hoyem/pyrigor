@@ -1,12 +1,12 @@
 # Review checklist
 
-A Fagan-Inspection-style checklist, in the sense of Gilb and Graham's
+A Fagan-Inspection-style checklist, in the sense of Gilb and Graham’s
 *Software Inspection*: checklist questions derive their authority
 from a rule, are earned one at a time by a real defect that slipped
 through, and are pruned if they stop finding anything. Not
 brainstormed, not copied from elsewhere.
 
-Format: each question is phrased so a **no** answer means an issue
+Format: each question is phrased, so a **no** answer means an issue
 was found. Each question tags back to the rule it elaborates.
 
 Run this checklist before declaring any feature, flag, or fix done,
@@ -23,24 +23,37 @@ alongside `DEFINITION_OF_DONE.md`.
    symbolic-name-form only. Whitespace tolerance, something
    suppression comments already had a dedicated test for, was never
    checked. Caught by the user asking a follow-up question, not by
-   any process at the time.
+   any process then.
+
+## Retroactive applications
+
+- **2026-08-16**: Question 1 applied retroactively across prior
+  work (PYR401, PYR403, suppression: out-of-range line guard,
+  --only’s two known gaps). Found: PYR401 and PYR403 both lacked an
+  async-function test (added, both passed, confirming existing code
+  was already correct). Suppression’s defensive out-of-range guard
+  had never been tested (added, confirmed correct). --only’s
+  unknown-code behavior was genuinely undefined (fixed separately,
+  not just tested). No new checklist question earned: this was
+  question 1 doing its job on prior work, not a new failure mode.
 
 ## Adding a question
 
 A question is only added here after a real defect slipped through
 that this checklist, if it had existed with that question already on
-it, would have caught. Log the defect and which question would have
-caught it, in the entry itself, the same way each entry above does.
+it, would have caught. When adding a question, log the defect it was
+caused by, and note that this same question would have caught it,
+the same way each entry above does.
 
 Do not add a question because it seems like good practice in the
 abstract. That produces exactly the "obvious or irrelevant" checklist
-*Software Inspection* warns against, one that looks thorough but
-does not actually find anything, because it was never tied to a real
+*Software Inspection* warns against, one looking thorough but
+does not find anything, because it was never tied to a real
 failure.
 
 ## Removing a question
 
 If a question has not caught anything over a reasonable period,
-across enough real feature work to have had a chance to, remove it.
+across enough real feature work to have had a chance to remove it.
 An unused question makes the checklist longer without making it more
-effective, and erodes trust in the ones that do work.
+effective and erodes trust in the ones that do work.

@@ -61,3 +61,15 @@ def run() -> None:
     violations = find_violations(tree=ast.parse(source))
 
     assert not violations
+
+
+def test_flags_async_function_with_single_positional_parameter() -> None:
+    """An async function with exactly one positional parameter should be flagged."""
+    source = """
+async def load_config(path):
+    ...
+"""
+    violations = find_violations(tree=ast.parse(source))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "load_config"

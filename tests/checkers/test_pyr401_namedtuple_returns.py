@@ -59,3 +59,15 @@ def load_config(*, path) -> dict[str, int]:
     violations = find_violations(tree=ast.parse(source))
 
     assert not violations
+
+
+def test_flags_async_function_with_tuple_return_annotation() -> None:
+    """An async function annotated to return a plain tuple should be flagged."""
+    source = """
+async def compute_gradient(*, x, y, w, b) -> tuple[float, float]:
+    ...
+"""
+    violations = find_violations(tree=ast.parse(source))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_gradient"
