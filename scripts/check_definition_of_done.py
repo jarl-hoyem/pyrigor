@@ -5,7 +5,7 @@ guidelines/DEFINITION_OF_DONE.md when a diff pattern suggests a
 step might have been missed.
 """
 
-import subprocess
+import subprocess  # nosec -- fixed git commands only, no untrusted input
 import sys
 
 
@@ -15,7 +15,10 @@ def _staged_files() -> list[str]:
     Returns:
         Every file that is staged for this commit.
     """
-    result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True)
+    # A fixed argument list, no untrusted input reaches the subprocess here.
+    result = subprocess.run(  # nosec
+        ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
+    )
     return result.stdout.splitlines()
 
 
@@ -25,7 +28,10 @@ def _pyproject_version_changed() -> bool:
     Returns:
         True if a version bump is present in the staged diff.
     """
-    result = subprocess.run(["git", "diff", "--cached", "pyproject.toml"], capture_output=True, text=True, check=True)
+    # A fixed argument list, no untrusted input reaches the subprocess here.
+    result = subprocess.run(  # nosec
+        ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
+    )
     return any(line.startswith("+version") for line in result.stdout.splitlines())
 
 

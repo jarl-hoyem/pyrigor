@@ -73,3 +73,11 @@ source_paths = "pyrigor/"
 
 [tool.pylint.format]
 max-line-length = 120
+
+[tool.bandit]
+
+[tool.bandit.assert_used]
+skips = ["*/tests/*"]
+
+[tool.codespell]
+ignore-words-list = "mata,matb"

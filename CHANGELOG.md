@@ -159,7 +159,7 @@ is usable for.
 - `site-packages` directories are now excluded by default during
   directory walks, regardless of the containing venv folder’s own
   name.
-- A single unreadable or unparseable file no longer crashes the run.
+- A single unreadable or unparsable file no longer crashes the run.
   Files that cannot be decoded or contain invalid syntax
   are skipped with a warning and do not affect the exit code.
 
