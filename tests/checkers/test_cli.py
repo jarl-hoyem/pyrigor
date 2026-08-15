@@ -297,3 +297,29 @@ def test_run_only_flag_tolerates_whitespace(
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
     assert "PYR402" in captured.out
+
+
+def test_main_only_accepts_bare_number_shorthand(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
+    """--only should accept a rule's bare number, not just its full code."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+
+    main(paths=[str(tmp_path)], only={"401"})
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+def test_run_only_flag_errors_on_unknown_code(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]
+) -> None:
+    """--only with an unrecognized code should error immediately, not silently run zero checkers."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR999", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "PYR999" in captured.err
+    assert "unknown" in captured.err.lower()

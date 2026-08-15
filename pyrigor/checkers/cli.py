@@ -342,6 +342,34 @@ def _extract_only_flag(*, args: list[str]) -> set[str] | None:
     return None
 
 
+def _known_rule_identities() -> set[str]:
+    """Collect every valid way to refer to a registered rule: code, shorthand, symbolic name.
+
+    Returns:
+        The full set of tokens --only will accept.
+    """
+    codes = {entry.rule.name for entry in CHECKERS}
+    shorthands = {entry.rule.name.removeprefix("PYR") for entry in CHECKERS}
+    symbolic_names = {entry.rule.symbolic_name for entry in CHECKERS}
+
+    return codes | shorthands | symbolic_names
+
+
+def _validate_only_flag(*, only: set[str] | None) -> None:
+    """Exit with an error if --only contains a code that matches no registered rule.
+
+    Args:
+        only: Tokens from --only, or None if the flag was not given.
+    """
+    if only is None:
+        return
+
+    unknown = only - _known_rule_identities()
+    if unknown:
+        print(f"pyrigor: unknown rule code(s) in --only: {', '.join(sorted(unknown))}", file=sys.stderr)
+        sys.exit(2)
+
+
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
     if "--version" in sys.argv:
@@ -350,6 +378,7 @@ def run() -> None:
 
     args = list(sys.argv[1:])
     only = _extract_only_flag(args=args)
+    _validate_only_flag(only=only)
 
     try:
         exit_code = main(paths=args, only=only)
