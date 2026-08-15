@@ -58,14 +58,36 @@ subcommand (separate from the per-checker `main()` entry points) and
 its own output format, deliberately out of scope for the initial
 suppression mechanism and per-rule breakdown themselves.
 
-### Structured argument parsing
+### Structured argument parsing (scoped)
 
-The CLI parses flags manually (`"--version" in sys.argv`),
-fine for a single flag. Once a second or third flag exists (per-rule
-excludes and a `--report` flag are both already noted above), this
-should move to `argparse` (the standard library, no new dependency)
-rather than continuing to hand-check `sys.argv` for each new flag.
-Not urgent with only one flag today.
+Replace run()’s hand-rolled argv parsing (bare "--version" in
+sys.argv check, manual --only= prefix-match-and-mutate) with
+argparse, standard library, no new dependency.
+
+Concrete plan:
+
+- `--version`, `-V`: existing behavior (print version, exit 0).
+- `--only`: same value, comma-separated string, parsed the same way
+  after argparse hands it over (argparse does not natively split
+  comma-separated values, that parsing stays custom either way).
+- Remaining positional arguments: `paths` (nargs="+" or nargs="*"
+  since checking with no path is an arguably invalid input).
+
+Real wins, not just style: free --help text, automatic rejection of
+unrecognized flags (`--onl=PYR401`, a typo, silently gets
+treated as a path and matched against nothing, no error at all),
+consistent, and `--flag=value` support.
+
+Real cost: every existing test calling run() via monkeypatched
+sys.argv needs re-verifying against argparse’s own error-exit
+behavior (argparse calls sys.exit(2) directly on a parse error,
+different from this project’s own exit-code convention of 2 meaning
+"crashed," worth deciding whether that collision matters or is
+actually fine since both mean "did not run correctly").
+
+Not urgent with only two flags today, worth doing before a third
+flag (`--report`, already speculative in the full-summary-report
+backlog item) makes the hand-rolled approach genuinely painful.
 
 ### Proper `.gitignore`-aware file discovery
 
@@ -133,16 +155,30 @@ reviewed and trimmed by hand before a release rather than written
 from scratch. Real, buildable, but a genuinely new tool, not a small
 addition.
 
-### Run mutmut locally on pre-push, not just CI
+### The tool mutmut is unusable, both in CI and locally
 
-The tool mutmut only run, when it runs at all, as a manual or CI
-step. Worth adding as a pre-push hook (not pre-commit, too slow for
-every commit) so mutation-testing feedback happens locally before
-pushing, not only after.
+Confirmed tonight: mutmut fails with the same FileNotFoundError
+(copy_src_dir attempting to copy unrelated system files, for
+example, /usr/share/doc/perl/Changes.gz) on a fresh Windows Subsystem
+for Linux (WSL) installation, a
+completely different environment from the GitHub Actions runners
+where this was first found, and the job disabled. This confirms the
+bug is in mutmut itself (its copy_src_dir walking too broad a root
+directory), not specific to CI runners as originally assumed.
+
+Not usable until this is fixed upstream, or a workaround is found
+(possibly a narrower source paths config, already scoped to
+pyrigor/ in pyproject.toml, worth checking if that scoping is
+actually being respected by a copy_src_dir or ignored). Worth checking
+mutmut’s own issue tracker for this exact FileNotFoundError before
+assuming pyrigor’s own config is at fault.
+
+The original "run it locally on pre-push, not just CI" idea is moot
+until this underlying bug is resolved either way.
 
 ### Review tool exemptions carried over from Pickomino
 
-Several tool-level exemptions, exclusions, or ignored rules in,
+Several tool-level exemptions, exclusions or ignored rules in
 `.pre-commit-config.yaml` and `pyproject.toml` were copied directly
 from Pickomino’s own config as a starting template, not re-evaluated
 for whether they actually apply to pyrigor. Worth a deliberate pass
@@ -169,7 +205,7 @@ noisy the way an early, unscoped magic-number rule would have been.
 
 In the same category as the vowel rule, a readability constraint, not a
 correctness one. Needs the exception list worked out carefully,
-loop counters (`i`, `j`), coordinates (`x`, `y`), and common,
+loop counters (`i`, `j`), coordinates (`x`, `y`) and common,
 well-understood short names would need explicit carve-outs, or this
 would be noisy on real code.
 
