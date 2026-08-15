@@ -1,211 +1,25 @@
-# MISRA-Style Rigor in Python — Habits to Build Over Time
-
-Reference notes from the ML course sessions. Not urgent — revisit and adopt gradually.
-
-## 1. Never use direct float equality
-
-_Written up as PYR204._
-
-```python
-# Bad
-converging = (cost - new_cost) == 0
-
-# Good
-converging = abs(cost - new_cost) < 1e-12
-```
-
-Floats rarely land exactly on a value due to rounding. This is a real latent bug pattern, not just style.
-
-## 2. `Final` for values that should never be reassigned
-
-_Written up as PYR203._
-
-```python
-from typing import Final
-
-LEARNING_RATE: Final = 0.001
-```
-
-The mypy errors, if anything, later tries to rebind it.
-
-## 3. Frozen structures for all multi-field states
-
-_Written up as PYR302._
-
-Use `NamedTuple` or `@dataclass(frozen=True)` for any structured data passed around — not just function returns. Nothing
-should be mutable after construction unless it needs to be.
-
-## 4. `Enum` instead of magic strings/bools for state
-
-_Written up as PYR202._
-
-```python
-from enum import Enum, auto
-
-class ConvergenceStatus(Enum):
-    RUNNING = auto()
-    CONVERGED = auto()
-    MAX_ITERS_REACHED = auto()
-```
-
-Prevents typos like `"convergd"` from doing nothing silently. The tool mypy catches invalid members.
-
-## 5. Keep mypy `--strict`, resist `Any` leaking in
-
-Already in use — every `no-any-return` error caught by this discipline confirms it is working.
-
-## 6. Never use mutable default arguments
-
-_Written up as PYR404._
-
-```python
-# Bad — shared mutable state across every call
-def f(items: list = []):
-    ...
-
-# Good
-def f(items: list | None = None):
-    items = items if items is not None else []
-```
-
-## 7. `assert_never` for exhaustiveness checking
-
-_Written up as PYR501._
-
-```python
-from typing import assert_never
-
-match status:
-    case ConvergenceStatus.RUNNING:
-        ...
-    case ConvergenceStatus.CONVERGED:
-        ...
-    case ConvergenceStatus.MAX_ITERS_REACHED:
-        ...
-    case _:
-        assert_never(status)
-```
-
-If a new enum member is added later, and a branch is missed, mypy flags it at type-check time.
-
-## 8. Explicit precondition checks, not implicit trust
-
-_Written up as PYR502._
-
-```python
-def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
-    assert x.shape == y.shape, "x and y must have matching shapes"
-    ...
-```
-
-Design-by-contract style: state assumptions explicitly rather than assuming callers behave.
-
-## 9. No wildcard imports
-
-```python
-# Bad
-from utils import *
-
-# Good
-from utils import load_data, load_data_multi
-```
-
-Never let names enter the scope invisibly.
-
-## 10. `NewType` for domain-distinct values sharing the same underlying type
-
-Already applied in `ml_types.py` (`Weight`, `Bias`). Zero runtime cost, but mypy treats them
-as distinct types — catches swaps that keyword arguments alone cannot (for example, passing a `Bias`
-where a `Weight` is expected, even with correct keyword syntax).
-
-## Elaboration on 3 and 10
-
-NamedTuple for returns, NewType for same-typed values at risk of confusion.
-
-Rule:
-
-Always use NamedTuple for any function returning more than one value. This removes positional-unpacking ambiguity — the
-caller accesses fields by name (result.dj_dw), not position, so a mislabeled variable at the call site can no longer
-silently receive the wrong value.
-Use NewType for any same-typed values — whether function arguments or NamedTuple fields — that could plausibly be
-swapped or confused (for exampleWeight/Bias when both might be represented as float or same-shaped ndarray). Skip it
-where
-confusion is not realistically possible.
-
-Why:
-
-Different-typed arguments (for example, w: np.ndarray, b: float) are already protected by mypy — a swap at the call
-site is a
-type mismatch and gets caught. No NewType needed here.
-Same-typed arguments (for example, two float parameters) are not protected by mypy alone — both are structurally
-identical, so a
-swap is a silent, valid-looking call. NewType makes them nominally distinct, so mypy catches the swap.
-NamedTuple closes a separate gap: even with a fully typed multi-value return (for example, tuple[np.ndarray, float]),
-mypy
-checks the type at each position but not the name the caller gives it. A caller can unpack into misleadingly named
-variables (dj_db_temp, dj_dw_temp = ... when the function actually returns dj_dw, dj_db), and mypy will not catch it,
-because the types still line up positionally — only the semantics are wrong. This is a silent bug that surfaces only
-when the mislabeled variable is later used in a way that exposes its true type. For example, calling '.tolist()' on
-what you thought was a float, a runtime crash, not a caught error.
-NamedTuple field access removes the positional slot entirely, so there is nothing to mislabel.
-
-Combined, these two will catch:
-
-Argument-order swaps for differently typed args → plain type annotations (no extra tooling needed)
-Argument-order swaps for same-typed args → NewType
-Return-unpacking mislabeling for differently typed return values → NamedTuple alone
-Return-unpacking mislabeling for same-typed return fields → NamedTuple + NewType together.
-
-Example:
-
-```python
-class GradientResult(NamedTuple):
-dj_dw: Weight
-dj_db: Bias
-
-def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult:
-...
-return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
-```
-
----
-
-## 11. Disallow ignoring a return value marked as required
-
-_Reserved as PYR406. Not yet written up._
+### PYR406: Disallow ignoring a required return value (reserved, not yet written up)
 
 Like C++'s `[[nodiscard]]` or Rust's `#[must_use]`. A function’s
 return value being silently discarded, called as a bare statement,
 is very likely a bug if that return value is meaningful, `x = f()`
 intended, `f()` written by mistake. Cannot be detected by inference
-alone, same lesson as PYR203’s original mistake. Most discarded
-return values are entirely intentional (`print(...)`, `logging.info(...)`,
-`list.append(...)`). Needs an explicit marker the developer applies,
-a decorator most likely, then a mechanical check that a decorated
-function is never called as a bare expression statement.
+alone, same lesson as the mistake for PYR203 originally. Most discarded
+return values are entirely intentional (`print(...)`,
+`logging.info(...)`, `list.append(...)`). Needs an explicit marker
+the developer applies, a decorator most likely, then a mechanical
+check that a decorated function is never called as a bare expression
+statement.
 
-Worth checking overlap before writing the full doc, not confidently
-verified whether ruff or pylint already cover this pattern.
+Real, independent precedent: OSSF’s Secure Coding Guide for Python,
+pyscg-0036 ("Check Return Values"), cites MITRE CWE-252 (Unchecked
+Return Value) and equivalent SEI CERT rules for Java (EXP00-J) and C
+(EXP12-C). Worth citing directly when the full guideline doc is
+eventually written, real, credible corroboration, not just an
+analogy to C++/Rust.
 
-## 12. Suppression counts per rule in the summary
-
-Half-designed, not yet applied. The function filter_suppressed(violations, source)
-returns only the kept violations, silently discarding that
-ones were suppressed and under which rule. To add "PYR402: 3
-suppressed" to the summary alongside the existing per-rule and
-per-file violation counts, filter suppressed needs to return both
-lists, likely a SuppressionResult(kept, suppressed) NamedTuple rather
-than a bare list. This is a real, breaking change to
-filter suppressed’s return type, every existing caller and test
-needs updating, not just cli.py.
-
-**Suggested order to actually adopt these, when ready:**
-
-1. Fix float equality (#1) — real bug risk, quick win
-2. `Final` for constants (#2) — nearly free
-3. No wildcard imports (#9) — mechanical fix
-4. No mutable defaults (#6) — mechanical fix
-5. Everything else, as the codebase grows, and the payoff becomes clearer.
+Overlap check (`ADDING_A_RULE.md` step 0) not yet confirmed against
+ruff or pylint.
 
 ## Future tooling ideas
 
@@ -385,6 +199,17 @@ future `--report` output, or documentation, rather than presenting
 every rule’s violation count with equal weight, which invites
 exactly the kind of misread a raw total would otherwise cause.
 
+### Summary output inconsistency: Violation counts lack a label, suppression counts do not.
+
+Found on the actual CLI output: the per-rule breakdown prints bare
+counts (`PYR401: 5, PYR402: 92`), no label distinguishing what the
+number means, while the suppression breakdown appends "suppressed"
+to each count (`PYR402: 1 suppressed`). A reader glancing at the
+per-rule line alone has to infer "violations" from context. The
+suppression line is self-explanatory. Worth a consistent label on
+both, for example, "Violations:" as a header line before the per-rule
+breakdown, matching the clarity the suppression line already has.
+
 ### CLI flag to filter, which rules run: `--only`
 
 Design worked out, not yet applied. `pyrigor --only PYR301,PYR401
@@ -417,16 +242,6 @@ def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[st
     assert "PYR401" in captured.out
     assert "PYR402" not in captured.out
 ```
-
-### PYR406 (return-value-must-be-used) has a real precedent
-
-OSSF’s Secure Coding Guide for Python, pyscg-0036 ("Check Return
-Values"), is a direct, independent match for the reserved PYR406
-idea (disallow ignoring a return value marked as required). Cites
-MITRE CWE-252 (Unchecked Return Value) and equivalent SEI CERT rules
-for Java (EXP00-J) and C (EXP12-C). Worth citing directly when
-PYR406’s full guideline doc is eventually written, real, credible,
-independent corroboration, not just an analogy to C++/Rust.
 
 ### OSSF Secure Coding Guide for Python, a broader review worth doing.
 
@@ -494,9 +309,14 @@ work retroactively surfaced two real, untested cases:
   untested behavior. Runs zero checkers, worth
   confirming that is the intended behavior (versus erroring explicitly)
   and adding a test either way.
--
 
-Investigate vulture, culler, uncalled and dead.
+### Investigate alternative dead-code detectors beyond vulture
+
+The tool vulture is already in pre-commit, but worth investigating other
+tools in the same category before assuming it is enough alone:
+"culler" and other uncalled-code/dead-code detection tools. Compare
+detection approach, false-positive rate, and whether any catches
+something vulture’s own heuristics (confidence-scored, import-usage-based) miss.
 
 ### Definition of Ready
 
@@ -614,17 +434,6 @@ real methodology: run each configuration multiple times, discard the
 first (cold cache) run, report the median or average of the rest,
 rather than a single number that may be dominated by caching noise.
 
-### Summary output inconsistency: Violation counts lack a label, suppression counts do not.
-
-Found on the actual CLI output: the per-rule breakdown prints bare
-counts (`PYR401: 5, PYR402: 92`), no label distinguishing what the
-number means, while the suppression breakdown appends "suppressed"
-to each count (`PYR402: 1 suppressed`). A reader glancing at the
-per-rule line alone has to infer "violations" from context. The
-suppression line is self-explanatory. Worth a consistent label on
-both, for example, "Violations:" as a header line before the per-rule
-breakdown, matching the clarity the suppression line already has.
-
 ### Large Language Model supported bulk-fixing pyrigor findings as a bug-finding technique.
 
 Speculative, not tested. Hypothesis: running pyrigor against a real
@@ -673,7 +482,14 @@ fails fast rather than waiting through slower hooks first. The same
 session (moving pytest after the pyrigor hook), worth extending
 across the file now several new tools are being added.
 
-MicroPython and CircuitPython give ideas for rules?
+### MicroPython/CircuitPython restrictions as a source of rule ideas
+
+Both are constrained Python subsets for embedded targets, with real,
+documented restrictions on what standard Python features are safe or
+supported (limited dynamic behavior, restricted stdlib, memory
+constraints). Worth reviewing their own documentation as a source of
+rule ideas, the same way Code Complete, Google’s style guide, and
+OSSF’s Secure Coding Guide were mined tonight. Not yet reviewed.
 
 ### Real, profiled performance bottleneck. The ast walk is called once per checker instead of once per every file.
 
@@ -708,3 +524,17 @@ ncalls  tottime  percall  cumtime  percall filename:lineno(function)
 138513395   93.896    0.000  195.126    0.000 ast.py:280(iter_child_nodes)
 182520705   51.826    0.000   73.510    0.000 ast.py:268(iter_fields)
 ```
+
+### The pyproject.toml’s [tool.*] sections also have no deliberate order.
+
+Same issue already logged for .pre-commit-config.yaml’s hook order,
+confirmed present here too: [tool.mypy], [tool.ruff],
+[tool.pytest.ini_options], [tool.coverage.run], [tool.pydocstyle],
+[tool.mutmut], [tool.pylint.format], [tool.bandit],
+[tool.bandit.assert_used], [tool.codespell] appear in whatever order
+they were added, not alphabetically, not grouped by the category (type
+checking, linting, testing, security), and not matching
+.pre-commit-config.yaml’s own hook order either. Worth reordering
+both files consistently in the same pass, since they describe
+overlapping tooling, and a reader benefits from matching structure
+between them.
