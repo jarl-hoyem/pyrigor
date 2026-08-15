@@ -23,31 +23,40 @@ ruff or pylint.
 
 ## Future tooling ideas
 
-### Suppression audit report
+### Full summary report (`--report`)
 
-`filter_suppressed` already parses an optional free-text reason from
-`# pyrigor: CODE # reason` comments (captured, not yet surfaced
-anywhere). A natural follow-on: a report command walks a
-codebase, collects every active suppression comment and its reason,
-and outputs a summary — useful for a team lead reviewing what is being
-silenced and why, the same way an old, unreviewed `# noqa` comment
-tends to accumulate unexamined on larger codebases.
+Three related, separate ideas that belong together:
 
-Not yet designed. Would likely need its own CLI subcommand (separate
-from the per-checker `main()` entry points) and its own output
-format — deliberately out of scope for the initial suppression
-mechanism itself.
+- **Suppression audit report.** `filter_suppressed` already parses
+  an optional free-text reason from `# pyrigor: CODE # reason`
+  comments, captured but not surfaced anywhere. A report command
+  could walk a codebase, collect every active suppression comment
+  and its reason, and output a summary, useful for a team lead
+  reviewing what is being silenced and why, the same way an old,
+  unreviewed `# noqa` comment tends to accumulate unexamined on
+  larger codebases.
+- **Fuller violation reporting.** Per-rule and per-file violation
+  counts, and per-rule suppression counts, already shipped. Worth
+  extending: most-violated files, the most common rule, trend over
+  time if run repeatedly.
+- **Distinguishing "unadopted convention" rules from "avoidable
+  footgun" rules in the report itself.** Found while running pyrigor
+  against mypy’s own codebase: PYR402 and PYR403 fired thousands of
+  times, high counts that mostly reflect a community-wide convention
+  (bare `*` for keyword-only arguments) essentially no pre-existing
+  codebase has adopted, not carelessness. PYR301, PYR401, and PYR405
+  fired far less (3, 225, and 24 respectively across 441 files), a
+  more genuinely meaningful signal, since these catch a specific,
+  well-known, avoidable bug rather than an unadopted stylistic
+  choice. A low count in the second category is real evidence of
+  deliberate discipline, a low count in the first mostly is not.
+  Worth surfacing this distinction in the report rather than
+  presenting every rule’s count with equal weight.
 
-### Per-rule violation counts, and a full summary report
-
-The current summary line reports a single total violation count.
-Worth extending into a proper breakdown — for example, the "PYR401: 12
-violations, PYR402: 64 violations" — and eventually a fuller report
-(most-violated files, the most common rule, trend over time if run
-repeatedly). Natural pairing with the suppression audit report idea
-above. Both are "summarize what pyrigor found/did across a run"
-features and might share infrastructure or even a CLI flag
-(`--report`) once designed together.
+Not yet designed as one feature. Would likely need its own CLI
+subcommand (separate from the per-checker `main()` entry points) and
+its own output format, deliberately out of scope for the initial
+suppression mechanism and per-rule breakdown themselves.
 
 ### Structured argument parsing
 
@@ -181,24 +190,6 @@ README, signaling "checked with ruff." Worth building the same for
 pyrigor, once there is a real audience of adopting projects for it
 to matter to.
 
-### Distinguish "unadopted convention" rules from "avoidable footgun" rules in reporting
-
-Found while running pyrigor against mypy’s own codebase: PYR402 and
-PYR403 fired thousands of times, high counts that mostly reflect a
-community-wide convention (bare `*` for keyword-only arguments)
-essentially no pre-existing codebase has adopted, not carelessness.
-PYR301, PYR401, and PYR405 fired far less (3, 225, and 24 respectively
-across 441 files), a more genuinely meaningful signal, since these
-catch a specific, well-known, avoidable bug (positionally ambiguous
-multi-value data) rather than an unadopted stylistic choice.
-
-A low count in the second category is real evidence of deliberate
-discipline. A low count on the first category mostly is not. Worth
-surfacing this distinction in future reporting, PERFORMANCE.md, a
-future `--report` output, or documentation, rather than presenting
-every rule’s violation count with equal weight, which invites
-exactly the kind of misread a raw total would otherwise cause.
-
 ### Summary output inconsistency: Violation counts lack a label, suppression counts do not.
 
 Found on the actual CLI output: the per-rule breakdown prints bare
@@ -310,13 +301,14 @@ work retroactively surfaced two real, untested cases:
   confirming that is the intended behavior (versus erroring explicitly)
   and adding a test either way.
 
-### Investigate alternative dead-code detectors beyond vulture
+### Investigate three specific dead-code detectors: Culler, uncalled, dead
 
-The tool vulture is already in pre-commit, but worth investigating other
-tools in the same category before assuming it is enough alone:
-"culler" and other uncalled-code/dead-code detection tools. Compare
-detection approach, false-positive rate, and whether any catches
-something vulture’s own heuristics (confidence-scored, import-usage-based) miss.
+The tool vulture is already in pre-commit. Worth specifically investigating
+three named alternatives: Culler, uncalled, and dead. Not
+independently verified to exist under these exact names, worth
+confirming each first, then comparing detection approach,
+false-positive rate, and whether any catches something vulture’s own
+heuristics (confidence-scored, import-usage-based) miss.
 
 ### Definition of Ready
 
@@ -327,18 +319,6 @@ reserved (per `NUMBERING.md`), for a rule specifically. Not yet
 written. Worth checking whether Pickomino’s own DoR content (deferred
 process, not adopted, per the CONTRIBUTING.md rewrite) has anything
 worth reusing now this project has grown enough to want it.
-
-### Document design and architecture decisions
-
-No current record of *why* a structural choice was made, only the
-result. Real examples from this session alone: why `find_function_
-violations`/`find_assign_violations` are split rather than one
-generic dispatcher (Protocol contravariance), why `CHECKERS` moved
-to explicit `RegisteredChecker` pairs instead of positional `zip`
-with `Rule`. A lightweight Architecture Decision Record log,
-one short file per real decision, or one running log file, would
-have made tonight’s "why is _CheckerFun no longer used" kind of
-question answerable without re-deriving the reasoning from memory.
 
 ### README duplication when adding a new rule
 
@@ -399,7 +379,8 @@ not ideas themselves. Candidates already surfaced this session:
 Steve McConnell (Code Complete), Google’s Python Style Guide, OSSF’s
 Secure Coding Guide for Python, PEP8, Django’s coding style
 (checked, found silent), Clean Code (flagged as contested, not yet
-independently verified).
+independently verified), MicroPython/CircuitPython documentation (embedded Python
+subset restrictions, see the separate entry on this).
 
 ### Rejected rules should not consume the PYRxxx number space
 
@@ -469,18 +450,6 @@ mechanical (insert `*,`), not an LLM applying real comprehension.
 Worth an actual small-scale test later: pick a real cloned repo
 already on disk (Home Assistant, abseil-py), a batch of real PYR401
 findings, and see whether anything surfaces.
-
-### Optimize the order of tools in pre-commit
-
-Hooks run in whatever order they were added, not
-deliberately ordered by cost or likelihood of catching something
-early. Worth reordering so inexpensive, fast, structural checks run before
-expensive ones (type checkers, pytest), and checks most likely to
-catch something run before less likely ones, so a failing commit
-fails fast rather than waiting through slower hooks first. The same
-"static checks before tests" principle already applied once this
-session (moving pytest after the pyrigor hook), worth extending
-across the file now several new tools are being added.
 
 ### MicroPython/CircuitPython restrictions as a source of rule ideas
 
