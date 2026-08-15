@@ -287,20 +287,6 @@ the remaining work. Given the earlier documented caution about
 `ruff --fix` "messing everything up," worth treating any auto fix
 here as opt-in and clearly scoped, not a default behavior.
 
-### DoD gaps found in --only, not yet fixed
-
-Applying DEFINITION_OF_DONE.md’s testing checklist to today’s --only
-work retroactively surfaced two real, untested cases:
-
-- The bare-number shorthand form (`--only=301` rather than
-  `--only=PYR301`) was explicitly promised as one of the three
-  lenient forms but never actually tested for `--only` specifically,
-  only for suppression comments.
-- An unknown/nonexistent code (`--only=PYR999`) has undefined,
-  untested behavior. Runs zero checkers, worth
-  confirming that is the intended behavior (versus erroring explicitly)
-  and adding a test either way.
-
 ### Investigate three specific dead-code detectors: Culler, uncalled, dead
 
 The tool vulture is already in pre-commit. Worth specifically investigating

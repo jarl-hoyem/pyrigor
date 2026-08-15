@@ -60,11 +60,12 @@ pyrigor path/to/file.py [path/to/another.py ...]
 PYR301, PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
 exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
 
-Run `pyrigor --version` to check the installed version. Use
-`--only=CODE, CODE` to restrict checking to specific rules, for
-example `pyrigor --only=PYR401,keyword-only-arguments path/`. Codes
+Run `pyrigor --version` to check the installed version.
+Use `--only=CODE,CODE` to restrict checking to specific rules, for
+example `pyrigor --only=PYR401,keyword-only-arguments path/`. The Codes
 may be given as the full code, the bare number, or the symbolic
-name, the same as suppression comments.
+name, the same as suppression comments. An unrecognized code exits
+immediately with an error naming it.
 
 To suppress a specific violation, add a same-line comment with a
 reason:

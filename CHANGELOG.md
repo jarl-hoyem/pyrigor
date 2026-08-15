@@ -43,6 +43,8 @@ is usable for.
 - Per-rule breakdown and per-file breakdown print order: both were
   still printing before the per-file list on a second pass, only the
   total line had actually been fixed the first time.
+- `--only` with an unrecognized rule code now errors immediately
+  (exit code 2) instead of silently running zero checkers.
 
 ## [0.5.0] 2026-08-14
 
