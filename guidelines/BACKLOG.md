@@ -497,3 +497,166 @@ work retroactively surfaced two real, untested cases:
 -
 
 Investigate vulture, culler, uncalled and dead.
+
+### Definition of Ready
+
+Companion to `DEFINITION_OF_DONE.md`. Before starting work on
+something (a rule, a feature), what needs to be true first, is the scope
+clear, overlap checked (per `ADDING_A_RULE.md` step 0), a number
+reserved (per `NUMBERING.md`), for a rule specifically. Not yet
+written. Worth checking whether Pickomino’s own DoR content (deferred
+process, not adopted, per the CONTRIBUTING.md rewrite) has anything
+worth reusing now this project has grown enough to want it.
+
+### Document design and architecture decisions
+
+No current record of *why* a structural choice was made, only the
+result. Real examples from this session alone: why `find_function_
+violations`/`find_assign_violations` are split rather than one
+generic dispatcher (Protocol contravariance), why `CHECKERS` moved
+to explicit `RegisteredChecker` pairs instead of positional `zip`
+with `Rule`. A lightweight Architecture Decision Record log,
+one short file per real decision, or one running log file, would
+have made tonight’s "why is _CheckerFun no longer used" kind of
+question answerable without re-deriving the reasoning from memory.
+
+### README duplication when adding a new rule
+
+Adding a rule means updating the guideline table in
+the README.md by hand, a real, repeated source of drift (found stale
+multiple times this session: PYR401/PYR403/PYR405 all shown as "not
+enforced" after they were). Directly connects to the single source
+of truth architecture already deferred (generate the table from
+rules.py + CHECKERS rather than hand-maintaining it). The same fix
+closes both this and the next item.
+
+### Rule list as a separate document
+
+Related to the above: the guideline table lives inside
+README.md itself. Worth considering whether it should be a separate
+generated file (`guidelines/RULES.md` or similar), README linking to
+it, rather than embedding a large, frequently stale table directly
+in the project’s front door.
+
+### Proper citations in rule docs
+
+Rule docs cite sources informally, prose mentioning
+"Steve McConnell’s *Code Complete*" or "Google’s Python Style Guide"
+inline. Worth a consistent, structured citation format per rule
+(book / article / talk / podcast, with a link where one exists), so
+a third party can verify the claim independently, rather than taking
+the doc’s word for it. PYR203 (McConnell), PYR401 (Google’s guide,
+now cited inline), and PYR406 (OSSF’s pyscg-0036, cited inline) are
+the existing candidates to retrofit into whatever format gets chosen.
+
+### Rule: Flag an old/unsupported Python version
+
+Not yet scoped. Needs a design decision: check `requires-python` in
+pyproject.toml against current CPython End of Life status (external, changes
+over time, same problem PYR301’s own numbering scheme had to solve
+for pyrigor’s own supported-version policy), or check for
+version-gated syntax/imports actually used in the code that implies
+an old floor. Two different checks, worth deciding,
+which, or both, before writing a guideline doc.
+
+### Rule: Ban "_and_" in function names
+
+A real, checkable naming smell, a function named `validate_and_save`
+usually means it does two things and should be split into two
+functions, the name admitting it via the literal word "and." Cheap,
+structural (search identifier names for the substring), likely low
+effort. Needs the same overlap check as any other rule (step 0)
+before assuming it is a genuine gap.
+
+### A sourcing list for future rules
+
+A running list of books, articles, talks, podcasts, organizations,
+and people worth mining for future rule ideas, plus famous bugs
+worth citing as motivating examples (the Mars Climate Orbiter
+example already used in the README’s own demo section). Distinct
+from the BACKLOG.md’s own rule ideas, this is a list of *where to look*,
+not ideas themselves. Candidates already surfaced this session:
+Steve McConnell (Code Complete), Google’s Python Style Guide, OSSF’s
+Secure Coding Guide for Python, PEP8, Django’s coding style
+(checked, found silent), Clean Code (flagged as contested, not yet
+independently verified).
+
+### Rejected rules should not consume the PYRxxx number space
+
+Rejecting a rule (per `REJECTED.md`) leaves its number
+unused but implicitly reserved, since nothing else can claim it.
+Given ruff alone has 900+ rules, systematically
+checking pyrigor’s own future ideas against all of them and rejecting
+matches would burn through the PYRxxx numbering scheme fast, for
+rules that were never actually built. Worth a separate namespace for
+rejected-and-therefore-never-registered rules, for example
+`PYREJECT101`, so `REJECTED.md`'s own entries do not compete for the
+same limited number space as real, built, or documented rules.
+
+### Research rules for memory safety / no garbage collection
+
+Flagged as needing real scoping before it is tractable, not assumed
+practical. Python always uses garbage collection at the language
+level, a rule cannot ban GC the way a systems-language linter might.
+Worth researching what "memory safety" concerns actually translate
+to Python (context manager discipline, resource cleanup,
+reference cycles, weak references) versus what is a category
+borrowed from C/Rust/embedded contexts that does not map over at all.
+Do the overlap check (`ADDING_A_RULE.md` step 0) once any candidate
+is identified, since resource-management linting already has some
+coverage in existing tools.
+
+### Reproducible run times for PERFORMANCE.md
+
+`PERFORMANCE.md` already flags real variance from OS-level file
+caching (34.30 s versus 18.86 s on back-to-back identical runs). Worth a
+real methodology: run each configuration multiple times, discard the
+first (cold cache) run, report the median or average of the rest,
+rather than a single number that may be dominated by caching noise.
+
+### Summary output inconsistency: Violation counts lack a label, suppression counts do not.
+
+Found on the actual CLI output: the per-rule breakdown prints bare
+counts (`PYR401: 5, PYR402: 92`), no label distinguishing what the
+number means, while the suppression breakdown appends "suppressed"
+to each count (`PYR402: 1 suppressed`). A reader glancing at the
+per-rule line alone has to infer "violations" from context. The
+suppression line is self-explanatory. Worth a consistent label on
+both, for example, "Violations:" as a header line before the per-rule
+breakdown, matching the clarity the suppression line already has.
+
+### Large Language Model supported bulk-fixing pyrigor findings as a bug-finding technique.
+
+Speculative, not tested. Hypothesis: running pyrigor against a real
+repo, then asking a Large Language Model (LLM) to fix every finding (in a copy of the
+repo, not the real one), could surface real, pre-existing bugs as a
+side effect, not because pyrigor detects them directly, but because
+*fixing* certain findings forces the close reading pyrigor itself
+never does.
+
+Reasoning: pyrigor’s own detection is purely structural, it never
+inspects what values are actually passed at a call site. But fixing
+a PYR401 or PYR301 violation cannot be done as a pure syntax
+transform, converting `return a, b` into a NamedTuple requires
+finding and rewriting every unpacking call site, which means reading
+what each site actually does with the values. That is the same
+mechanism by which the project’s own original w/b swap bug would
+have been caught, not detected by a linter, but noticed by someone
+forced to look carefully during a refactor. PYR402/PYR403 are weaker
+candidates for this, since they can often be fixed as pure syntax
+insertion (`*,`) without touching call sites at all, where existing
+callers already use compatible keyword calls.
+
+Real risk, not just upside: an LLM doing this without being
+explicitly asked to flag anomalies could silently
+"fix" a real bug by guessing a plausible order, destroying the
+evidence rather than surfacing it. Whether this works as a
+bug-finding technique depends entirely on the fixing process being
+asked to report anything suspicious, not just make tests pass.
+
+Distinct from the existing auto fix backlog item, which is scoped as
+mechanical (insert `*,`), not an LLM applying real comprehension.
+
+Worth an actual small-scale test later: pick a real cloned repo
+already on disk (Home Assistant, abseil-py), a batch of real PYR401
+findings, and see whether anything surfaces.
