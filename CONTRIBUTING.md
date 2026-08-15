@@ -36,6 +36,11 @@ commit) if a version bump or checker change looks like it might be
 missing a matching documentation update. See
 [`guidelines/DEFINITION_OF_DONE.md`](./guidelines/DEFINITION_OF_DONE.md).
 
+See [`guidelines/DEFINITION_OF_DONE.md`](./guidelines/DEFINITION_OF_DONE.md)
+for the standing checklist applied before any change is considered
+finished, and [`guidelines/REVIEW_CHECKLIST.md`](./guidelines/REVIEW_CHECKLIST.md)
+for the earned, defect-derived checklist alongside it.
+
 ## Before Submitting a Pull Request
 
 - Run all pre-commit checks: `pre-commit run --all-files`
