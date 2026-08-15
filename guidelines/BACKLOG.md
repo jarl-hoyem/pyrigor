@@ -183,12 +183,26 @@ rollout strategy. Adopt one rule, fix it, add the next rather than
 turning on all rules at once. Worth a dedicated adoption guide
 covering both paths.
 
-### A pyrigor badge, like ruff's own
+### A static pyrigor badge, like ruff’s own
 
-Ruff has a shields.io-style badge projects can add to their own
-README, signaling "checked with ruff." Worth building the same for
-pyrigor, once there is a real audience of adopting projects for it
-to matter to.
+Scoped: a plain static shields.io badge, no dynamic data, no
+hosting, matching ruff’s own badge in this README, which is also
+purely static, for example
+`https://img.shields.io/badge/checked%20with-pyrigor-blue`. Effort
+is trivial, deciding wording and color, adding a copyable Markdown
+snippet to CONTRIBUTING.md, or the README for adopting projects to
+use. Still gated on having a real adopting audience for the badge to
+matter to.
+
+### A dynamic pyrigor status badge
+
+A per-project badge reflecting real findings (violation count,
+pass/fail), the way a CI-status badge does. A genuinely different,
+larger feature from the static badge above would need real GitHub
+Action infrastructure in each adopting project to generate a JSON
+endpoint shields.io can read. Not scoped, not designed. Worth
+revisiting only once the static badge exists and there is real
+demand for something richer.
 
 ### Summary output inconsistency: Violation counts lack a label, suppression counts do not.
 
