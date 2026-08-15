@@ -76,6 +76,12 @@ to features and CLI behavior, not just checkers, because
 the same category of gaps has now shown up twice in that domain
 (`--version`'s coverage, `--only`'s leniency).
 
+`guidelines/REVIEW_CHECKLIST.md` extends this further, in the style
+of Gilb and Graham's *Software Inspection*: each checklist question
+is earned by a real defect that slipped through, tagged back to the
+rule it elaborates, not brainstormed in the abstract. Run it
+alongside this file before declaring anything done.
+
 ## Additional checks
 
 Standard software Definition of Done practice, filtered for a solo
