@@ -63,7 +63,7 @@ jobs:
       - name: Run pyrigor against the stdlib, must not crash
         run: |
           set +e
-          uv run pyrigor $(python -c "import sysconfig; print(sysconfig.get_path('stdlib'))")
+          uv run pyrigor "$(python -c "import sysconfig; print(sysconfig.get_path('stdlib'))")"
           exit_code=$?
           set -e
           if [ "$exit_code" -eq 2 ]; then exit 1; fi
