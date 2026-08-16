@@ -63,25 +63,40 @@
 | Style-check tonight's newly added entries specifically                          | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 
-### PYR406: Disallow ignoring a required return value (reserved, not yet written up)
+### PYR406: Require every locally defined function’s non-None return value to be used.
 
-Like C++'s `[[nodiscard]]` or Rust's `#[must_use]`. A function’s
-return value being silently discarded, called as a bare statement,
-is very likely a bug if that return value is meaningful, `x = f()`
-intended, `f()` written by mistake. Cannot be detected by inference
-alone, same lesson as the mistake for PYR203 originally. Most discarded
-return values are entirely intentional (`print(...)`,
-`logging.info(...)`, `list.append(...)`). Needs an explicit marker
-the developer applies, a decorator most likely, then a mechanical
-check that a decorated function is never called as a bare expression
-statement.
+No decorator, no opt-in. Structural, matching every other pyrigor
+rule, no developer memory required. Any function defined within the
+codebase being checked, with a return type other than `None`, called
+as a bare statement with its result discarded, is flagged.
+
+```python
+def compute_total(items: list[Item]) -> float:
+    ...
+
+compute_total(items)      # flagged: return value discarded
+total = compute_total(items)  # fine
+```
+
+Scope, deliberately narrow to avoid the noise a blanket version
+would cause:
+
+- Only functions **defined within the codebase pyrigor is checking**.
+  Never flags a call into an external library, where "return value
+  optional by convention" is common and outside the project’s own
+  control.
+- A function returning `None` is automatically excluded, nothing to
+  discard, the largest source of false positives (`print`,
+  `logger.info`, `list.append`).
+- Real, legitimate exceptions (a builder method returning `self` for
+  optional chaining, a deliberate `dict.pop(key, None)`-style
+  discard) are handled by the existing suppression mechanism, not by
+  trying to auto-detect every legitimate pattern.
 
 Real, independent precedent: OSSF’s Secure Coding Guide for Python,
 pyscg-0036 ("Check Return Values"), cites MITRE CWE-252 (Unchecked
 Return Value) and equivalent SEI CERT rules for Java (EXP00-J) and C
-(EXP12-C). Worth citing directly when the full guideline doc is
-eventually written, real, credible corroboration, not just an
-analogy to C++/Rust.
+(EXP12-C).
 
 Overlap check (`ADDING_A_RULE.md` step 0) not yet confirmed against
 ruff or pylint.

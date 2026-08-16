@@ -134,3 +134,29 @@ def find_assign_violations(*, tree: ast.Module, predicate: _AssignPredicateFun, 
         if isinstance(node, ast.AnnAssign) and predicate(node=node):
             violations.append(make_violation(node=node, rule=rule))
     return violations
+
+
+class WalkedNodes(NamedTuple):
+    """Every relevant node in a file, walked once and split by kind."""
+
+    function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef]
+    assign_nodes: list[ast.AnnAssign]
+
+
+def walk_once(*, tree: ast.Module) -> WalkedNodes:
+    """Walk a tree exactly once, splitting nodes by kind for every checker to reuse.
+
+    Args:
+        tree: The parsed AST of a Python source file.
+
+    Returns:
+        Every function and annotated-assignment node that is found.
+    """
+    function_nodes = []
+    assign_nodes = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            function_nodes.append(node)
+        elif isinstance(node, ast.AnnAssign):
+            assign_nodes.append(node)
+    return WalkedNodes(function_nodes=function_nodes, assign_nodes=assign_nodes)
