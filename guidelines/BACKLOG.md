@@ -1,64 +1,67 @@
-PYR406 (return-value-must-use)                          Value: M · Effort: M
-Full summary report (--report)                           Value: M · Effort: L
-Structured argument parsing (scoped)                      Value: S · Effort: M
-Proper .gitignore-aware file discovery Value: S · Effort: M
-Per-rule directory/file excludes Value: M · Effort: M
-Detect unnecessary suppression comments Value: M · Effort: M
-Changelog draft generator Value: S · Effort: L
-mutmut unusable (blocked, upstream)                       Value: — · Effort: — (blocked)
-Review tool exemptions carried over from Pickomino Value: S · Effort: S
-A Rust implementation for a single file or module Value: XS · Effort: L
-Rule: no variable names without vowels Value: S · Effort: M
-Rule: no variable names under four characters Value: S · Effort: M
-Adoption guide split: new project versus legacy Value: M · Effort: S
-A static pyrigor badge Value: XS · Effort: XS
-A dynamic pyrigor status badge Value: S · Effort: L
-Summary output inconsistency (missing label)                Value: S · Effort: XS
-OSSF Secure Coding Guide, broader review Value: M · Effort: M
-Rule: truthiness check on NamedTuple/dataclass Value: M · Effort: L
-Auto fix for PYR402/PYR403 Value: M · Effort: L
-Investigate dead-code detectors (Culler, uncalled, dead)    Value: XS · Effort: S
-Definition of Ready Value: S · Effort: S
-README duplication when adding a rule Value: M · Effort: M
-Rule list as a separate document Value: S · Effort: S
-Proper citations in rule docs Value: S · Effort: S
-Rule: flag an old/unsupported Python version Value: S · Effort: M
-Rule: ban "_and_" in function names Value: S · Effort: S
-A sourcing list for future rules Value: S · Effort: S
-Rejected rules should not consume the PYRxxx number space Value: S · Effort: XS
-Research rules for memory safety / no garbage collection Value: XS · Effort: L
-Reproducible run times for PERFORMANCE.md Value: S · Effort: S
-LLM-assisted bulk-fixing as a bug-finding technique Value: S · Effort: M
-MicroPython/CircuitPython restrictions as rule source Value: S · Effort: S
-Real, profiled performance bottleneck (ast.walk)             Value: L · Effort: M
-pyproject.toml [tool.*] section ordering Value: XS · Effort: S
-Harden pyrigor against bad user input Value: M · Effort: L
-Robustness against non-Python file content Value: S · Effort: S
-Rule: non-English identifiers Value: S · Effort: L
-Rule: non-English comments Value: S · Effort: M
-Apply the Pareto principle to backlog prioritization Value: S · Effort: XS
-Review the backlog for split-worthy entries Value: S · Effort: S
-Identify and reach early adopters for pyrigor: Value: M · Effort: M
-Formalize value-driven prioritization: Value: S · Effort: S
-Derive rules systematically from the software "-ilities": Value: M · Effort: S
-Group rules in documentation by the "-ilities" they serve: Value: S · Effort: S
-Install Claude Code Desktop to reduce workflow friction: Value: L · Effort: XS
-Add remaining useful pre-commit-hooks entries: Value: S · Effort: XS
-README badges missing for tools added tonight: Value: S · Effort: XS
-Generate the project website automatically on release: Value: M · Effort: L
-Broader tool candidates to consider (batch, unresearched): Value: S · Effort: M
-Make pyrigor discoverable, Search Engine Optimisation (SEO): Value: M · Effort: M
-Optimize pyrigor for Large Language Model (LLM) discoverability: Value: M · Effort: S
-Keep a list of known, unfixed bugs: Value: S · Effort: XS
-Solo-developer bottleneck: investigate how to speed up: Value: L · Effort: M
-Confirm py.typed actually ships in the built wheel: Value: S · Effort: XS
-Use every documented rule, not just enforced ones, to review the project itself: Value: M · Effort: L
-Add inline `#` comments explaining "the why", not just docstrings: Value: M · Effort: M
-Track code-quality statistics (% code, % blank, % comments): Value: S · Effort: S
-Support Read the Docs: Value: M · Effort: S
-Verify tonight's batch-added backlog entries landed correctly: Value: S · Effort: XS
-Style-check tonight's newly added entries specifically: Value: XS · Effort: XS
-Periodically review and prune BACKLOG.md: Value: S · Effort: XS
+## Backlog index (value/effort at a glance)
+
+| Item                                                                            | Value | Effort      |
+|---------------------------------------------------------------------------------|-------|-------------|
+| PYR406 (return-value-must-use)                                                  | M     | M           |
+| Full summary report (`--report`)                                                | M     | L           |
+| Structured argument parsing (scoped)                                            | S     | M           |
+| Proper `.gitignore`-aware file discovery                                        | S     | M           |
+| Per-rule directory/file excludes                                                | M     | M           |
+| Detect unnecessary suppression comments                                         | M     | M           |
+| Changelog draft generator                                                       | S     | L           |
+| mutmut unusable (blocked, upstream)                                             | —     | — (blocked) |
+| Review tool exemptions carried over from Pickomino                              | S     | S           |
+| A Rust implementation for a single file or module                               | XS    | L           |
+| Rule: no variable names without vowels                                          | S     | M           |
+| Rule: no variable names under four characters                                   | S     | M           |
+| Adoption guide split: new project versus legacy                                 | M     | S           |
+| A static pyrigor badge                                                          | XS    | XS          |
+| A dynamic pyrigor status badge                                                  | S     | L           |
+| Summary output inconsistency (missing label)                                    | S     | XS          |
+| OSSF Secure Coding Guide, broader review                                        | M     | M           |
+| Rule: truthiness check on NamedTuple/dataclass                                  | M     | L           |
+| Auto fix for PYR402/PYR403                                                      | M     | L           |
+| Investigate dead-code detectors (Culler, uncalled, dead)                        | XS    | S           |
+| Definition of Ready                                                             | S     | S           |
+| README duplication when adding a rule                                           | M     | M           |
+| Rule list as a separate document                                                | S     | S           |
+| Proper citations in rule docs                                                   | S     | S           |
+| Rule: flag an old/unsupported Python version                                    | S     | M           |
+| Rule: ban "_and_" in function names                                             | S     | S           |
+| A sourcing list for future rules                                                | S     | S           |
+| Rejected rules should not consume the PYRxxx number space                       | S     | XS          |
+| Research rules for memory safety / no garbage collection                        | XS    | L           |
+| Reproducible run times for PERFORMANCE.md                                       | S     | S           |
+| LLM-assisted bulk-fixing as a bug-finding technique                             | S     | M           |
+| MicroPython/CircuitPython restrictions as rule source                           | S     | S           |
+| Real, profiled performance bottleneck (ast.walk)                                | L     | M           |
+| pyproject.toml `[tool.*]` section ordering                                      | XS    | S           |
+| Harden pyrigor against bad user input                                           | M     | L           |
+| Robustness against non-Python file content                                      | S     | S           |
+| Rule: non-English identifiers                                                   | S     | L           |
+| Rule: non-English comments                                                      | S     | M           |
+| Apply the Pareto principle to backlog prioritization                            | S     | XS          |
+| Review the backlog for split-worthy entries                                     | S     | S           |
+| Identify and reach early adopters for pyrigor                                   | M     | M           |
+| Formalize value-driven prioritization                                           | S     | S           |
+| Derive rules systematically from the software "-ilities"                        | M     | S           |
+| Group rules in documentation by the "-ilities" they serve                       | S     | S           |
+| Install Claude Code Desktop to reduce workflow friction                         | L     | XS          |
+| Add remaining useful pre-commit-hooks entries                                   | S     | XS          |
+| README badges missing for tools added tonight                                   | S     | XS          |
+| Generate the project website automatically on release                           | M     | L           |
+| Broader tool candidates to consider (batch, unresearched)                       | S     | M           |
+| Make pyrigor discoverable (SEO)                                                 | M     | M           |
+| Optimize pyrigor for LLM discoverability                                        | M     | S           |
+| Keep a list of known, unfixed bugs                                              | S     | XS          |
+| Solo-developer bottleneck: investigate how to speed up                          | L     | M           |
+| Confirm py.typed actually ships in the built wheel                              | S     | XS          |
+| Use every documented rule, not just enforced ones, to review the project itself | M     | L           |
+| Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
+| Track code-quality statistics (% code, % blank, % comments)                     | S     | S           |
+| Support Read the Docs                                                           | M     | S           |
+| Style-check tonight's newly added entries specifically                          | XS    | XS          |
+| Periodically review and prune BACKLOG.md                                        | S     | XS          |
 
 ### PYR406: Disallow ignoring a required return value (reserved, not yet written up)
 
@@ -833,7 +836,7 @@ apply.
 
 ### Optimize pyrigor for Large Language Model discoverability
 
-Distinct from SEO, though related: an LLM answering the question: "What catches
+Distinct from Search Engine Optimisation (SEO), though related: an LLM answering the question: "What catches
 Python tuple-unpacking or keyword-argument-order bugs" needs
 pyrigor’s own README, PyPI page, and guideline docs to be clear,
 well-structured, and specific enough to be surfaced and summarized
@@ -936,7 +939,7 @@ comment ratio.
 ### Support Read the Docs
 
 Connects to the website-generation item already logged. Read the
-Docs specifically build from Sphinx (or mkdocs) configuration in
+Docs specifically build it from Sphinx (or mkdocs) configuration in
 the repo. It auto-publishes on a webhook per push or release, closer
 to the "GitHub Pages generated from README/guidelines" half of that
 item than the from-scratch dedicated-website half. Worth doing
@@ -947,16 +950,6 @@ Real, standard, low effort once a documentation generator is chosen,
 Read the Docs itself is free for open source projects and mostly
 configuration, not custom build work.
 
-### Verify tonight’s batch-added backlog entries landed correctly
-
-Many entries added rapid-fire in one session, each described but not
-individually confirmed against the real, pushed file, unlike earlier
-cleanup passes, which checked GitHub directly after each change.
-Worth a real fetch-and-diff pass before trusting the file’s current
-state.
-
-Value: S · Effort: XS
-
 ### Style-check tonight’s newly added entries specifically
 
 Several entries were fixed against PyCharm’s flagged prose-style
@@ -966,8 +959,6 @@ entries for the same categories. Smart apostrophes, no contractions,
 sentence capitalization, no filler words like "extremely" or
 "simply" rather than assuming each is already clean.
 
-Value: XS · Effort: XS
-
 ### Periodically review and prune BACKLOG.md
 
 The file has needed two real rescue passes already this session, a
@@ -976,5 +967,3 @@ and a content cleanup (merging overlapping ideas). Worth making this
 a recurring habit rather than an improvised rescue triggered only when
 the file has visibly drifted, a fixed cadence or a trigger condition
 (entry count crossing a threshold) worth deciding.
-
-Value: S · Effort: XS
