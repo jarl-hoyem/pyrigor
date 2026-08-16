@@ -2,7 +2,7 @@
 
 import ast
 
-from pyrigor.checkers._shared import find_function_violations, is_bare_multi_value_tuple, walk_once
+from pyrigor.checkers._shared import WalkedNodes, find_function_violations, is_bare_multi_value_tuple
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation
 
@@ -20,14 +20,13 @@ def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return is_bare_multi_value_tuple(annotation=node.returns)
 
 
-def find_violations(*, tree: ast.Module) -> list[Violation]:
-    """Find PYR401 violations in a parsed source tree.
+def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
+    """Find PYR401 violations in already-walked nodes.
 
     Args:
-        tree: The parsed AST of a Python source file.
+        nodes: Every relevant node in the file, from walk_once.
 
     Returns:
         A list of violations found, one per offending function.
     """
-    nodes = walk_once(tree=tree).function_nodes
-    return find_function_violations(nodes=nodes, predicate=_has_violation, rule=Rule.PYR401)
+    return find_function_violations(nodes=nodes.function_nodes, predicate=_has_violation, rule=Rule.PYR401)

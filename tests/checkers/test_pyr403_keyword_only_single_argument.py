@@ -2,6 +2,7 @@
 
 import ast
 
+from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr403_keyword_only_single_argument import find_violations
 
 
@@ -11,7 +12,7 @@ def test_flags_single_positional_parameter() -> None:
 def load_config(path):
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
     assert violations[0].context_name == "load_config"
@@ -23,7 +24,7 @@ def test_no_violation_for_already_keyword_only_single_parameter() -> None:
 def load_config(*, path):
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert not violations
 
@@ -34,7 +35,7 @@ def test_no_violation_for_two_parameters() -> None:
 def compute(a, b):
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert not violations
 
@@ -46,7 +47,7 @@ class Loader:
     def load(self, path):
         ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
     assert violations[0].context_name == "load"
@@ -58,7 +59,7 @@ def test_no_violation_for_zero_parameters() -> None:
 def run() -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert not violations
 
@@ -69,7 +70,7 @@ def test_flags_async_function_with_single_positional_parameter() -> None:
 async def load_config(path):
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
     assert violations[0].context_name == "load_config"

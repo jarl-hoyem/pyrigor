@@ -2,6 +2,7 @@
 
 import ast
 
+from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr405_namedtuple_parameters import find_violations
 
 
@@ -11,7 +12,7 @@ def test_flags_function_with_bare_tuple_parameter() -> None:
 def step_bot(*, action: tuple[int, int]) -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
     assert violations[0].context_name == "step_bot"
@@ -23,7 +24,7 @@ def test_no_violation_for_normal_parameters() -> None:
 def step_bot(*, row: int, col: int) -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert not violations
 
@@ -34,7 +35,7 @@ def test_flags_positional_only_tuple_parameter() -> None:
 def step_bot(action: tuple[int, int], /) -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
 
@@ -45,7 +46,7 @@ def test_flags_async_function_with_bare_tuple_parameter() -> None:
 async def step_bot(*, action: tuple[int, int]) -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
 
@@ -56,7 +57,7 @@ def test_no_violation_for_single_element_tuple_parameter() -> None:
 def wrap_value(*, value: tuple[int]) -> None:
     ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert not violations
 
@@ -68,7 +69,7 @@ class Bot:
     def step(self, *, action: tuple[int, int]) -> None:
         ...
 """
-    violations = find_violations(tree=ast.parse(source))
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 1
     assert violations[0].context_name == "step"

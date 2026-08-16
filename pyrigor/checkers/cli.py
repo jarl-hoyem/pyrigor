@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from pyrigor.checkers import CHECKERS, RegisteredChecker
+from pyrigor.checkers._shared import walk_once
 from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import Violation
@@ -97,7 +98,8 @@ def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, 
         print(f"Warning: skipping {path}: {error}", file=sys.stderr)
         return []
 
-    return [v for entry in checkers for v in entry.find_violations(tree=tree)]
+    nodes = walk_once(tree=tree)
+    return [v for entry in checkers for v in entry.find_violations(nodes=nodes)]
 
 
 class FileCheckResult(NamedTuple):

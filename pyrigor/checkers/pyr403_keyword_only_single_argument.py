@@ -2,7 +2,7 @@
 
 import ast
 
-from pyrigor.checkers._shared import count_parameters, find_function_violations, walk_once
+from pyrigor.checkers._shared import WalkedNodes, count_parameters, find_function_violations
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation
 
@@ -25,14 +25,13 @@ def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return bool(counts.positional_args)
 
 
-def find_violations(*, tree: ast.Module) -> list[Violation]:
-    """Find PYR403 violations in a parsed source tree.
+def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
+    """Find PYR403 violations in already-walked nodes.
 
     Args:
-        tree: The parsed AST of a Python source file.
+        nodes: Every relevant node in the file, from walk_once.
 
     Returns:
         A list of violations found, one per offending function.
     """
-    nodes = walk_once(tree=tree).function_nodes
-    return find_function_violations(nodes=nodes, predicate=_has_violation, rule=Rule.PYR403)
+    return find_function_violations(nodes=nodes.function_nodes, predicate=_has_violation, rule=Rule.PYR403)
