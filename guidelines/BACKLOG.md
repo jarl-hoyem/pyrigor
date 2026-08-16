@@ -62,6 +62,7 @@
 | Support Read the Docs                                                           | M     | S           |
 | Style-check tonight's newly added entries specifically                          | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
+| Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 
 ### PYR406: Require every locally defined function’s non-None return value to be used.
 
@@ -982,3 +983,16 @@ and a content cleanup (merging overlapping ideas). Worth making this
 a recurring habit rather than an improvised rescue triggered only when
 the file has visibly drifted, a fixed cadence or a trigger condition
 (entry count crossing a threshold) worth deciding.
+
+### Second-order performance findings, post-walk-fix (minor)
+
+Confirmation profiling after the shared-walk fix (13,878,620
+ast walk calls versus 69,393,100 before, exactly the predicted 5.0x
+reduction) surfaced two smaller, now-visible contributors that were
+previously dwarfed by the dominant walk cost: `ast.parse`/`compile`
+(~20.4s of the profiled run) and `print` (~7.5s, real console output
+cost across 90,325 violations plus per-file/per-rule breakdown
+lines on the Home Assistant run). Neither is urgent, both minor
+relative to the current total, worth revisiting only if a future
+profile shows either becoming a larger share once other costs are
+further reduced.
