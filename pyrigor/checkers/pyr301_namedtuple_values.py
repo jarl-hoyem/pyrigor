@@ -2,7 +2,7 @@
 
 import ast
 
-from pyrigor.checkers._shared import find_assign_violations, is_bare_multi_value_tuple
+from pyrigor.checkers._shared import find_assign_violations, is_bare_multi_value_tuple, walk_once
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation
 
@@ -28,4 +28,5 @@ def find_violations(*, tree: ast.Module) -> list[Violation]:
     Returns:
         A list of violations found, one per offending assignment.
     """
-    return find_assign_violations(tree=tree, predicate=_has_violation, rule=Rule.PYR301)
+    nodes = walk_once(tree=tree).assign_nodes
+    return find_assign_violations(nodes=nodes, predicate=_has_violation, rule=Rule.PYR301)

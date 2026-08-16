@@ -2,9 +2,9 @@
 
 import ast
 
-from pyrigor.checkers._shared import is_bare_multi_value_tuple
+from pyrigor.checkers._shared import find_function_violations, is_bare_multi_value_tuple, walk_once
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation, make_violation
+from pyrigor.violations import Violation
 
 
 def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -30,10 +30,5 @@ def find_violations(*, tree: ast.Module) -> list[Violation]:
     Returns:
         A list of violations found, one per offending function.
     """
-    violations = []
-
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_violation(node=node):
-            violations.append(make_violation(node=node, rule=Rule.PYR405))
-
-    return violations
+    nodes = walk_once(tree=tree).function_nodes
+    return find_function_violations(nodes=nodes, predicate=_has_violation, rule=Rule.PYR405)

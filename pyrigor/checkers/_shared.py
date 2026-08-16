@@ -100,40 +100,36 @@ class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
     def __call__(self, *, node: ast.AnnAssign) -> bool: ...
 
 
-def find_function_violations(*, tree: ast.Module, predicate: _FunctionPredicateFun, rule: Rule) -> list[Violation]:
-    """Walk a tree, flagging every function node matching a predicate as a violation.
+def find_function_violations(
+    *, nodes: list[ast.FunctionDef | ast.AsyncFunctionDef], predicate: _FunctionPredicateFun, rule: Rule
+) -> list[Violation]:
+    """Flag every function node matching a predicate as a violation.
 
     Args:
-        tree: The parsed AST of a Python source file.
+        nodes: Every function node in the file, already collected by walk_once.
         predicate: Returns True for a function node that violates the rule.
         rule: Which rule to record the violation against.
 
     Returns:
         A list of violations found, one per matching function.
     """
-    violations = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and predicate(node=node):
-            violations.append(make_violation(node=node, rule=rule))
-    return violations
+    return [make_violation(node=node, rule=rule) for node in nodes if predicate(node=node)]
 
 
-def find_assign_violations(*, tree: ast.Module, predicate: _AssignPredicateFun, rule: Rule) -> list[Violation]:
-    """Walk a tree, flagging every annotated-assignment node matching a predicate as a violation.
+def find_assign_violations(
+    *, nodes: list[ast.AnnAssign], predicate: _AssignPredicateFun, rule: Rule
+) -> list[Violation]:
+    """Flag every annotated-assignment node matching a predicate as a violation.
 
     Args:
-        tree: The parsed AST of a Python source file.
+        nodes: Every annotated-assignment node in the file, already collected by walk_once.
         predicate: Returns True for an annotated assignment that violates the rule.
         rule: Which rule to record the violation against.
 
     Returns:
         A list of violations found, one per matching assignment.
     """
-    violations = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.AnnAssign) and predicate(node=node):
-            violations.append(make_violation(node=node, rule=rule))
-    return violations
+    return [make_violation(node=node, rule=rule) for node in nodes if predicate(node=node)]
 
 
 class WalkedNodes(NamedTuple):
