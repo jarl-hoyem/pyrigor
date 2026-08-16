@@ -32,11 +32,14 @@ is usable for.
 - `filter_suppressed` now returns `SuppressionResult(kept,
   suppressed)` instead of a bare list, so suppressed violations can
   be counted and reported rather than silently discarded.
--
-    - `CHECKERS` restructured to explicit `RegisteredChecker(rule,
-  find_violations)` pairs, removing an implicit, unenforced
-      assumption that `CHECKERS` and `Rule` shared the same declaration
-      order.
+- `CHECKERS` restructured to explicit `RegisteredChecker(rule,
+  find_violations)` pairs, removing an implicit, unenforced assumption
+  that `CHECKERS` and `Rule` shared the same declaration order.
+- Every checker now shares a single `ast.walk()` per file instead of
+  walking independently. Confirmed via profiling: `ast.walk`'s own
+  call count dropped 5.0x (69,393,100 to 13,878,620 on an 18,187-file
+  run), real-world timing on the same run dropped from 388.20 s to
+  55.46 s, 7x.
 
 ### Fixed
 

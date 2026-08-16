@@ -34,7 +34,6 @@
 | Reproducible run times for PERFORMANCE.md                                       | S     | S           |
 | LLM-assisted bulk-fixing as a bug-finding technique                             | S     | M           |
 | MicroPython/CircuitPython restrictions as rule source                           | S     | S           |
-| Real, profiled performance bottleneck (ast.walk)                                | L     | M           |
 | pyproject.toml `[tool.*]` section ordering                                      | XS    | S           |
 | Harden pyrigor against bad user input                                           | M     | L           |
 | Robustness against non-Python file content                                      | S     | S           |
@@ -532,40 +531,6 @@ supported (limited dynamic behavior, restricted stdlib, memory
 constraints). Worth reviewing their own documentation as a source of
 rule ideas, the same way Code Complete, Google’s style guide, and
 OSSF’s Secure Coding Guide were mined tonight. Not yet reviewed.
-
-### Real, profiled performance bottleneck. The ast walk is called once per checker instead of once per every file.
-
-Profiled against Home Assistant core with cProfile
-(`python -m cProfile`), 18,187 files, 388 seconds total. The  `ast.walk` accounts
-for 286 of those seconds cumulative, called
-69,393,100 times, once independently per checker per every file (5
-checkers x 18,187 files), each walking the same already-parsed tree
-from scratch.
-
-The earlier shared-parse refactor correctly fixed parsing the source
-once per every file, but `find_function_violations` and
-`find_assign_violations` each still call `ast.walk(tree)`
-independently. A single shared walk per every file, collecting nodes into
-flat `(function_nodes, assign_nodes)` lists once and handing the
-same lists to every checker, would cut the dominant cost by
-5x, since every checker already filters the walk’s output by
-`isinstance` afterward regardless.
-
-Raw profile output is kept for reference:
-
-```
-925169286 function calls (925168628 primitive calls) in 391.356 seconds
-Ordered by: cumulative time
-
-ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-18187    2.924    0.000  388.032    0.021 cli.py:110(_check_file)
-18187    1.504    0.000  349.200    0.019 cli.py:82(_run_checkers)
-69393100   45.657    0.000  286.112    0.000 ast.py:386(walk)
-69302165   34.969    0.000  230.095    0.000 collections.deque.extend
-54561   16.531    0.000  198.403    0.004 _shared.py:103(find_function_violations)
-138513395   93.896    0.000  195.126    0.000 ast.py:280(iter_child_nodes)
-182520705   51.826    0.000   73.510    0.000 ast.py:268(iter_fields)
-```
 
 ### The pyproject.toml’s [tool.*] sections also have no deliberate order.
 
