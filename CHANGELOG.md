@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.6.0] 2026-08-16
+
 ### Added
 
 - Per-rule suppressed-violation counts in the summary (`PYR402: 1
