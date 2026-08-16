@@ -1,3 +1,10 @@
+"""Tests for pyrigor.checkers._shared."""
+
+import ast
+
+from pyrigor.checkers._shared import walk_once
+
+
 def test_walk_once_collects_function_and_assign_nodes_separately() -> None:
     """walk_once should split function defs and annotated assignments into their own lists."""
     source = """
