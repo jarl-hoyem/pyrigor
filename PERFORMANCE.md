@@ -6,13 +6,13 @@ large-scale use. All runs used pyrigor’s local, unreleased source
 (via `uv run` from within the pyrigor project itself), on a Windows
 machine, Python 3.14.
 
-All measurements below predate PYR301 and PYR403 (both added after
-this document was first written) and reflect two, three, or four
-enforced checkers depending on the run, not the current five. Kept
-as historical data rather than re-run, since the qualitative
-findings, per-file cost scales with code complexity, not file count,
-no crashes on either large codebase, remain the relevant takeaways
-regardless of exact checker count.
+The results below reflect two distinct architectural states. The
+original table (Results section) predates PYR301 and PYR403 and
+predates the shared-AST-walk refactor, kept as historical data since
+the qualitative findings (per-file cost scales with code complexity,
+not file count. No crashes on either large codebase) remain valid.
+The "Shared AST walk" section below is current, five checkers, one
+`ast.walk` per file.
 
 ## Results
 
@@ -41,6 +41,35 @@ codebases — consistent enough across two very different projects to
 suggest this ratio reflects something structural about how Python
 code is typically written (most functions take multiple parameters.
 Few functions return multi-value tuples), not an artifact of either codebase.
+
+## Shared AST walk (current)
+
+Checkers previously each called `ast.walk()` independently, once per
+checker per every file, a real, avoidable cost that scaled linearly with
+checker count, confirmed directly by profiling (`python -m cProfile`)
+against Home Assistant core: `ast.walk` itself accounted for 286 of
+388 seconds, the dominant cost.
+
+Fixed by walking the tree exactly once per file (`walk_once()`),
+distributing the same collected nodes to every checker, rather than
+each checker re-walking the tree from scratch.
+
+| Codebase            | Files  | Violations | Time before | Time after | Speedup |
+|---------------------|--------|------------|-------------|------------|---------|
+| Home Assistant core | 18,187 | 90,325     | 388.20s     | 55.46s     | ~7x     |
+
+Violation counts identical before and after (PYR301: 55, PYR401:
+579, PYR402: 58,485, PYR403: 30,786, PYR405: 420), confirming the
+refactor changed only performance, not correctness. The speedup
+exceeds the ~5x predicted from the profiling data (five checkers
+reduced to one shared walk), likely because the earlier estimate did
+not fully account for the internal cost of `iter_child_nodes` and
+`iter_fields`, both called proportionally to walk count.
+
+This confirms the "Checker-count scaling" prediction below: the
+benefit compounds as more checkers are added, since each additional
+checker now only costs its own predicate evaluation over
+already-collected nodes, not another full tree walk.
 
 ## Findings
 
