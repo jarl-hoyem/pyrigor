@@ -62,6 +62,7 @@
 | Style-check tonight's newly added entries specifically                          | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
+| Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
 
 ### PYR406: Require every locally defined function’s non-None return value to be used.
 
@@ -961,3 +962,22 @@ lines on the Home Assistant run). Neither is urgent, both minor
 relative to the current total, worth revisiting only if a future
 profile shows either becoming a larger share once other costs are
 further reduced.
+
+### Real local-versus-CI drift found, despite pre-commit being the shared mechanism
+
+`ci.yaml`'s own stated design goal is that CI and local pre-commit
+can never drift apart, since both run the identical `pre-commit run
+--all-files` command against the identical config. Found tonight:
+a genuine case where local pre-commit passed clean, but the same
+commit failed on GitHub CI (an `actionlint`/`shellcheck` finding).
+Most likely cause, not fully confirmed: a stale local hook cache
+(`~/.cache/pre-commit`), pre-commit caches each hook’s environment
+keyed by its pinned version, and something about the cache did not
+invalidate correctly when `actionlint` was added or updated locally,
+while CI’s own cache, keyed on `hashFiles('.pre-commit-config.yaml')`
+via `actions/cache@v6`, was fresh or keyed differently and caught it
+correctly. `pre-commit clean` resolved the discrepancy once run.
+
+Worth periodically running `pre-commit clean` (or equivalent), or
+investigating whether the local cache invalidation genuinely has a
+gap worth fixing, rather than assuming this was a one-off.
