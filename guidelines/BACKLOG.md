@@ -1,3 +1,65 @@
+PYR406 (return-value-must-use)                          Value: M · Effort: M
+Full summary report (--report)                           Value: M · Effort: L
+Structured argument parsing (scoped)                      Value: S · Effort: M
+Proper .gitignore-aware file discovery Value: S · Effort: M
+Per-rule directory/file excludes Value: M · Effort: M
+Detect unnecessary suppression comments Value: M · Effort: M
+Changelog draft generator Value: S · Effort: L
+mutmut unusable (blocked, upstream)                       Value: — · Effort: — (blocked)
+Review tool exemptions carried over from Pickomino Value: S · Effort: S
+A Rust implementation for a single file or module Value: XS · Effort: L
+Rule: no variable names without vowels Value: S · Effort: M
+Rule: no variable names under four characters Value: S · Effort: M
+Adoption guide split: new project versus legacy Value: M · Effort: S
+A static pyrigor badge Value: XS · Effort: XS
+A dynamic pyrigor status badge Value: S · Effort: L
+Summary output inconsistency (missing label)                Value: S · Effort: XS
+OSSF Secure Coding Guide, broader review Value: M · Effort: M
+Rule: truthiness check on NamedTuple/dataclass Value: M · Effort: L
+Auto fix for PYR402/PYR403 Value: M · Effort: L
+Investigate dead-code detectors (Culler, uncalled, dead)    Value: XS · Effort: S
+Definition of Ready Value: S · Effort: S
+README duplication when adding a rule Value: M · Effort: M
+Rule list as a separate document Value: S · Effort: S
+Proper citations in rule docs Value: S · Effort: S
+Rule: flag an old/unsupported Python version Value: S · Effort: M
+Rule: ban "_and_" in function names Value: S · Effort: S
+A sourcing list for future rules Value: S · Effort: S
+Rejected rules should not consume the PYRxxx number space Value: S · Effort: XS
+Research rules for memory safety / no garbage collection Value: XS · Effort: L
+Reproducible run times for PERFORMANCE.md Value: S · Effort: S
+LLM-assisted bulk-fixing as a bug-finding technique Value: S · Effort: M
+MicroPython/CircuitPython restrictions as rule source Value: S · Effort: S
+Real, profiled performance bottleneck (ast.walk)             Value: L · Effort: M
+pyproject.toml [tool.*] section ordering Value: XS · Effort: S
+Harden pyrigor against bad user input Value: M · Effort: L
+Robustness against non-Python file content Value: S · Effort: S
+Rule: non-English identifiers Value: S · Effort: L
+Rule: non-English comments Value: S · Effort: M
+Apply the Pareto principle to backlog prioritization Value: S · Effort: XS
+Review the backlog for split-worthy entries Value: S · Effort: S
+Identify and reach early adopters for pyrigor: Value: M · Effort: M
+Formalize value-driven prioritization: Value: S · Effort: S
+Derive rules systematically from the software "-ilities": Value: M · Effort: S
+Group rules in documentation by the "-ilities" they serve: Value: S · Effort: S
+Install Claude Code Desktop to reduce workflow friction: Value: L · Effort: XS
+Add remaining useful pre-commit-hooks entries: Value: S · Effort: XS
+README badges missing for tools added tonight: Value: S · Effort: XS
+Generate the project website automatically on release: Value: M · Effort: L
+Broader tool candidates to consider (batch, unresearched): Value: S · Effort: M
+Make pyrigor discoverable, Search Engine Optimisation (SEO): Value: M · Effort: M
+Optimize pyrigor for Large Language Model (LLM) discoverability: Value: M · Effort: S
+Keep a list of known, unfixed bugs: Value: S · Effort: XS
+Solo-developer bottleneck: investigate how to speed up: Value: L · Effort: M
+Confirm py.typed actually ships in the built wheel: Value: S · Effort: XS
+Use every documented rule, not just enforced ones, to review the project itself: Value: M · Effort: L
+Add inline `#` comments explaining "the why", not just docstrings: Value: M · Effort: M
+Track code-quality statistics (% code, % blank, % comments): Value: S · Effort: S
+Support Read the Docs: Value: M · Effort: S
+Verify tonight's batch-added backlog entries landed correctly: Value: S · Effort: XS
+Style-check tonight's newly added entries specifically: Value: XS · Effort: XS
+Periodically review and prune BACKLOG.md: Value: S · Effort: XS
+
 ### PYR406: Disallow ignoring a required return value (reserved, not yet written up)
 
 Like C++'s `[[nodiscard]]` or Rust's `#[must_use]`. A function’s
@@ -124,17 +186,6 @@ it just silently does nothing forever. Worth detecting and warning on
 stale/unnecessary suppressions, the same way `filter_suppressed`
 already warns on malformed or missing-reason ones.
 
-### `--version` flag
-
-The `pyrigor` CLI has no way to report its own installed version —
-found while trying to confirm, which pyrigor version was installed in
-a separate downstream project (`uv pip show pyrigor` was the
-workaround). Small, standard, and genuinely useful once pyrigor is
-used across multiple projects. Should be quick to add whenever
-picked up — likely just a `--version`/`-V` flag in `run()` that reads
-the installed package’s own version and exits, without needing to
-touch `main()`'s actual checking logic.
-
 ### Changelog draft generator
 
 `publish.yaml` could write the real release date into `CHANGELOG.md`
@@ -250,39 +301,6 @@ per-rule line alone has to infer "violations" from context. The
 suppression line is self-explanatory. Worth a consistent label on
 both, for example, "Violations:" as a header line before the per-rule
 breakdown, matching the clarity the suppression line already has.
-
-### CLI flag to filter, which rules run: `--only`
-
-Design worked out, not yet applied. `pyrigor --only PYR301,PYR401
-path` should run and report only the specified rules, filtering
-`CHECKERS` before the checker loop, rather than running everything
-and discarding unwanted output. Multiple rules comma-separated, one
-flag, matching the suppression comment’s own convention. Should
-accept the same lenient forms suppression comments already do, full
-code, bare number, or symbolic name, not just the full `PYRxxx` form.
-
-Found genuinely useful while comparing pyrigor’s own findings
-against real public style guides (Google’s Python Style Guide in
-particular), wanting to isolate one rule’s results against a large
-repo without the other four rules’ output in the way.
-
-Needs `main()` itself to accept an optional filter set, not just
-`run()` parsing argv, since `main()` is what actually knows about
-`CHECKERS`. First test drafted:
-
-```python
-def test_main_only_runs_specified_rule(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
-    """With only={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
-    (tmp_path / "bad.py").write_text(
-        "def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n"
-    )
-
-    main(paths=[str(tmp_path)], only={"PYR401"})
-
-    captured = capsys.readouterr()
-    assert "PYR401" in captured.out
-    assert "PYR402" not in captured.out
-```
 
 ### OSSF Secure Coding Guide for Python, a broader review worth doing.
 
@@ -543,3 +561,420 @@ checking, linting, testing, security), and not matching
 both files consistently in the same pass, since they describe
 overlapping tooling, and a reader benefits from matching structure
 between them.
+
+### Harden pyrigor against bad user input
+
+A real, not-yet-systematic pass is needed across several input surfaces,
+each with a different failure mode:
+
+- **CLI arguments.** `--only` is now validated against known rule
+  identities, but other malformed forms are unchecked: `--only=`
+  with nothing after it, `--only` with no `=` at all, `--version`
+  combined with other flags, a completely empty argv. What each
+  should do (error clearly versus silently no-op) has not yet been
+  decided for most of these.
+- **Paths.** A nonexistent path, a path with no read permission, a
+  symlink loop while walking a directory, a large file (a
+  performance concern, not a correctness one). BOM handling and
+  unreadable- or unparseable-file skipping are already handled. This
+  is the remaining, less common territory.
+- **Suppression comment parsing.** `_suppressed_tokens` uses a
+  regular expression against arbitrary source-file content, worth
+  checking whether malformed input (a long line, unusual Unicode, or
+  nested comment-like text) could cause pathological regular
+  expression behavior, not just whether it works on realistic code.
+- **File encoding beyond BOM.** A file that is not
+  BOM-prefixed UTF-8, what happens on a genuinely mixed or corrupt
+  encoding.
+
+Not yet scoped into concrete tasks. Worth a systematic pass, the
+same equivalence-class, boundary-value, and error-path discipline as
+`DEFINITION_OF_DONE.md`'s testing checklist, applied to inputs
+rather than a single feature, before deciding, which of these are
+real risks worth fixing versus edge cases not worth the complexity.
+
+### Robustness against non-Python file content
+
+What happens when pyrigor is pointed at a `.py`-named file that is
+not Python (a C++ source file with a `.py` extension, a
+file containing natural-language text in a non-English script like
+Russian, a binary file misnamed as `.py`). `ast.parse` will raise a
+`SyntaxError` for most such content, and `_read_source`/`_run_
+checkers` already catch and skip a file that fails to parse, printing
+a warning rather than crashing. Worth confirming this actually holds
+across genuinely adversarial or unusual content, not just the
+malformed-but-still-Python-ish cases already tested. And worth
+checking whether a file that *parses successfully* but is not
+Python (unlikely, but worth ruling out) could produce
+confusing or incorrect output rather than a clean skip.
+
+### Rule: Non-English identifiers (function and variable names)
+
+Flag identifiers (function names, variable names) written in a
+non-English language, for consistency in an international codebase.
+Detection is genuinely hard, unlike most of pyrigor’s structural
+rules. Short, abbreviated, or domain-specific identifiers (physics
+or math variable names, transliterations, acronyms) make reliable
+language detection on a single word difficult, a real
+false-positive risk like PYR203’s original, over-broad attempt.
+Would likely need a dictionary or language-detection library as a
+new dependency, not a pure AST/regular-expression check. Not yet
+scoped, needs a real design decision on how confidence is judged
+before this is tractable.
+
+### Rule: Non-English comments
+
+Flag comments written in a non-English language. More tractable than
+the identifier version, since comments are full sentences, and
+language-detection libraries perform better on longer text than on
+single words. Still needs a real dependency decision (which library,
+and its own false-positive rate on short or code-heavy comments)
+before this is buildable. Overlap check (`ADDING_A_RULE.md` step 0)
+not done, unclear whether an existing tool (a spell-checker
+configured for a specific language, or a dedicated internationalization
+linter) already covers this better than pyrigor could.
+
+### Apply the Pareto principle when prioritizing the backlog
+
+When deciding what to build next, weigh value against effort
+explicitly, about 80 percent of the value from about 20 percent of
+the effort, rather than working through items in the order they were
+added. Several entries already have an implicit value/effort
+judgment baked into their own text (PYR406’s real precedent versus
+PYR203/PYR205’s original difficulty split, the reasoning
+auto fix is tractable for PYR402/PYR403 but not the others). Worth
+making this an explicit, named lens applied consistently, not
+something reasoned about improvised per item.
+
+### Review the backlog for entries that should be split in two.
+
+The badge entry and the non-English-language entry (identifiers
+versus comments) were both split this way already, two genuinely
+different scopes hiding inside one heading. Worth a deliberate pass
+checking every entry for the same pattern. A single heading covering
+two independent pieces of work, with different effort or a different
+design question, rather than relying on it being noticed
+incidentally, the way it has been so far.
+
+### Identify and reach early adopters for pyrigor
+
+No real distribution yet, no call for proposals talk delivered, no
+announcement made. Candidate categories worth targeting, reasoned
+from general knowledge, not verified live: small-to-mid
+machine-learning or scientific-computing libraries. This directly
+matches pyrigor’s own origin story, the swap bug pyrigor exists to
+catch. Educational or course-repo maintainers, pyrigor’s literal
+origin, a natural, low-friction pitch. Projects already
+typing-disciplined but not on this specific pattern, `hypothesis`'s
+own low PYR401 rate, found during tonight’s empirical testing,
+suggests its maintainers already care about the underlying problem,
+just lack a tool naming it. Solo or small-team maintainers, lower
+coordination cost to try a new pre-commit hook.
+
+Connects to the dormant call for proposals thread from earlier this
+session. Identifying candidates is a smaller problem than actually
+reaching them, worth tackling together.
+
+### Formalize value-driven prioritization
+
+Read about Value-Driven Development, general knowledge, not verified
+live. Worth formalizing what is already happening informally: the
+Pareto-principle entry above, and T-shirt sizing now applied to
+every backlog item. A real design decision, not yet made: what
+counts as value specifically for pyrigor, real-world violations
+found, adoption ease, catching a genuinely new bug class, and
+whether this becomes its own document, matching `DEFINITION_OF_
+DONE.md`'s pattern, or stays an informal lens applied when
+prioritizing.
+
+### Derive rules systematically from the software "-ilities"
+
+Use the standard software-quality taxonomy, usability, readability,
+maintainability, reliability, testability, portability, scalability,
+security, and similar qualities, close to International Organization
+for Standardization/International Electrotechnical Commission
+25010, as a generative framework for rule ideation, rather than
+sourcing ideas opportunistically. Mapping pyrigor’s existing rules
+against this list already surfaces a real, visible gap.
+PYR301/PYR401/PYR405 and PYR402/PYR403 map to readability and
+maintainability, PYR501 and PYR502 map to reliability, but security,
+testability, and portability essentially have no representation.
+Worth checking whether that is a genuine gap or correctly out of
+scope for a style-and-structure linter before assuming it needs
+filling. Complements the existing "sourcing list for future rules"
+entry rather than duplicating it, that one is about where to look,
+this is a structured framework for what to look for.
+
+### Group rules in documentation by the "-ilities" they serve
+
+Companion to the "derive rules from the -ilities" entry. Once the
+taxonomy is used to find gaps, it could also reorganize how existing
+rules are presented, grouping PYRxxx entries by the quality they
+serve (readability, maintainability, reliability, ...) rather
+than, or alongside, the current numeric bucket scheme in
+`NUMBERING.md`. Would need a real design decision: does this replace
+the existing numeric grouping, sit as an additional cross-reference
+document, or become a second view generated from the same rule
+metadata rather than a change to the numbering itself.
+
+### Install Claude Code Desktop to reduce workflow friction
+
+A recurring friction all sessions: one-edit-at-a-time instructions, the
+Claude sandbox files going stale relative to the real local repo,
+manual copy-paste risk (several real bugs this session traced back
+to an edit being described but not applied). Claude Code
+Desktop can read and edit local files directly rather than working
+through pasted snippets, it would likely remove most of this class of
+friction. Not something Claude can install by itself, a setup step outside
+the project itself, but worth doing given how much of tonight’s
+back-and-forth was mechanical file-syncing rather than real design
+work.
+
+### Add remaining useful pre-commit-hooks entries
+
+Checked the full, current list (fetched live) against pyrigor’s own
+config: 13 of the 34 are already enabled. Genuinely useful candidates not
+yet added: `check-merge-conflict` (catches unresolved `<<<<<<<`
+markers), `check-docstring-first` (module docstring must be the
+first statement, matches existing pydocstyle discipline),
+`destroyed-symlinks` (catches a symlink replaced with a broken
+placeholder, real incident last night during the WSL detour),
+`check-illegal-windows-names` (flags filenames invalid on Windows,
+relevant given this is a Windows-developed project), `name-tests-
+test` (enforces the `test_*.py` naming convention pytest already
+relies on). The remaining ~16 are not relevant to a pure Python
+project (XML, submodule, simple-YAML-sorting hooks and similar).
+
+Value: S · Effort: XS
+
+### README badges missing for tools added tonight
+
+Four new pre-commit tools (`actionlint`, `bandit`, `vulture`,
+`codespell`) were added, but README.md’s badge row predates them and
+was never updated. The same pattern the badge row itself already
+follows, one static shields.io badge per every tool actually activated in the stack.
+Straightforward, no design question, just needs doing.
+
+### Generate the project website automatically on release
+
+Two distinct targets, worth scoping separately. `pyrigor.com` and
+`pyrigor.org` were purchased early in this project but have no real
+site content yet, a dedicated project website is essentially a
+from-scratch build, real design and content work, not just
+automation. A GitHub Pages site generated from README.md and
+guidelines/ is a smaller, more mechanical task, closer to what
+`publish.yaml` could plausibly trigger automatically on a tagged
+release (same pattern as the changelog-date-fill idea already
+logged). Worth deciding, which, or both, and in what order, before
+committing to "automatic on release" as the actual trigger, since
+the from-scratch site content needs to exist completely first.
+
+### Broader tool candidates to consider (batch, unresearched)
+
+A long, mixed list surfaced at once, worth splitting by the category
+rather than treating as one investigation:
+
+- **Already in use**: `gitleaks` (already in pre-commit).
+- **Testing/property-based**: `hypothesis` (property-based testing,
+  could strengthen pyrigor’s own test suite, not a pre-commit tool
+  itself), `doctest`, `tox`, `nox` (test-matrix runners, relevant if
+  multi-Python-version testing ever needs more than the existing CI
+  matrix).
+- **Complexity/quality**: `lizard` (cyclomatic complexity, overlaps
+  with xenon/radon already in use, worth comparing rather than
+  adding without checking).
+- **Documentation**: `Sphinx`, `mkdocs` (both relevant to the
+  website-generation backlog item, not pre-commit hooks).
+- **Performance/profiling**: `timeit`, `cProfile` (already used
+  manually tonight for the ast walk finding, not something to add to
+  pre-commit), `memray` (memory profiler, connects to the
+  memory-safety research item already logged).
+- **Refactoring**: `rope` (a library, not a linter, unclear fit).
+- **Security/SAST**: `pysa` (Meta’s Python security analyzer),
+  `semgrep`, `SonarQube`, `trivy` (container/dependency scanning,
+  likely irrelevant, pyrigor ships no container), `safety` (version
+  pinned as "3.8.1" in the request, worth double-checking that
+  is the tool version and not confused with a Python version).
+- **Commercial/hosted**: `CodeClimate`, `Qodo`, likely out of scope
+  for a small open source project without a real budget or need.
+- **Unverified/unclear**: `pyscn`, `wily`, `Pystra`, none
+  independently confirmed to exist under these exact names or
+  understood well enough to categorize, worth verifying each exists
+  and what it does before further triage.
+- **Complexity/quality (additional)**: `tach` (Python module
+  boundary and dependency enforcement, not overlapping with
+  xenon/radon's complexity metrics, a genuinely different concern
+  worth its own look), `complexipy` (cognitive-complexity metric,
+  distinct from xenon/radon's cyclomatic complexity), `lcom` (Lack
+  of Cohesion of Methods, a class-cohesion metric, unclear, which
+  concrete tool implements it, worth verifying), `Prospector`
+  (meta-linter that wraps pylint/pyflakes/mccabe and others, likely
+  overlaps with the existing pylint/ruff stack, worth
+  comparing rather than adding on top), a module-coupling metric
+  tool (name not given, worth identifying a concrete candidate
+  before evaluating).
+
+Not scoped or prioritized. Worth a real pass, sorting genuine
+pre-commit candidates from adjacent-but-different tooling (testing,
+docs, profiling) before deciding what, if anything gets added.
+
+### Make pyrigor discoverable Search Engine Optimisation
+
+No real discoverability work done yet, connects directly to the
+website-generation and early-adopter-outreach items already logged,
+none of those matter if nobody finds the project organically.
+Some concrete pieces once a real website exists: meta descriptions,
+structured data, a clear README that ranks for terms like "python
+tuple unpacking bug" or "python keyword-only arguments linter" (the
+actual problems pyrigor solves), submission to relevant
+awesome-lists and package indexes beyond PyPI itself. Not scoped,
+genuinely blocked on the website existing first for most of this to
+apply.
+
+### Optimize pyrigor for Large Language Model discoverability
+
+Distinct from SEO, though related: an LLM answering the question: "What catches
+Python tuple-unpacking or keyword-argument-order bugs" needs
+pyrigor’s own README, PyPI page, and guideline docs to be clear,
+well-structured, and specific enough to be surfaced and summarized
+correctly, not just ranked well by a search engine. Concrete
+candidates once real, unverified: a clear, quotable one-line
+description near the top of the README, structured data (`llms.txt`
+or similar emerging conventions, worth checking current practice
+rather than assuming), and making sure PyPI’s own project
+description is not just a copy-paste of the README’s badge row.
+
+### Keep a list of known, unfixed bugs
+
+No current place to track a confirmed, real bug that is deliberately
+not being fixed yet, distinct from `BACKLOG.md` (features and ideas)
+and `REJECTED.md` (rules considered and declined). The mutmut
+`copy_src_dir` failure is the first real candidate, confirmed,
+reproducible, environment-independent, only documented as
+a `BACKLOG.md` entry rather than a proper known-issues log. Worth a
+`guidelines/KNOWN_ISSUES.md`, matching the pattern of the other
+process docs already built this session, or GitHub’s own
+Issues tab if the project moves toward using it.
+
+### Solo-developer bottleneck: Investigate how to speed up
+
+The maintainer is the sole bottleneck on progress, most concretely
+visible tonight in the copy-paste-and-confirm loop needed for every
+edit. Already the direct motivation behind the "install Claude Code
+Desktop" item above, and several real bugs this session traced
+directly to an edit being described but not applied. Worth
+a real investigation, not just the Claude Code item alone: what
+specifically consumes the most wall-clock time in a typical session
+(manual file syncing, re-running the same verification commands,
+context-switching between local terminal and this chat), and, which
+of those are actually fixable with tooling versus inherent to
+solo-maintainer review discipline that should not be automated away
+(the "verify before trusting" discipline this session itself was
+built around). Related: the Pareto principle and value-driven
+development items already logged are about prioritizing *what* to
+build, this is about the *mechanics* of building it faster.
+
+### Confirm "py.typed" actually ships in the built wheel
+
+`pyrigor/py.typed` (PEP 561 marker) already exists in the source,
+already done, not a gap. Worth confirming it actually ends up inside
+the built wheel distributed to PyPI, not just the source tree,
+`pyproject.toml`'s `[tool.setuptools.packages.find]` does not
+explicitly declare `package_data` for it, a common, easy-to-miss
+packaging mistake. A separate, PEP 561-style stub-only package (like
+typeshed's `types-*` packages) is not needed here, since pyrigor
+already ships full inline type hints throughout, not absent ones a
+third party would need to backfill.
+
+### Use every documented rule, not just enforced ones, to review the project itself.
+
+`pyrigor` the tool can only enforce PYR301, PYR401, PYR402, PYR403,
+PYR405 automatically. The other nine documented-but-unbuilt rules
+(PYR201, PYR202, PYR203, PYR204, PYR205, PYR302, PYR501, PYR502, and
+PYR406 once written) have no way to be checked at all.
+Manual review would be the only option until each is actually built.
+Worth a deliberate pass, applying each documented rule by hand
+against pyrigor’s own source, the same "does the tool follow its own
+advice" discipline already used once tonight when PYR301 immediately
+flagged pyrigor’s own CHECKERS tuple. Real dogfooding value, but
+genuinely manual and slow until more rules are enforced
+automatically, connects directly to whichever rule gets built next.
+
+### Add inline `#` comments explaining "why," not just docstrings
+
+Real, direct observation: the codebase is almost entirely
+docstring-only, no inline comments explaining a specific,
+non-obvious implementation choice at the line level. Docstrings
+cover what a function does and its contract, not why a particular
+line does something a reader might not expect. Real candidates
+already known from this session’s own history: `_shared.py`'s
+`_is_unbounded_homogeneous_tuple` exists specifically because of the
+`tuple[X, ...]` false positive found against pyrigor’s own
+`CHECKERS`, worth a comment saying so rather than only the
+docstring's `Returns:` line explaining what it checks. The `#
+noqa`/`# nosec`/`# pylint: disable` comments already scattered
+through the code are a related but different case, worth checking
+each still has enough context to explain why the suppression is
+safe, not just, which rule it silences.
+
+### Track code-quality statistics (% code, % blank, % comments)
+
+Connects directly to the previous item, adding inline comments would
+be visible as a real, measurable trend here. Worth checking whether
+a new tool is even needed, `radon` is already a dependency
+(`radon-maintainability` hook already in pre-commit), and its `raw`
+metrics command already reports lines of code, comment lines, blank
+lines, and docstring lines, close to exactly what is being asked
+for. Applying the Pareto-principle lens already logged: reusing an
+existing dependency is likely the lower-effort path versus adding a
+dedicated tool (`cloc`, `pygount`, `scc`) purely for this. Not yet
+scoped: whether this becomes a one-off manual check, a tracked
+metric over time (would need somewhere to store history, a real
+design question), or a new pre-commit hook enforcing a minimum
+comment ratio.
+
+### Support Read the Docs
+
+Connects to the website-generation item already logged. Read the
+Docs specifically build from Sphinx (or mkdocs) configuration in
+the repo. It auto-publishes on a webhook per push or release, closer
+to the "GitHub Pages generated from README/guidelines" half of that
+item than the from-scratch dedicated-website half. Worth doing
+together, not as two separate builds, since both need the same
+underlying documentation source (Sphinx or mkdocs, both already
+listed as unresearched tool candidates in the earlier batch entry).
+Real, standard, low effort once a documentation generator is chosen,
+Read the Docs itself is free for open source projects and mostly
+configuration, not custom build work.
+
+### Verify tonight’s batch-added backlog entries landed correctly
+
+Many entries added rapid-fire in one session, each described but not
+individually confirmed against the real, pushed file, unlike earlier
+cleanup passes, which checked GitHub directly after each change.
+Worth a real fetch-and-diff pass before trusting the file’s current
+state.
+
+Value: S · Effort: XS
+
+### Style-check tonight’s newly added entries specifically
+
+Several entries were fixed against PyCharm’s flagged prose-style
+issues individually as they came up. But the batch added tonight was
+faster-paced than earlier passes, worth one pass checking the newer
+entries for the same categories. Smart apostrophes, no contractions,
+sentence capitalization, no filler words like "extremely" or
+"simply" rather than assuming each is already clean.
+
+Value: XS · Effort: XS
+
+### Periodically review and prune BACKLOG.md
+
+The file has needed two real rescue passes already this session, a
+structural cleanup (stale entries, duplicates, orphaned fragments)
+and a content cleanup (merging overlapping ideas). Worth making this
+a recurring habit rather than an improvised rescue triggered only when
+the file has visibly drifted, a fixed cadence or a trigger condition
+(entry count crossing a threshold) worth deciding.
+
+Value: S · Effort: XS
