@@ -44,7 +44,6 @@
 | Formalize value-driven prioritization                                           | S     | S           |
 | Derive rules systematically from the software "-ilities"                        | M     | S           |
 | Group rules in documentation by the "-ilities" they serve                       | S     | S           |
-| Install Claude Code Desktop to reduce workflow friction                         | L     | XS          |
 | Add remaining useful pre-commit-hooks entries                                   | S     | XS          |
 | README badges missing for tools added tonight                                   | S     | XS          |
 | Generate the project website automatically on release                           | M     | L           |
@@ -64,6 +63,10 @@
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
 | Dependabot doesn't cover Python deps                                            | XS    | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
+| PYR406's lambda exclusion is undocumented                                       | S     | XS          |
+| PYR406 misses `X \| Y` union return types (false negative, bug)                 | M     | S           |
+| PYR406: extend self.foo() detection to same-class methods                       | M     | M           |
+| Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
 
 ## Future tooling ideas
 
@@ -665,19 +668,6 @@ the existing numeric grouping, sit as an additional cross-reference
 document, or become a second view generated from the same rule
 metadata rather than a change to the numbering itself.
 
-### Install Claude Code Desktop to reduce workflow friction
-
-A recurring friction all sessions: one-edit-at-a-time instructions, the
-Claude sandbox files going stale relative to the real local repo,
-manual copy-paste risk (several real bugs this session traced back
-to an edit being described but not applied). Claude Code
-Desktop can read and edit local files directly rather than working
-through pasted snippets, it would likely remove most of this class of
-friction. Not something Claude can install by itself, a setup step outside
-the project itself, but worth doing given how much of tonight’s
-back-and-forth was mechanical file-syncing rather than real design
-work.
-
 ### Add remaining useful pre-commit-hooks entries
 
 Checked the full, current list (fetched live) against pyrigor’s own
@@ -983,3 +973,115 @@ result. Detection shape: a function annotated `-> Iterator[X]`,
 `Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`, called as a bare
 statement. Same structural, no-decorator design as PYR406 once
 built. Not yet scoped in detail.
+
+### PYR406's lambda exclusion is undocumented
+
+Confirmed live: a `lambda` is structurally exempt from PYR406.
+`walk_once()` in `_shared.py` only collects `ast.FunctionDef` and
+`ast.AsyncFunctionDef` nodes into `function_nodes` — an `ast.Lambda`
+never enters that set, so it can never become a protected name. Two
+reinforcing reasons: a lambda has no `.name` for the checker’s
+name-matching mechanism to key on (it is only ever reached through
+whatever variable it is assigned to), and Python’s grammar gives a
+lambda no `->` return-annotation slot at all, so even a named lambda
+would never satisfy `_is_protected_return()`.
+
+Unlike the `self`/`cls` exclusion, which the guideline doc documents
+deliberately with its own rationale, this one is undocumented — an
+implementation consequence rather than a scoped design decision.
+Worth a short addition to
+`guidelines/PYR406-return-values-used.md`’s "Scope, deliberately
+narrow" section once picked up, so a reader does not have to
+rediscover this by reading the checker source.
+
+### PYR406 misses PEP 604 union return types (`X | Y`), a real false negative
+
+Confirmed live, distinct from the lambda-exclusion documentation
+gap above — this is a functional bug, not a missing-doc issue.
+`_annotation_name()` in `pyr406_return_values_used.py` handles
+`ast.Constant` (bare `-> None`) and `ast.Subscript` (`Union[X, Y]`,
+`Optional[X]`, recursing to resolve to `"Union"`/`"Optional"`,
+correctly treated as protected), but a PEP 604 union (`int | str`,
+`int | None`) parses as `ast.BinOp` with a `BitOr` operator, a shape
+`_annotation_name()` doesn't handle at all. It falls through to
+`_simple_name()`, which only matches `ast.Name`/`ast.Attribute` and
+returns `None` for a `BinOp` — indistinguishable from a bare
+`-> None` return type to `_is_protected_return()`. The function
+silently loses PYR406 protection entirely. Its discarded return
+value is never flagged, even for something like
+`def parse(s: str) -> int | None: ...`, which clearly returns a real
+value most of the time.
+
+Given pyrigor targets Python 3.11+, where `X | Y` is the modern,
+preferred spelling over `typing.Union`/`Optional`, this is not an
+edge case, likely the more common annotation style in new code the
+rule is meant to protect. Fix shape: add `ast.BinOp` with `BitOr`
+handling to `_annotation_name()`, resolving to a non-excluded
+synthetic name (matching how `Union`/`Optional` are already always
+treated as protected regardless of their inner types), rather than
+trying to inspect both operands individually. Needs its own test
+cases (`int | str`, `int | None`, chained `int | str | None`) before
+considered fixed, matching `DEFINITION_OF_DONE.md`'s testing
+discipline.
+
+### PYR406: Extend `self.foo()` detection to same-class methods
+
+Scoped enhancement to the `self`/`cls` exclusion documented in
+`guidelines/PYR406-return-values-used.md`. The current exclusion is
+total: any function with a leading `self`/`cls` parameter is
+dropped from the protected set entirely, because attribute calls
+(`self.foo()`) cannot be resolved back to the class or object that
+defines `foo()` from the AST alone.
+
+A narrower subcase is tractable without full type inference: a call
+to `self.foo()` made from within a method defined on the same class
+as `foo()` itself. The enclosing class is already known
+structurally, so no type inference is needed — just walking each
+`ast.ClassDef`, collecting its own method names and their return
+annotations (same `_is_protected_return()` logic PYR406 already
+has), then matching `self.<name>()` calls only within methods of
+that same class body. This does not attempt the harder, still
+unscoped case: `obj.foo()`, where `obj`’s type has to be inferred
+from an assignment, parameter, or return value elsewhere. That
+genuinely needs a real type checker (`mypy`/`pyright`-class tooling),
+not just a smarter AST walk, and stays out of scope.
+
+Needs a real design pass before building: how `cls.foo()`
+`classmethod` calls fit the same shape, whether a subclass
+overriding `foo()` with a different, non-`None` return type creates
+a false negative or false positive against the base class’s own
+annotation, and whether nested classes or `@property`-decorated
+methods need special handling. Worth checking against
+`ADDING_A_RULE.md`’s step 0 overlap check too, since this changes
+PYR406’s existing detection shape rather than adding a new rule.
+
+### Optional astroid-based `obj.foo()` resolution, an isolated, throwaway experiment
+
+Distinct from the same-class `self.foo()` enhancement above, and
+deliberately scoped smaller. That entry is tractable with `ast`
+alone, no new dependency. Resolving the harder case, `obj.foo()`
+where `obj`'s type has to be inferred from an assignment, parameter,
+or return value, genuinely needs real type inference, which `ast`
+cannot provide.
+
+`astroid` (the library `pylint` itself uses for this exact
+"what does this attribute call resolve to" problem) is the
+lowest-cost candidate: pure Python, in-process, no subprocess or
+new toolchain, closest in spirit to pyrigor’s existing single-pass
+design. The alternative paths considered — shelling out to `mypy`’s
+`dmypy inspect`, `pyright`, or `ty` (all already dev dependencies)
+and parsing structured output, or waiting for `ty`’s Rust crate API
+to mature enough to embed — both trade a new-dependency cost for a
+bigger architectural cost: an external process per every file or project,
+instead of pyrigor’s current in-process `ast.parse` pass.
+
+Explicitly framed as opt-in and disposable, not a commitment to
+pyrigor becoming a type-aware tool — `guidelines/DECISIONS.md`
+already frames the absence of type inference as a deliberate scope
+boundary, not a gap to fill. This experiment should stay isolated to
+a single checker (extending PYR406’s `obj.foo()` case only) — easy
+to rip out if it does not pay off, rather than becoming a
+foundational dependency the rest of pyrigor comes to rely on. Needs
+a real design pass (own `DECISIONS.md` entry) before starting, given
+it touches the project’s stated architectural philosophy, not just
+its rule set.
