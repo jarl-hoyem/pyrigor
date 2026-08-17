@@ -1,4 +1,4 @@
-## Backlog index (value / effort at a glance)
+## Backlog index (value/effort at a glance)
 
 | Item                                                                            | Value | Effort      |
 |---------------------------------------------------------------------------------|-------|-------------|
