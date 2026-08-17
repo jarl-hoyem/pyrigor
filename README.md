@@ -15,6 +15,10 @@
 [![Code complexity: radon](https://img.shields.io/badge/code%20complexity-radon-brightgreen)](https://radon.readthedocs.io/)
 [![pytest: 100% coverage](https://img.shields.io/badge/pytest-100%25%20coverage-brightgreen)](https://pytest.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![actionlint](https://img.shields.io/badge/GitHub%20Actions-actionlint-brightgreen)](https://github.com/rhysd/actionlint)
+[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+[![Dead code: vulture](https://img.shields.io/badge/dead%20code-vulture-brightgreen)](https://github.com/jendrikseipp/vulture)
+[![codespell](https://img.shields.io/badge/spelling-codespell-brightgreen)](https://github.com/codespell-project/codespell)
 
 Disciplined Python patterns for catching bugs that type checkers and
 standard linters miss — inspired by safety-critical coding guidelines from
