@@ -63,6 +63,7 @@
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
+| PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
 
 ### PYR406: Require every locally defined function’s non-None return value to be used.
 
@@ -981,3 +982,15 @@ correctly. `pre-commit clean` resolved the discrepancy once run.
 Worth periodically running `pre-commit clean` (or equivalent), or
 investigating whether the local cache invalidation genuinely has a
 gap worth fixing, rather than assuming this was a one-off.
+
+### PYR407 (reserved), discarding a generator call silently skips its entire body
+
+Distinct from PYR406, not a variant of it. PYR406 covers a function
+that runs and returns a value that gets discarded, wasted work.
+Calling a generator function and discarding the result is a
+different, arguably worse failure mode, none of the function's body
+executes at all, `yield` never runs until something iterates the
+result. Detection shape: a function annotated `-> Iterator[X]`,
+`Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`, called as a bare
+statement. Same structural, no-decorator design as PYR406 once
+built. Not yet scoped in detail.
