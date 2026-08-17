@@ -11,6 +11,15 @@ is usable for.
 
 ## [Unreleased]
 
+### Fixed
+
+- PYR406 silently missed a PEP 604 union return type (`int | str`,
+  `int | None`). `_annotation_name()` didn't recognize the `X | Y`
+  syntax, treating it the same as an unrecognized annotation shape
+  — indistinguishable from `-> None` to the checker, so the
+  function's discarded return value was never flagged. Now
+  detected and protected like any other non-`None` return type.
+
 ## [0.7.0] 2026-08-17
 
 ### Added
