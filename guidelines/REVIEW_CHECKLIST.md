@@ -25,6 +25,17 @@ alongside `DEFINITION_OF_DONE.md`.
    checked. Caught by the user asking a follow-up question, not by
    any process then.
 
+2. **Did this change involve a real architectural or design decision?
+   If so, has `DECISIONS.md` been checked and updated by name, not
+   just README.md and CHANGELOG.md?**
+   ← rule: `DEFINITION_OF_DONE.md`, Communication
+   *Earned by:* the ast.walk refactor's own design decision, the
+   shared-walk approach and the rejected cache-based alternative,
+   went undocumented in `DECISIONS.md` until asked about directly.
+   `DEFINITION_OF_DONE.md`'s "any relevant guidelines/ doc" wording
+   was too vague to catch it, only the explicitly named README.md
+   and CHANGELOG.md got checked in practice.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior
