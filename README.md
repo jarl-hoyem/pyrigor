@@ -57,7 +57,7 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-PYR301, PYR401, PYR402, PYR403, and PYR405 are enforced today. A violation
+PYR301, PYR401, PYR402, PYR403, PYR405, and PYR406 are enforced today. A violation
 exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
 
 Run `pyrigor --version` to check the installed version.
@@ -95,13 +95,13 @@ them — aimed at closing those gaps.
 
 ## Status
 
-Early stage. As of mid 2026, five rules are implemented and enforced
-(PYR301, PYR401, PYR402, PYR403, PYR405). Nine more are documented but
+Early stage. As of mid 2026, six rules are implemented and enforced
+(PYR301, PYR401, PYR402, PYR403, PYR405, PYR406). Eight more are documented but
 not yet enforced.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks) — PYR301,
-  PYR401, PYR402, PYR403, and PYR405 are implemented. PYR201, PYR202,
+  PYR401, PYR402, PYR403, PYR405, and PYR406 are implemented. PYR201, PYR202,
   PYR203, PYR204, PYR205, PYR302, PYR404, PYR501, PYR502 are documented
   but not yet enforced.
 - [ ] pylint plugin
@@ -128,6 +128,7 @@ Guidelines documented so far:
 | PYR403 | Force keyword-only arguments for single-parameter functions             | `pyrigor` CLI (pre-commit hook) |
 | PYR404 | Use immutable default argument values, never mutable ones               | Not yet implemented             |
 | PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`      | `pyrigor` CLI (pre-commit hook) |
+| PYR406 | Use every locally defined function's non-`None` return value            | `pyrigor` CLI (pre-commit hook) |
 | PYR501 | End a `match` over a closed set with `case _: assert_never(...)`        | Not yet implemented             |
 | PYR502 | State implicit input assumptions as explicit `assert` preconditions     | Not yet implemented             |
 

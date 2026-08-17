@@ -72,7 +72,7 @@ def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) 
 ## Shared AST walk instead of per-checker walking, and why a cache was rejected
 
 Every checker originally called `ast.walk(tree)` independently, once
-per checker per file. Profiling against Home Assistant core
+per checker per the file. Profiling against the Home Assistant core
 (18,187 files) found this was the dominant cost: `ast.walk` itself
 accounted for 286 of 388 seconds, and the cost scaled linearly with
 the number of registered checkers, every future rule added would
@@ -80,24 +80,24 @@ make it worse.
 
 Two designs were considered.
 
-**Cache-based** (rejected): keep every checker's own
+**Cache-based** (rejected): keep every checker’s own
 `find_violations(*, tree)` signature exactly as-is, walk once inside
 `_run_checkers`, and cache the result keyed by `id(tree)`, so a
 repeated internal `ast.walk` call inside `_shared.py` would hit the
 cache rather than re-walking. Smaller diff, no signature changes
 anywhere. Rejected because it is exactly the kind of implicit,
-hidden coupling this project has repeatedly been burned by (the
+hidden coupling this project has repeatedly been burned by — the
 `zip(CHECKERS, Rule)` positional-coupling bug fixed earlier is the
-same category of problem): a correctness guarantee resting on an
-assumption, "every checker always walks the same cached tree,"
-nothing enforces. It also does not remove the actual walk cost, only
-hides one walk behind a cache lookup, real savings only if every
-future checker's own logic happens to want the tree walked in
-exactly the same way, silently broken the moment one does not.
+same category of problems. It rests on an unenforced assumption:
+"every checker always walks the same cached tree." It also does not
+remove the actual walk cost — it only hides one walk behind a
+cache lookup. Real savings would require every future checker’s own
+logic to want the tree walked in the same way, silently broken
+the moment one does not.
 
 **Nodes-based** (chosen): walk the tree exactly once in
 `_run_checkers`, via `walk_once()`, producing a `WalkedNodes(
-function_nodes, assign_nodes)`. Every checker's own public
+function_nodes, assign_nodes)`. Every checker’s own public
 `find_violations` signature changes from `(*, tree: ast.Module)` to
 `(*, nodes: WalkedNodes)`, an honest interface describing exactly
 what each checker actually needs, rather than "a tree, which happens
@@ -106,4 +106,23 @@ five checker files, the `_CheckerFun` Protocol, and every existing
 test calling `find_violations` directly. Real result: confirmed via
 profiling, `ast.walk`'s own call count dropped exactly 5.0x
 (69,393,100 to 13,878,620), and real-world timing on the same
-18,187-file run dropped from 388.20s to 55.46s, roughly 7x.
+18,187-file run dropped from 388.20 s to 55.46 s, 7x.
+
+## PYR406 matches only bare-name calls, not attribute calls
+
+PYR406 flags a discarded call only when the callee is a bare name
+(`compute_total(items)`), never through attribute access
+(`self.compute_total()`, `obj.compute_total()`). Consequently,
+functions with a leading `self`/`cls` parameter (methods) are
+excluded from the protected set entirely.
+
+Why: pyrigor cannot reliably determine which class or object an
+attribute call belongs to — it has no type inference and
+processes one file at a time. Without this exclusion, matching
+by name alone would let a method’s name enter the protected set
+even though nothing ever calls it as a bare name. The only effect would be
+a false positive on some unrelated bare call elsewhere in the file
+that happens to share the method’s name. Excluding likely methods
+removes that risk at the cost of not covering method calls at all,
+consistent with the guideline doc’s own examples, which are all
+bare-name, module-level or nested function calls.

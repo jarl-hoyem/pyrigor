@@ -15,8 +15,36 @@ class Violation(NamedTuple):
     rule: Rule
 
 
-def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssign, rule: Rule) -> Violation:
-    """Build a Violation from a function or annotated-assignment node and rule.
+def _name_from_ann_assign(*, node: ast.AnnAssign) -> str:
+    """Extract the assigned name from an annotated-assignment node.
+
+    Args:
+        node: The annotated assignment to inspect.
+
+    Returns:
+        The target's name, or "<unknown>" for an unsupported target shape.
+    """
+    if isinstance(node.target, ast.Name):
+        return node.target.id
+    if isinstance(node.target, ast.Attribute):
+        return node.target.attr
+    return "<unknown>"
+
+
+def _name_from_call(*, node: ast.Call) -> str:
+    """Extract the callee's name from a call node.
+
+    Args:
+        node: The call to inspect.
+
+    Returns:
+        The callee's bare name, or "<unknown>" for a non-Name callee.
+    """
+    return node.func.id if isinstance(node.func, ast.Name) else "<unknown>"
+
+
+def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssign | ast.Call, rule: Rule) -> Violation:
+    """Build a Violation from a function, annotated-assignment, or call-statement node and rule.
 
     Args:
         node: The node the violation was found on.
@@ -27,12 +55,9 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
         A populated Violation.
     """
     if isinstance(node, ast.AnnAssign):
-        if isinstance(node.target, ast.Name):
-            name = node.target.id
-        elif isinstance(node.target, ast.Attribute):
-            name = node.target.attr
-        else:
-            name = "<unknown>"
+        name = _name_from_ann_assign(node=node)
+    elif isinstance(node, ast.Call):
+        name = _name_from_call(node=node)
     else:
         name = node.name
 

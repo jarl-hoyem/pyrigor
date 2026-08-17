@@ -76,6 +76,15 @@ exception automatically:
 - **A function annotated `-> NoReturn` or `-> Never`** is
   automatically excluded. It never returns control to the caller at
   all, there is no return value to discard.
+- **Only bare-name calls** (`compute_total(items)`), never attribute
+  calls (`self.compute_total()`, `obj.compute_total()`). Resolving
+  which class or object an attribute call belongs to is unreliable
+  from the AST alone, so a method’s discarded return value through
+  `self.foo()` is not detected. Functions with a leading `self`/`cls`
+  parameter are excluded from PYR406 entirely for this reason —
+  including them without also matching attribute calls would only
+  risk a false positive on an unrelated bare call elsewhere that
+  happens to share the method’s name.
 
 ## When this does not apply
 
@@ -106,4 +115,6 @@ None yet.
 
 ## Enforced by
 
-Not yet implemented.
+The `pyr406` checker (`pyrigor/checkers/pyr406_return_values_used.py`),
+wired in as a pre-commit hook and available via the `pyrigor` CLI
+(`pip install pyrigor`, then `pyrigor path/to/file.py`).

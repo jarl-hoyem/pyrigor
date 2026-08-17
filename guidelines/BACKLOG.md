@@ -2,7 +2,6 @@
 
 | Item                                                                            | Value | Effort      |
 |---------------------------------------------------------------------------------|-------|-------------|
-| PYR406 (return-value-must-use)                                                  | M     | M           |
 | Full summary report (`--report`)                                                | M     | L           |
 | Structured argument parsing (scoped)                                            | S     | M           |
 | Proper `.gitignore`-aware file discovery                                        | S     | M           |
@@ -63,45 +62,8 @@
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
+| Dependabot doesn't cover Python deps or pre-commit hook revs                    | S     | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
-
-### PYR406: Require every locally defined function’s non-None return value to be used.
-
-No decorator, no opt-in. Structural, matching every other pyrigor
-rule, no developer memory required. Any function defined within the
-codebase being checked, with a return type other than `None`, called
-as a bare statement with its result discarded, is flagged.
-
-```python
-def compute_total(items: list[Item]) -> float:
-    ...
-
-compute_total(items)      # flagged: return value discarded
-total = compute_total(items)  # fine
-```
-
-Scope, deliberately narrow to avoid the noise a blanket version
-would cause:
-
-- Only functions **defined within the codebase pyrigor is checking**.
-  Never flags a call into an external library, where "return value
-  optional by convention" is common and outside the project’s own
-  control.
-- A function returning `None` is automatically excluded, nothing to
-  discard, the largest source of false positives (`print`,
-  `logger.info`, `list.append`).
-- Real, legitimate exceptions (a builder method returning `self` for
-  optional chaining, a deliberate `dict.pop(key, None)`-style
-  discard) are handled by the existing suppression mechanism, not by
-  trying to auto-detect every legitimate pattern.
-
-Real, independent precedent: OSSF’s Secure Coding Guide for Python,
-pyscg-0036 ("Check Return Values"), cites MITRE CWE-252 (Unchecked
-Return Value) and equivalent SEI CERT rules for Java (EXP00-J) and C
-(EXP12-C).
-
-Overlap check (`ADDING_A_RULE.md` step 0) not yet confirmed against
-ruff or pylint.
 
 ## Future tooling ideas
 
@@ -584,7 +546,7 @@ real risks worth fixing versus edge cases not worth the complexity.
 What happens when pyrigor is pointed at a `.py`-named file that is
 not Python (a C++ source file with a `.py` extension, a
 file containing natural-language text in a non-English script like
-Russian, a binary file misnamed as `.py`). `ast.parse` will raise a
+Russian, a binary file misnamed as `.py`). The `ast.parse` call will raise a
 `SyntaxError` for most such content, and `_read_source`/`_run_
 checkers` already catch and skip a file that fails to parse, printing
 a warning rather than crashing. Worth confirming this actually holds
@@ -743,7 +705,7 @@ Straightforward, no design question, just needs doing.
 
 ### Generate the project website automatically on release
 
-Two distinct targets, worth scoping separately. `pyrigor.com` and
+Two distinct targets, worth scoping separately. The domains `pyrigor.com` and
 `pyrigor.org` were purchased early in this project but have no real
 site content yet, a dedicated project website is essentially a
 from-scratch build, real design and content work, not just
@@ -910,8 +872,8 @@ be visible as a real, measurable trend here. Worth checking whether
 a new tool is even needed, `radon` is already a dependency
 (`radon-maintainability` hook already in pre-commit), and its `raw`
 metrics command already reports lines of code, comment lines, blank
-lines, and docstring lines, close to exactly what is being asked
-for. Applying the Pareto-principle lens already logged: reusing an
+lines, and docstring lines, close to exactly what is being asked.
+Applying the Pareto principle lens already logged: reusing an
 existing dependency is likely the lower-effort path versus adding a
 dedicated tool (`cloc`, `pygount`, `scc`) purely for this. Not yet
 scoped: whether this becomes a one-off manual check, a tracked
@@ -977,19 +939,45 @@ keyed by its pinned version, and something about the cache did not
 invalidate correctly when `actionlint` was added or updated locally,
 while CI’s own cache, keyed on `hashFiles('.pre-commit-config.yaml')`
 via `actions/cache@v6`, was fresh or keyed differently and caught it
-correctly. `pre-commit clean` resolved the discrepancy once run.
+correctly. Running `pre-commit clean` resolved the discrepancy.
 
 Worth periodically running `pre-commit clean` (or equivalent), or
 investigating whether the local cache invalidation genuinely has a
 gap worth fixing, rather than assuming this was a one-off.
+
+### Dependabot only covers GitHub Actions, not Python deps or pre-commit hook revisions
+
+`.github/dependabot.yaml` only configures a `github-actions` ecosystem
+entry, updated monthly with auto-merge. Python dependencies declared
+in `pyproject.toml` (pytest, mypy, ty, pyright, ruff, mutmut, radon,
+xenon, ...) and `.pre-commit-config.yaml`'s pinned hook `rev:`
+versions have no automated update mechanism at all. Found in
+practice: PyCharm’s own quick-fix installed newer `mypy`/`ty`
+directly via `pip` into `.venv`, bypassing `uv.lock` entirely — the
+lockfile still pinned the older versions, meaning the next `uv sync`
+would have silently reverted the venv down, with no warning
+anything had drifted.
+
+Worth adding a `pip`/`uv` ecosystem entry to `dependabot.yaml`
+(Dependabot has supported `uv.lock` since 2024) for Python
+dependencies. A matching scheduled `pre-commit autoupdate` job would
+cover the second gap.
+
+At minimum, the manual commands should be documented somewhere
+discoverable (`CONTRIBUTING.md` or `CLAUDE.md`): `uv lock
+--upgrade-package <name>` (or `uv lock --upgrade`) followed by
+`uv sync --extra dev` for Python dependencies, and `pre-commit
+autoupdate` for hook revisions. That way a version bump is never
+improvised through whatever tool happens to be open, bypassing the
+lockfile.
 
 ### PYR407 (reserved), discarding a generator call silently skips its entire body
 
 Distinct from PYR406, not a variant of it. PYR406 covers a function
 that runs and returns a value that gets discarded, wasted work.
 Calling a generator function and discarding the result is a
-different, arguably worse failure mode, none of the function's body
-executes at all, `yield` never runs until something iterates the
+different, arguably worse failure mode — none of the function’s body
+executes at all. The `yield` statement never runs until something iterates the
 result. Detection shape: a function annotated `-> Iterator[X]`,
 `Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`, called as a bare
 statement. Same structural, no-decorator design as PYR406 once

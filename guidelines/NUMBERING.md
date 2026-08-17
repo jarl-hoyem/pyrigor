@@ -50,7 +50,8 @@ As of this writing:
 - **3xx**: PYR301 (`NamedTuple` for values).
 - **4xx**: PYR401 (`NamedTuple` returns), PYR402/PYR403
   (keyword-only arguments), PYR404 (reserved, mutable defaults, not
-  yet written), PYR405 (`NamedTuple` parameters).
+  yet written), PYR405 (`NamedTuple` parameters), PYR406 (return
+  values used).
 - **5xx**: none yet.
 
 Check [`BACKLOG.md`](./BACKLOG.md) and the existing `guidelines/`

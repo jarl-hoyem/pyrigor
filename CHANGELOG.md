@@ -11,6 +11,20 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.7.0] 2026-08-17
+
+### Added
+
+- PYR406 (return values used) is now enforced, a sixth rule. Flags a
+  bare-statement call to a locally defined, non-`None`-returning
+  function whose result is discarded. Scoped to bare-name calls only
+  — a call through attribute access (`self.foo()`, `obj.foo()`) is
+  out of scope, since pyrigor cannot reliably determine which class
+  or object it belongs to from the AST alone. Functions with a
+  leading `self`/`cls` parameter are therefore excluded from the
+  protected set entirely, to avoid a method’s name leaking a false
+  positive onto an unrelated bare call sharing the name.
+
 ## [0.6.0] 2026-08-16
 
 ### Added

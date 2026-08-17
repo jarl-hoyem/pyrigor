@@ -137,6 +137,22 @@ class WalkedNodes(NamedTuple):
 
     function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef]
     assign_nodes: list[ast.AnnAssign]
+    call_statement_nodes: list[ast.Call]
+
+
+def _call_statement_value(*, node: ast.AST) -> ast.Call | None:
+    """Return a bare call-statement's inner Call node if the node is one.
+
+    Args:
+        node: A node encountered while walking the tree.
+
+    Returns:
+        The inner Call if node is an Expr wrapping a Call (a bare
+        call-statement, its result discarded), otherwise None.
+    """
+    if not isinstance(node, ast.Expr):
+        return None
+    return node.value if isinstance(node.value, ast.Call) else None
 
 
 def walk_once(*, tree: ast.Module) -> WalkedNodes:
@@ -146,13 +162,21 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:
         tree: The parsed AST of a Python source file.
 
     Returns:
-        Every function and annotated-assignment node that is found.
+        Every function, annotated-assignment, and bare call-statement
+        node that is found.
     """
     function_nodes = []
     assign_nodes = []
+    call_statement_nodes = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             function_nodes.append(node)
         elif isinstance(node, ast.AnnAssign):
             assign_nodes.append(node)
-    return WalkedNodes(function_nodes=function_nodes, assign_nodes=assign_nodes)
+        else:
+            call_statement = _call_statement_value(node=node)
+            if call_statement is not None:
+                call_statement_nodes.append(call_statement)
+    return WalkedNodes(
+        function_nodes=function_nodes, assign_nodes=assign_nodes, call_statement_nodes=call_statement_nodes
+    )

@@ -45,6 +45,11 @@ class Rule(Enum):
         problem="has a parameter typed as a bare multi-value tuple; use a NamedTuple instead",
     )
 
+    PYR406 = RuleInfo(
+        symbolic_name="return-values-used",
+        problem="is called and its return value is discarded; use the result",
+    )
+
     @property
     def symbolic_name(self) -> str:
         """The symbolic name of the rule, for suppression comments and output."""
