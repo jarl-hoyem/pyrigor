@@ -62,7 +62,7 @@
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
-| Dependabot doesn't cover Python deps or pre-commit hook revs                    | S     | S           |
+| Dependabot doesn't cover Python deps                                            | XS    | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
 
 ## Future tooling ideas
@@ -945,14 +945,18 @@ Worth periodically running `pre-commit clean` (or equivalent), or
 investigating whether the local cache invalidation genuinely has a
 gap worth fixing, rather than assuming this was a one-off.
 
-### Dependabot only covers GitHub Actions, not Python deps or pre-commit hook revisions
+### Dependabot doesn't cover Python deps
 
 `.github/dependabot.yaml` only configures a `github-actions` ecosystem
 entry, updated monthly with auto-merge. Python dependencies declared
 in `pyproject.toml` (pytest, mypy, ty, pyright, ruff, mutmut, radon,
-xenon, ...) and `.pre-commit-config.yaml`'s pinned hook `rev:`
-versions have no automated update mechanism at all. Found in
-practice: PyCharm’s own quick-fix installed newer `mypy`/`ty`
+xenon, ...) have no automated update mechanism at all —
+`.github/workflows/pre-commit-autoupdate.yaml` already covers
+`.pre-commit-config.yaml`'s pinned hook `rev:` versions monthly with
+auto-merge, missed on the first pass through this entry (found by a
+keyword search across docs/config, not a plain listing of
+`.github/workflows/`). Found in practice: PyCharm’s own quick-fix
+installed newer `mypy`/`ty`
 directly via `pip` into `.venv`, bypassing `uv.lock` entirely — the
 lockfile still pinned the older versions, meaning the next `uv sync`
 would have silently reverted the venv down, with no warning
@@ -960,16 +964,13 @@ anything had drifted.
 
 Worth adding a `pip`/`uv` ecosystem entry to `dependabot.yaml`
 (Dependabot has supported `uv.lock` since 2024) for Python
-dependencies. A matching scheduled `pre-commit autoupdate` job would
-cover the second gap.
+dependencies — the only real gap. Hook revisions are already handled.
 
-At minimum, the manual commands should be documented somewhere
-discoverable (`CONTRIBUTING.md` or `CLAUDE.md`): `uv lock
---upgrade-package <name>` (or `uv lock --upgrade`) followed by
-`uv sync --extra dev` for Python dependencies, and `pre-commit
-autoupdate` for hook revisions. That way a version bump is never
-improvised through whatever tool happens to be open, bypassing the
-lockfile.
+At minimum, `uv lock --upgrade-package <name>` (or `uv lock
+--upgrade`) followed by `uv sync --extra dev` should be documented
+somewhere discoverable (`CONTRIBUTING.md` or `CLAUDE.md`), so a
+Python dependency bump is never improvised through whatever tool
+happens to be open, bypassing the lockfile.
 
 ### PYR407 (reserved), discarding a generator call silently skips its entire body
 
