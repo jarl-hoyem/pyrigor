@@ -55,6 +55,16 @@ value that should only ever be one of a small, closed set. An `Enum`
 makes the set of valid values a real, checkable type, rather than a
 convention every caller has to remember and get exactly right.
 
+This matches [PEP 435](https://peps.python.org/pep-0435/)’s own
+stated motivation for adding `enum` to Python itself. It frames the
+same problem: a plain `int` or `str` can represent discrete
+values well enough, but nothing stops "operations without meaning
+('Wednesday times two')" from being defined on them. Nothing keeps
+a value from one enumeration distinct from a value in another,
+either. An `Enum` closes both gaps at once — the same distinctness
+argument PYR201 makes for two same-typed values, applied here to a
+value standing in for one of several unrelated named states.
+
 **The same failure is more common at boundaries than inside a
 program’s own logic.** A value arriving from JSON, a CSV file, a form
 field, a database row, or an environment variable is stringly-typed
@@ -77,6 +87,45 @@ example, `is_running: bool` needing to become
 "running/paused/stopped"). An `Enum` scales to a third state by
 adding a member. A `bool` does not scale at all, and the two-state
 assumption tends to leak into every comparison written against it.
+
+## A note on `Literal` instead of `Enum`
+
+`typing.Literal["running", "converged", "max_iters_reached"]` is the
+obvious lighter alternative. It catches the same typo for a
+value written directly in a type-checked source. A type checker flags
+`Literal["convergd"]` immediately, matching `Enum`'s own
+typo-catching claim above.
+
+The difference appears once a type checker is not in the loop.
+A `Literal` has no runtime existence of its own — it is a pure
+annotation, erased once the interpreter runs. A value arriving from
+JSON, a CSV row, an environment variable, or a database column is
+typically `str`- or `Any`-typed at that boundary. A
+`Literal`-annotated variable receiving it gets no actual check at
+all, and the bad string flows straight through.
+
+The rationale above depends on real runtime construction. A call
+like `ConvergenceStatus(raw_value)` validates and raises
+`ValueError` on a bad value, regardless of whether a type checker
+ever ran over that code path. There exists no equivalent for `Literal`
+— no object exists to build or validate against.
+
+`Literal` remains a reasonable, lighter choice for a value that
+never crosses an untyped boundary and never needs runtime
+validation. A function parameter meant only for editor autocomplete,
+and static checking is a good example. It is not a substitute for
+`Enum` wherever a value might carry unchecked external input — the
+exact scenario this rule cares about most.
+
+Where the state also needs to interoperate with string-based
+boundaries — serialized to JSON, written to a log, compared against
+a raw value from outside the program — a plain `Enum` is not the
+best fit. `enum.StrEnum`, standard library since Python 3.11
+(pyrigor’s own floor version) is the better default there. It keeps
+every runtime guarantee above while also behaving as a real string
+at the boundary, removing the `.value` unwrapping a plain `Enum`
+would otherwise require. Reserve a plain `Enum` for state that is
+purely internal and never serialized.
 
 ## When this does not apply
 
@@ -101,4 +150,12 @@ assumption tends to leak into every comparison written against it.
 
 ## Enforced by
 
-Not yet implemented.
+Not yet implemented. Checked against existing tools first, per
+`ADDING_A_RULE.md`’s step 0: `ruff` has no rule for this pattern.
+`pylint`’s `magic-value-comparison` (R2004) is related but
+broader — it flags any literal used in a comparison, whether a
+numeric threshold or an arbitrary string, and suggests "a named
+constant or an enum" generically. It does not distinguish a
+continuous threshold from a genuinely closed set of named states,
+so it does not specifically detect or enforce this rule’s narrower
+claim. The gap PYR202 addresses remains real.

@@ -6,7 +6,11 @@ from pyrigor.checkers._shared import WalkedNodes
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
-_EXCLUDED_RETURN_NAMES = frozenset({"None", "NoReturn", "Never", "Iterator", "Generator", "AsyncGenerator"})
+_NONE_ANNOTATION_NAME = "None"
+
+_EXCLUDED_RETURN_NAMES = frozenset(
+    {_NONE_ANNOTATION_NAME, "NoReturn", "Never", "Iterator", "Generator", "AsyncGenerator"}
+)
 
 
 def _simple_name(*, node: ast.expr) -> str | None:
@@ -34,7 +38,7 @@ def _resolve_constant(*, annotation: ast.Constant) -> str | None:
     Returns:
         "None" for an explicit -> None annotation, otherwise None.
     """
-    return "None" if annotation.value is None else None
+    return _NONE_ANNOTATION_NAME if annotation.value is None else None
 
 
 def _resolve_union(*, op: ast.operator) -> str | None:

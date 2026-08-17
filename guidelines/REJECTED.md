@@ -46,3 +46,13 @@ confirmed rejection above.
   ruff's `ANN` rule family, if enabled.
 - **Timezone-aware datetime construction** — covered by ruff's `DTZ`
   rule family (flake8-datetimez), if enabled.
+- **Mandate `StrEnum` over plain `Enum` when a state crosses a
+  string-typed boundary** — considered alongside PYR202’s own
+  `Literal`/`StrEnum` discussion. Picking plain `Enum` where
+  `StrEnum` would help fails early (`TypeError` on serialization,
+  or a mypy type mismatch at the call site), not silently — the
+  opposite of the failure class PYR202 itself targets. Detecting it
+  would also need real cross-site usage analysis (does this `Enum`
+  ever meet a string boundary elsewhere), not a local AST pattern —
+  the same category of problems as the already-backlogged, opt-in
+  astroid experiment, not a default mandatory rule.
