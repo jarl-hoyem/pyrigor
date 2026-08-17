@@ -80,4 +80,5 @@ max-line-length = 120
 skips = ["*/tests/*"]
 
 [tool.codespell]
-ignore-words-list = "mata,matb"
+# astroid: a real Python library name (pylint's inference engine), not a typo for "asteroid"
+ignore-words-list = "astroid"

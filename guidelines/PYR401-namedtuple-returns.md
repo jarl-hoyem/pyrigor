@@ -87,7 +87,7 @@ to detect itself.
 Google’s own [Python Style Guide](https://google.github.io/styleguide/pyguide.html)
 addresses this exact problem and reaches a different conclusion: it
 recommends documenting a multi-value tuple return clearly in the
-docstring ("Returns: A tuple (mata, matb), where..."), rather than
+docstring ("Returns: A tuple (mat_a, mat_b), where..."), rather than
 switching to a `NamedTuple`. This is a real, considered alternative
 mitigation, not an oversight, worth engaging with directly rather
 than ignoring.
