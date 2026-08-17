@@ -107,4 +107,3 @@ test calling `find_violations` directly. Real result: confirmed via
 profiling, `ast.walk`'s own call count dropped exactly 5.0x
 (69,393,100 to 13,878,620), and real-world timing on the same
 18,187-file run dropped from 388.20s to 55.46s, roughly 7x.
-
