@@ -116,9 +116,9 @@ fail("boom")
 
 
 def test_no_violation_for_unrecognized_annotation_shape() -> None:
-    """An annotation shape PYR406 doesn't resolve to a simple name (a union) should not be flagged."""
+    """An annotation shape PYR406 can't resolve to a simple name (a call expression) should not be flagged."""
     source = """
-def compute_total(items) -> int | str:
+def compute_total(items) -> some_registry.lookup("total"):
     ...
 
 compute_total(items)
@@ -199,6 +199,61 @@ def test_no_violation_for_lambda_call() -> None:
     """A lambda assigned to a name and called bare is not a FunctionDef, so it is outside PYR406's scope."""
     source = """
 compute_total = lambda items: sum(items)
+
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
+def test_flags_bare_call_for_pep604_union_return() -> None:
+    """A PEP 604 union return (`int | str`) must still have its return value used."""
+    source = """
+def compute_total(items) -> int | str:
+    ...
+
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
+def test_flags_bare_call_for_pep604_union_with_none() -> None:
+    """A PEP 604 union that includes None (`int | None`) must still have its return value used."""
+    source = """
+def parse(s) -> int | None:
+    ...
+
+parse(s)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "parse"
+
+
+def test_flags_bare_call_for_chained_pep604_union() -> None:
+    """A chained PEP 604 union (`int | str | None`) must still have its return value used."""
+    source = """
+def compute_total(items) -> int | str | None:
+    ...
+
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
+def test_no_violation_for_non_union_binop_annotation() -> None:
+    """A BinOp annotation that isn't a union (e.g. arithmetic) should not be treated as protected."""
+    source = """
+def compute_total(items) -> int + str:
+    ...
 
 compute_total(items)
 """

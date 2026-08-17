@@ -45,14 +45,12 @@
 | Derive rules systematically from the software "-ilities"                        | M     | S           |
 | Group rules in documentation by the "-ilities" they serve                       | S     | S           |
 | Add remaining useful pre-commit-hooks entries                                   | S     | XS          |
-| README badges missing for tools added tonight                                   | S     | XS          |
 | Generate the project website automatically on release                           | M     | L           |
 | Broader tool candidates to consider (batch, unresearched)                       | S     | M           |
 | Make pyrigor discoverable (SEO)                                                 | M     | M           |
 | Optimize pyrigor for LLM discoverability                                        | M     | S           |
 | Keep a list of known, unfixed bugs                                              | S     | XS          |
 | Solo-developer bottleneck: investigate how to speed up                          | L     | M           |
-| Confirm py.typed actually ships in the built wheel                              | S     | XS          |
 | Use every documented rule, not just enforced ones, to review the project itself | M     | L           |
 | Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
 | Track code-quality statistics (% code, % blank, % comments)                     | S     | S           |
@@ -63,8 +61,6 @@
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
 | Dependabot doesn't cover Python deps                                            | XS    | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
-| PYR406's lambda exclusion is undocumented                                       | S     | XS          |
-| PYR406 misses `X \| Y` union return types (false negative, bug)                 | M     | S           |
 | PYR406: extend self.foo() detection to same-class methods                       | M     | M           |
 | Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
 
@@ -685,14 +681,6 @@ project (XML, submodule, simple-YAML-sorting hooks and similar).
 
 Value: S · Effort: XS
 
-### README badges missing for tools added tonight
-
-Four new pre-commit tools (`actionlint`, `bandit`, `vulture`,
-`codespell`) were added, but README.md’s badge row predates them and
-was never updated. The same pattern the badge row itself already
-follows, one static shields.io badge per every tool actually activated in the stack.
-Straightforward, no design question, just needs doing.
-
 ### Generate the project website automatically on release
 
 Two distinct targets, worth scoping separately. The domains `pyrigor.com` and
@@ -811,18 +799,6 @@ solo-maintainer review discipline that should not be automated away
 built around). Related: the Pareto principle and value-driven
 development items already logged are about prioritizing *what* to
 build, this is about the *mechanics* of building it faster.
-
-### Confirm "py.typed" actually ships in the built wheel
-
-`pyrigor/py.typed` (PEP 561 marker) already exists in the source,
-already done, not a gap. Worth confirming it actually ends up inside
-the built wheel distributed to PyPI, not just the source tree,
-`pyproject.toml`'s `[tool.setuptools.packages.find]` does not
-explicitly declare `package_data` for it, a common, easy-to-miss
-packaging mistake. A separate, PEP 561-style stub-only package (like
-typeshed's `types-*` packages) is not needed here, since pyrigor
-already ships full inline type hints throughout, not absent ones a
-third party would need to backfill.
 
 ### Use every documented rule, not just enforced ones, to review the project itself.
 
@@ -973,56 +949,6 @@ result. Detection shape: a function annotated `-> Iterator[X]`,
 `Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`, called as a bare
 statement. Same structural, no-decorator design as PYR406 once
 built. Not yet scoped in detail.
-
-### PYR406's lambda exclusion is undocumented
-
-Confirmed live: a `lambda` is structurally exempt from PYR406.
-`walk_once()` in `_shared.py` only collects `ast.FunctionDef` and
-`ast.AsyncFunctionDef` nodes into `function_nodes` — an `ast.Lambda`
-never enters that set, so it can never become a protected name. Two
-reinforcing reasons: a lambda has no `.name` for the checker’s
-name-matching mechanism to key on (it is only ever reached through
-whatever variable it is assigned to), and Python’s grammar gives a
-lambda no `->` return-annotation slot at all, so even a named lambda
-would never satisfy `_is_protected_return()`.
-
-Unlike the `self`/`cls` exclusion, which the guideline doc documents
-deliberately with its own rationale, this one is undocumented — an
-implementation consequence rather than a scoped design decision.
-Worth a short addition to
-`guidelines/PYR406-return-values-used.md`’s "Scope, deliberately
-narrow" section once picked up, so a reader does not have to
-rediscover this by reading the checker source.
-
-### PYR406 misses PEP 604 union return types (`X | Y`), a real false negative
-
-Confirmed live, distinct from the lambda-exclusion documentation
-gap above — this is a functional bug, not a missing-doc issue.
-`_annotation_name()` in `pyr406_return_values_used.py` handles
-`ast.Constant` (bare `-> None`) and `ast.Subscript` (`Union[X, Y]`,
-`Optional[X]`, recursing to resolve to `"Union"`/`"Optional"`,
-correctly treated as protected), but a PEP 604 union (`int | str`,
-`int | None`) parses as `ast.BinOp` with a `BitOr` operator, a shape
-`_annotation_name()` doesn't handle at all. It falls through to
-`_simple_name()`, which only matches `ast.Name`/`ast.Attribute` and
-returns `None` for a `BinOp` — indistinguishable from a bare
-`-> None` return type to `_is_protected_return()`. The function
-silently loses PYR406 protection entirely. Its discarded return
-value is never flagged, even for something like
-`def parse(s: str) -> int | None: ...`, which clearly returns a real
-value most of the time.
-
-Given pyrigor targets Python 3.11+, where `X | Y` is the modern,
-preferred spelling over `typing.Union`/`Optional`, this is not an
-edge case, likely the more common annotation style in new code the
-rule is meant to protect. Fix shape: add `ast.BinOp` with `BitOr`
-handling to `_annotation_name()`, resolving to a non-excluded
-synthetic name (matching how `Union`/`Optional` are already always
-treated as protected regardless of their inner types), rather than
-trying to inspect both operands individually. Needs its own test
-cases (`int | str`, `int | None`, chained `int | str | None`) before
-considered fixed, matching `DEFINITION_OF_DONE.md`'s testing
-discipline.
 
 ### PYR406: Extend `self.foo()` detection to same-class methods
 

@@ -25,6 +25,31 @@ def _simple_name(*, node: ast.expr) -> str | None:
     return None
 
 
+def _resolve_constant(*, annotation: ast.Constant) -> str | None:
+    """Resolve a Constant return annotation.
+
+    Args:
+        annotation: A Constant annotation node.
+
+    Returns:
+        "None" for an explicit -> None annotation, otherwise None.
+    """
+    return "None" if annotation.value is None else None
+
+
+def _resolve_union(*, op: ast.operator) -> str | None:
+    """Resolve a BinOp return annotation's operator.
+
+    Args:
+        op: The BinOp's operator node.
+
+    Returns:
+        A synthetic "UnionType" name if this is a PEP 604 union
+        (`X | Y`, using BitOr), otherwise None.
+    """
+    return "UnionType" if isinstance(op, ast.BitOr) else None
+
+
 def _annotation_name(*, annotation: ast.expr | None) -> str | None:
     """Extract the base name of a return annotation, resolving through a subscript.
 
@@ -34,15 +59,18 @@ def _annotation_name(*, annotation: ast.expr | None) -> str | None:
     Returns:
         "None" for an explicit -> None annotation, the bare name for
         a Name or Attribute annotation (including the base of a
-        subscripted generic like Iterator[X]), or None if there is no
+        subscripted generic like Iterator[X]), a synthetic "UnionType"
+        name for a PEP 604 union (X | Y), or None if there is no
         annotation, or it doesn't resolve to a simple name.
     """
     if annotation is None:
         return None
     if isinstance(annotation, ast.Constant):
-        return "None" if annotation.value is None else None
+        return _resolve_constant(annotation=annotation)
     if isinstance(annotation, ast.Subscript):
         return _annotation_name(annotation=annotation.value)
+    if isinstance(annotation, ast.BinOp):
+        return _resolve_union(op=annotation.op)
     return _simple_name(node=annotation)
 
 

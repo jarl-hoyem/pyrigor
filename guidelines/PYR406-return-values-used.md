@@ -85,6 +85,12 @@ exception automatically:
   including them without also matching attribute calls would only
   risk a false positive on an unrelated bare call elsewhere that
   happens to share the method’s name.
+- **A `lambda` expression** is excluded entirely, structurally
+  rather than as a deliberate carve-out. It has no `.name` for the
+  checker’s name-matching mechanism to key on — only whatever
+  variable it is assigned to carries a name. Python’s grammar also
+  gives a `lambda` no `->` return-annotation slot at all, so even a
+  named `lambda` could never satisfy the return-type check.
 
 ## When this does not apply
 
