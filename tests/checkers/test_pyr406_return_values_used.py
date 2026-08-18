@@ -180,8 +180,8 @@ def outer():
     assert violations[0].context_name == "helper"
 
 
-def test_no_violation_for_method_call_via_self() -> None:
-    """A method (leading self) called via self.foo() uses attribute access, out of PYR406's bare-name scope."""
+def test_flags_self_call_to_same_class_method() -> None:
+    """A self.foo() call within a method of the same class that defines foo() should be flagged."""
     source = """
 class Foo:
     def compute_total(self, items) -> float:
@@ -192,7 +192,93 @@ class Foo:
 """
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
+def test_flags_self_call_to_staticmethod() -> None:
+    """A self.foo() call to a staticmethod defined on the same class should still be flagged."""
+    source = """
+class Foo:
+    @staticmethod
+    def compute_total(items) -> float:
+        ...
+
+    def handle(self, items):
+        self.compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
+def test_no_violation_for_self_call_to_inherited_method() -> None:
+    """A self.foo() call where foo() is inherited, not defined directly on this class, is not detected."""
+    source = """
+class Base:
+    def compute_total(self, items) -> float:
+        ...
+
+class Foo(Base):
+    def handle(self, items):
+        self.compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
     assert not violations
+
+
+def test_no_violation_for_classmethod_call_via_cls() -> None:
+    """A cls.foo() call is out of scope for this pass — same-class detection covers self only."""
+    source = """
+class Foo:
+    @classmethod
+    def compute_total(cls, items) -> float:
+        ...
+
+    @classmethod
+    def handle(cls, items):
+        cls.compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
+def test_no_violation_for_nested_class_with_own_self() -> None:
+    """A nested class's own self.foo() call must not be attributed to the enclosing class."""
+    source = """
+class Outer:
+    def handle(self):
+        class Inner:
+            def method(self):
+                self.foo()
+
+    def foo(self) -> float:
+        ...
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
+def test_flags_self_call_via_nested_closure() -> None:
+    """A self.foo() call inside a closure nested within a method is still same-class self, still flagged."""
+    source = """
+class Foo:
+    def compute_total(self, items) -> float:
+        ...
+
+    def handle(self, items):
+        def inner():
+            self.compute_total(items)
+        inner()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
 
 
 def test_no_violation_for_lambda_call() -> None:

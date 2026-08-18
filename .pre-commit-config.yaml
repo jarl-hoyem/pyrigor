@@ -107,11 +107,37 @@ repos:
         pass_filenames: false
         types: [ python ]
         additional_dependencies: [ "xenon==0.9.3" ]
+        # Files relaxed to level B below are excluded here, one glob
+        # per comma-separated entry. Adding a new relaxed file means
+        # extending this list AND xenon-shared's own path list below
+        # — not redesigning the mechanism.
         args:
           - --max-absolute=A
           - --max-modules=A
           - --max-average=A
+          - --exclude=*_shared.py
           - pyrigor/
+      - id: xenon-shared
+        name: xenon (relaxed to B, for files with a documented exception)
+        language: python
+        entry: xenon
+        pass_filenames: false
+        types: [ python ]
+        additional_dependencies: [ "xenon==0.9.3" ]
+        # Each file listed here needs its own DECISIONS.md-documented
+        # reason, the same way _shared.py's walk_once does
+        # (single-pass node classification is the point — the same
+        # reason it already carries a `# complexipy: ignore`). xenon
+        # has no per-function suppression, so relaxing the threshold
+        # is scoped to specific files via a second invocation, not a
+        # global threshold change.
+        args:
+          - --max-absolute=B
+          - --max-modules=A
+          - --max-average=A
+          - pyrigor/checkers/_shared.py
+          # Add a new file's own path here, and its matching
+          # `*filename.py` glob to the strict hook's --exclude above.
       - id: radon-maintainability
         name: radon maintainability
         entry: radon mi

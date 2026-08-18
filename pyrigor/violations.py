@@ -38,9 +38,14 @@ def _name_from_call(*, node: ast.Call) -> str:
         node: The call to inspect.
 
     Returns:
-        The callee's bare name, or "<unknown>" for a non-Name callee.
+        The callee's bare name (a Name's id, or an Attribute's
+        attr), or "<unknown>" for any other callee shape.
     """
-    return node.func.id if isinstance(node.func, ast.Name) else "<unknown>"
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return "<unknown>"
 
 
 def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssign | ast.Call, rule: Rule) -> Violation:

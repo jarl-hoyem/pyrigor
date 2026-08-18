@@ -61,7 +61,6 @@
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
 | Dependabot doesn't cover Python deps                                            | XS    | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
-| PYR406: extend self.foo() detection to same-class methods                       | M     | M           |
 | Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
 | Submit CFP answers to Python conferences.                                       | L     | M           |
 | Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
@@ -955,36 +954,18 @@ result. Detection shape: a function annotated `-> Iterator[X]`,
 statement. Same structural, no-decorator design as PYR406 once
 built. Not yet scoped in detail.
 
-### PYR406: Extend `self.foo()` detection to same-class methods
+### PYR406: `cls.foo()` classmethod calls, still undetected
 
-Scoped enhancement to the `self`/`cls` exclusion documented in
-`guidelines/PYR406-return-values-used.md`. The current exclusion is
-total: any function with a leading `self`/`cls` parameter is
-dropped from the protected set entirely, because attribute calls
-(`self.foo()`) cannot be resolved back to the class or object that
-defines `foo()` from the AST alone.
-
-A narrower subcase is tractable without full type inference: a call
-to `self.foo()` made from within a method defined on the same class
-as `foo()` itself. The enclosing class is already known
-structurally, so no type inference is needed — just walking each
-`ast.ClassDef`, collecting its own method names and their return
-annotations (same `_is_protected_return()` logic PYR406 already
-has), then matching `self.<name>()` calls only within methods of
-that same class body. This does not attempt the harder, still
-unscoped case: `obj.foo()`, where `obj`’s type has to be inferred
-from an assignment, parameter, or return value elsewhere. That
-genuinely needs a real type checker (`mypy`/`pyright`-class tooling),
-not just a smarter AST walk, and stays out of scope.
-
-Needs a real design pass before building: how `cls.foo()`
-`classmethod` calls fit the same shape, whether a subclass
-overriding `foo()` with a different, non-`None` return type creates
-a false negative or false positive against the base class’s own
-annotation, and whether nested classes or `@property`-decorated
-methods need special handling. Worth checking against
-`ADDING_A_RULE.md`’s step 0 overlap check too, since this changes
-PYR406’s existing detection shape rather than adding a new rule.
+Deliberately out of scope for the same-class `self.foo()`
+enhancement just shipped. A `cls.foo()` call inside a classmethod
+is a genuinely different shape from `self.foo()` — `cls` could refer
+to a subclass at runtime, not necessarily the defining class, so
+matching it against "this class's own directly defined methods"
+the same way risks a false negative in a way `self` does not
+(instance methods always bind `self` to the defining class or a
+subclass instance, but a classmethod's `cls` genuinely varies by
+call site). Needs its own design pass, not a copy-paste of the
+`self` logic, before building.
 
 ### Optional astroid-based `obj.foo()` resolution, an isolated, throwaway experiment
 

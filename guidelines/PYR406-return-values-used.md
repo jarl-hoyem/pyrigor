@@ -76,15 +76,21 @@ exception automatically:
 - **A function annotated `-> NoReturn` or `-> Never`** is
   automatically excluded. It never returns control to the caller at
   all, there is no return value to discard.
-- **Only bare-name calls** (`compute_total(items)`), never attribute
-  calls (`self.compute_total()`, `obj.compute_total()`). Resolving
-  which class or object an attribute call belongs to is unreliable
-  from the AST alone, so a method’s discarded return value through
-  `self.foo()` is not detected. Functions with a leading `self`/`cls`
-  parameter are excluded from PYR406 entirely for this reason —
-  including them without also matching attribute calls would only
-  risk a false positive on an unrelated bare call elsewhere that
-  happens to share the method’s name.
+- **Bare-name calls** (`compute_total(items)`) are matched
+  directly, and so is `self.<name>()`, narrowly: only when `<name>`
+  is defined directly on the same class as the method making the
+  call. A closure nested inside that method still counts, since its
+  own `self` is the same instance. A nested class defined inside the
+  method does not, since its own `self` refers to its own instance
+  instead.
+- **A subclass calling an inherited method through `self` is not
+  detected.** Pyrigor never resolves a class hierarchy, only a
+  class’s own directly defined methods. A `cls.<name>()` call is not
+  detected either, out of scope for this narrower pass.
+- **Any attribute call through something other than `self`**
+  (`obj.compute_total()`) is never matched. Pyrigor cannot reliably
+  determine which class or object an arbitrary attribute belongs to
+  — it has no type inference, and processes one file at a time.
 - **A `lambda` expression** is excluded entirely, structurally
   rather than as a deliberate carve-out. It has no `.name` for the
   checker’s name-matching mechanism to key on — only whatever

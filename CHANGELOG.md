@@ -11,6 +11,17 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- PYR406 now also detects a discarded `self.<name>()` call, when
+  `<name>` is defined directly on the same class as the calling
+  method — previously any `self`/`cls`-taking function was excluded
+  from detection entirely. Still out of scope: a subclass calling an
+  inherited method through `self`, a `cls.<name>()` call, and any
+  attribute call through something other than `self`
+  (`obj.compute_total()`) — none of these are resolvable without
+  real type inference, which pyrigor deliberately does not do.
+
 ## [0.7.1] 2026-08-18
 
 ### Fixed

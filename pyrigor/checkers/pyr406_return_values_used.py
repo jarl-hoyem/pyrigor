@@ -1,8 +1,9 @@
 """PYR406 checker: flag a discarded, non-None-returning local function call."""
 
 import ast
+from collections.abc import Iterator
 
-from pyrigor.checkers._shared import WalkedNodes
+from pyrigor.checkers._shared import WalkedNodes, call_statement_value
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
@@ -124,6 +125,144 @@ def _protected_function_names(*, function_nodes: list[ast.FunctionDef | ast.Asyn
     return {node.name for node in function_nodes if _is_protected_return(node=node) and not _is_method(node=node)}
 
 
+def _direct_methods(*, class_def: ast.ClassDef) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
+    """Collect a class's own direct method definitions, not a nested class's methods.
+
+    Args:
+        class_def: The class definition to inspect.
+
+    Returns:
+        Every FunctionDef/AsyncFunctionDef directly in the class body.
+    """
+    return [node for node in class_def.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+
+
+def _protected_method_names(*, class_def: ast.ClassDef) -> set[str]:
+    """Collect a class's own method names whose return value must be used via self.
+
+    Args:
+        class_def: The class definition to inspect.
+
+    Returns:
+        The set of method names, directly defined on this class,
+        whose return type is protected under PYR406.
+    """
+    return {method.name for method in _direct_methods(class_def=class_def) if _is_protected_return(node=method)}
+
+
+def _iter_same_scope(*, node: ast.AST) -> Iterator[ast.AST]:
+    """Yield every descendant of a node, without crossing into a nested class's own body.
+
+    Args:
+        node: The node to walk, typically a method body.
+
+    Yields:
+        Every descendant reachable without descending into a nested
+        ClassDef — its own `self` refers to its own instance, not
+        the enclosing method's.
+    """
+    for child in ast.iter_child_nodes(node):
+        yield child
+        if not isinstance(child, ast.ClassDef):
+            yield from _iter_same_scope(node=child)
+
+
+def _self_call_name(*, call: ast.Call) -> str | None:
+    """Extract the method name from a self.<name>() call, if it is one.
+
+    Args:
+        call: A call node to inspect.
+
+    Returns:
+        The attribute name if `call.func` is `self.<name>`, otherwise None.
+    """
+    func = call.func
+    if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "self":
+        return func.attr
+    return None
+
+
+def _matched_self_call(*, node: ast.AST, protected_names: set[str]) -> ast.Call | None:
+    """Check whether a node is a self.<name>() call matching a protected method name.
+
+    Args:
+        node: A node encountered while walking a method's body.
+        protected_names: The enclosing class's own protected method names.
+
+    Returns:
+        The Call node if this is a bare self.<name>() call statement
+        with <name> in protected_names, otherwise None.
+    """
+    call = call_statement_value(node=node)
+    if call is None:
+        return None
+    return call if _self_call_name(call=call) in protected_names else None
+
+
+def _same_scope_nodes(*, class_def: ast.ClassDef) -> Iterator[ast.AST]:
+    """Yield every node reachable from a class's own methods, same-scope only.
+
+    Args:
+        class_def: The class definition to inspect.
+
+    Yields:
+        Every descendant node of each of the class's own direct
+        methods (see _direct_methods, _iter_same_scope).
+    """
+    for method in _direct_methods(class_def=class_def):
+        yield from _iter_same_scope(node=method)
+
+
+def _same_class_violations(*, class_def: ast.ClassDef) -> list[ast.Call]:
+    """Find self.<name>() calls within a class's own methods, matching a protected method.
+
+    Args:
+        class_def: The class definition to inspect.
+
+    Returns:
+        Every self.<name>() call-statement Call node found within the
+        class's own methods, where <name> is one of that same
+        class's own protected method names.
+    """
+    protected_names = _protected_method_names(class_def=class_def)
+    matches = (
+        _matched_self_call(node=node, protected_names=protected_names)
+        for node in _same_scope_nodes(class_def=class_def)
+    )
+    return [call for call in matches if call is not None]
+
+
+def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) -> list[ast.Call]:
+    """Find bare-name calls to a locally defined, protected function.
+
+    Args:
+        nodes: Every relevant node in the file, from walk_once.
+        protected_names: Names of protected, non-method functions.
+
+    Returns:
+        Every bare-statement Call node whose func is a Name matching
+        a protected function name.
+    """
+    return [
+        call
+        for call in nodes.call_statement_nodes
+        if isinstance(call.func, ast.Name) and call.func.id in protected_names
+    ]
+
+
+def _same_class_call_matches(*, class_nodes: list[ast.ClassDef]) -> list[ast.Call]:
+    """Find self.<name>() calls across every class, matching that class's own protected methods.
+
+    Args:
+        class_nodes: Every class definition in the file.
+
+    Returns:
+        Every matching Call node, one class's results at a time,
+        concatenated.
+    """
+    return [call for class_def in class_nodes for call in _same_class_violations(class_def=class_def)]
+
+
 def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
     """Find PYR406 violations in already-walked nodes.
 
@@ -131,12 +270,12 @@ def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
         nodes: Every relevant node in the file, from walk_once.
 
     Returns:
-        A list of violations, one per bare-statement call to a
-        locally defined, non-None-returning function.
+        A list of violations: one per bare-statement call to a
+        locally defined, non-None-returning function, whether called
+        by bare name or, when defined on the same class, via self.
     """
     protected_names = _protected_function_names(function_nodes=nodes.function_nodes)
-    return [
-        make_violation(node=call, rule=Rule.PYR406)
-        for call in nodes.call_statement_nodes
-        if isinstance(call.func, ast.Name) and call.func.id in protected_names
-    ]
+    matched_calls = _bare_name_call_matches(nodes=nodes, protected_names=protected_names) + _same_class_call_matches(
+        class_nodes=nodes.class_nodes
+    )
+    return [make_violation(node=call, rule=Rule.PYR406) for call in matched_calls]

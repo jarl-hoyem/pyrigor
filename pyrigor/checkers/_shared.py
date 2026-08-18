@@ -138,9 +138,10 @@ class WalkedNodes(NamedTuple):
     function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef]
     assign_nodes: list[ast.AnnAssign]
     call_statement_nodes: list[ast.Call]
+    class_nodes: list[ast.ClassDef]
 
 
-def _call_statement_value(*, node: ast.AST) -> ast.Call | None:
+def call_statement_value(*, node: ast.AST) -> ast.Call | None:
     """Return a bare call-statement's inner Call node if the node is one.
 
     Args:
@@ -163,21 +164,27 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
         tree: The parsed AST of a Python source file.
 
     Returns:
-        Every function, annotated-assignment, and bare call-statement
-        node that is found.
+        Every function, annotated-assignment, bare call-statement,
+        and class definition node that is found.
     """
     function_nodes = []
     assign_nodes = []
     call_statement_nodes = []
+    class_nodes = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             function_nodes.append(node)
         elif isinstance(node, ast.AnnAssign):
             assign_nodes.append(node)
+        elif isinstance(node, ast.ClassDef):
+            class_nodes.append(node)
         else:
-            call_statement = _call_statement_value(node=node)
+            call_statement = call_statement_value(node=node)
             if call_statement is not None:
                 call_statement_nodes.append(call_statement)
     return WalkedNodes(
-        function_nodes=function_nodes, assign_nodes=assign_nodes, call_statement_nodes=call_statement_nodes
+        function_nodes=function_nodes,
+        assign_nodes=assign_nodes,
+        call_statement_nodes=call_statement_nodes,
+        class_nodes=class_nodes,
     )
