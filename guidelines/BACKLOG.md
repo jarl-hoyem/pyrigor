@@ -64,6 +64,10 @@
 | PYR406: extend self.foo() detection to same-class methods                       | M     | M           |
 | Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
 | Submit CFP answers to Python conferences.                                       | L     | M           |
+| Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
+| Review and deliberately set thresholds/settings for every pre-commit tool       | S     | M           |
+| Run all pre-commit tools against tests/ too, with suppressions as needed        | M     | M           |
+| Document every tool's own suppression-comment syntax in one place               | M     | S           |
 
 ## Future tooling ideas
 
@@ -1024,3 +1028,61 @@ OSSF’s). Worth identifying actual target conferences and their real
 deadlines (PyCon variants, EuroPython, local Python meetups), and
 drafting a real proposal, rather than continuing to reference this
 as dormant without tracking it as a concrete task.
+
+### Relax complexipy/xenon thresholds when moving from solo to collaborative development
+
+Both are set strict right now, complexipy at 6, xenon requiring
+grade A on every axis, deliberately, based on this project’s own
+real, measured values. This works because the project is
+in "if you want to go fast, go alone" mode, one maintainer who can
+personally cope with, and hold themselves to, a very strict bar.
+
+That bar cannot be forced onto others. If the project moves to "if
+you want to go far, go together" mode, real outside contributors,
+this strictness needs revisiting. A first-time contributor hitting
+an unfamiliar, strict failure on their first PR, with no context for
+why the bar is where it is, is genuinely discouraging, not a good
+first impression.
+
+Not urgent while solo. Worth a real decision when that mode change
+actually happens, not before: relax both thresholds for everyone
+(complexipy to 8, xenon allowing grade B), or keep them strict and
+instead invest in clearer failure messages and onboarding docs
+explaining the reasoning and how to meet the bar, addressing the
+discouragement without lowering it.
+
+### Review and deliberately set thresholds/settings for every pre-commit tool
+
+The same discipline just applied to complexipy (measure real values,
+then set a deliberate threshold, not the tool’s bare default) worth
+extending to every other tool running on defaults or
+inherited settings: vulture’s confidence threshold, bandit’s
+severity level, xenon’s exact grade requirements, and any others.
+Not yet reviewed one by one.
+
+### Run all pre-commit tools against tests/ too, with suppressions as needed
+
+The tool pyrigor’s own hook and radon both deliberately exclude tests/, a
+real, considered decision (pytest fixture injection is a genuine
+false positive there). Other tools (complexipy, xenon, bandit,
+vulture) may skip tests/ only incidentally, never actually
+pointed there, not because of any real decision. Worth reviewing
+each tool’s actual current scope and deliberately including tests/
+where it adds real value. Adding suppressions for genuine false
+positives as they are found, rather than leaving the current scope
+as an accident of what happened to be configured.
+
+Value: M · Effort: M
+
+### Document every tool’s own suppression-comment syntax in one place
+
+Tonight alone hit three genuinely different mechanisms: bandit's
+`# nosec` (bare, same-line only, confirmed this version does not
+honor worded or ID-specific forms or line above placement),
+complexipy's `# complexipy: ignore` (no reason support at all), and
+pyrigor’s own `# pyrigor: CODE # reason` (the richest of the three).
+Worth a real reference, likely in CONTRIBUTING.md, documenting each
+tool’s actual, confirmed-working suppression syntax in one place, so
+this does not need re-discovering by trial and error again.
+
+Value: M · Effort: S
