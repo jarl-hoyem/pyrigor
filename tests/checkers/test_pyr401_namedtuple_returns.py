@@ -2,6 +2,7 @@
 
 import ast
 
+# noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr401_namedtuple_returns import find_violations
 

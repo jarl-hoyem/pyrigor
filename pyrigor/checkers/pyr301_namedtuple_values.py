@@ -19,6 +19,7 @@ def _has_violation(*, node: ast.AnnAssign) -> bool:
     return is_bare_multi_value_tuple(annotation=node.annotation)
 
 
+# noinspection PyTypeChecker
 def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
     """Find PYR301 violations in already-walked nodes.
 

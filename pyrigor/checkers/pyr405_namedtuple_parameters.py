@@ -30,4 +30,5 @@ def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
     Returns:
         A list of violations found, one per offending function.
     """
+    # noinspection PyTypeChecker
     return find_function_violations(nodes=nodes.function_nodes, predicate=_has_violation, rule=Rule.PYR405)

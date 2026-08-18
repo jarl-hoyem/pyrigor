@@ -2,6 +2,7 @@
 
 import ast
 
+# noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations
 from pyrigor.rules import Rule
