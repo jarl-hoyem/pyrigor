@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.7.1] 2026-08-18
+
 ### Fixed
 
 - PYR406 silently missed a PEP 604 union return type (`int | str`,
