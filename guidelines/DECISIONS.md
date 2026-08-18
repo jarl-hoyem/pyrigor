@@ -166,3 +166,26 @@ version would lose the opposite, real, proven value: pyrigor’s own
 new rules have repeatedly caught real bugs in pyrigor’s own
 in-progress source the moment they were built, before any release
 existed. Kept both, deliberately, rather than choosing one.
+
+### Pyrigor’s suppression comment must come last when stacked with another tool’s
+
+The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`)
+captures everything after `# pyrigor:` to the end of the line as the
+reason. Stacking another tool’s suppression comment (`# nosec`,
+`# complexipy: ignore`) after pyrigor’s own gets silently absorbed
+into that reason text, since `body.partition("#")` only splits once.
+
+Considered fixing the parser instead, truncating the reason at the
+next `#` regardless of what follows. Rejected — this would break a
+legitimate case: a reason referencing a GitHub issue number, for
+example `# pyrigor: 406 # see issue #42`. Truncating trades away real
+information to guard against a risk that, checked directly, has no
+current observable effect. The function `filter_suppressed()` never
+reads a reason’s content, only checks whether it is None.
+
+Chosen instead: a house convention, not a code change. Pyrigor’s own
+suppression comment goes last when stacked with another tool’s
+(`# nosec  # pyrigor: PYR402 # reason`, not the reverse). The
+opposite ordering already works correctly, since `re.search` finds
+`# pyrigor:` wherever it appears on the line — this convention costs
+nothing beyond documenting it.

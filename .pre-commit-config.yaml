@@ -148,7 +148,7 @@ repos:
         entry: radon mi
         language: python
         types: [ python ]
-        args: [ "--min", "A", "--exclude", "tests/", "pyrigor" ]
+        args: [ "--min", "A", "pyrigor", "tests" ]
         additional_dependencies: [ "radon==6.0.1" ]
         pass_filenames: false
       - id: uv-lock-check

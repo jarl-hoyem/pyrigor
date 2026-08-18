@@ -65,7 +65,6 @@
 | Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
 | Review and deliberately set thresholds/settings for every pre-commit tool       | S     | M           |
 | Run radon-maintainability and pyrigor’s own hook against tests/                 | M     | M           |
-| Document every tool's own suppression-comment syntax in one place               | M     | S           |
 | Migrate BACKLOG.md to GitHub Issues                                             | M     | M           |
 
 ## Future tooling ideas
@@ -1049,17 +1048,6 @@ tested directly. Run both against `tests/` for real, confirm what
 the actual findings are, then decide from evidence: keep the
 exclusion, or use per-line suppression comments instead if the real
 false-positive count turns out small.
-
-### Document every tool’s own suppression-comment syntax in one place
-
-Multiple tools already use genuinely different mechanisms: bandit's
-`# nosec` (bare, same-line only, confirmed this version does not
-honor worded or ID-specific forms or line above placement),
-complexipy's `# complexipy: ignore` (no reason support at all), and
-pyrigor’s own `# pyrigor: CODE # reason` (the richest of the three).
-Worth a real reference, likely in CONTRIBUTING.md, documenting each
-tool’s actual, confirmed-working suppression syntax in one place, so
-this does not need re-discovering by trial and error again.
 
 ### Migrate BACKLOG.md to GitHub Issues
 

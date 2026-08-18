@@ -88,6 +88,12 @@ without a reason is ignored, and a warning is printed. Suppressed
 violations are counted per rule in the summary (`PYR402: 1
 suppressed`), not silently discarded.
 
+When stacking with another tool’s own suppression comment on the
+same line (`# nosec`, `# complexipy: ignore`, ...), put pyrigor’s
+own comment last — `# nosec  # pyrigor: PYR402 # reason`. Pyrigor’s
+own comment must come after any other tool’s, since its reason
+captures to the end of the line.
+
 ## Adding pyrigor to your own project
 
 Add pyrigor to your own `.pre-commit-config.yaml` as a pinned,
