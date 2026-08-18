@@ -55,7 +55,7 @@ Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright
 
 **Pipeline:** `cli.py` (`main`) collects `.py` files → parses each with `ast.parse` once → `checkers/_shared.py`'s
 `walk_once()` walks the tree exactly once, splitting nodes into `WalkedNodes(function_nodes, assign_nodes,
-call_statement_nodes)` for every checker to reuse → each registered checker's `find_violations(*, nodes:
+call_statement_nodes, class_nodes)` for every checker to reuse → each registered checker's `find_violations(*, nodes:
 WalkedNodes)` runs against those pre-walked nodes → `suppression.py`'s `filter_suppressed()` splits results into
 kept/suppressed based on same-line
 `# pyrigor: CODE # reason` comments → CLI prints and summarizes.
@@ -94,6 +94,21 @@ regardless of how small or mechanical the change looks. See
 `~/.claude/settings.json`'s `permissions.ask` list for the
 harness-enforced subset of this — Edit/Write always, plus specific
 write-shaped Bash/PowerShell command patterns.
+
+## Backlog and issue tracking
+
+New work items go to GitHub Issues, not `BACKLOG.md` — the file
+stays as-is, a historical archive of pre-existing items already
+written up.
+
+When starting work on an existing `BACKLOG.md` item, migrate it to
+a GitHub issue first: copy the full write-up over, at full
+fidelity, not compressed, then delete the entry from `BACKLOG.md`
+entirely. Do not leave a pointer stub — git history already
+preserves the original text. Treat the deletion as a required step
+of the migration, not an afterthought. A forgotten deletion leaves
+the item duplicated — live in the issue, still dormant in the
+backlog — and at risk of being picked up a second time by mistake.
 
 ## Project-wide conventions
 

@@ -82,6 +82,12 @@ is earned by a real defect that slipped through, tagged back to the
 rule it elaborates, not brainstormed in the abstract. Run it
 alongside this file before declaring anything done.
 
+The file `guidelines/DEFINITION_OF_READY.md` covers the other half
+of the same boundary: not when work is finished, but when it is
+ready to start (assigned, sized, real done criteria already in the
+description, no open questions). Read it before picking up an
+issue, the same way this file is read before closing one.
+
 ## Additional checks
 
 Standard software Definition of Done practice, filtered for a solo

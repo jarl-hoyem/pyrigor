@@ -21,7 +21,6 @@
 | Rule: truthiness check on NamedTuple/dataclass                                  | M     | L           |
 | Auto fix for PYR402/PYR403                                                      | M     | L           |
 | Investigate dead-code detectors (Culler, uncalled, dead)                        | XS    | S           |
-| Definition of Ready                                                             | S     | S           |
 | README duplication when adding a rule                                           | M     | M           |
 | Rule list as a separate document                                                | S     | S           |
 | Proper citations in rule docs                                                   | S     | S           |
@@ -349,16 +348,6 @@ independently verified to exist under these exact names, worth
 confirming each first, then comparing detection approach,
 false-positive rate, and whether any catches something vulture’s own
 heuristics (confidence-scored, import-usage-based) miss.
-
-### Definition of Ready
-
-Companion to `DEFINITION_OF_DONE.md`. Before starting work on
-something (a rule, a feature), what needs to be true first, is the scope
-clear, overlap checked (per `ADDING_A_RULE.md` step 0), a number
-reserved (per `NUMBERING.md`), for a rule specifically. Not yet
-written. Worth checking whether Pickomino’s own DoR content (deferred
-process, not adopted, per the CONTRIBUTING.md rewrite) has anything
-worth reusing now this project has grown enough to want it.
 
 ### README duplication when adding a new rule
 
