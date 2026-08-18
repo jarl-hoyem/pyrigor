@@ -365,7 +365,7 @@ worth reusing now this project has grown enough to want it.
 
 Adding a rule means updating the guideline table in
 the README.md by hand, a real, repeated source of drift (found stale
-multiple times this session: PYR401/PYR403/PYR405 all shown as "not
+multiple times already: PYR401/PYR403/PYR405 all shown as "not
 enforced" after they were). Directly connects to the single source
 of truth architecture already deferred (generate the table from
 rules.py + CHECKERS rather than hand-maintaining it). The same fix
@@ -416,7 +416,7 @@ and people worth mining for future rule ideas, plus famous bugs
 worth citing as motivating examples (the Mars Climate Orbiter
 example already used in the README’s own demo section). Distinct
 from the BACKLOG.md’s own rule ideas, this is a list of *where to look*,
-not ideas themselves. Candidates already surfaced this session:
+not ideas themselves. Candidates already identified:
 Steve McConnell (Code Complete), Google’s Python Style Guide, OSSF’s
 Secure Coding Guide for Python, PEP8, Django’s coding style
 (checked, found silent), Clean Code (flagged as contested, not yet
@@ -784,7 +784,7 @@ and `REJECTED.md` (rules considered and declined). The mutmut
 reproducible, environment-independent, only documented as
 a `BACKLOG.md` entry rather than a proper known-issues log. Worth a
 `guidelines/KNOWN_ISSUES.md`, matching the pattern of the other
-process docs already built this session, or GitHub’s own
+process docs already built for this project, or GitHub’s own
 Issues tab if the project moves toward using it.
 
 ### Solo-developer bottleneck: Investigate how to speed up
@@ -792,7 +792,7 @@ Issues tab if the project moves toward using it.
 The maintainer is the sole bottleneck on progress, most concretely
 visible in the copy-paste-and-confirm loop needed for every
 edit. Already the direct motivation behind the "install Claude Code
-Desktop" item above, and several real bugs this session traced
+Desktop" item above, and several real bugs have traced
 directly to an edit being described but not applied. Worth
 a real investigation, not just the Claude Code item alone: what
 specifically consumes the most wall-clock time in a typical session
@@ -800,7 +800,7 @@ specifically consumes the most wall-clock time in a typical session
 context-switching between local terminal and this chat), and, which
 of those are actually fixable with tooling versus inherent to
 solo-maintainer review discipline that should not be automated away
-(the "verify before trusting" discipline this session itself was
+(the "verify before trusting" discipline this project itself was
 built around). Related: the Pareto principle and value-driven
 development items already logged are about prioritizing *what* to
 build, this is about the *mechanics* of building it faster.
@@ -826,7 +826,7 @@ docstring-only, no inline comments explaining a specific,
 non-obvious implementation choice at the line level. Docstrings
 cover what a function does and its contract, not why a particular
 line does something a reader might not expect. Real candidates
-already known from this session’s own history: `_shared.py`'s
+already known from this project’s own history: `_shared.py`'s
 `_is_unbounded_homogeneous_tuple` exists specifically because of the
 `tuple[X, ...]` false positive found against pyrigor’s own
 `CHECKERS`, worth a comment saying so rather than only the
@@ -877,7 +877,7 @@ sentence capitalization, no filler words like "extremely" or
 
 ### Periodically review and prune BACKLOG.md
 
-The file has needed two real rescue passes already this session, a
+The file has needed real rescue passes already, a
 structural cleanup (stale entries, duplicates, orphaned fragments)
 and a content cleanup (merging overlapping ideas). Worth making this
 a recurring habit rather than an improvised rescue triggered only when
@@ -1020,7 +1020,7 @@ its rule set.
 ### Submit Call for Papers (CfP) answers to Python conferences
 
 Referenced as a "dormant thread" twice already (the early-adopters
-entry above, and earlier this session), never actually tracked as
+entry above, and referenced before), never actually tracked as
 its own item. The tool now has real substance behind a pitch, six
 enforced rules, a measured 7x performance win, real findings against
 CPython stdlib, Home Assistant, mypy, hypothesis, requests, and
