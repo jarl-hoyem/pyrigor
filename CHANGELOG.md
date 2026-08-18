@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.7.3] 2026-08-18
+
 ### Added
 
 - Suppression comments (`# pyrigor: CODE # reason`) may now also go
