@@ -336,7 +336,7 @@ compute_total(items)
 
 
 def test_no_violation_for_non_union_binop_annotation() -> None:
-    """A BinOp annotation that isn't a union (e.g. arithmetic) should not be treated as protected."""
+    """A BinOp annotation that isn't a union (for example, arithmetic) should not be treated as protected."""
     source = """
 def compute_total(items) -> int + str:
     ...

@@ -32,7 +32,9 @@ def _pyproject_version_changed() -> bool:
         True if a version bump is present in the staged diff.
     """
     # noinspection PyArgumentEqualDefault, PyPep8
-    result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=False)  # nosec # pylint: disable=line-too-long
+    result = subprocess.run(
+        ["git", "diff", "--cached", "--", "pyproject.toml"], capture_output=True, text=True, check=False
+    )  # nosec # pylint: disable=line-too-long
     return any(line.startswith("+version") for line in result.stdout.splitlines())
 
 
@@ -44,8 +46,17 @@ def main() -> None:
     print("pyproject.toml version changed: running pre-commit autoupdate and uv lock.")
     subprocess.run(["pre-commit", "autoupdate"], check=True)  # nosec
     subprocess.run(["uv", "lock"], check=True)  # nosec
-    print("Done. Re-stage any changed files (.pre-commit-config.yaml, uv.lock) and commit again.")
-    sys.exit(1)
+
+    # noinspection PyArgumentEqualDefault
+    result = subprocess.run(  # nosec
+        ["git", "diff", "--name-only", "--", ".pre-commit-config.yaml", "uv.lock"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.stdout.strip():
+        print("Done. Re-stage any changed files (.pre-commit-config.yaml, uv.lock) and commit again.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

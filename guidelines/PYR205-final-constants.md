@@ -63,7 +63,7 @@ if attempt_count >= 3:
 
 A repeated literal is therefore a reliable, checkable proxy for
 exactly the risk PYR203 is concerned with, even though it
-does not capture every case a human reader would call magic. `Final` closes
+does not capture every case a human reader would call magic. The `Final` closes
 it the same way throughout this rule family, one named
 declaration, every reference updated together, with mypy flagging
 any attempt to later rebind it.

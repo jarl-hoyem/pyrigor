@@ -157,7 +157,7 @@ def _iter_same_scope(*, node: ast.AST) -> Iterator[ast.AST]:
         node: The node to walk, typically a method body.
 
     Yields:
-        Every descendant reachable without descending into a nested
+        Every descendant is reachable without descending into a nested
         ClassDef — its own `self` refers to its own instance, not
         the enclosing method's.
     """
@@ -168,7 +168,7 @@ def _iter_same_scope(*, node: ast.AST) -> Iterator[ast.AST]:
 
 
 def _self_call_name(*, call: ast.Call) -> str | None:
-    """Extract the method name from a self.<name>() call, if it is one.
+    """Extract the method name from a self.<name>() call if it is one.
 
     Args:
         call: A call node to inspect.
@@ -206,7 +206,7 @@ def _same_scope_nodes(*, class_def: ast.ClassDef) -> Iterator[ast.AST]:
         class_def: The class definition to inspect.
 
     Yields:
-        Every descendant node of each of the class's own direct
+        Every descendant node of the class's own direct
         methods (see _direct_methods, _iter_same_scope).
     """
     for method in _direct_methods(class_def=class_def):
@@ -220,7 +220,7 @@ def _same_class_violations(*, class_def: ast.ClassDef) -> list[ast.Call]:
         class_def: The class definition to inspect.
 
     Returns:
-        Every self.<name>() call-statement Call node found within the
+        Every self.<name>() call-statement Call node is found within the
         class's own methods, where <name> is one of that same
         class's own protected method names.
     """

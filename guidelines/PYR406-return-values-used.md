@@ -90,7 +90,7 @@ exception automatically:
 - **Any attribute call through something other than `self`**
   (`obj.compute_total()`) is never matched. Pyrigor cannot reliably
   determine which class or object an arbitrary attribute belongs to
-  — it has no type inference, and processes one file at a time.
+  — it has no type inference and processes one file at a time.
 - **A `lambda` expression** is excluded entirely, structurally
   rather than as a deliberate carve-out. It has no `.name` for the
   checker’s name-matching mechanism to key on — only whatever

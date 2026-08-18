@@ -35,7 +35,7 @@ def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
 
 Type annotations describe the shape of a value’s type, `np.ndarray`,
 `str`, `int`, but they cannot describe every assumption a function
-actually depends on to behave correctly. `x: np.ndarray` says
+actually depends on to behave correctly. The term `x: np.ndarray` says
 nothing about what shape `x` must be, whether it must match some
 other argument’s shape, or whether its values must fall within a
 particular range. When a function relies on such an assumption

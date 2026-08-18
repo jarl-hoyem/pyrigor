@@ -1,4 +1,4 @@
-"""Tests for pyrigor's shared Violation type and make_violation constructor."""
+"""Tests for pyrigor's shared Violation type and make violation constructor."""
 
 import ast
 
@@ -7,7 +7,7 @@ from pyrigor.violations import make_violation
 
 
 def test_unknown_context_name_for_unrecognized_call_shape() -> None:
-    """A Call node whose func is neither a Name nor an Attribute reports "<unknown>"."""
+    """A Call node whose func is neither a Name, nor an Attribute reports "<unknown>"."""
     stmt = ast.parse("(get_func())()").body[0]
     assert isinstance(stmt, ast.Expr)
     assert isinstance(stmt.value, ast.Call)

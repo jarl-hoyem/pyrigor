@@ -943,16 +943,16 @@ result. Detection shape: a function annotated `-> Iterator[X]`,
 statement. Same structural, no-decorator design as PYR406 once
 built. Not yet scoped in detail.
 
-### PYR406: `cls.foo()` classmethod calls, still undetected
+### PYR406: `cls.foo()` class method calls, still undetected
 
-Deliberately out of scope for the same-class `self.foo()`
-enhancement just shipped. A `cls.foo()` call inside a classmethod
+Out of scope for the same-class `self.foo()`
+enhancement just shipped. A `cls.foo()` call inside a class method
 is a genuinely different shape from `self.foo()` — `cls` could refer
 to a subclass at runtime, not necessarily the defining class, so
-matching it against "this class's own directly defined methods"
+matching it against "this class’s own directly defined methods"
 the same way risks a false negative in a way `self` does not
-(instance methods always bind `self` to the defining class or a
-subclass instance, but a classmethod's `cls` genuinely varies by
+(instance methods always bind `self` to the defining class, or a
+subclass instance, but a class method's `cls` genuinely varies by
 call site). Needs its own design pass, not a copy-paste of the
 `self` logic, before building.
 

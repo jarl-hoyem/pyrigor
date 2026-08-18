@@ -38,7 +38,7 @@ def _name_from_call(*, node: ast.Call) -> str:
         node: The call to inspect.
 
     Returns:
-        The callee's bare name (a Name's id, or an Attribute's
+        The bare name of the callee (a Name's ID, or an Attribute's
         attr), or "<unknown>" for any other callee shape.
     """
     if isinstance(node.func, ast.Name):

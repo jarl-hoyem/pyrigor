@@ -109,7 +109,7 @@ repos:
         additional_dependencies: [ "xenon==0.9.3" ]
         # Files relaxed to level B below are excluded here, one glob
         # per comma-separated entry. Adding a new relaxed file means
-        # extending this list AND xenon-shared's own path list below
+        # extending this list and xenon-shared's own path list below
         # — not redesigning the mechanism.
         args:
           - --max-absolute=A
@@ -127,7 +127,7 @@ repos:
         # Each file listed here needs its own DECISIONS.md-documented
         # reason, the same way _shared.py's walk_once does
         # (single-pass node classification is the point — the same
-        # reason it already carries a `# complexipy: ignore`). xenon
+        # reason it already carries a `# complexipy: ignore`). The tool xenon
         # has no per-function suppression, so relaxing the threshold
         # is scoped to specific files via a second invocation, not a
         # global threshold change.

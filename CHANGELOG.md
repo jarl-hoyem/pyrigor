@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.7.2] 2026-08-18
+
 ### Added
 
 - PYR406 now also detects a discarded `self.<name>()` call, when
@@ -27,10 +29,10 @@ is usable for.
 ### Fixed
 
 - PYR406 silently missed a PEP 604 union return type (`int | str`,
-  `int | None`). `_annotation_name()` didn't recognize the `X | Y`
+  `int | None`). `_annotation_name()` did not recognize the `X | Y`
   syntax, treating it the same as an unrecognized annotation shape
   — indistinguishable from `-> None` to the checker, so the
-  function's discarded return value was never flagged. Now
+  function’s discarded return value was never flagged. Now
   detected and protected like any other non-`None` return type.
 
 ## [0.7.0] 2026-08-17
