@@ -114,7 +114,7 @@ repos:
         entry: uv lock --check
         pass_filenames: false
       - id: pyrigor
-        name: pyrigor
+        name: pyrigor WIP
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor
         types: [ python ]
