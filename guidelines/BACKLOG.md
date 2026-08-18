@@ -55,7 +55,7 @@
 | Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
 | Track code-quality statistics (% code, % blank, % comments)                     | S     | S           |
 | Support Read the Docs                                                           | M     | S           |
-| Style-check tonight's newly added entries specifically                          | XS    | XS          |
+| Style-check newly added backlog entries                                         | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 | Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
@@ -68,6 +68,7 @@
 | Review and deliberately set thresholds/settings for every pre-commit tool       | S     | M           |
 | Run radon-maintainability and pyrigor’s own hook against tests/                 | M     | M           |
 | Document every tool's own suppression-comment syntax in one place               | M     | S           |
+| Migrate BACKLOG.md to GitHub Issues                                             | M     | M           |
 
 ## Future tooling ideas
 
@@ -194,7 +195,7 @@ addition.
 
 ### The tool mutmut is unusable, both in CI and locally
 
-Confirmed tonight: mutmut fails with the same FileNotFoundError
+Confirmed independently: mutmut fails with the same FileNotFoundError
 (copy_src_dir attempting to copy unrelated system files, for
 example, /usr/share/doc/perl/Changes.gz) on a fresh Windows Subsystem
 for Linux (WSL) installation, a
@@ -498,7 +499,7 @@ documented restrictions on what standard Python features are safe or
 supported (limited dynamic behavior, restricted stdlib, memory
 constraints). Worth reviewing their own documentation as a source of
 rule ideas, the same way Code Complete, Google’s style guide, and
-OSSF’s Secure Coding Guide were mined tonight. Not yet reviewed.
+OSSF’s Secure Coding Guide were mined already. Not yet reviewed.
 
 ### The pyproject.toml’s [tool.*] sections also have no deliberate order.
 
@@ -618,7 +619,7 @@ matches pyrigor’s own origin story, the swap bug pyrigor exists to
 catch. Educational or course-repo maintainers, pyrigor’s literal
 origin, a natural, low-friction pitch. Projects already
 typing-disciplined but not on this specific pattern, `hypothesis`'s
-own low PYR401 rate, found during tonight’s empirical testing,
+own low PYR401 rate, found during empirical testing,
 suggests its maintainers already care about the underlying problem,
 just lack a tool naming it. Solo or small-team maintainers, lower
 coordination cost to try a new pre-commit hook.
@@ -717,7 +718,7 @@ rather than treating as one investigation:
 - **Documentation**: `Sphinx`, `mkdocs` (both relevant to the
   website-generation backlog item, not pre-commit hooks).
 - **Performance/profiling**: `timeit`, `cProfile` (already used
-  manually tonight for the ast walk finding, not something to add to
+  manually for the ast walk finding, not something to add to
   pre-commit), `memray` (memory profiler, connects to the
   memory-safety research item already logged).
 - **Refactoring**: `rope` (a library, not a linter, unclear fit).
@@ -789,7 +790,7 @@ Issues tab if the project moves toward using it.
 ### Solo-developer bottleneck: Investigate how to speed up
 
 The maintainer is the sole bottleneck on progress, most concretely
-visible tonight in the copy-paste-and-confirm loop needed for every
+visible in the copy-paste-and-confirm loop needed for every
 edit. Already the direct motivation behind the "install Claude Code
 Desktop" item above, and several real bugs this session traced
 directly to an edit being described but not applied. Worth
@@ -813,7 +814,7 @@ PYR406 once written) have no way to be checked at all.
 Manual review would be the only option until each is actually built.
 Worth a deliberate pass, applying each documented rule by hand
 against pyrigor’s own source, the same "does the tool follow its own
-advice" discipline already used once tonight when PYR301 immediately
+advice" discipline already used once earlier when PYR301 immediately
 flagged pyrigor’s own CHECKERS tuple. Real dogfooding value, but
 genuinely manual and slow until more rules are enforced
 automatically, connects directly to whichever rule gets built next.
@@ -865,10 +866,10 @@ Real, standard, low effort once a documentation generator is chosen,
 Read the Docs itself is free for open source projects and mostly
 configuration, not custom build work.
 
-### Style-check tonight’s newly added entries specifically
+### Style-check newly added backlog entries
 
 Several entries were fixed against PyCharm’s flagged prose-style
-issues individually as they came up. But the batch added tonight was
+issues individually as they came up. But one batch was added
 faster-paced than earlier passes, worth one pass checking the newer
 entries for the same categories. Smart apostrophes, no contractions,
 sentence capitalization, no filler words like "extremely" or
@@ -900,7 +901,7 @@ further reduced.
 
 `ci.yaml`'s own stated design goal is that CI and local pre-commit
 can never drift apart, since both run the identical `pre-commit run
---all-files` command against the identical config. Found tonight:
+`--all-files` command against the identical config. Found once:
 a genuine case where local pre-commit passed clean, but the same
 commit failed on GitHub CI (an `actionlint`/`shellcheck` finding).
 Most likely cause, not fully confirmed: a stale local hook cache
@@ -1055,10 +1056,20 @@ discouragement without lowering it.
 
 The same discipline just applied to complexipy (measure real values,
 then set a deliberate threshold, not the tool’s bare default) worth
-extending to every other tool running on defaults or
-inherited settings: vulture’s confidence threshold, bandit’s
-severity level, xenon’s exact grade requirements, and any others.
-Not yet reviewed one by one.
+extending to specific, identified candidates:
+
+- `vulture`'s missing `--min-confidence`, running on its
+  bare default, never reviewed.
+- `xenon`'s scope, only `pyrigor/`, never expanded to include
+  `scripts/`.
+- The `slow` pytest marker in `pyproject.toml` (`markers`,
+  `addopts` excludes it by default), no visible test anywhere
+  actually uses `@pytest.mark.slow`. Check whether it is genuinely
+  used or a leftover from Pickomino.
+- `pylint`, `pydocstyle`, `mypy`, and `ruff`'s own `[tool.*]`
+  settings in `pyproject.toml`, never individually reviewed the way
+  `bandit`'s assert-exemption pattern just was, worth the same
+  scrutiny given that one turned out to be silently broken.
 
 ### Run radon-maintainability and pyrigor’s own hook against tests/
 
@@ -1079,3 +1090,22 @@ pyrigor’s own `# pyrigor: CODE # reason` (the richest of the three).
 Worth a real reference, likely in CONTRIBUTING.md, documenting each
 tool’s actual, confirmed-working suppression syntax in one place, so
 this does not need re-discovering by trial and error again.
+
+### Migrate BACKLOG.md to GitHub Issues
+
+A Real friction with the current file-based approach: every edit
+needs a commit, no native labels/assignees/filtering, and manual
+index-table maintenance. Issues would fix all three and remove
+commit overhead for routine backlog changes entirely.
+
+A Real trade-off worth weighing: everything in the BACKLOG.md is
+versioned in the same repo, same history, right alongside
+the commit that resolves it. Issues live outside git entirely, a
+real, if minor, loss of that property. If migrating, DECISIONS.md
+and REVIEW_CHECKLIST.md would need their own cross-referencing
+approach designed for linking to issues instead of a file, not
+preserved as-is just because the current linkage already exists.
+
+Not urgent, a real future decision, not immediate.
+
+Value: M · Effort: M
