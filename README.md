@@ -38,7 +38,7 @@ FuelMass = NewType("FuelMass", float)
 def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float:
     ...
 
-# Both floats. Nothing about a bare float stops this from compiling,
+# Both floats. Nothing about a bare float stops this from running,
 # type-checking cleanly, and silently swapping the two values.
 compute_burn_time(thrust=fuel_mass, fuel_mass=thrust)
 ```
