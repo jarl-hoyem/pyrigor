@@ -55,6 +55,9 @@ repos:
     rev: v2.16
     hooks:
       - id: vulture
+        # Default confidence (60) kept deliberately: two real runs
+        # against pyrigor/, scripts/, and tests/ produced zero false
+        # positives at this threshold, no evidence raising it would help.
         args: [ "pyrigor", "scripts", "tests" ]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
@@ -117,6 +120,8 @@ repos:
           - --max-average=A
           - --exclude=*_shared.py
           - pyrigor/
+          - scripts/
+          - tests/
       - id: xenon-shared
         name: xenon (relaxed to B, for files with a documented exception)
         language: python

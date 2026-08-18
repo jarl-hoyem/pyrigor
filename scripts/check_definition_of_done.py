@@ -35,13 +35,22 @@ def _pyproject_version_changed() -> bool:
     return any(line.startswith("+version") for line in result.stdout.splitlines())
 
 
-def main() -> None:
-    """Run both warn-only checks."""
-    files = _staged_files()
+def _check_changelog_sync(*, files: list[str]) -> None:
+    """Warn if pyproject.toml's version changed without a CHANGELOG.md entry.
 
+    Args:
+        files: Every staged path.
+    """
     if "pyproject.toml" in files and _pyproject_version_changed() and "CHANGELOG.md" not in files:
         print("Note: pyproject.toml version changed but CHANGELOG.md did not. See guidelines/DEFINITION_OF_DONE.md.")
 
+
+def _check_readme_sync(*, files: list[str]) -> None:
+    """Warn if a checker or rules.py changed without a README.md update.
+
+    Args:
+        files: Every staged path.
+    """
     checker_files_changed = any(f.startswith("pyrigor/checkers/") or f == "pyrigor/rules.py" for f in files)
     if checker_files_changed and "README.md" not in files:
         print(
@@ -49,6 +58,12 @@ def main() -> None:
             "Confirm this is intentional. See guidelines/DEFINITION_OF_DONE.md."
         )
 
+
+def main() -> None:
+    """Run both warn-only checks."""
+    files = _staged_files()
+    _check_changelog_sync(files=files)
+    _check_readme_sync(files=files)
     sys.exit(0)
 
 
