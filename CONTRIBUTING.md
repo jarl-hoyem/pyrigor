@@ -41,6 +41,26 @@ for the standing checklist applied before any change is considered
 finished, and [`guidelines/REVIEW_CHECKLIST.md`](./guidelines/REVIEW_CHECKLIST.md)
 for the earned, defect-derived checklist alongside it.
 
+## Self-hosted pre-commit hook
+
+The tool pyrigor checks itself two ways, deliberately: a pinned entry
+(`repo: https://github.com/jarl-hoyem/pyrigor`, `rev: vX.Y.Z`)
+running the last real, released version, and a local entry running
+today’s uncommitted code. The local entry is the one that matters
+day to day. It is what catches a new rule firing on pyrigor’s own
+source the moment it is built, before any release exists. The pinned
+entry exists mainly to confirm the released package genuinely works
+as a real, external hook would use it.
+
+`scripts/version_sync.py` runs on every commit and does nothing
+unless `pyproject.toml`'s version just changed. If it did, it runs
+`pre-commit autoupdate` and `uv lock`, then deliberately fails the
+commit so any resulting changes (a refreshed hook pin, an updated
+lockfile) get staged and committed, rather than left behind
+unstaged. Note: when the release commit itself, the new
+tag does not exist yet, so this only catches up starting with the
+next commit after a release, not the release commit itself.
+
 ## Before Submitting a Pull Request
 
 - Run all pre-commit checks: `pre-commit run --all-files`

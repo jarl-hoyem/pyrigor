@@ -153,3 +153,16 @@ setting `PYTHONUTF8` via `os.environ` before invoking `complexipy`
 as a subprocess. Works identically on every OS `language: python`
 already guarantees a Python interpreter for, no shell-specific
 quoting or syntax involved.
+
+### The tool pyrigor runs two self-checks, pinned and local, not just one
+
+A single self-check, running only the current local/uncommitted
+code, would never actually prove the *released, installable* package
+works the way an external adopting project would use it, real
+packaging or manifest issues (like `.pre-commit-hooks.yaml` being
+missing from a given release, found and fixed this session) would go
+undetected. A single self-check running only the pinned, released
+version would lose the opposite, real, proven value: pyrigor’s own
+new rules have repeatedly caught real bugs in pyrigor’s own
+in-progress source the moment they were built, before any release
+existed. Kept both, deliberately, rather than choosing one.

@@ -86,6 +86,22 @@ without a reason is ignored, and a warning is printed. Suppressed
 violations are counted per rule in the summary (`PYR402: 1
 suppressed`), not silently discarded.
 
+## Adding pyrigor to your own project
+
+Add pyrigor to your own `.pre-commit-config.yaml` as a pinned,
+remote hook, the same way you would add `ruff` or `black`:
+
+```yaml
+- repo: https://github.com/jarl-hoyem/pyrigor
+  rev: v0.7.1
+  hooks:
+    - id: pyrigor
+```
+
+Pin `rev:` to a real, released tag, not `main`. Check the
+[release page](https://github.com/jarl-hoyem/pyrigor/releases) for
+the latest version.
+
 ## What this is
 
 Python’s failure modes are often silent: implicit type coercion,
