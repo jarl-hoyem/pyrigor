@@ -178,6 +178,10 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
 
     # noinspection PyUnusedLocal
     def _boom(*, paths: list[str]) -> int:
+        # Must keep this exact name to match main()'s real call site
+        # (main(paths=args, ...)). The del statement marks it used so vulture doesn't
+        # flag it as an unused parameter.
+        del paths
         raise RuntimeError("something genuinely broke")
 
     monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)

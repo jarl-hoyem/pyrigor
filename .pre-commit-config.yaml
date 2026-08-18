@@ -55,7 +55,7 @@ repos:
     rev: v2.16
     hooks:
       - id: vulture
-        args: [ "pyrigor", "scripts" ]
+        args: [ "pyrigor", "scripts", "tests" ]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
     hooks:
