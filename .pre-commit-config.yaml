@@ -61,13 +61,14 @@ repos:
     hooks:
       - id: codespell
   - repo: https://github.com/rohaquinlop/complexipy-pre-commit
-    rev: v3.0.0
+    rev: v7.0.1
     hooks:
       - id: complexipy
-  - repo: https://github.com/jarl-hoyem/pyrigor
-    rev: v0.7.0
-    hooks:
-      - id: pyrigor
+        entry: python scripts/run_complexipy.py
+#  - repo: https://github.com/jarl-hoyem/pyrigor
+#    rev: v0.7.0
+#    hooks:
+#      - id: pyrigor
   - repo: local
     hooks:
       - id: pyright
@@ -118,7 +119,7 @@ repos:
         entry: uv lock --check
         pass_filenames: false
       - id: pyrigor
-        name: pyrigor WIP
+        name: pyrigor (WIP self-check, uncommitted code)
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor
         types: [ python ]

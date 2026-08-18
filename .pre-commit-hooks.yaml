@@ -1,0 +1,6 @@
+- id: pyrigor
+  name: pyrigor
+  description: Disciplined Python patterns for catching bugs that type checkers and standard linters miss.
+  entry: pyrigor
+  language: python
+  types: [ python ]

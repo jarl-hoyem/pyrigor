@@ -1013,15 +1013,15 @@ a real design pass (own `DECISIONS.md` entry) before starting, given
 it touches the project’s stated architectural philosophy, not just
 its rule set.
 
-### Submit CFP answers to Python conferences
+### Submit Call for Papers (CfP) answers to Python conferences
 
 Referenced as a "dormant thread" twice already (the early-adopters
 entry above, and earlier this session), never actually tracked as
 its own item. The tool now has real substance behind a pitch, six
 enforced rules, a measured 7x performance win, real findings against
 CPython stdlib, Home Assistant, mypy, hypothesis, requests, and
-abseil-py, and genuine engagement with public style guides (Google's,
-OSSF's). Worth identifying actual target conferences and their real
+abseil-py, and genuine engagement with public style guides (Google’s,
+OSSF’s). Worth identifying actual target conferences and their real
 deadlines (PyCon variants, EuroPython, local Python meetups), and
 drafting a real proposal, rather than continuing to reference this
 as dormant without tracking it as a concrete task.
