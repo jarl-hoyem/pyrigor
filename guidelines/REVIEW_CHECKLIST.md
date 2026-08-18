@@ -29,12 +29,25 @@ alongside `DEFINITION_OF_DONE.md`.
    If so, has `DECISIONS.md` been checked and updated by name, not
    just README.md and CHANGELOG.md?**
    ← rule: `DEFINITION_OF_DONE.md`, Communication
-   *Earned by:* the ast.walk refactor's own design decision, the
+   *Earned by:* the 'ast.walk' refactoring’s own design decision, the
    shared-walk approach and the rejected cache-based alternative,
    went undocumented in `DECISIONS.md` until asked about directly.
    `DEFINITION_OF_DONE.md`'s "any relevant guidelines/ doc" wording
    was too vague to catch it, only the explicitly named README.md
    and CHANGELOG.md got checked in practice.
+
+3. **When a fix is validated by a manual command, has it also been
+   confirmed against the actual, real invocation the tool uses in
+   practice, not just a convenient proxy for it?**
+   ← rule: `DEFINITION_OF_DONE.md`, Correctness
+   *Earned by:* `bandit`'s `tests/` exemption pattern was fixed and
+   confirmed clean via a manual `bandit -r tests/` scan, which
+   produces clean, unprefixed relative paths. The fix genuinely did
+   not work for how `pre-commit` actually invokes the hook,
+   individual file arguments with a leading `.\` prefix on Windows,
+   only caught by testing the real invocation directly
+   (`pre-commit run bandit --files ...`), not the manual scan that
+   had already been trusted as enough.
 
 ## Retroactive applications
 
