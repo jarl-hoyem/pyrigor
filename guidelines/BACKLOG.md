@@ -1082,7 +1082,7 @@ false-positive count turns out small.
 
 ### Document every tool’s own suppression-comment syntax in one place
 
-Tonight alone hit three genuinely different mechanisms: bandit's
+Multiple tools already use genuinely different mechanisms: bandit's
 `# nosec` (bare, same-line only, confirmed this version does not
 honor worded or ID-specific forms or line above placement),
 complexipy's `# complexipy: ignore` (no reason support at all), and
