@@ -731,8 +731,7 @@ rather than treating as one investigation:
 - **Complexity/quality (additional)**: `tach` (Python module
   boundary and dependency enforcement, not overlapping with
   xenon/radon's complexity metrics, a genuinely different concern
-  worth its own look), `complexipy` (cognitive-complexity metric,
-  distinct from xenon/radon's cyclomatic complexity), `lcom` (Lack
+  worth its own look), `lcom` (Lack
   of Cohesion of Methods, a class-cohesion metric, unclear, which
   concrete tool implements it, worth verifying), `Prospector`
   (meta-linter that wraps pylint/pyflakes/mccabe and others, likely

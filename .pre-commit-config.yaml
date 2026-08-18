@@ -37,7 +37,7 @@ repos:
     hooks:
       - id: gitleaks
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.17.0
+    rev: v4.17.1
     hooks:
       - id: commitizen
         stages: [ commit-msg ]
@@ -65,10 +65,11 @@ repos:
     hooks:
       - id: complexipy
         entry: python scripts/run_complexipy.py
-#  - repo: https://github.com/jarl-hoyem/pyrigor
-#    rev: v0.7.0
-#    hooks:
-#      - id: pyrigor
+  - repo: https://github.com/jarl-hoyem/pyrigor
+    rev: v0.7.1
+    hooks:
+      - id: pyrigor
+        exclude: ^tests/
   - repo: local
     hooks:
       - id: pyright
@@ -135,5 +136,11 @@ repos:
         name: DoD - warn on likely missed doc/changelog updates
         language: system
         entry: uv run --extra dev python scripts/check_definition_of_done.py
+        pass_filenames: false
+        always_run: true
+      - id: version-sync
+        name: sync hook versions and uv.lock on a version bump
+        language: system
+        entry: uv run --extra dev python scripts/version_sync.py
         pass_filenames: false
         always_run: true

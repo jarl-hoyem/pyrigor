@@ -4,7 +4,9 @@ A running log of *why* a structural choice was made, not just the
 result. Read this before asking "why does the code do it this way"
 rather than re-deriving the reasoning from scratch.
 
-## NamedTuple and NewType close different gaps
+## pyrigor architecture and rules
+
+### NamedTuple and NewType close different gaps
 
 NamedTuple for returns, NewType for same-typed values at risk of confusion.
 
@@ -69,7 +71,7 @@ def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) 
     return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
 ```
 
-## Shared AST walk instead of per-checker walking, and why a cache was rejected
+### Shared AST walk instead of per-checker walking, and why a cache was rejected
 
 Every checker originally called `ast.walk(tree)` independently, once
 per checker per the file. Profiling against the Home Assistant core
@@ -108,7 +110,7 @@ profiling, `ast.walk`'s own call count dropped exactly 5.0x
 (69,393,100 to 13,878,620), and real-world timing on the same
 18,187-file run dropped from 388.20 s to 55.46 s, 7x.
 
-## PYR406 matches only bare-name calls, not attribute calls
+### PYR406 matches only bare-name calls, not attribute calls
 
 PYR406 flags a discarded call only when the callee is a bare name
 (`compute_total(items)`), never through attribute access
@@ -126,3 +128,28 @@ that happens to share the method’s name. Excluding likely methods
 removes that risk at the cost of not covering method calls at all,
 consistent with the guideline doc’s own examples, which are all
 bare-name, module-level or nested function calls.
+
+## Development process and tooling
+
+### The tool complexipy runs through a Python wrapper, not a .bat script
+
+The tool complexipy’s own console output (via `rich`) crashes on Windows’
+legacy `cp1252` codepage when printing status emoji, confirmed
+across two different pinned versions (an octopus at v3.0.0, a
+checkmark at v7.0.1), a genuine, systemic upstream bug, not fixed
+between releases.
+
+A Windows batch script (`scripts/run_complexipy.bat` setting
+`PYTHONUTF8=1` before invoking the binary) was considered first, and
+would have worked locally. Rejected because it is Windows-only,
+`.bat` syntax and `%*` argument forwarding mean nothing on macOS or
+Linux, and this project’s own CI matrix explicitly tests
+`ubuntu-latest`, `macos-latest`, and `windows-latest`. A fix that
+only works for one contributor’s own OS is not a real fix for a
+project with a genuinely cross-platform CI matrix.
+
+Chosen instead: `scripts/run_complexipy.py`, a Python wrapper
+setting `PYTHONUTF8` via `os.environ` before invoking `complexipy`
+as a subprocess. Works identically on every OS `language: python`
+already guarantees a Python interpreter for, no shell-specific
+quoting or syntax involved.

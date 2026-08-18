@@ -77,7 +77,7 @@ the same category of gaps has now shown up twice in that domain
 (`--version`'s coverage, `--only`'s leniency).
 
 `guidelines/REVIEW_CHECKLIST.md` extends this further, in the style
-of Gilb and Graham's *Software Inspection*: each checklist question
+of Gilb and Graham’s *Software Inspection*: each checklist question
 is earned by a real defect that slipped through, tagged back to the
 rule it elaborates, not brainstormed in the abstract. Run it
 alongside this file before declaring anything done.
@@ -106,4 +106,20 @@ knowledge only):
   called done, in this session or a future one, add it to
   `BACKLOG.md` immediately. Do not let it go undocumented while
   moving on to something else.
--
+
+## Releasing a version
+
+1. **Update `CHANGELOG.md` first.** Move `[Unreleased]`'s content
+   into a new `[X.Y.Z]` heading with the real date, add a fresh,
+   empty `[Unreleased]` above it.
+2. **Bump `pyproject.toml`'s version**, then run `uv lock`.
+3. **Commit `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` together,
+   in one commit.** Not two. The changelog entry and the version bump
+   describe the same release, they should land together, not have
+   the changelog trail behind as an afterthought.
+4. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
+   and title) with real release notes.
+
+Dev-tooling-only changes (a new pre-commit hook, a CI workflow fix,
+internal refactors with no user-visible behavior change) do not need
+a `CHANGELOG.md` entry. Only user-facing changes do.
