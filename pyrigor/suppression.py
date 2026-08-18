@@ -1,8 +1,9 @@
 """Suppression-comment mechanism for pyrigor's checkers.
 
 Recognizes `# pyrigor: CODE[, CODE...]` comments on the same line as a
-violation, where CODE may be a rule's full code ("PYR402"), its
-numeric shorthand ("402"), or its symbolic name
+violation, on the line directly above it, or anywhere within a
+multi-line statement's own span. CODE may be a rule's full code
+("PYR402"), its numeric shorthand ("402"), or its symbolic name
 ("keyword-only-arguments"). Whitespace around the colon and commas is
 tolerated.
 """
@@ -92,8 +93,53 @@ def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo)
     return code_matches
 
 
+def _line_at(*, lines: list[str], lineno: int) -> str:
+    """Get a source line by its 1-based line number.
+
+    Args:
+        lines: The source, split into lines.
+        lineno: A 1-based line number, possibly out of range.
+
+    Returns:
+        The line's text, or an empty string if lineno is out of range.
+    """
+    return lines[lineno - 1] if 0 < lineno <= len(lines) else ""
+
+
+def _candidate_lines(*, violation: Violation, lines: list[str]) -> list[str]:
+    """Collect every source line where a suppression comment for this violation may legally appear.
+
+    Args:
+        violation: The violation to find candidate lines for.
+        lines: The full source, split into lines.
+
+    Returns:
+        The line directly above the violation, followed by every
+        line within the violation's own span (line through 'end_line').
+    """
+    above = [_line_at(lines=lines, lineno=violation.line - 1)]
+    span = [_line_at(lines=lines, lineno=lineno) for lineno in range(violation.line, violation.end_line + 1)]
+    return above + span
+
+
+def _is_suppressed(*, violation: Violation, lines: list[str]) -> bool:
+    """Check whether any candidate line for a violation carries a valid suppression comment.
+
+    Args:
+        violation: The violation to check.
+        lines: The full source, split into lines.
+
+    Returns:
+        True if any candidate line has a matching, valid suppression.
+    """
+    candidates = _candidate_lines(violation=violation, lines=lines)
+    return any(
+        _matches_suppression(violation=violation, suppression=_suppressed_tokens(line=line)) for line in candidates
+    )
+
+
 def filter_suppressed(*, violations: list[Violation], source: str) -> SuppressionResult:
-    """Split violations into kept and suppressed, based on same-line # pyrigor: comments.
+    """Split violations into kept and suppressed, based on # pyrigor: comments.
 
     Args:
         violations: Violations to filter.
@@ -107,10 +153,7 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> Suppressio
     kept = []
     suppressed = []
     for violation in violations:
-        line_text = lines[violation.line - 1] if 0 < violation.line <= len(lines) else ""
-        suppression = _suppressed_tokens(line=line_text)
-
-        if _matches_suppression(violation=violation, suppression=suppression):
+        if _is_suppressed(violation=violation, lines=lines):
             suppressed.append(violation)
         else:
             kept.append(violation)

@@ -94,6 +94,20 @@ own comment last — `# nosec  # pyrigor: PYR402 # reason`. Pyrigor’s
 own comment must come after any other tool’s, since its reason
 captures to the end of the line.
 
+A suppression comment may also go on the line directly above the
+violation, or anywhere within a multi-line statement’s own span —
+useful when a long, descriptive name plus the mandatory reason
+would not fit on the violating line itself:
+
+```python
+# pyrigor: PYR402 # long test names plus a mandatory reason need more room
+def apply_correction_for_the_pytest_fixture_injection_case(weight, bias):
+    ...
+```
+
+The same-line still works exactly as before — these are additional
+locations, not a replacement.
+
 ## Adding pyrigor to your own project
 
 Add pyrigor to your own `.pre-commit-config.yaml` as a pinned,

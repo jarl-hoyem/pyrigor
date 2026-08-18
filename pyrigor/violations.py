@@ -10,6 +10,7 @@ class Violation(NamedTuple):
     """A single rule violation found by one of pyrigor's checkers."""
 
     line: int
+    end_line: int
     column: int
     context_name: str
     rule: Rule
@@ -68,6 +69,7 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
 
     return Violation(
         line=node.lineno,
+        end_line=node.end_lineno or node.lineno,
         column=node.col_offset + 1,
         context_name=name,
         rule=rule,

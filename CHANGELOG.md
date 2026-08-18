@@ -11,6 +11,13 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- Suppression comments (`# pyrigor: CODE # reason`) may now also go
+  on the line directly above a violation, or anywhere within a
+  multi-line statement’s own span, not just the violation’s exact
+  starting line. Closes #31.
+
 ## [0.7.2] 2026-08-18
 
 ### Added

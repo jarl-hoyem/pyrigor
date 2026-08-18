@@ -105,6 +105,11 @@ knowledge only):
 - **`BACKLOG.md` traceability.** If this work closes an existing
   backlog entry, remove or mark it done. Do not leave it sitting as
   if still open.
+- **No sunk-cost bias in a design choice.** If an option is picked
+  specifically because it avoids touching existing tests or code,
+  rather than because it is the genuinely correct design, that is
+  the sunk-cost fallacy, not a real trade-off. Prefer the right
+  design and update whatever needs updating.
 - **Non-functional properties, when relevant.** If a change plausibly
   affects performance, `PERFORMANCE.md` gets a note. Not required for
   every change, only ones where it is a real question.

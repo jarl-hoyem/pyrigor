@@ -16,6 +16,9 @@ An issue is ready to be worked on when:
   not just a problem statement. For a new rule, this means pointing
   at `ADDING_A_RULE.md`'s own checklist. For anything else, a
   concrete, checkable outcome.
+- The proposed scope is not narrowed specifically to avoid touching
+  existing tests or code. If it is, that is the sunk-cost fallacy,
+  not a real scoping decision.
 - Whoever is assigned agrees they understand what to do and has no
   open questions.
 
