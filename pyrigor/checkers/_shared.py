@@ -155,7 +155,8 @@ def _call_statement_value(*, node: ast.AST) -> ast.Call | None:
     return node.value if isinstance(node.value, ast.Call) else None
 
 
-def walk_once(*, tree: ast.Module) -> WalkedNodes:
+# Single-pass node classification is the point of this function, splitting it further means walking the tree twice again
+def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
     """Walk a tree exactly once, splitting nodes by kind for every checker to reuse.
 
     Args:

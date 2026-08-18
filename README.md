@@ -1,6 +1,7 @@
 # pyrigor
 
 [![PyPI version](https://img.shields.io/pypi/v/pyrigor.svg)](https://pypi.org/project/pyrigor/)
+[![Downloads](https://static.pepy.tech/badge/pyrigor)](https://pepy.tech/project/pyrigor)
 [![CI](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml)
 [![Publish](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml)
 [![Python 3.11-3.14](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/downloads/)
@@ -13,6 +14,7 @@
 [![pydocstyle](https://img.shields.io/badge/docstrings-pydocstyle-brightgreen)](http://www.pydocstyle.org/)
 [![Complexity: xenon](https://img.shields.io/badge/complexity-xenon-brightgreen)](https://xenon.readthedocs.io/)
 [![Code complexity: radon](https://img.shields.io/badge/code%20complexity-radon-brightgreen)](https://radon.readthedocs.io/)
+[![Cognitive complexity: complexipy](https://img.shields.io/badge/cognitive%20complexity-complexipy-brightgreen)](https://github.com/rohaquinlop/complexipy)
 [![pytest: 100% coverage](https://img.shields.io/badge/pytest-100%25%20coverage-brightgreen)](https://pytest.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![actionlint](https://img.shields.io/badge/GitHub%20Actions-actionlint-brightgreen)](https://github.com/rhysd/actionlint)

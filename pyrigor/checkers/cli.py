@@ -42,6 +42,18 @@ def _is_excluded(*, path: Path) -> bool:
     return any(part in _DEFAULT_EXCLUDES or part.endswith(".egg-info") for part in path.parts)
 
 
+def _files_in_directory(*, path: Path) -> list[str]:
+    """Recursively find every .py file in a directory, skipping excluded ones.
+
+    Args:
+        path: The directory to walk.
+
+    Returns:
+        Every non-excluded .py file found.
+    """
+    return [str(f) for f in path.rglob("*.py") if not _is_excluded(path=f)]
+
+
 def _collect_python_files(*, paths: list[str]) -> list[str]:
     """Expand a mix of file and directory paths into a flat list of .py files.
 
@@ -57,7 +69,7 @@ def _collect_python_files(*, paths: list[str]) -> list[str]:
     for path in paths:
         p = Path(path)
         if p.is_dir():
-            files.extend(str(f) for f in p.rglob("*.py") if not _is_excluded(path=f))
+            files.extend(_files_in_directory(path=p))
         else:
             files.append(path)
 

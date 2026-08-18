@@ -65,6 +65,12 @@ repos:
     hooks:
       - id: complexipy
         entry: python scripts/run_complexipy.py
+        # 6 reflects this project's own real, measured maximum
+        # complexity ('walk_once', the single hardest case, exempted
+        # inline via `# complexipy: ignore`). If a new function
+        # exceeds this, prefer a refactoring, or a scoped, justified
+        # inline ignore statement over raising this number globally.
+        args: [ "--max-complexity-allowed", "6" ]
   - repo: https://github.com/jarl-hoyem/pyrigor
     rev: v0.7.1
     hooks:
