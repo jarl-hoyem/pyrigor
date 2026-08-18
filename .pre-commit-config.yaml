@@ -60,6 +60,10 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
+  - repo: https://github.com/rohaquinlop/complexipy-pre-commit
+    rev: v3.0.0
+    hooks:
+      - id: complexipy
   - repo: local
     hooks:
       - id: pyright
