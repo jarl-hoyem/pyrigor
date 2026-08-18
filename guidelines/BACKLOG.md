@@ -66,7 +66,7 @@
 | Submit CFP answers to Python conferences.                                       | L     | M           |
 | Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
 | Review and deliberately set thresholds/settings for every pre-commit tool       | S     | M           |
-| Run all pre-commit tools against tests/ too, with suppressions as needed        | M     | M           |
+| Run radon-maintainability and pyrigor’s own hook against tests/                 | M     | M           |
 | Document every tool's own suppression-comment syntax in one place               | M     | S           |
 
 ## Future tooling ideas
@@ -1060,19 +1060,14 @@ inherited settings: vulture’s confidence threshold, bandit’s
 severity level, xenon’s exact grade requirements, and any others.
 Not yet reviewed one by one.
 
-### Run all pre-commit tools against tests/ too, with suppressions as needed
+### Run radon-maintainability and pyrigor’s own hook against tests/
 
-The tool pyrigor’s own hook and radon both deliberately exclude tests/, a
-real, considered decision (pytest fixture injection is a genuine
-false positive there). Other tools (complexipy, xenon, bandit,
-vulture) may skip tests/ only incidentally, never actually
-pointed there, not because of any real decision. Worth reviewing
-each tool’s actual current scope and deliberately including tests/
-where it adds real value. Adding suppressions for genuine false
-positives as they are found, rather than leaving the current scope
-as an accident of what happened to be configured.
-
-Value: M · Effort: M
+Both exclude `tests/`, originally for pytest
+fixture-injection false positives, but this has never actually been
+tested directly. Run both against `tests/` for real, confirm what
+the actual findings are, then decide from evidence: keep the
+exclusion, or use per-line suppression comments instead if the real
+false-positive count turns out small.
 
 ### Document every tool’s own suppression-comment syntax in one place
 
@@ -1084,5 +1079,3 @@ pyrigor’s own `# pyrigor: CODE # reason` (the richest of the three).
 Worth a real reference, likely in CONTRIBUTING.md, documenting each
 tool’s actual, confirmed-working suppression syntax in one place, so
 this does not need re-discovering by trial and error again.
-
-Value: M · Effort: S
