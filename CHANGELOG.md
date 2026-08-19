@@ -19,6 +19,11 @@ is usable for.
   `pyrigor $(git diff --name-only) .` in a CI script. `_collect_python_files()`
   now deduplicates by each file’s resolved path while keeping its
   first-seen string form for output. Closes #8.
+- `--only=` given a second time was silently treated as a path
+  instead of erroring — `pyrigor --only=PYR401 --only=PYR402 file.py`
+  dropped the second rule code entirely and produced a confusing
+  "no such file" warning. A repeated `--only=` flag now errors
+  immediately (exit code 2) instead. Closes #10.
 
 ## [0.7.3] 2026-08-18
 
