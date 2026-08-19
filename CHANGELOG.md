@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.7.4] 2026-08-19
+
 ### Fixed
 
 - `pyrigor` double-counted files and violations when the same file

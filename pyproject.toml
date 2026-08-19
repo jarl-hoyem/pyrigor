@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyrigor"
-version = "0.7.3"
+version = "0.7.4"
 description = "A Python coding discipline guideline collection and (eventually) linter."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -46,6 +46,10 @@ strict = true
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+
+# Far later
+# [tool.ruff.lint]
+# select = ["ALL"]
 
 [tool.pytest.ini_options]
 markers = [
