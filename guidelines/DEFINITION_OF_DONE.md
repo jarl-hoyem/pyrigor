@@ -98,6 +98,10 @@ knowledge only):
   new test for this change. Already standard practice here
   (`pre-commit run --all-files`), stated explicitly, so it is not
   skipped under time pressure.
+- **Bug fixes get a reproducing test first.** Write the test that
+  captures the reported bug before writing the fix, not after —
+  confirms the fix actually addresses what was reported, not just a
+  symptom near it, and locks in the regression.
 - **Backward compatibility.** If this change alters any documented
   public behavior (a return type, a CLI flag’s shape, a rule’s
   scope), the version bump and `CHANGELOG.md` entry reflect that,
@@ -128,7 +132,10 @@ knowledge only):
    in one commit.** Not two. The changelog entry and the version bump
    describe the same release, they should land together, not have
    the changelog trail behind as an afterthought.
-4. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
+4. **Run the real-world KPI scan** (`guidelines/PROJECT_KPIS.md`)
+   against the pinned corpus and record the new row, in its own
+   commit.
+5. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
    and title) with real release notes.
 
 Dev-tooling-only changes (a new pre-commit hook, a CI workflow fix,
