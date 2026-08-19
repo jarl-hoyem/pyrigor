@@ -110,6 +110,19 @@ of the migration, not an afterthought. A forgotten deletion leaves
 the item duplicated — live in the issue, still dormant in the
 backlog — and at risk of being picked up a second time by mistake.
 
+Any GitHub issue action that changes its state — creating,
+editing, commenting on, labeling, or closing an issue — needs the
+user’s explicit go-ahead first, the same as a file edit. Show what
+will be created, changed, or said before doing it, not just
+describe the plan.
+
+Closing an issue always needs a closing comment summarizing what
+shipped (the commit, what changed, what it resolves), even when the
+issue was already closed by the time the comment goes up. A bare
+close with no comment loses the "here is what actually happened"
+record a reader would otherwise have to reconstruct from commit
+history alone.
+
 ## Project-wide conventions
 
 - All checker/CLI functions use keyword-only arguments (`*,`) — pyrigor enforces this on itself (PYR402/PYR403).
