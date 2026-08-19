@@ -11,6 +11,8 @@ the release commit itself.
 import subprocess  # nosec -- fixed, local tooling commands only
 import sys
 
+_PYPROJECT_TOML = "pyproject.toml"
+
 
 # noinspection LongLine
 def _staged_files() -> list[str]:
@@ -40,7 +42,7 @@ def _pyproject_version_changed() -> bool:
 
 def main() -> None:
     """Run pre-commit auto update and uv lock if a version bump is staged, then prompt to re-commit."""
-    if "pyproject.toml" not in _staged_files() or not _pyproject_version_changed():
+    if _PYPROJECT_TOML not in _staged_files() or not _pyproject_version_changed():
         sys.exit(0)
 
     print("pyproject.toml version changed: running pre-commit autoupdate and uv lock.")

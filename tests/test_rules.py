@@ -1,4 +1,7 @@
 """Tests for pyrigor's Rule registry."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 from pyrigor.rules import Rule
 

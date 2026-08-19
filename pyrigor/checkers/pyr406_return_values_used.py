@@ -177,6 +177,8 @@ def _self_call_name(*, call: ast.Call) -> str | None:
         The attribute name if `call.func` is `self.<name>`, otherwise None.
     """
     func = call.func
+    # self is Python's own convention name, not a magic value
+    # pylint: disable=magic-value-comparison
     if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "self":
         return func.attr
     return None

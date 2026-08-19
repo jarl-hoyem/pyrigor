@@ -8,6 +8,11 @@ step might have been missed.
 import subprocess  # nosec -- fixed git commands only, no untrusted input
 import sys
 
+_PYPROJECT_TOML = "pyproject.toml"
+_CHANGELOG_MD = "CHANGELOG.md"
+_RULES_PY = "pyrigor/rules.py"
+_README_MD = "README.md"
+
 
 def _staged_files() -> list[str]:
     """Get the list of staged file paths.
@@ -41,7 +46,7 @@ def _check_changelog_sync(*, files: list[str]) -> None:
     Args:
         files: Every staged path.
     """
-    if "pyproject.toml" in files and _pyproject_version_changed() and "CHANGELOG.md" not in files:
+    if _PYPROJECT_TOML in files and _pyproject_version_changed() and _CHANGELOG_MD not in files:
         print("Note: pyproject.toml version changed but CHANGELOG.md did not. See guidelines/DEFINITION_OF_DONE.md.")
 
 
@@ -51,8 +56,8 @@ def _check_readme_sync(*, files: list[str]) -> None:
     Args:
         files: Every staged path.
     """
-    checker_files_changed = any(f.startswith("pyrigor/checkers/") or f == "pyrigor/rules.py" for f in files)
-    if checker_files_changed and "README.md" not in files:
+    checker_files_changed = any(f.startswith("pyrigor/checkers/") or f == _RULES_PY for f in files)
+    if checker_files_changed and _README_MD not in files:
         print(
             "Note: pyrigor/checkers or rules.py changed but README.md did not. "
             "Confirm this is intentional. See guidelines/DEFINITION_OF_DONE.md."

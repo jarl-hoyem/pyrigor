@@ -5,8 +5,11 @@ rather than importing its internals — scripts/ is not a package, and this
 matches REVIEW_CHECKLIST.md's own preference for testing the actual, real
 invocation over a convenient proxy for it.
 """
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
-import subprocess
+import subprocess  # nosec -- fixed git commands only, no untrusted input
 import sys
 from pathlib import Path
 

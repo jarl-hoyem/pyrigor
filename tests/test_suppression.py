@@ -1,4 +1,7 @@
 """Tests for pyrigor's suppression-comment mechanism."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 from pytest import CaptureFixture
 

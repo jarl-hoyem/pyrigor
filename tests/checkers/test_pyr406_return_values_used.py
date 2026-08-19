@@ -1,4 +1,7 @@
 """Tests for the PYR406 checker (return values used)."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 import ast
 

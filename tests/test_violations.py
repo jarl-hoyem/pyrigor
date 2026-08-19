@@ -1,4 +1,7 @@
 """Tests for pyrigor's shared Violation type and make violation constructor."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 import ast
 

@@ -189,3 +189,18 @@ suppression comment goes last when stacked with another tool’s
 opposite ordering already works correctly, since `re.search` finds
 `# pyrigor:` wherever it appears on the line — this convention costs
 nothing beyond documenting it.
+
+## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
+
+Enabled in pyrigor’s own pyproject.toml. Default valid-magic-values
+(0, –1, 1, "", "__main__") match PYR203’s own chosen exemption
+list (0, 1, –1) independently. Real corroboration of the boundary is
+reasonable, not an accident. Narrower scope than PYR203, though,
+only fires on comparisons (if x == 3), not arithmetic or function
+arguments.
+
+Kept running even once PYR203 ships, deliberately, not disabled.
+The same precedent is already established in this project: mypy, pyright
+and ty all run simultaneously despite real overlap in what they
+catch, genuine defense in depth from independent implementations,
+not wasted duplication.

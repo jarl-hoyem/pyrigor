@@ -135,6 +135,13 @@ Not urgent with only two flags today, worth doing before a third
 flag (`--report`, already speculative in the full-summary-report
 backlog item) makes the hand-rolled approach genuinely painful.
 
+Note: `"--version"` has a `# pylint: disable=magic-value-comparison`
+suppression on it (the hand-rolled `sys.argv` check triggers the
+magic_value plugin). Once this migration replaces that check with
+`argparse`'s own `add_argument("--version", ...)`, remove that
+suppression. It becomes unnecessary once the literal moves into
+argparse’s own configuration rather than a bare comparison.
+
 ### Proper `.gitignore`-aware file discovery
 
 `_collect_python_files()` currently uses a small hardcoded exclude

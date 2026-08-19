@@ -1,4 +1,7 @@
 """Tests for pyrigor.checkers._shared."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 import ast
 

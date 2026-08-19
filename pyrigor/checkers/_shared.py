@@ -6,6 +6,9 @@ from typing import NamedTuple, Protocol
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
+_UNBOUNDED_TUPLE_SLICE_LENGTH = 2  # tuple[X, ...] always has exactly [type, Ellipsis]
+_MINIMUM_MULTI_VALUE_COUNT = 2  # two or more elements means "multiple values"
+
 
 def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:
     """Check whether a tuple[...] slice is the unbounded tuple[X, ...] form.
@@ -17,7 +20,9 @@ def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:
         True if this is tuple[X, ...], homogeneous and unbounded,
         with no fixed positional meaning.
     """
-    return len(elts) == 2 and isinstance(elts[1], ast.Constant) and elts[1].value is Ellipsis
+    return (
+        len(elts) == _UNBOUNDED_TUPLE_SLICE_LENGTH and isinstance(elts[1], ast.Constant) and elts[1].value is Ellipsis
+    )
 
 
 def _get_tuple_subscript_slice(*, annotation: ast.expr | None) -> ast.Tuple | None:
@@ -33,6 +38,8 @@ def _get_tuple_subscript_slice(*, annotation: ast.expr | None) -> ast.Tuple | No
     if not (isinstance(annotation, ast.Subscript) and isinstance(annotation.value, ast.Name)):
         return None
 
+    # tuple is Python's own builtin type name, not a magic value
+    # pylint: disable=magic-value-comparison
     if annotation.value.id != "tuple" or not isinstance(annotation.slice, ast.Tuple):
         return None
 
@@ -60,7 +67,7 @@ def is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
     if _is_unbounded_homogeneous_tuple(elts=elts):
         return False
 
-    return len(elts) >= 2
+    return len(elts) >= _MINIMUM_MULTI_VALUE_COUNT
 
 
 class _ParameterCounts(NamedTuple):

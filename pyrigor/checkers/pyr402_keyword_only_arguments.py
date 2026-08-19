@@ -6,6 +6,8 @@ from pyrigor.checkers._shared import WalkedNodes, count_parameters, find_functio
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation
 
+_MINIMUM_PARAMS_FOR_RULE = 2  # single-parameter functions are exempt, see PYR403
+
 
 def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """Check whether a function definition violates PYR402.
@@ -19,7 +21,7 @@ def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         Single-parameter functions are exempt — see PYR403.
     """
     counts = count_parameters(node=node)
-    if counts.total_params < 2:
+    if counts.total_params < _MINIMUM_PARAMS_FOR_RULE:
         return False
 
     return bool(counts.positional_args)

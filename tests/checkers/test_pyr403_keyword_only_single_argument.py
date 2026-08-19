@@ -1,4 +1,7 @@
 """Tests for the PYR403 checker (keyword-only single argument)."""
+# test assertions compare against expected literal values by design,
+# not a magic-value problem
+# pylint: disable=magic-value-comparison
 
 import ast
 

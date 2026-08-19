@@ -430,6 +430,8 @@ def _validate_only_flag(*, only: set[str] | None) -> None:
 
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
+    # see BACKLOG.md's argparse migration note for this suppression's own removal
+    # pylint: disable=magic-value-comparison
     if "--version" in sys.argv:
         print(f"pyrigor {version('pyrigor')}")
         sys.exit(0)
