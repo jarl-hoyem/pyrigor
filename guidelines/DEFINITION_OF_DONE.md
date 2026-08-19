@@ -132,9 +132,8 @@ knowledge only):
    in one commit.** Not two. The changelog entry and the version bump
    describe the same release, they should land together, not have
    the changelog trail behind as an afterthought.
-4. **Run the real-world KPI scan** (`guidelines/PROJECT_KPIS.md`)
-   against the pinned corpus and record the new row, in its own
-   commit.
+4. **Run the Key Performance Indicators (KPI) scans**
+   (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their own commit.
 5. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
    and title) with real release notes.
 

@@ -2,7 +2,7 @@
 > not here. When an existing entry below needs real attention
 > (starting it, updating it, or closing it out), move it to a new
 > issue and delete it from this file, rather than editing it in
-> place. This file only shrinks from here; it should never grow.
+> place. This file only shrinks from here. It should never grow.
 
 ## Backlog index (value/effort at a glance)
 
@@ -832,22 +832,6 @@ noqa`/`# nosec`/`# pylint: disable` comments already scattered
 through the code are a related but different case, worth checking
 each still has enough context to explain why the suppression is
 safe, not just, which rule it silences.
-
-### Track code-quality statistics (% code, % blank, % comments)
-
-Connects directly to the previous item, adding inline comments would
-be visible as a real, measurable trend here. Worth checking whether
-a new tool is even needed, `radon` is already a dependency
-(`radon-maintainability` hook already in pre-commit), and its `raw`
-metrics command already reports lines of code, comment lines, blank
-lines, and docstring lines, close to exactly what is being asked.
-Applying the Pareto principle lens already logged: reusing an
-existing dependency is likely the lower-effort path versus adding a
-dedicated tool (`cloc`, `pygount`, `scc`) purely for this. Not yet
-scoped: whether this becomes a one-off manual check, a tracked
-metric over time (would need somewhere to store history, a real
-design question), or a new pre-commit hook enforcing a minimum
-comment ratio.
 
 ### Support Read the Docs
 
