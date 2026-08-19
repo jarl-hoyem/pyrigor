@@ -8,6 +8,21 @@ Contributions are welcome!
 - Provide a clear description and reproduction steps (for bugs).
 - Label the issue (type) if you can.
 
+## Sizing Issues
+
+Effort and value are labeled `effort: XS` through `effort: L`, and
+`value: XS` through `value: L`. There is no `XL`. If a piece of work
+is genuinely larger than `L`, it does not get an `XL` label, instead:
+
+1. Create a planning issue for it, sized whatever actually fits
+   (`S` or `M`, describing the planning work itself, not the whole
+   effort).
+2. In that planning issue, split the real work into smaller, linked
+   issues, each sized normally.
+
+An `XL`-sized issue is a sign the work has not been broken down
+enough yet, not a size to label and leave as one item.
+
 ## Branching Strategy
 
 1. **All changes start with an issue.**

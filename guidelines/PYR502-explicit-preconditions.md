@@ -107,22 +107,3 @@ None yet.
 ## Enforced by
 
 Not yet implemented.
-
-### PYR502 recommends `assert`, which is stripped under Python’s -O flag
-
-Found via OSSF’s Secure Coding Guide for Python (pyscg-0037,
-"Presume Assertions May Be Disabled In Production"). Python's `-O`
-and `-OO` optimization flags remove every `assert` statement from
-compiled bytecode entirely. PYR502’s own doc recommends
-`assert x.shape == y.shape, "..."` as its worked example, which
-would silently vanish in an optimized build, exactly the kind of gap
-this guide exists to catch.
-
-The real fix needed, not just a note: PYR502 should recommend `if not
-condition: raise ValueError(...)` for anything genuinely
-correctness- or security-relevant, reserving `assert` only for
-internal, debug-only invariants where being stripped in production
-is acceptable. Needs its own decision about whether PYR502 should
-distinguish these two cases explicitly (a "these are genuinely
-different, use raise for one and assert for the other" rule) or
-switch its own recommendation to raise-based checks entirely.

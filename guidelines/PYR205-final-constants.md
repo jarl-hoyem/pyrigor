@@ -77,8 +77,8 @@ any attempt to later rebind it.
   misleading connection between two values that were never meant to
   move together.
 - Genuinely self-explanatory numbers with no meaningful name to give
-  them, `0` and `1` used as plain arithmetic identities, indexes, or
-  loop bounds, the same exemption PYR203 itself lists.
+  them, `0`, `1`, and `-1` used as plain arithmetic identities,
+  indexes, or loop bounds, the same exemption PYR203 itself lists.
 
 ## Related
 

@@ -30,8 +30,8 @@ for.
 ## The problem, in one example
 
 The Mars Climate Orbiter was lost because two teams silently
-disagreed about units. The code for that class of bug äs still
-would get pass mypy today.
+disagreed about units. The code for that class of bug would still
+get past mypy today.
 
 ```python
 Thrust = NewType("Thrust", float)

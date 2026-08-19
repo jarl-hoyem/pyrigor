@@ -80,4 +80,6 @@ specific call, never shared with any other call.
 
 ## Enforced by
 
-Not yet implemented.
+Not independently enforced — rejected, see
+[REJECTED.md](./REJECTED.md): covered by ruff's `B006` and pylint's
+`W0102`.

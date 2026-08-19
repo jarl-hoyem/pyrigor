@@ -123,6 +123,21 @@ close with no comment loses the "here is what actually happened"
 record a reader would otherwise have to reconstruct from commit
 history alone.
 
+GitHub auto-closes an issue the moment a closing keyword (`fix`,
+`fixes`, `closes`, `resolves`, and their variants) sits directly in
+front of `#N` in any commit message that lands on the default
+branch — no PR, no review, no repo setting to turn it off. This
+bypasses the go-ahead-and-closing-comment rule above entirely,
+silently: issue #10 was auto-closed this way by a commit titled
+"fix: #10 repeated --only= errors, #12 ..., #20 ..., #30 ...", with
+no closing comment, and it only came to light when asked why the
+issue was already closed. A commit message should reference an
+issue neutrally (`refs #10`, `part of #10`), not with a closing
+keyword, unless closing it immediately as part of that same commit
+is genuinely the intent — a closing keyword in a commit message
+*is* the close action, not just a citation, and needs the same
+go-ahead as calling `gh issue close` directly.
+
 ## Project-wide conventions
 
 - All checker/CLI functions use keyword-only arguments (`*,`) — pyrigor enforces this on itself (PYR402/PYR403).

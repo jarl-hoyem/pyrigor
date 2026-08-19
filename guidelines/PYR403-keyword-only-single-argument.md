@@ -93,4 +93,6 @@ without missing out on genuine swap protection.
 
 ## Enforced by
 
-Not yet implemented.
+The `pyr403` checker (`pyrigor/checkers/pyr403_keyword_only_single_argument.py`),
+wired in as a pre-commit hook and available via the `pyrigor` CLI
+(`pip install pyrigor`, then `pyrigor path/to/file.py`).
