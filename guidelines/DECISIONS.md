@@ -190,6 +190,39 @@ opposite ordering already works correctly, since `re.search` finds
 `# pyrigor:` wherever it appears on the line — this convention costs
 nothing beyond documenting it.
 
+### Suppression scanning uses tokenizing, not raw-line regular expression
+
+`_suppressed_tokens()` and the near-miss check both used to search
+each candidate physical line’s raw text via regular expression
+(`_SUPPRESSION_PATTERN`, `_NEAR_MISS_PATTERN`), with no awareness of
+Python’s lexical structure. A string literal or docstring whose
+contents happened to exactly match `# pyrigor: CODE # reason` syntax
+would not just trigger a spurious near-miss warning — it could
+silently suppress a real violation on that line, since regular expression over
+raw text cannot tell a genuine comment from text that merely looks
+like one inside a string. Found scanning `tests/` for the first
+time: a near-miss warning fired on a test’s own fixture string
+containing literal `# pyrigor` text, not a real comment (#41).
+
+Chosen fix: tokenize the source once per every file with Python’s own
+`tokenize` module, and build a line-number-to-comment-text mapping
+from genuine `tokenize.COMMENT` tokens only. String and docstring
+content is tokenized as `STRING`, never `COMMENT`, so text that only
+looks like a suppression comment inside a string can no longer match
+at all. Candidate-line lookup changed from list-indexing raw source
+lines to a dict lookup on this map, which also removes the need for
+the old `_line_at()`’s explicit out-of-range bounds check — a
+missing dict key returns "", the same "no comment here"
+result an out-of-range line used to require special-casing for.
+
+Rejected: keeping the regular expression approach and trying to special-case
+strings within it (for example, stripping string literals from each
+line before searching). Would need to reimplement a real Python
+tokenizer piecemeal to handle multi-line strings, f-strings and
+escaped quotes correctly — strictly more code and later risk than
+just using the tokenizer the standard library already provides for
+exactly this purpose.
+
 ## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
 
 Enabled in pyrigor’s own pyproject.toml. Default valid-magic-values

@@ -25,6 +25,7 @@ def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: Capt
     assert "(keyword-only-arguments)" in captured.out
 
 
+# pyrigor: 402 # pytest fixture injection, not a real violation
 def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
     """A violation suppressed via # pyrigor: comment should not be printed as a violation.
 
@@ -280,6 +281,7 @@ def test_per_rule_breakdown_prints_after_per_file_breakdown(tmp_path: Path, caps
     assert per_file_index < per_rule_index
 
 
+# pyrigor: 402 # pytest fixture injection, not a real violation
 def test_summary_aggregates_multiple_suppressions_under_same_rule(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
     """Multiple suppressed violations under the same rule should sum correctly in the summary."""
     (tmp_path / "a.py").write_text("def one(a, b):  # pyrigor: 402 # matches a fixed external API\n    ...\n")

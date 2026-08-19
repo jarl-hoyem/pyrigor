@@ -24,6 +24,14 @@ is usable for.
   dropped the second rule code entirely and produced a confusing
   "no such file" warning. A repeated `--only=` flag now errors
   immediately (exit code 2) instead. Closes #10.
+- Suppression comments were matched against each candidate line’s
+  raw text via the regular expression, with no awareness of Python’s lexical
+  structure. A string or docstring literal whose contents happened
+  to exactly match `# pyrigor: CODE # reason` syntax could silently
+  suppress a real violation on that line, since regular expression over raw text
+  cannot distinguish a genuine comment from text that merely looks
+  like one inside a string. Suppression matching now tokenizes the
+  source and only considers genuine comment tokens. Closes #41.
 
 ## [0.7.3] 2026-08-18
 

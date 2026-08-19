@@ -79,9 +79,9 @@ def test_suppression_comment_with_reason_is_parsed() -> None:
 
 def test_suppression_comment_reason_is_parsed_correctly() -> None:
     """The free-text reason after the second # should be captured verbatim."""
-    line = "def apply_correction(weight, bias):  # pyrigor: 402 # positional injection required by pytest"
+    comment = "# pyrigor: 402 # positional injection required by pytest"
 
-    info = _suppressed_tokens(line=line)
+    info = _suppressed_tokens(comment=comment)
 
     assert info.tokens == {"402"}
     assert info.reason == "positional injection required by pytest"
@@ -272,6 +272,77 @@ def test_near_miss_comment_warns(capsys: CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
     assert result.kept == violations
     assert "doesn't match" in captured.err
+
+
+# pyrigor: 403 # pytest fixture injection, not a real violation
+def test_near_miss_pattern_inside_a_string_literal_does_not_warn(capsys: CaptureFixture[str]) -> None:
+    """A string literal that merely contains near-miss-shaped text must not trigger a near-miss warning.
+
+    Reproduces the actual bug found scanning tests/ for the first
+    time: a near-miss warning fired on a test's own fixture string
+    containing literal "# pyrigor" text, not a real comment.
+    """
+    source = 'fixture = "# pyrigor 402 missing colon"\ndef apply_correction(weight, bias):\n    ...\n'
+    violations = [Violation(line=2, end_line=2, column=1, context_name="apply_correction", rule=Rule.PYR402)]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    captured = capsys.readouterr()
+    assert result.kept == violations
+    assert captured.err == ""
+
+
+def test_pyrigor_suppression_syntax_inside_a_string_literal_does_not_suppress() -> None:
+    """A string literal that exactly matches suppression syntax must not silently suppress a violation.
+
+    The more serious risk the near-miss bug revealed: a string whose
+    contents happen to exactly match '# pyrigor: CODE # reason' would
+    not just warn, it could silently suppress a real violation on
+    that line, since raw-regular expression scanning cannot tell a real comment
+    from text that merely looks like one inside a string.
+    """
+    source = (
+        'fixture = "# pyrigor: 402 # this looks like a real suppression but is just string data"\n'
+        "def apply_correction(weight, bias):\n"
+        "    ...\n"
+    )
+    violations = [Violation(line=2, end_line=2, column=1, context_name="apply_correction", rule=Rule.PYR402)]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    assert result.kept == violations
+    assert not result.suppressed
+
+
+def test_real_suppression_comment_still_works_despite_a_similar_looking_string_earlier_on_the_line() -> None:
+    """A real suppression comment must still work even when preceded by string text that looks similar."""
+    source = (
+        'note = "# pyrigor: 999 fake"  # pyrigor: 402 # real reason\ndef apply_correction(weight, bias):\n    ...\n'
+    )
+    violations = [Violation(line=2, end_line=2, column=1, context_name="apply_correction", rule=Rule.PYR402)]
+
+    result = filter_suppressed(violations=violations, source=source)
+
+    assert not result.kept
+    assert result.suppressed == violations
+
+
+def test_filter_suppressed_with_no_violations_does_not_tokenize_unparsable_source() -> None:
+    """An empty violations list should short-circuit before ever tokenizing the source.
+
+    Guards the precondition 'filter_suppressed' relies on: violations
+    are only ever non-empty for a source that already parsed
+    successfully via ast.parse, so tokenizing is safe to skip
+    entirely when there is nothing to check — including for
+    a genuinely unparsable source, which would otherwise crash
+    tokenizing.
+    """
+    source = "def broken(:\n    pass\n"
+
+    result = filter_suppressed(violations=[], source=source)
+
+    assert not result.kept
+    assert not result.suppressed
 
 
 def test_violation_with_out_of_range_line_number_is_kept_not_crashed() -> None:

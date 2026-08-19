@@ -5,11 +5,15 @@ violation, on the line directly above it, or anywhere within a
 multi-line statement's own span. CODE may be a rule's full code
 ("PYR402"), its numeric shorthand ("402"), or its symbolic name
 ("keyword-only-arguments"). Whitespace around the colon and commas is
-tolerated.
+tolerated. Only text inside a genuine comment token counts — text
+that merely looks like a suppression comment inside a string or
+docstring is never recognized.
 """
 
 import re
 import sys
+import tokenize
+from io import StringIO
 from typing import NamedTuple
 
 from pyrigor.violations import Violation
@@ -33,24 +37,44 @@ _SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s*:\s*(?P<tokens>.+)$")
 _NEAR_MISS_PATTERN = re.compile(r"#.*pyrigor", re.IGNORECASE)
 
 
-def _suppressed_tokens(*, line: str) -> _SuppressionInfo:
-    """Get the suppression tokens and optional reason from a source line.
+def _comments_by_line(*, source: str) -> dict[int, str]:
+    """Map each physical line number to its genuine comment token text.
 
     Args:
-        line: One line of source code.
+        source: The full source code. Only called when at least one
+            violation exists, which guarantees the source already
+            parsed successfully via ast.parse (checkers never run on
+            an unparsable source) — and anything ast.parse accepts,
+            tokenize accepts too.
 
     Returns:
-        The suppression information is found on this line, or an empty
-        _SuppressionInfo if there is no suppression comment. If a
-        comment mentions "pyrigor" but doesn't match the expected
-        pattern, a warning is printed.
+        A line-number-to-comment-text mapping, built from real
+        tokenizing.COMMENT tokens only — never text that merely looks
+        like a comment inside a string or docstring.
     """
-    match = _SUPPRESSION_PATTERN.search(line)
+    tokens = tokenize.generate_tokens(StringIO(source).readline)
+    return {token.start[0]: token.string for token in tokens if token.type == tokenize.COMMENT}
+
+
+def _suppressed_tokens(*, comment: str) -> _SuppressionInfo:
+    """Get the suppression tokens and optional reason from a genuine comment.
+
+    Args:
+        comment: A real comment token's text (for example "# pyrigor: CODE
+            # reason"), or "" if the line has no comment at all.
+
+    Returns:
+        The suppression information is found in this comment, or an
+        empty _SuppressionInfo if there is none. If the comment
+        mentions "pyrigor" but doesn't match the expected pattern, a
+        warning is printed.
+    """
+    match = _SUPPRESSION_PATTERN.search(comment)
     if match is None:
-        if _NEAR_MISS_PATTERN.search(line):
+        if _NEAR_MISS_PATTERN.search(comment):
             print(
                 f"Warning: comment mentions 'pyrigor' but doesn't match "
-                f"'# pyrigor: CODE[,CODE] # reason' -- ignoring: {line.strip()}",
+                f"'# pyrigor: CODE[,CODE] # reason' -- ignoring: {comment.strip()}",
                 file=sys.stderr,
             )
         return _SuppressionInfo(tokens=set(), reason=None)
@@ -69,7 +93,7 @@ def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo)
 
     Args:
         violation: The violation to check.
-        suppression: Suppression information parsed from the violation's line.
+        suppression: Suppression information parsed from a candidate comment.
 
     Returns:
         True if the violation's rule code, numeric shorthand, or
@@ -93,48 +117,38 @@ def _matches_suppression(*, violation: Violation, suppression: _SuppressionInfo)
     return code_matches
 
 
-def _line_at(*, lines: list[str], lineno: int) -> str:
-    """Get a source line by its 1-based line number.
+def _candidate_comments(*, violation: Violation, comments: dict[int, str]) -> list[str]:
+    """Collect every comment where a suppression comment for this violation may legally appear.
 
     Args:
-        lines: The source, split into lines.
-        lineno: A 1-based line number, possibly out of range.
+        violation: The violation to find candidate comments for.
+        comments: The file's line-number-to-comment-text mapping.
 
     Returns:
-        The line's text, or an empty string if lineno is out of range.
+        The comment on the line directly above the violation,
+        followed by the comment on every line within the violation's
+        own span (line through 'end_line'). A missing dict entry
+        (no comment on that line, or the line doesn't exist) yields "".
     """
-    return lines[lineno - 1] if 0 < lineno <= len(lines) else ""
-
-
-def _candidate_lines(*, violation: Violation, lines: list[str]) -> list[str]:
-    """Collect every source line where a suppression comment for this violation may legally appear.
-
-    Args:
-        violation: The violation to find candidate lines for.
-        lines: The full source, split into lines.
-
-    Returns:
-        The line directly above the violation, followed by every
-        line within the violation's own span (line through 'end_line').
-    """
-    above = [_line_at(lines=lines, lineno=violation.line - 1)]
-    span = [_line_at(lines=lines, lineno=lineno) for lineno in range(violation.line, violation.end_line + 1)]
+    above = [comments.get(violation.line - 1, "")]
+    span = [comments.get(lineno, "") for lineno in range(violation.line, violation.end_line + 1)]
     return above + span
 
 
-def _is_suppressed(*, violation: Violation, lines: list[str]) -> bool:
-    """Check whether any candidate line for a violation carries a valid suppression comment.
+def _is_suppressed(*, violation: Violation, comments: dict[int, str]) -> bool:
+    """Check whether any candidate comment for a violation carries valid suppression.
 
     Args:
         violation: The violation to check.
-        lines: The full source, split into lines.
+        comments: The file's line-number-to-comment-text mapping.
 
     Returns:
-        True if any candidate line has a matching, valid suppression.
+        True if any candidate comment has matching, valid suppression.
     """
-    candidates = _candidate_lines(violation=violation, lines=lines)
+    candidates = _candidate_comments(violation=violation, comments=comments)
     return any(
-        _matches_suppression(violation=violation, suppression=_suppressed_tokens(line=line)) for line in candidates
+        _matches_suppression(violation=violation, suppression=_suppressed_tokens(comment=comment))
+        for comment in candidates
     )
 
 
@@ -148,12 +162,15 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> Suppressio
     Returns:
         The violations that are kept, and the ones that were suppressed.
     """
-    lines = source.splitlines()
+    if not violations:
+        return SuppressionResult(kept=[], suppressed=[])
+
+    comments = _comments_by_line(source=source)
 
     kept = []
     suppressed = []
     for violation in violations:
-        if _is_suppressed(violation=violation, lines=lines):
+        if _is_suppressed(violation=violation, comments=comments):
             suppressed.append(violation)
         else:
             kept.append(violation)
