@@ -368,3 +368,55 @@ def test_run_only_flag_errors_on_unknown_code(
     captured = capsys.readouterr()
     assert "PYR999" in captured.err
     assert "unknown" in captured.err.lower()
+
+
+# pyrigor: 402 # pytest fixture injection, not a real violation
+def test_run_only_flag_errors_on_repeated_flag(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]
+) -> None:
+    """A second --only= flag should error immediately, not get treated as a path."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "--only" in captured.err
+
+
+# pyrigor: 402 # pytest fixture injection, not a real violation
+def test_run_only_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """More than two --only= flags should still error, not just exactly two."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", "--only=PYR403", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor: 402 # pytest fixture injection, not a real violation
+def test_run_only_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two --only= flags with the same value should still error, not just when they disagree."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR401", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor: 402 # pytest fixture injection, not a real violation
+def test_run_only_flag_errors_on_repeated_flag_before_processing_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: CaptureFixture[str]
+) -> None:
+    """The repeated-flag error should fire before any file is checked, not after a partial run."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "Checked" not in captured.out

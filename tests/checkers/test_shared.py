@@ -50,3 +50,52 @@ result = good_compute()
     func = result.call_statement_nodes[0].func
     assert isinstance(func, ast.Name)
     assert func.id == "bad_compute"
+
+
+def test_walk_once_collects_class_nodes() -> None:
+    """walk_once should collect class definitions into their own list."""
+    source = """
+class Example:
+    ...
+"""
+    result = walk_once(tree=ast.parse(source))
+
+    assert len(result.class_nodes) == 1
+    assert result.class_nodes[0].name == "Example"
+
+
+def test_walk_once_class_nodes_is_empty_without_classes() -> None:
+    """walk_once should return an empty 'class_nodes' list when the source has no classes."""
+    source = """
+def compute() -> int:
+    ...
+"""
+    result = walk_once(tree=ast.parse(source))
+
+    assert result.class_nodes == []
+
+
+def test_walk_once_collects_multiple_class_nodes() -> None:
+    """walk_once should collect every top-level class, in source order."""
+    source = """
+class First:
+    ...
+
+class Second:
+    ...
+"""
+    result = walk_once(tree=ast.parse(source))
+
+    assert [c.name for c in result.class_nodes] == ["First", "Second"]
+
+
+def test_walk_once_collects_nested_class_nodes() -> None:
+    """walk_once should collect a nested class too, not just top-level ones."""
+    source = """
+class Outer:
+    class Inner:
+        ...
+"""
+    result = walk_once(tree=ast.parse(source))
+
+    assert [c.name for c in result.class_nodes] == ["Outer", "Inner"]

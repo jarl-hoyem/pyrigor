@@ -356,6 +356,29 @@ def main(*, paths: list[str], only: set[str] | None = None) -> int:
     return exit_code
 
 
+def _only_flag_indices(*, args: list[str]) -> list[int]:
+    """Find every --only=... argument's index in args.
+
+    Args:
+        args: The argv list to search.
+
+    Returns:
+        The index of every --only=... occurrence, in order.
+    """
+    return [i for i, arg in enumerate(args) if arg.startswith("--only=")]
+
+
+def _reject_repeated_only_flag(*, matches: list[int]) -> None:
+    """Exit with an error if --only= was given more than once.
+
+    Args:
+        matches: The index of every --only=... occurrence found.
+    """
+    if len(matches) > 1:
+        print("pyrigor: --only can only be given once (use --only=CODE,CODE for multiple rules)", file=sys.stderr)
+        sys.exit(2)
+
+
 def _extract_only_flag(*, args: list[str]) -> set[str] | None:
     """Find and remove a --only=CODE, CODE argument from args, if present.
 
@@ -365,13 +388,16 @@ def _extract_only_flag(*, args: list[str]) -> set[str] | None:
     Returns:
         The parsed set of tokens, or None if no --only= flag was given.
     """
-    for i, arg in enumerate(args):
-        if arg.startswith("--only="):
-            only = {token.strip() for token in arg.removeprefix("--only=").split(",")}
-            del args[i]
-            return only
+    matches = _only_flag_indices(args=args)
+    if not matches:
+        return None
 
-    return None
+    _reject_repeated_only_flag(matches=matches)
+
+    index = matches[0]
+    only = {token.strip() for token in args[index].removeprefix("--only=").split(",")}
+    del args[index]
+    return only
 
 
 def _known_rule_identities() -> set[str]:

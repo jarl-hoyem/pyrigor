@@ -30,7 +30,7 @@ def _pyproject_version_changed() -> bool:
     """
     # A fixed argument list, no untrusted input reaches the subprocess here.
     result = subprocess.run(  # nosec
-        ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
+        ["git", "diff", "--cached", "--", "pyproject.toml"], capture_output=True, text=True, check=True
     )
     return any(line.startswith("+version") for line in result.stdout.splitlines())
 
