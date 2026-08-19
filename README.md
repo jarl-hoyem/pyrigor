@@ -115,7 +115,7 @@ remote hook, the same way you would add `ruff` or `black`:
 
 ```yaml
 - repo: https://github.com/jarl-hoyem/pyrigor
-  rev: v0.7.1
+  rev: v0.7.3
   hooks:
     - id: pyrigor
 ```
