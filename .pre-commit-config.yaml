@@ -75,10 +75,9 @@ repos:
         # inline ignore statement over raising this number globally.
         args: [ "--max-complexity-allowed", "6" ]
   - repo: https://github.com/jarl-hoyem/pyrigor
-    rev: v0.7.2
+    rev: v0.7.3
     hooks:
       - id: pyrigor
-        exclude: ^tests/
   - repo: local
     hooks:
       - id: pyright
@@ -159,9 +158,8 @@ repos:
       - id: pyrigor
         name: pyrigor (WIP self-check, uncommitted code)
         language: system
-        entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor
+        entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor scripts tests
         types: [ python ]
-        exclude: ^tests/
         pass_filenames: false
       - id: pytest
         name: pytest
