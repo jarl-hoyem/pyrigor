@@ -11,6 +11,15 @@ is usable for.
 
 ## [Unreleased]
 
+### Fixed
+
+- `pyrigor` double-counted files and violations when the same file
+  was reachable through two different path arguments (an overlapping
+  directory argument, a relative versus absolute form) — for example
+  `pyrigor $(git diff --name-only) .` in a CI script. `_collect_python_files()`
+  now deduplicates by each file’s resolved path while keeping its
+  first-seen string form for output. Closes #8.
+
 ## [0.7.3] 2026-08-18
 
 ### Added

@@ -54,24 +54,42 @@ def _files_in_directory(*, path: Path) -> list[str]:
     return [str(f) for f in path.rglob("*.py") if not _is_excluded(path=f)]
 
 
+def _candidates_for_path(*, path: str) -> list[str]:
+    """Expand a single file or directory argument into its .py file candidates.
+
+    Args:
+        path: A file or directory path.
+
+    Returns:
+        [path] itself if it is a file, or every non-excluded .py file
+        found by recursively walking it if it is a directory.
+    """
+    p = Path(path)
+    return _files_in_directory(path=p) if p.is_dir() else [path]
+
+
 def _collect_python_files(*, paths: list[str]) -> list[str]:
-    """Expand a mix of file and directory paths into a flat list of .py files.
+    """Expand a mix of file and directory paths into a flat list of distinct .py files.
 
     Args:
         paths: File or directory paths.
 
     Returns:
-        Every .py file found — paths given directly, or discovered by
-        recursively walking any directory paths, skipping excluded directories
-        (.venv, .git, __pycache__, ...).
+        Every distinct .py file found — paths given directly, or
+        discovered by recursively walking any directory paths,
+        skipping excluded directories (.venv, .git, __pycache__,
+        ...). The same file reached via two different path strings
+        (an overlapping directory argument, a relative versus absolute
+        form) is checked only once, keeping its first-seen form.
     """
     files: list[str] = []
+    seen: set[Path] = set()
     for path in paths:
-        p = Path(path)
-        if p.is_dir():
-            files.extend(_files_in_directory(path=p))
-        else:
-            files.append(path)
+        for candidate in _candidates_for_path(path=path):
+            resolved = Path(candidate).resolve()
+            if resolved not in seen:
+                seen.add(resolved)
+                files.append(candidate)
 
     return files
 

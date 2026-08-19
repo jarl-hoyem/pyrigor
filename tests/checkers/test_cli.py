@@ -114,6 +114,23 @@ def test_directory_walk_excludes_site_packages(tmp_path: Path, capsys: CaptureFi
     assert "vendored.py" not in captured.out
 
 
+def test_overlapping_file_and_directory_args_check_file_once(
+    tmp_path: Path, capsys: CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A file reachable via both a relative arg and an absolute containing-directory arg is checked once."""
+    bad_file = tmp_path / "bad.py"
+    bad_file.write_text("def apply_correction(weight, bias):\n    ...\n")
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = main(paths=["bad.py", str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Checked 1 file in" in captured.out
+    assert "PYR402: 1" in captured.out
+    assert "PYR402: 2" not in captured.out
+
+
 def test_unreadable_file_is_skipped_with_warning(tmp_path: Path, capsys: CaptureFixture[str]) -> None:
     """A file that cannot be decoded or parsed should be skipped with a warning, not crash the run."""
     bad_file = tmp_path / "bad_encoding.py"
