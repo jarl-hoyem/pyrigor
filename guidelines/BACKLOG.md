@@ -1,3 +1,9 @@
+> **Migration in progress.** New work goes directly to GitHub Issues,
+> not here. When an existing entry below needs real attention
+> (starting it, updating it, or closing it out), move it to a new
+> issue and delete it from this file, rather than editing it in
+> place. This file only shrinks from here; it should never grow.
+
 ## Backlog index (value/effort at a glance)
 
 | Item                                                                            | Value | Effort      |
@@ -57,14 +63,11 @@
 | Style-check newly added backlog entries                                         | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
-| Real local-versus-CI drift found, despite pre-commit being the shared mechanism | S     | S           |
 | Dependabot doesn't cover Python deps                                            | XS    | S           |
 | PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
 | Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
 | Submit CFP answers to Python conferences.                                       | L     | M           |
 | Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
-| Review and deliberately set thresholds/settings for every pre-commit tool       | S     | M           |
-| Run radon-maintainability and pyrigor’s own hook against tests/                 | M     | M           |
 | Migrate BACKLOG.md to GitHub Issues                                             | M     | M           |
 
 ## Future tooling ideas
@@ -891,25 +894,6 @@ relative to the current total, worth revisiting only if a future
 profile shows either becoming a larger share once other costs are
 further reduced.
 
-### Real local-versus-CI drift found, despite pre-commit being the shared mechanism
-
-`ci.yaml`'s own stated design goal is that CI and local pre-commit
-can never drift apart, since both run the identical `pre-commit run
-`--all-files` command against the identical config. Found once:
-a genuine case where local pre-commit passed clean, but the same
-commit failed on GitHub CI (an `actionlint`/`shellcheck` finding).
-Most likely cause, not fully confirmed: a stale local hook cache
-(`~/.cache/pre-commit`), pre-commit caches each hook’s environment
-keyed by its pinned version, and something about the cache did not
-invalidate correctly when `actionlint` was added or updated locally,
-while CI’s own cache, keyed on `hashFiles('.pre-commit-config.yaml')`
-via `actions/cache@v6`, was fresh or keyed differently and caught it
-correctly. Running `pre-commit clean` resolved the discrepancy.
-
-Worth periodically running `pre-commit clean` (or equivalent), or
-investigating whether the local cache invalidation genuinely has a
-gap worth fixing, rather than assuming this was a one-off.
-
 ### Dependabot doesn't cover Python deps
 
 `.github/dependabot.yaml` only configures a `github-actions` ecosystem
@@ -1028,34 +1012,6 @@ instead invest in clearer failure messages and onboarding docs
 explaining the reasoning and how to meet the bar, addressing the
 discouragement without lowering it.
 
-### Review and deliberately set thresholds/settings for every pre-commit tool
-
-The same discipline just applied to complexipy (measure real values,
-then set a deliberate threshold, not the tool’s bare default) worth
-extending to specific, identified candidates:
-
-- `vulture`'s missing `--min-confidence`, running on its
-  bare default, never reviewed.
-- `xenon`'s scope, only `pyrigor/`, never expanded to include
-  `scripts/`.
-- The `slow` pytest marker in `pyproject.toml` (`markers`,
-  `addopts` excludes it by default), no visible test anywhere
-  actually uses `@pytest.mark.slow`. Check whether it is genuinely
-  used or a leftover from Pickomino.
-- `pylint`, `pydocstyle`, `mypy`, and `ruff`'s own `[tool.*]`
-  settings in `pyproject.toml`, never individually reviewed the way
-  `bandit`'s assert-exemption pattern just was, worth the same
-  scrutiny given that one turned out to be silently broken.
-
-### Run radon-maintainability and pyrigor’s own hook against tests/
-
-Both exclude `tests/`, originally for pytest
-fixture-injection false positives, but this has never actually been
-tested directly. Run both against `tests/` for real, confirm what
-the actual findings are, then decide from evidence: keep the
-exclusion, or use per-line suppression comments instead if the real
-false-positive count turns out small.
-
 ### Migrate BACKLOG.md to GitHub Issues
 
 A Real friction with the current file-based approach: every edit
@@ -1072,5 +1028,3 @@ approach designed for linking to issues instead of a file, not
 preserved as-is just because the current linkage already exists.
 
 Not urgent, a real future decision, not immediate.
-
-Value: M · Effort: M
