@@ -59,11 +59,12 @@ after the fact, so get it right the first time.
 ## 5. If the rule is enforced, write the checker
 
 - File: `pyrigor/checkers/pyrXXX_<symbolic-name>.py`.
-- Signature: `find_violations(tree: ast.Module) -> list[Violation]`.
-  Do not call `ast.parse()` inside the checker. Every checker
-  receives an already-parsed tree, shared across all registered
-  checkers, for one parse per the file rather than one parse per
-  checker.
+- Signature: `find_violations(*, nodes: WalkedNodes) -> list[Violation]`.
+  Do not call `ast.parse()` or walk the tree yourself inside the
+  checker. Every checker receives the same pre-walked `WalkedNodes`
+  (built once by `walk_once()` in `pyrigor/checkers/_shared.py`),
+  shared across all registered checkers, so the tree is walked once
+  per every file, not once per checker.
 - Use `make_violation(node=node, rule=Rule.PYRxxx)` from
   `pyrigor/violations.py` to construct violations, rather than
   building `Violation` by hand.
@@ -97,10 +98,10 @@ Add the checker's `find_violations` to `CHECKERS` in
 ```python
 from pyrigor.checkers.pyrXXX_<symbolic_name> import find_violations as _pyrXXX
 
-CHECKERS: tuple[Callable[[ast.Module], list[Violation]], ...] = (
-    _pyr401,
-    _pyr402,
-    _pyrXXX,
+CHECKERS: tuple[RegisteredChecker, ...] = (
+    RegisteredChecker(rule=Rule.PYR401, find_violations=_pyr401),
+    RegisteredChecker(rule=Rule.PYR402, find_violations=_pyr402),
+    RegisteredChecker(rule=Rule.PYRxxx, find_violations=_pyrXXX),
 )
 ```
 

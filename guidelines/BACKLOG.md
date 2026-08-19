@@ -58,7 +58,6 @@
 | Solo-developer bottleneck: investigate how to speed up                          | L     | M           |
 | Use every documented rule, not just enforced ones, to review the project itself | M     | L           |
 | Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
-| Track code-quality statistics (% code, % blank, % comments)                     | S     | S           |
 | Support Read the Docs                                                           | M     | S           |
 | Style-check newly added backlog entries                                         | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
