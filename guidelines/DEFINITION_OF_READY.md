@@ -22,6 +22,15 @@ An issue is ready to be worked on when:
 - Whoever is assigned agrees they understand what to do and has no
   open questions.
 
+## Every change starts with an issue
+
+No branch or commit begins without a corresponding GitHub Issue
+already existing. This applies even to small, solo work. An
+issue-first, however brief, keeps a real record of what was done and
+why, consistent with `CLAUDE.md`'s "Backlog and issue tracking"
+section, which already moved new work to GitHub Issues instead of
+`BACKLOG.md`.
+
 ## Planning issues
 
 If an issue is unclear, larger than the largest effort size (`L`,

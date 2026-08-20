@@ -49,6 +49,18 @@ alongside `DEFINITION_OF_DONE.md`.
    (`pre-commit run bandit --files ...`), not the manual scan that
    had already been trusted as enough.
 
+4. **When reviewing a comparison source fetched in one pass (like
+   Pickomino’s own config), was every distinct section actually
+   individually evaluated, not just the one that produced the most
+   obvious finding?**
+   ← rule: `DEFINITION_OF_DONE.md`, Correctness
+   *Earned by:* Pickomino's `[tool.pylint.variables]` and
+   `[tool.pylint.string]` sections were fetched and displayed in
+   full during the same pass that found pyright’s missing config,
+   but were never individually evaluated, only surfaced later
+   because the person asked "did we miss anything" directly, not
+   because the review process caught it on its own.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior
