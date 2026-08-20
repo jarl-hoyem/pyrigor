@@ -121,6 +121,11 @@ knowledge only):
   called done, in this session or a future one, add it to
   `BACKLOG.md` immediately. Do not let it go undocumented while
   moving on to something else.
+- Close the corresponding GitHub Issue at the same time a CHANGELOG.md
+  entry referencing it is added under [Unreleased], not later, at
+  release time. The changelog entry is the trigger. Waiting until
+  release risks the close being forgotten entirely once [Unreleased]
+  becomes a real, dated version heading, as happened with #11.
 
 ## Releasing a version
 
