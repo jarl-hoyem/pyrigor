@@ -223,6 +223,37 @@ escaped quotes correctly — strictly more code and later risk than
 just using the tokenizer the standard library already provides for
 exactly this purpose.
 
+### Suppression syntax drops the colon after "pyrigor" (permanent change)
+
+`# pyrigor: CODE # reason`'s colon collides with ruff's `ERA001`
+(commented-out-code) when the suppression comment sits on its own
+line (the line-above form): `ERA001` only inspects standalone
+comments, and its actual detection mechanism is an attempt to parse
+the comment text as real Python (`parse_module(line).is_ok()`).
+`pyrigor: 402` parses successfully as a bare variable annotation
+statement (`name: value`), so `ERA001` flags it as commented-out
+code. Confirmed directly against a real, installed ruff 0.16.3, not
+just inferred: `# pyrigor: 402 # reason` on its own line is flagged;
+`# pyrigor 402 # reason` (space instead of colon) is not.
+
+Considered: requesting pyrigor's own comment prefix be added to
+ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`, `# nosec`, `# type:
+ignore`, and others already use to avoid exactly this collision.
+Rejected — not contacting ruff's maintainers to request inclusion,
+so this is not a path being pursued.
+
+Chosen instead: drop the colon permanently. `# pyrigor CODE[,CODE] #
+reason` — the regex's `\s*:\s*` between "pyrigor" and the token list
+becomes `\s+`, requiring only whitespace, not a colon. This is a
+genuine, permanent syntax change, not a temporary workaround; every
+existing colon-based suppression comment (in this project's own
+source and in any external adopter's) needs migrating. An
+un-migrated old comment does not fail silently: `_NEAR_MISS_PATTERN`
+still matches it (a colon is not whitespace, so it no longer matches
+`_SUPPRESSION_PATTERN`, but "pyrigor" is still present), so it prints
+the existing near-miss warning rather than quietly suppressing
+nothing. Closes #46.
+
 ## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
 
 Enabled in pyrigor’s own pyproject.toml. Default valid-magic-values

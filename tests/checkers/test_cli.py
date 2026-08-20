@@ -10,7 +10,7 @@ import pytest
 from pyrigor.checkers.cli import main, run
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_pyr301_violation_prints_variable_not_function(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A PYR301 violation on an annotated variable should print 'Variable', not the hardcoded 'Function'."""
     (tmp_path / "bad.py").write_text("x: tuple[int, str] = (1, 'a')\n")
@@ -22,7 +22,7 @@ def test_pyr301_violation_prints_variable_not_function(tmp_path: Path, capsys: p
     assert "Function 'x'" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A file with a PYR402 violation should be reported and exit non-zero."""
     bad_file = tmp_path / "bad.py"
@@ -36,14 +36,14 @@ def test_main_reports_violation_and_returns_nonzero(tmp_path: Path, capsys: pyte
     assert "(keyword-only-arguments)" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """A violation suppressed via # pyrigor: comment should not be printed as a violation.
+    """A violation suppressed via # pyrigor comment should not be printed as a violation.
 
     The exit code should be 0.
     """
     suppressed_file = tmp_path / "suppressed.py"
-    suppressed_file.write_text("def apply_correction(weight, bias):  # pyrigor: 402 # positional swap risk\n    ...\n")
+    suppressed_file.write_text("def apply_correction(weight, bias):  # pyrigor 402 # positional swap risk\n    ...\n")
 
     exit_code = main(paths=[str(suppressed_file)])
 
@@ -53,7 +53,7 @@ def test_main_does_not_report_suppressed_violation(tmp_path: Path, capsys: pytes
     assert "PYR402: 1 suppressed" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """run() should parse sys.argv and pass it to main(), exiting with its return code."""
     clean_file = tmp_path / "clean.py"
@@ -67,7 +67,7 @@ def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytes
     assert exc_info.value.code == 0
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_walks_a_directory_for_python_files(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Passing a directory should recursively find and check every .py file inside it."""
     (tmp_path / "bad.py").write_text("def apply_correction(weight, bias):\n    ...\n")
@@ -83,7 +83,7 @@ def test_main_walks_a_directory_for_python_files(tmp_path: Path, capsys: pytest.
     assert "also_bad.py" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_directory_walk_excludes_venv(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Files inside a .venv directory should be excluded from the walk."""
     (tmp_path / "real.py").write_text("def apply_correction(weight, bias):\n    ...\n")
@@ -99,7 +99,7 @@ def test_directory_walk_excludes_venv(tmp_path: Path, capsys: pytest.CaptureFixt
     assert "vendored.py" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """main() should print how many files were checked and how long it took."""
     (tmp_path / "clean.py").write_text("def apply_correction(*, weight, bias):\n    ...\n")
@@ -111,7 +111,7 @@ def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixtur
     assert "s" in captured.out  # seconds unit present somewhere in the summary
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_check_file_handles_bom(tmp_path: Path) -> None:
     """A file with a UTF-8 Byte Order Mark (BOM) should be parsed correctly, not crash."""
     bom_file = tmp_path / "bom.py"
@@ -122,7 +122,7 @@ def test_check_file_handles_bom(tmp_path: Path) -> None:
     assert exit_code == 0
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_directory_walk_excludes_site_packages(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Files inside any site-packages directory should be excluded, regardless of the venv folder's own name."""
     (tmp_path / "real.py").write_text("def apply_correction(*, weight, bias):\n    ...\n")
@@ -136,7 +136,7 @@ def test_directory_walk_excludes_site_packages(tmp_path: Path, capsys: pytest.Ca
     assert "vendored.py" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_overlapping_file_and_directory_args_check_file_once(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -156,7 +156,7 @@ def test_overlapping_file_and_directory_args_check_file_once(
     assert "PYR402: 2" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_unreadable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A file that cannot be decoded or parsed should be skipped with a warning, not crash the run."""
     bad_file = tmp_path / "bad_encoding.py"
@@ -171,7 +171,7 @@ def test_unreadable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest.
     assert "bad_encoding.py" in captured.err
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_unparseable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A file with invalid Python syntax should be skipped with a warning, not crash the run."""
     bad_syntax_file = tmp_path / "bad_syntax.py"
@@ -184,7 +184,7 @@ def test_unparseable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest
     assert "bad_syntax.py" in captured.err
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_violation_count(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The summary line should include a total violation count."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two(c, d):\n    ...\n")
@@ -195,7 +195,7 @@ def test_main_prints_violation_count(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert "2 violations" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_prints_version_and_exits(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """run() with --version should print the installed version and exit 0, without checking any files."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--version"])
@@ -208,7 +208,7 @@ def test_run_prints_version_and_exits(monkeypatch: pytest.MonkeyPatch, capsys: p
     assert "pyrigor" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The summary should break violations down by rule."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
@@ -220,7 +220,7 @@ def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: pytest.CaptureFi
     assert "PYR402: 1" in captured.out
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> None:
     """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
 
@@ -240,7 +240,7 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
     assert exc_info.value.code == 2
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_per_file_breakdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The summary should list each file's own violation count."""
     (tmp_path / "bad_a.py").write_text("def one(a, b):\n    ...\n")
@@ -253,7 +253,7 @@ def test_main_prints_per_file_breakdown(tmp_path: Path, capsys: pytest.CaptureFi
     assert "bad_b.py: 2" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_per_file_breakdown_skips_clean_files(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A clean file, with no violations, should not appear in the per-file breakdown."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
@@ -266,7 +266,7 @@ def test_per_file_breakdown_skips_clean_files(tmp_path: Path, capsys: pytest.Cap
     assert "clean.py" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_summary_line_prints_after_per_rule_and_per_file_breakdown(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -282,7 +282,7 @@ def test_summary_line_prints_after_per_rule_and_per_file_breakdown(
     assert per_file_index < summary_index
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_per_rule_breakdown_prints_after_per_file_breakdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The per-rule breakdown should print after the per-file breakdown, not before it."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
@@ -296,14 +296,14 @@ def test_per_rule_breakdown_prints_after_per_file_breakdown(tmp_path: Path, caps
     assert per_file_index < per_rule_index
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_summary_aggregates_multiple_suppressions_under_same_rule(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Multiple suppressed violations under the same rule should sum correctly in the summary."""
-    (tmp_path / "a.py").write_text("def one(a, b):  # pyrigor: 402 # matches a fixed external API\n    ...\n")
-    (tmp_path / "b.py").write_text("def two(c, d):  # pyrigor: 402 # matches a fixed external API\n    ...\n")
+    (tmp_path / "a.py").write_text("def one(a, b):  # pyrigor 402 # matches a fixed external API\n    ...\n")
+    (tmp_path / "b.py").write_text("def two(c, d):  # pyrigor 402 # matches a fixed external API\n    ...\n")
 
     main(paths=[str(tmp_path)])
 
@@ -311,7 +311,7 @@ def test_summary_aggregates_multiple_suppressions_under_same_rule(
     assert "PYR402: 2 suppressed" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_only_runs_specified_rule(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """With only={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
@@ -323,7 +323,7 @@ def test_main_only_runs_specified_rule(tmp_path: Path, capsys: pytest.CaptureFix
     assert "PYR402" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_parses_only_flag(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -341,7 +341,7 @@ def test_run_parses_only_flag(
     assert "PYR402" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """--only should accept a rule's symbolic-name, not just its code."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
@@ -353,7 +353,7 @@ def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: pytest.CaptureF
     assert "PYR402" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_tolerates_whitespace(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -371,7 +371,7 @@ def test_run_only_flag_tolerates_whitespace(
     assert "PYR402" in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_only_accepts_bare_number_shorthand(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """--only should accept a rule's bare number, not just its full code."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
@@ -383,7 +383,7 @@ def test_main_only_accepts_bare_number_shorthand(tmp_path: Path, capsys: pytest.
     assert "PYR402" not in captured.out
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_errors_on_unknown_code(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -401,7 +401,7 @@ def test_run_only_flag_errors_on_unknown_code(
     assert "unknown" in captured.err.lower()
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_errors_on_repeated_flag(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -418,7 +418,7 @@ def test_run_only_flag_errors_on_repeated_flag(
     assert "--only" in captured.err
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """More than two --only= flags should still error, not just exactly two."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", "--only=PYR403", str(tmp_path)])
@@ -429,7 +429,7 @@ def test_run_only_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatc
     assert exc_info.value.code == 2
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Two --only= flags with the same value should still error, not just when they disagree."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR401", str(tmp_path)])
@@ -440,7 +440,7 @@ def test_run_only_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeyp
     assert exc_info.value.code == 2
 
 
-# pyrigor: 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_only_flag_errors_on_repeated_flag_before_processing_files(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -104,7 +104,7 @@ exception automatically:
   for optional chaining that is not being chained here, or a
   deliberate `dict.pop(key, None)`-style cleanup where the removed
   value is intentionally irrelevant. Use a suppression comment for
-  these, `# pyrigor: 406 # deliberately discarding the removed value`,
+  these, `# pyrigor 406 # deliberately discarding the removed value`,
   rather than expecting the rule to infer the exception
   automatically.
 - Any call into code outside the project being checked. This rule

@@ -58,7 +58,7 @@ Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright
 call_statement_nodes, class_nodes)` for every checker to reuse → each registered checker's `find_violations(*, nodes:
 WalkedNodes)` runs against those pre-walked nodes → `suppression.py`'s `filter_suppressed()` splits results into
 kept/suppressed based on same-line
-`# pyrigor: CODE # reason` comments → CLI prints and summarizes.
+`# pyrigor CODE # reason` comments → CLI prints and summarizes.
 
 The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why
 a per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled
@@ -74,7 +74,7 @@ that exists but is not added to `CHECKERS` silently never runs. This has happene
 **Violations** are built only via `pyrigor.violations.make_violation(node=..., rule=...)`, never constructed by hand,
 so the message text cannot drift from the rule it is tied to.
 
-**Suppression** (`suppression.py`) recognizes `# pyrigor: CODE[,CODE] # reason` on the violating line. The `CODE`
+**Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE`
 token may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) — the same
 three forms `--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honored.
 

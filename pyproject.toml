@@ -57,13 +57,6 @@ ignore = [
   "D213", # conflicts with D212 (first line summary wins)
   "D413", # conflicts with Google docstring convention (no blank line after last section)
   "CPY001", # no copyright-header convention adopted by this project
-  "ERA001", # TEMPORARY, remove once the issue "Change suppression comment
-  # syntax from colon to space (permanent)" is done. The tool pyrigor's
-  # own "# pyrigor: CODE # reason" line-above suppression
-  # comments collide with this rule (confirmed: own-line
-  # comments only, parse-based detection matches Python's
-  # bare annotation syntax). Re-enable this rule as part of
-  # that issue's own work, not before.
 ]
 
 [tool.ruff.lint.pydocstyle]

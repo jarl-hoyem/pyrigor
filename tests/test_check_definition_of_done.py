@@ -50,7 +50,7 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     Returns:
         The completed process, with captured stdout.
     """
-    return subprocess.run(  # nosec -- fixed script path, throwaway test repo  # noqa: S603
+    return subprocess.run(  # nosec -- fixed script path, throwaway test repo # noqa: S603
         [sys.executable, str(_SCRIPT)],
         cwd=cwd,
         capture_output=True,
@@ -59,7 +59,7 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_warns_when_version_bumped_without_changelog_entry(tmp_path: Path) -> None:
     """A staged version bump with no staged CHANGELOG.md change should print the reminder.
 
@@ -77,7 +77,7 @@ def test_warns_when_version_bumped_without_changelog_entry(tmp_path: Path) -> No
     assert "CHANGELOG.md" in result.stdout
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_no_warning_when_version_bump_has_changelog_entry(tmp_path: Path) -> None:
     """A staged version bump with a staged CHANGELOG.md change should not print the reminder."""
     _init_repo(path=tmp_path)
@@ -90,7 +90,7 @@ def test_no_warning_when_version_bump_has_changelog_entry(tmp_path: Path) -> Non
     assert "CHANGELOG.md" not in result.stdout
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_no_warning_when_pyproject_unchanged(tmp_path: Path) -> None:
     """No staged pyproject.toml change at all should not print the reminder."""
     _init_repo(path=tmp_path)
@@ -102,7 +102,7 @@ def test_no_warning_when_pyproject_unchanged(tmp_path: Path) -> None:
     assert "CHANGELOG.md" not in result.stdout
 
 
-# pyrigor: 403 # pytest fixture injection, not a real violation
+# pyrigor 403 # pytest fixture injection, not a real violation
 def test_no_warning_when_pyproject_changed_but_not_the_version_line(tmp_path: Path) -> None:
     """A staged pyproject.toml change that isn't the version line should not print the reminder.
 

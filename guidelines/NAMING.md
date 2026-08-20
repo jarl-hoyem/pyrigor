@@ -2,7 +2,7 @@
 
 Every guideline’s filename slug (the part after `PYRxxx-`) is also its
 symbolic name — the token used in suppression comments
-(`# pyrigor: SYMBOLIC-NAME # reason`) and as a `Rule` enum value. This
+(`# pyrigor SYMBOLIC-NAME # reason`) and as a `Rule` enum value. This
 document is the convention for choosing that slug, so it does not need
 re-deciding at every new rule.
 

@@ -1,13 +1,16 @@
 """Suppression-comment mechanism for pyrigor's checkers.
 
-Recognizes `# pyrigor: CODE[, CODE...]` comments on the same line as a
+Recognizes `# pyrigor CODE[, CODE...]` comments on the same line as a
 violation, on the line directly above it, or anywhere within a
 multi-line statement's own span. CODE may be a rule's full code
 ("PYR402"), its numeric shorthand ("402"), or its symbolic name
-("keyword-only-arguments"). Whitespace around the colon and commas is
-tolerated. Only text inside a genuine comment token counts — text
-that merely looks like a suppression comment inside a string or
-docstring is never recognized.
+("keyword-only-arguments"). Whitespace after "pyrigor" and around
+commas is tolerated. Only text inside a genuine comment token counts
+— text that merely looks like a suppression comment inside a string
+or docstring is never recognized.
+
+No colon after "pyrigor" — permanent, not transitional. See
+guidelines/DECISIONS.md for why.
 """
 
 import re
@@ -20,7 +23,7 @@ from pyrigor.violations import Violation
 
 
 class _SuppressionInfo(NamedTuple):
-    """Parsed contents of a `# pyrigor:` suppression comment."""
+    """Parsed contents of a `# pyrigor` suppression comment."""
 
     tokens: set[str]
     reason: str | None
@@ -33,7 +36,7 @@ class SuppressionResult(NamedTuple):
     suppressed: list[Violation]
 
 
-_SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s*:\s*(?P<tokens>.+)$")
+_SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s+(?P<tokens>.+)$")
 _NEAR_MISS_PATTERN = re.compile(r"#.*pyrigor", re.IGNORECASE)
 
 
@@ -60,7 +63,7 @@ def _suppressed_tokens(*, comment: str) -> _SuppressionInfo:
     """Get the suppression tokens and optional reason from a genuine comment.
 
     Args:
-        comment: A real comment token's text (for example "# pyrigor: CODE
+        comment: A real comment token's text (for example, "# pyrigor CODE
             # reason"), or "" if the line has no comment at all.
 
     Returns:
@@ -74,7 +77,7 @@ def _suppressed_tokens(*, comment: str) -> _SuppressionInfo:
         if _NEAR_MISS_PATTERN.search(comment):
             print(
                 f"Warning: comment mentions 'pyrigor' but doesn't match "
-                f"'# pyrigor: CODE[,CODE] # reason' -- ignoring: {comment.strip()}",
+                f"'# pyrigor CODE[,CODE] # reason' -- ignoring: {comment.strip()}",
                 file=sys.stderr,
             )
         return _SuppressionInfo(tokens=set(), reason=None)
@@ -153,7 +156,7 @@ def _is_suppressed(*, violation: Violation, comments: dict[int, str]) -> bool:
 
 
 def filter_suppressed(*, violations: list[Violation], source: str) -> SuppressionResult:
-    """Split violations into kept and suppressed, based on # pyrigor: comments.
+    """Split violations into kept and suppressed, based on # pyrigor comments.
 
     Args:
         violations: Violations to filter.

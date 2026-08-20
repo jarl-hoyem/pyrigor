@@ -14,10 +14,22 @@ is usable for.
 ### Fixed
 
 - `pyrigor`'s CLI output hardcoded "Function" for every violation,
-  even ones that aren't functions — a PYR301 violation on an
+  even ones that are not functions — a PYR301 violation on an
   annotated variable printed `Function 'x' ...` instead of
   `Variable 'x' ...`. `Violation` now carries a `context_kind`,
   set correctly per node type (Function/Variable/Call). Closes #11.
+
+### Changed
+
+- Suppression comments drop the colon after "pyrigor": `# pyrigor:
+  CODE # reason` → `# pyrigor CODE # reason`. The colon form collided
+  with ruff’s ERA001 (commented-out-code) when a suppression comment
+  sat on its own line, since `pyrigor: 402` parses as valid Python (a
+  bare annotation) and ERA001 flags any standalone comment that
+  parses. This is a permanent syntax change, not a temporary
+  workaround — existing colon-based comments will stop suppressing
+  (they now print a near-miss warning instead of silently doing
+  nothing, so the break is visible, not silent). Closes #46.
 
 ## [0.7.4] 2026-08-19
 
