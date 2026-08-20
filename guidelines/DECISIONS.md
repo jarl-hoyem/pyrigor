@@ -326,3 +326,35 @@ real git failure surfacing (check=True) is more honest than
 silently continuing with empty data. Rather than hardcode one
 behavior into the shared functions, check is a required keyword
 argument, letting each caller express its own actual philosophy.
+
+### Branch protection on main was verified via a real test PR, not just the API response
+
+#19 added branch protection (13 required checks from `ci.yaml`, 1
+required review, strict mode) via a direct `gh api` call. The API
+response confirmed the settings were accepted, but that only proves
+GitHub stored the configuration, not that it actually behaves as
+intended — this repo had zero human-authored PRs before this point
+(all 5 prior PRs were Dependabot's), so the mechanism had never
+actually been exercised.
+
+Verified directly, this very entry is the content of that test PR:
+
+- All 13 required checks ran and passed. `mergeStateStatus` stayed
+  `BLOCKED` and `reviewDecision` stayed `REVIEW_REQUIRED` anyway —
+  green checks alone do not satisfy the review requirement, the two
+  gates are genuinely independent.
+- A wrong assumption caught in the process: self-approval is not an
+  org-only restriction. GitHub blocks a PR's own author from
+  approving it as a baseline rule — confirmed directly, the author
+  hit this in the real GitHub UI, not inferred from documentation.
+  Exactly which review-related settings *are* org-specific (versus
+  this universal one) was not re-verified and should not be assumed
+  either way without checking again.
+- Practical consequence for a solo maintainer: `enforce_admins:
+  false` is what actually makes merging your own PR possible at all
+  right now, via the "merge without waiting for requirements"
+  admin-bypass path, not by approving your own work. #56 (move to
+  an org once a second contributor exists) still stands, corrected
+  to reflect this — the real gap is not "self-approval is allowed,"
+  it is "the only way to merge solo is an admin override that skips
+  the review gate entirely."
