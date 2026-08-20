@@ -337,13 +337,24 @@ intended — this repo had zero human-authored PRs before this point
 (all 5 prior PRs were Dependabot's), so the mechanism had never
 actually been exercised.
 
-Also worth knowing going in: this is a personal-account repo, not an
-organization, so GitHub does not block a PR author from approving
-their own PR — that restriction only exists at the org level. The
-"1 required review" is real (a genuine, separate approve action is
-required before merge) but self-satisfiable right now, tracked as a
-real gap in #56, to close once a second contributor exists.
+Verified directly, this very entry is the content of that test PR:
 
-Verified directly: this very entry is the content of that test PR.
-*(filled in once the merge behavior is actually observed, not
-predicted in advance)*
+- All 13 required checks ran and passed. `mergeStateStatus` stayed
+  `BLOCKED` and `reviewDecision` stayed `REVIEW_REQUIRED` anyway —
+  green checks alone do not satisfy the review requirement, the two
+  gates are genuinely independent.
+- A wrong assumption caught in the process: self-approval is not an
+  org-only restriction. GitHub blocks a PR's own author from
+  approving it as a baseline rule — confirmed directly, the author
+  hit this in the real GitHub UI, not inferred from documentation.
+  Exactly which review-related settings *are* org-specific (versus
+  this universal one) was not re-verified and should not be assumed
+  either way without checking again.
+- Practical consequence for a solo maintainer: `enforce_admins:
+  false` is what actually makes merging your own PR possible at all
+  right now, via the "merge without waiting for requirements"
+  admin-bypass path, not by approving your own work. #56 (move to
+  an org once a second contributor exists) still stands, corrected
+  to reflect this — the real gap is not "self-approval is allowed,"
+  it is "the only way to merge solo is an admin override that skips
+  the review gate entirely."
