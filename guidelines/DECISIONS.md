@@ -129,6 +129,29 @@ removes that risk at the cost of not covering method calls at all,
 consistent with the guideline doc’s own examples, which are all
 bare-name, module-level or nested function calls.
 
+### CLI exit code 2 covers both a crash and a bad invocation, deliberately not split
+
+When pyrigor's `run()` migrated from hand-rolled `sys.argv` scanning
+to `argparse` (#51), argparse’s own native parse errors (unrecognized
+flag, missing required `paths`) landed on exit code 2 — the same code
+already used for two different pre-existing cases: an unexpected
+internal crash (the top-level `except Exception` handler) and a bad
+`--only` invocation (repeated flag, unknown rule code). All three
+now share one exit code.
+
+Decided not to split them. Reasoning: the ambiguity predates this
+migration — "2 means either a crash or a bad invocation" was already
+the convention before argparse was introduced, so widening it to
+argparse’s own errors is consistent, not a new compromise. Splitting
+would need either a custom `ArgumentParser` subclass overriding
+`error()`, or wrapping `parse_args()` in `try/except SystemExit` to
+remap its code — real added surface area for a distinction no test,
+issue or actual consumer of pyrigor’s exit code has needed yet. If
+a concrete need for the distinction shows up later (for example, a
+CI wrapper that retries on exit 2 assuming it is transient, when a bad
+invocation is not). That is the evidence to revisit this, not a
+preference alone.
+
 ## Development process and tooling
 
 ### The tool complexipy runs through a Python wrapper, not a .bat script
@@ -233,25 +256,25 @@ the comment text as real Python (`parse_module(line).is_ok()`).
 `pyrigor: 402` parses successfully as a bare variable annotation
 statement (`name: value`), so `ERA001` flags it as commented-out
 code. Confirmed directly against a real, installed ruff 0.16.3, not
-just inferred: `# pyrigor: 402 # reason` on its own line is flagged;
-`# pyrigor 402 # reason` (space instead of colon) is not.
+just inferred: `# pyrigor: 402 # reason` on its own line is flagged.
+Whereas `# pyrigor 402 # reason` (space instead of colon) is not.
 
-Considered: requesting pyrigor's own comment prefix be added to
+Considered: requesting pyrigor’s own comment prefix be added to
 ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`, `# nosec`, `# type:
 ignore`, and others already use to avoid exactly this collision.
-Rejected — not contacting ruff's maintainers to request inclusion,
+Rejected — not contacting ruff’s maintainers to request inclusion,
 so this is not a path being pursued.
 
 Chosen instead: drop the colon permanently. `# pyrigor CODE[,CODE] #
-reason` — the regex's `\s*:\s*` between "pyrigor" and the token list
+reason`. The regular expression's `\s*:\s*` between "pyrigor" and the token list
 becomes `\s+`, requiring only whitespace, not a colon. This is a
-genuine, permanent syntax change, not a temporary workaround; every
-existing colon-based suppression comment (in this project's own
-source and in any external adopter's) needs migrating. An
+genuine, permanent syntax change, not a temporary workaround. Every
+existing colon-based suppression comment (in this project’s own
+source and in any external adopters) needs migrating. An
 un-migrated old comment does not fail silently: `_NEAR_MISS_PATTERN`
 still matches it (a colon is not whitespace, so it no longer matches
 `_SUPPRESSION_PATTERN`, but "pyrigor" is still present), so it prints
-the existing near-miss warning rather than quietly suppressing
+the existing near-miss warning rather than suppressing
 nothing. Closes #46.
 
 ## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
@@ -327,14 +350,16 @@ silently continuing with empty data. Rather than hardcode one
 behavior into the shared functions, check is a required keyword
 argument, letting each caller express its own actual philosophy.
 
-### Branch protection on main was verified via a real test PR, not just the API response
+### Branch protection on main was verified via a real test pull request
+
+This was not just the API response.
 
 #19 added branch protection (13 required checks from `ci.yaml`, 1
 required review, strict mode) via a direct `gh api` call. The API
-response confirmed the settings were accepted, but that only proves
-GitHub stored the configuration, not that it actually behaves as
+response confirmed the settings were accepted. But that only proves
+GitHub stored the configuration, not that it behaves as
 intended — this repo had zero human-authored PRs before this point
-(all 5 prior PRs were Dependabot's), so the mechanism had never
+(all five prior PRs were Dependabot’s), so the mechanism had never
 actually been exercised.
 
 Verified directly, this very entry is the content of that test PR:
@@ -344,7 +369,7 @@ Verified directly, this very entry is the content of that test PR:
   green checks alone do not satisfy the review requirement, the two
   gates are genuinely independent.
 - A wrong assumption caught in the process: self-approval is not an
-  org-only restriction. GitHub blocks a PR's own author from
+  org-only restriction. GitHub blocks a PR’s own author from
   approving it as a baseline rule — confirmed directly, the author
   hit this in the real GitHub UI, not inferred from documentation.
   Exactly which review-related settings *are* org-specific (versus
@@ -353,8 +378,8 @@ Verified directly, this very entry is the content of that test PR:
 - Practical consequence for a solo maintainer: `enforce_admins:
   false` is what actually makes merging your own PR possible at all
   right now, via the "merge without waiting for requirements"
-  admin-bypass path, not by approving your own work. #56 (move to
+  administrator-bypass path, not by approving your own work. #56 (move to
   an org once a second contributor exists) still stands, corrected
-  to reflect this — the real gap is not "self-approval is allowed,"
-  it is "the only way to merge solo is an admin override that skips
+  to reflect this. The real gap is not "self-approval is allowed,"
+  it is "the only way to merge solo is an administrator override that skips
   the review gate entirely."

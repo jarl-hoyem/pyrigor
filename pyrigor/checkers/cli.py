@@ -1,5 +1,6 @@
 """Command-line entry point for pyrigor's checkers."""
 
+import argparse
 import ast
 import sys
 import time
@@ -356,48 +357,53 @@ def main(*, paths: list[str], only: set[str] | None = None) -> int:
     return exit_code
 
 
-def _only_flag_indices(*, args: list[str]) -> list[int]:
-    """Find every --only=... argument's index in args.
-
-    Args:
-        args: The argv list to search.
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the console-script's argument parser.
 
     Returns:
-        The index of every --only=... occurrence, in order.
+        A parser recognizing --version/-V, --only, and one or more paths.
     """
-    return [i for i, arg in enumerate(args) if arg.startswith("--only=")]
+    parser = argparse.ArgumentParser(prog="pyrigor", allow_abbrev=False)
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=f"pyrigor {version('pyrigor')}",
+    )
+    parser.add_argument(
+        "--only",
+        # action="append", not the default, so a second --only can be detected and rejected below
+        action="append",
+        help="Restrict checking to these rule codes, comma-separated (PYR402, 402, or keyword-only-arguments).",
+    )
+    parser.add_argument("paths", nargs="+", help="Files or directories to check.")
+    return parser
 
 
-def _reject_repeated_only_flag(*, matches: list[int]) -> None:
-    """Exit with an error if --only= was given more than once.
+def _reject_repeated_only_flag(*, only: list[str] | None) -> None:
+    """Exit with an error if --only was given more than once.
 
     Args:
-        matches: The index of every --only=... occurrence found.
+        only: The raw --only values argparse's append action collected.
     """
-    if len(matches) > 1:
+    if only is not None and len(only) > 1:
         print("pyrigor: --only can only be given once (use --only=CODE,CODE for multiple rules)", file=sys.stderr)
         sys.exit(2)
 
 
-def _extract_only_flag(*, args: list[str]) -> set[str] | None:
-    """Find and remove a --only=CODE, CODE argument from args, if present.
+def _parse_only_tokens(*, only: list[str] | None) -> set[str] | None:
+    """Split --only's single collected value into its comma-separated tokens.
 
     Args:
-        args: The argv list to search (mutated in place if found).
+        only: The raw --only values argparse's append action collected, already
+            confirmed by _reject_repeated_only_flag to contain at most one entry.
 
     Returns:
-        The parsed set of tokens, or None if no --only= flag was given.
+        The parsed set of tokens, or None if --only was not given.
     """
-    matches = _only_flag_indices(args=args)
-    if not matches:
+    if not only:
         return None
-
-    _reject_repeated_only_flag(matches=matches)
-
-    index = matches[0]
-    only = {token.strip() for token in args[index].removeprefix("--only=").split(",")}
-    del args[index]
-    return only
+    return {token.strip() for token in only[0].split(",")}
 
 
 def _known_rule_identities() -> set[str]:
@@ -430,18 +436,15 @@ def _validate_only_flag(*, only: set[str] | None) -> None:
 
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
-    # see BACKLOG.md's argparse migration note for this suppression's own removal
-    # pylint: disable=magic-value-comparison
-    if "--version" in sys.argv:
-        print(f"pyrigor {version('pyrigor')}")
-        sys.exit(0)
+    parser = _build_parser()
+    args = parser.parse_args()
 
-    args = list(sys.argv[1:])
-    only = _extract_only_flag(args=args)
+    _reject_repeated_only_flag(only=args.only)
+    only = _parse_only_tokens(only=args.only)
     _validate_only_flag(only=only)
 
     try:
-        exit_code = main(paths=args, only=only)
+        exit_code = main(paths=args.paths, only=only)
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(2)

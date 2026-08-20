@@ -11,6 +11,15 @@ is usable for.
 
 ## [Unreleased]
 
+### Changed
+
+- CLI argument parsing (`--version`/`-V`, `--only`, paths) now uses
+  the standard library's `argparse` instead of hand-rolled `sys.argv`
+  scanning (#51). Real behavior improvements: `--only PYR401`
+  (space-separated) now works, previously only `--only=PYR401` was
+  recognized. An unrecognized flag is now an error immediately instead of
+  being silently treated as a path. Also `--help` is now available.
+
 ## [0.8.0] 2026-08-20
 
 ### Fixed

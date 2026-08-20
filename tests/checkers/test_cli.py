@@ -225,14 +225,16 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
     """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
 
     # noinspection PyUnusedLocal
-    def _boom(*, paths: list[str]) -> int:
-        # Must keep this exact name to match main()'s real call site
-        # (main(paths=args, ...)). The del statement marks it used so vulture doesn't
-        # flag it as an unused parameter.
-        del paths
+    def _boom(*, paths: list[str], only: set[str] | None) -> int:
+        # Must accept the same keywords as main()'s real call site
+        # (main (paths=args.paths, only=only)), or a TypeError is raised
+        # instead of the intended RuntimeError, still caught by the same
+        # except Exception handler but not exercising the real crash path.
+        del paths, only
         raise RuntimeError("something genuinely broke")
 
     monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "some_path"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
@@ -455,3 +457,59 @@ def test_run_only_flag_errors_on_repeated_flag_before_processing_files(
 
     captured = capsys.readouterr()
     assert "Checked" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_unrecognized_flag_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A genuine unrecognized flag (a typo) should error immediately, not be silently treated as a path."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--onl=PYR401", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor 403 # pytest fixture injection, not a real violation
+def test_run_no_paths_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Running with no path arguments at all should error, not silently check zero files."""
+    monkeypatch.setattr("sys.argv", ["pyrigor"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_only_flag_accepts_space_separated_form(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--only PYR401 (space-separated, not --only=PYR401) should now work."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--only", "PYR401", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_short_version_flag_prints_version_and_exits(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """run() with -V (the short form) should behave identically to --version."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "-V"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 0
+    assert "pyrigor" in captured.out

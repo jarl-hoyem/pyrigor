@@ -70,6 +70,29 @@ alongside `DEFINITION_OF_DONE.md`.
    automatically, unlike a commit message or PR description, that is
    a separate, manual step, and it had been skipped.
 
+6. **For a CLI/user-facing interface change, was the test coverage
+   deliberately expanded beyond what a draft or static-only analysis
+   proposed as enough, and actually run against the real code
+   before trusting it?**
+   ← rule: `DEFINITION_OF_DONE.md`, Correctness ("What would a
+   deliberately adversarial reader try to break, given the actual
+   code, not the intended behavior? Try that.")
+   *Earned by:* #51’s argparse migration draft, produced by static
+   reasoning alone (never executed against real code, by design),
+   suggested two new tests as adequate. It asserted all 12 existing
+   tests would pass unchanged — both true, but insufficient. Applying
+   the change for real and running an expanded, more thorough test
+   set (prompted by "this is direct UI and has to work flawlessly,"
+   not by the draft’s own analysis) surfaced two real bugs the draft
+   missed entirely: `argparse`’s default `allow_abbrev=True` silently
+   accepted the typo `--onl` as a valid abbreviation of `--only`,
+   defeating the typo-safety improvement the migration was meant to
+   deliver. A separate, existing crash-handling test, never
+   monkeypatching `sys.argv`, was unknowingly parsing pytest’s own
+   real command-line flags. It passed "by coincidence" rather than
+   actually exercising the crash path — invisible to any review that
+   reasoned about the code without running it.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior
