@@ -8,8 +8,6 @@
 
 | Item                                                                            | Value | Effort      |
 |---------------------------------------------------------------------------------|-------|-------------|
-| Full summary report (`--report`)                                                | M     | L           |
-| Structured argument parsing (scoped)                                            | S     | M           |
 | Proper `.gitignore`-aware file discovery                                        | S     | M           |
 | Per-rule directory/file excludes                                                | M     | M           |
 | Detect unnecessary suppression comments                                         | M     | M           |
@@ -26,7 +24,6 @@
 | OSSF Secure Coding Guide, broader review                                        | M     | M           |
 | Rule: truthiness check on NamedTuple/dataclass                                  | M     | L           |
 | Auto fix for PYR402/PYR403                                                      | M     | L           |
-| Investigate dead-code detectors (Culler, uncalled, dead)                        | XS    | S           |
 | README duplication when adding a rule                                           | M     | M           |
 | Rule list as a separate document                                                | S     | S           |
 | Proper citations in rule docs                                                   | S     | S           |
@@ -70,79 +67,6 @@
 | Migrate BACKLOG.md to GitHub Issues                                             | M     | M           |
 
 ## Future tooling ideas
-
-### Full summary report (`--report`)
-
-Three related, separate ideas that belong together:
-
-- **Suppression audit report.** `filter_suppressed` already parses
-  an optional free-text reason from `# pyrigor: CODE # reason`
-  comments, captured but not surfaced anywhere. A report command
-  could walk a codebase, collect every active suppression comment
-  and its reason, and output a summary, useful for a team lead
-  reviewing what is being silenced and why, the same way an old,
-  unreviewed `# noqa` comment tends to accumulate unexamined on
-  larger codebases.
-- **Fuller violation reporting.** Per-rule and per-file violation
-  counts, and per-rule suppression counts, already shipped. Worth
-  extending: most-violated files, the most common rule, trend over
-  time if run repeatedly.
-- **Distinguishing "unadopted convention" rules from "avoidable
-  footgun" rules in the report itself.** Found while running pyrigor
-  against mypy’s own codebase: PYR402 and PYR403 fired thousands of
-  times, high counts that mostly reflect a community-wide convention
-  (bare `*` for keyword-only arguments) essentially no pre-existing
-  codebase has adopted, not carelessness. PYR301, PYR401, and PYR405
-  fired far less (3, 225, and 24 respectively across 441 files), a
-  more genuinely meaningful signal, since these catch a specific,
-  well-known, avoidable bug rather than an unadopted stylistic
-  choice. A low count in the second category is real evidence of
-  deliberate discipline, a low count in the first mostly is not.
-  Worth surfacing this distinction in the report rather than
-  presenting every rule’s count with equal weight.
-
-Not yet designed as one feature. Would likely need its own CLI
-subcommand (separate from the per-checker `main()` entry points) and
-its own output format, deliberately out of scope for the initial
-suppression mechanism and per-rule breakdown themselves.
-
-### Structured argument parsing (scoped)
-
-Replace run()’s hand-rolled argv parsing (bare "--version" in
-sys.argv check, manual --only= prefix-match-and-mutate) with
-argparse, standard library, no new dependency.
-
-Concrete plan:
-
-- `--version`, `-V`: existing behavior (print version, exit 0).
-- `--only`: same value, comma-separated string, parsed the same way
-  after argparse hands it over (argparse does not natively split
-  comma-separated values, that parsing stays custom either way).
-- Remaining positional arguments: `paths` (nargs="+" or nargs="*"
-  since checking with no path is an arguably invalid input).
-
-Real wins, not just style: free --help text, automatic rejection of
-unrecognized flags (`--onl=PYR401`, a typo, silently gets
-treated as a path and matched against nothing, no error at all),
-consistent, and `--flag=value` support.
-
-Real cost: every existing test calling run() via monkeypatched
-sys.argv needs re-verifying against argparse’s own error-exit
-behavior (argparse calls sys.exit(2) directly on a parse error,
-different from this project’s own exit-code convention of 2 meaning
-"crashed," worth deciding whether that collision matters or is
-actually fine since both mean "did not run correctly").
-
-Not urgent with only two flags today, worth doing before a third
-flag (`--report`, already speculative in the full-summary-report
-backlog item) makes the hand-rolled approach genuinely painful.
-
-Note: `"--version"` has a `# pylint: disable=magic-value-comparison`
-suppression on it (the hand-rolled `sys.argv` check triggers the
-magic_value plugin). Once this migration replaces that check with
-`argparse`'s own `add_argument("--version", ...)`, remove that
-suppression. It becomes unnecessary once the literal moves into
-argparse’s own configuration rather than a bare comparison.
 
 ### Proper `.gitignore`-aware file discovery
 
@@ -347,15 +271,6 @@ fix the signature and let resulting TypeErrors at call sites surface
 the remaining work. Given the earlier documented caution about
 `ruff --fix` "messing everything up," worth treating any auto fix
 here as opt-in and clearly scoped, not a default behavior.
-
-### Investigate three specific dead-code detectors: Culler, uncalled, dead
-
-The tool vulture is already in pre-commit. Worth specifically investigating
-three named alternatives: Culler, uncalled, and dead. Not
-independently verified to exist under these exact names, worth
-confirming each first, then comparing detection approach,
-false-positive rate, and whether any catches something vulture’s own
-heuristics (confidence-scored, import-usage-based) miss.
 
 ### README duplication when adding a new rule
 
