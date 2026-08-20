@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.8.0] 2026-08-20
+
 ### Fixed
 
 - `pyrigor`'s CLI output hardcoded "Function" for every violation,
