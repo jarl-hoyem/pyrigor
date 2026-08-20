@@ -15,13 +15,27 @@ Effort and value are labeled `effort: XS` through `effort: L`, and
 is genuinely larger than `L`, it does not get an `XL` label, instead:
 
 1. Create a planning issue for it, sized whatever actually fits
-   (`S` or `M`, describing the planning work itself, not the whole
+   (`S` or `M`, describing the planning work itself, not the
    effort).
 2. In that planning issue, split the real work into smaller, linked
    issues, each sized normally.
 
 An `XL`-sized issue is a sign the work has not been broken down
 enough yet, not a size to label and leave as one item.
+
+## Labels
+
+Beyond `value:`/`effort:` (see sizing above) and a type label,
+check every issue against the full label set before finalizing, not
+just the three required minimums:
+
+`priority`, `pending other work`, `testing`,
+`technical debt / refactoring`, `good first issue`, `pedantic`,
+`documentation`, `tooling`, `rule in pyrigor`, and GitHub’s own defaults
+(`bug`, `enhancement`, `duplicate`, `invalid`, `wontfix`, `question`,
+`help wanted`). Multiple labels commonly apply at once, a type label
+plus `technical dept / refactoring` is a normal, expected
+combination, not redundant.
 
 ## Branching Strategy
 
