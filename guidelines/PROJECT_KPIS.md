@@ -42,6 +42,7 @@ Record the per-rule breakdown from the summary output below.
 | Release | Corpus pin | Files | Total violations | Per-rule breakdown | Delta vs. prior |
 |---|---|---|---|---|---|
 | 0.7.4 | home-assistant/core @ `ac63da9` | 18221 | 90921 | PYR301: 55, PYR401: 585, PYR402: 58819, PYR403: 30861, PYR405: 425, PYR406: 176 | _(first row, no prior)_ |
+| 0.8.0 | _(skipped)_ | | | | Neither #11 nor #46 changes what pyrigor detects (label text and suppression-comment recognition only), so a rescan would reproduce 0.7.4's row unchanged. Skipped deliberately, not forgotten. |
 
 ### Pin refreshes
 
@@ -88,3 +89,4 @@ comment ratio (`comments / sloc`) below.
 | Release | Files | LOC | LLOC | SLOC | Comment tokens | Multi-line string lines | Single-line comment/docstring lines | Blank | Comment ratio (tokens/SLOC) | Delta vs. prior |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0.7.4 | 13 | 1469 | 583 | 547 | 22 | 499 | 39 | 384 | 4.0% | _(first row, no prior)_ |
+| 0.8.0 | 13 | 1483 | 588 | 558 | 22 | 501 | 39 | 385 | 3.9% | LOC +14, LLOC +5, SLOC +11, blank +1, multi-line +2, comment ratio -0.1pp |
