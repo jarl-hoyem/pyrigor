@@ -101,6 +101,15 @@ New work items go to GitHub Issues, not `BACKLOG.md` — the file
 stays as-is, a historical archive of pre-existing items already
 written up.
 
+Blocking relationships between issues uses GitHub’s native "blocked
+by" feature, not prose "Blocked on #N"/"Blocks #N" text in the issue
+body. Set it via the UI, or the `addBlockedBy` GraphQL mutation —
+`gh issue`/`gh api` REST have no direct subcommand for it as of this
+writing. It is a real, bidirectional, filterable relationship, not
+just a citation. Older issues (#66/#67) still use the prose form
+from before this convention started. Not worth migrating
+retroactively. Use the real feature going forward.
+
 When starting work on an existing `BACKLOG.md` item, migrate it to
 a GitHub issue first: copy the full write-up over, at full
 fidelity, not compressed, then delete the entry from `BACKLOG.md`
