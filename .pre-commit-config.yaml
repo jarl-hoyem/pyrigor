@@ -74,16 +74,10 @@ repos:
         # exceeds this, prefer a refactoring, or a scoped, justified
         # inline ignore statement over raising this number globally.
         args: [ "--max-complexity-allowed", "6" ]
-  # Temporarily disabled: v0.7.3 predates #46's suppression-syntax
-  # change (colon dropped), so it can't recognize the new
-  # `# pyrigor CODE # reason` comments and floods false positives on
-  # every test using them. Re-enable once a release exists that
-  # understands the new syntax and the pin is bumped to it. See #21
-  # (pinned hook permanently trails one release) and #46.
-  # - repo: https://github.com/jarl-hoyem/pyrigor
-  #   rev: v0.7.3
-  #   hooks:
-  #     - id: pyrigor
+  - repo: https://github.com/jarl-hoyem/pyrigor
+    rev: v0.8.0
+    hooks:
+      - id: pyrigor
   - repo: local
     hooks:
       - id: pyright
