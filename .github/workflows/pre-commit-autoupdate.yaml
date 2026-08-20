@@ -16,6 +16,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
+      - name: Install pre-commit
+        run: uv pip install pre-commit
+
       - name: Run autoupdate
         run: uv run pre-commit autoupdate
 
