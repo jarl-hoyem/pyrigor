@@ -326,3 +326,24 @@ real git failure surfacing (check=True) is more honest than
 silently continuing with empty data. Rather than hardcode one
 behavior into the shared functions, check is a required keyword
 argument, letting each caller express its own actual philosophy.
+
+### Branch protection on main was verified via a real test PR, not just the API response
+
+#19 added branch protection (13 required checks from `ci.yaml`, 1
+required review, strict mode) via a direct `gh api` call. The API
+response confirmed the settings were accepted, but that only proves
+GitHub stored the configuration, not that it actually behaves as
+intended — this repo had zero human-authored PRs before this point
+(all 5 prior PRs were Dependabot's), so the mechanism had never
+actually been exercised.
+
+Also worth knowing going in: this is a personal-account repo, not an
+organization, so GitHub does not block a PR author from approving
+their own PR — that restriction only exists at the org level. The
+"1 required review" is real (a genuine, separate approve action is
+required before merge) but self-satisfiable right now, tracked as a
+real gap in #56, to close once a second contributor exists.
+
+Verified directly: this very entry is the content of that test PR.
+*(filled in once the merge behavior is actually observed, not
+predicted in advance)*
