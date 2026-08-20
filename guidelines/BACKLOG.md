@@ -14,7 +14,6 @@
 | Changelog draft generator                                                       | S     | L           |
 | mutmut unusable (blocked, upstream)                                             | —     | — (blocked) |
 | Review tool exemptions carried over from Pickomino                              | S     | S           |
-| A Rust implementation for a single file or module                               | XS    | L           |
 | Rule: no variable names without vowels                                          | S     | M           |
 | Rule: no variable names under four characters                                   | S     | M           |
 | Adoption guide split: new project versus legacy                                 | M     | S           |
@@ -152,15 +151,6 @@ from Pickomino’s own config as a starting template, not re-evaluated
 for whether they actually apply to pyrigor. Worth a deliberate pass
 checking each one against pyrigor’s own codebase and needs, rather
 than carrying Pickomino-specific exceptions forward by default.
-
-### A Rust implementation for a single file or module
-
-Explicitly a learning exercise, not a performance need (see
-`PERFORMANCE.md`'s own reasoning for why a full Rust rewrite is not
-justified now). Worth trying on one small,
-self-contained
-module first, to learn the shape of a Python/Rust boundary (`PyO3`
-or similar) before considering anything larger.
 
 ### Rule: No variable names without vowels
 
