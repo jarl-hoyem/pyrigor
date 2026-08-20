@@ -138,6 +138,19 @@ is genuinely the intent — a closing keyword in a commit message
 *is* the close action, not just a citation, and needs the same
 go-ahead as calling `gh issue close` directly.
 
+GitHub’s scanner has no concept of quotation or descriptive context
+either — it matches the literal text, full stop. Issue #11 was
+auto-closed by a commit whose message *quoted* a wrong changelog
+line ("v0.8.0’s own CHANGELOG.md entry said, 'Closes #11,' but #11
+was still open") specifically to explain why that line was wrong.
+The quoted phrase alone was enough to trigger the same auto-close it
+was describing as ineffective, with no closing comment, same as
+#10. Quoting someone else’s bad closing-keyword text, even to
+correct it, needs the same care as writing one directly. Rephrase
+the quoted reference (for example, "an entry claiming to close #11") or add
+a zero-width break, rather than reproducing the exact keyword-then-#N
+pattern verbatim.
+
 ## Project-wide conventions
 
 - All checker/CLI functions use keyword-only arguments (`*,`) — pyrigor enforces this on itself (PYR402/PYR403).
