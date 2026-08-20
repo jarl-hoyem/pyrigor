@@ -11,47 +11,21 @@ the release commit itself.
 import subprocess  # nosec -- fixed, local tooling commands only
 import sys
 
-_PYPROJECT_TOML = "pyproject.toml"
-
-
-# noinspection LongLine
-def _staged_files() -> list[str]:
-    """Get the list of staged file paths.
-
-    Returns:
-        Every file is staged for this commit.
-    """
-    # noinspection PyArgumentEqualDefault, PyPep8
-    result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=False)  # nosec # pylint: disable=line-too-long
-    return result.stdout.splitlines()
-
-
-# noinspection LongLine
-def _pyproject_version_changed() -> bool:
-    """Check whether pyproject.toml's version line changed in the staged diff.
-
-    Returns:
-        True if a version bump is present in the staged diff.
-    """
-    # noinspection PyArgumentEqualDefault, PyPep8
-    result = subprocess.run(
-        ["git", "diff", "--cached", "--", "pyproject.toml"], capture_output=True, text=True, check=False
-    )  # nosec # pylint: disable=line-too-long
-    return any(line.startswith("+version") for line in result.stdout.splitlines())
+from _dev_tooling_shared import _PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 
 def main() -> None:
     """Run pre-commit auto update and uv lock if a version bump is staged, then prompt to re-commit."""
-    if _PYPROJECT_TOML not in _staged_files() or not _pyproject_version_changed():
+    if _PYPROJECT_TOML not in staged_files(check=True) or not pyproject_version_changed(check=True):
         sys.exit(0)
 
     print("pyproject.toml version changed: running pre-commit autoupdate and uv lock.")
-    subprocess.run(["pre-commit", "autoupdate"], check=True)  # nosec
-    subprocess.run(["uv", "lock"], check=True)  # nosec
+    subprocess.run(["pre-commit", "autoupdate"], check=True)  # nosec # noqa: S607
+    subprocess.run(["uv", "lock"], check=True)  # nosec # noqa: S607
 
     # noinspection PyArgumentEqualDefault
     result = subprocess.run(  # nosec
-        ["git", "diff", "--name-only", "--", ".pre-commit-config.yaml", "uv.lock"],
+        ["git", "diff", "--name-only", "--", ".pre-commit-config.yaml", "uv.lock"],  # noqa: S607
         capture_output=True,
         text=True,
         check=False,

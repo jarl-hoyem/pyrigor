@@ -11,6 +11,14 @@ is usable for.
 
 ## [Unreleased]
 
+### Fixed
+
+- `pyrigor`'s CLI output hardcoded "Function" for every violation,
+  even ones that aren't functions — a PYR301 violation on an
+  annotated variable printed `Function 'x' ...` instead of
+  `Variable 'x' ...`. `Violation` now carries a `context_kind`,
+  set correctly per node type (Function/Variable/Call). Closes #11.
+
 ## [0.7.4] 2026-08-19
 
 ### Fixed

@@ -108,7 +108,10 @@ class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
 
 
 def find_function_violations(
-    *, nodes: list[ast.FunctionDef | ast.AsyncFunctionDef], predicate: _FunctionPredicateFun, rule: Rule
+    *,
+    nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
+    predicate: _FunctionPredicateFun,
+    rule: Rule,
 ) -> list[Violation]:
     """Flag every function node matching a predicate as a violation.
 
@@ -124,7 +127,10 @@ def find_function_violations(
 
 
 def find_assign_violations(
-    *, nodes: list[ast.AnnAssign], predicate: _AssignPredicateFun, rule: Rule
+    *,
+    nodes: list[ast.AnnAssign],
+    predicate: _AssignPredicateFun,
+    rule: Rule,
 ) -> list[Violation]:
     """Flag every annotated-assignment node matching a predicate as a violation.
 

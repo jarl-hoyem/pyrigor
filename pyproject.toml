@@ -47,9 +47,34 @@ strict = true
 target-version = "py311"
 line-length = 120
 
-# Far later
-# [tool.ruff.lint]
-# select = ["ALL"]
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "EM101", # descriptive f-strings directly in exceptions is this project's own established style
+  "EM102", # same reasoning as EM101, an inline f-string in a raise is fine here, not a custom-exception project
+  "TRY003", # long messages passed directly to builtin exceptions, no custom exception hierarchy adopted
+  "D203", # conflicts with D211 (no blank line before class wins)
+  "D213", # conflicts with D212 (first line summary wins)
+  "D413", # conflicts with Google docstring convention (no blank line after last section)
+  "CPY001", # no copyright-header convention adopted by this project
+  "ERA001", # TEMPORARY, remove once the issue "Change suppression comment
+  # syntax from colon to space (permanent)" is done. The tool pyrigor's
+  # own "# pyrigor: CODE # reason" line-above suppression
+  # comments collide with this rule (confirmed: own-line
+  # comments only, parse-based detection matches Python's
+  # bare annotation syntax). Re-enable this rule as part of
+  # that issue's own work, not before.
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]  # Assert is pytest's idiom, literal comparisons test's job, not a magic value
+"tests/*.py" = ["INP001"]  # bare tests/ directory has no __init__.py by design, pytest discovers it directly
+"scripts/**" = ["T201", "INP001"]  # Print is these dev-tooling scripts' output. Standalone scripts, not a package.
+"pyrigor/checkers/cli.py" = ["T201"]  # print is the CLI's own real output mechanism
+"pyrigor/suppression.py" = ["T201"]  # print is this module's own real stderr-warning mechanism
 
 [tool.pytest.ini_options]
 markers = [

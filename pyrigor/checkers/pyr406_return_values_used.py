@@ -10,7 +10,7 @@ from pyrigor.violations import Violation, make_violation
 _NONE_ANNOTATION_NAME = "None"
 
 _EXCLUDED_RETURN_NAMES = frozenset(
-    {_NONE_ANNOTATION_NAME, "NoReturn", "Never", "Iterator", "Generator", "AsyncGenerator"}
+    {_NONE_ANNOTATION_NAME, "NoReturn", "Never", "Iterator", "Generator", "AsyncGenerator"},
 )
 
 
@@ -278,6 +278,6 @@ def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
     """
     protected_names = _protected_function_names(function_nodes=nodes.function_nodes)
     matched_calls = _bare_name_call_matches(nodes=nodes, protected_names=protected_names) + _same_class_call_matches(
-        class_nodes=nodes.class_nodes
+        class_nodes=nodes.class_nodes,
     )
     return [make_violation(node=call, rule=Rule.PYR406) for call in matched_calls]

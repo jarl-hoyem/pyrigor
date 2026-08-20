@@ -39,9 +39,9 @@ Record the per-rule breakdown from the summary output below.
 
 ### History
 
-| Release                                     | Corpus pin | Files | Total violations | Per-rule breakdown | Delta vs. prior |
-|---------------------------------------------|------------|-------|------------------|--------------------|-----------------|
-| _(first row populated at the next release)_ |            |       |                  |                    |                 |
+| Release | Corpus pin | Files | Total violations | Per-rule breakdown | Delta vs. prior |
+|---|---|---|---|---|---|
+| 0.7.4 | home-assistant/core @ `ac63da9` | 18221 | 90921 | PYR301: 55, PYR401: 585, PYR402: 58819, PYR403: 30861, PYR405: 425, PYR406: 176 | _(first row, no prior)_ |
 
 ### Pin refreshes
 
@@ -54,8 +54,12 @@ for "pyrigor got noisier."
 ## Code-quality statistics (% comments, % blank) per release
 
 **What:** run `radon raw` against pyrigor’s own source and record
-line counts, split by kind (logical lines of code, comments, blank,
-docstring), plus a derived comment ratio. Migrated from
+its line-count fields (loc, lloc, sloc, comments, multi-line string
+lines, single-line comment-or-docstring lines, blank), plus a
+derived comment ratio. Note: radon does not cleanly separate
+comments from docstrings — `single_comments` covers both standalone
+comments and one-line docstrings, and `multi` is multi-line string
+content generally, not docstrings specifically. Migrated from
 `BACKLOG.md`, [#45](https://github.com/jarl-hoyem/pyrigor/issues/45).
 Observational only for now — no minimum ratio is enforced. If the
 trend shows something worth acting on later, that becomes its own,
@@ -77,10 +81,10 @@ uv run radon raw --json pyrigor/ > /tmp/kpi-raw.json
 ```
 
 Record the aggregate totals (summed across files) and the derived
-comment ratio (`comments / (loc - blank)`) below.
+comment ratio (`comments / sloc`) below.
 
 ### History
 
-| Release                                     | LOC | LLOC | Comments | Blank | Docstring lines | Comment ratio | Delta vs. prior |
-|---------------------------------------------|-----|------|----------|-------|-----------------|---------------|-----------------|
-| _(first row populated at the next release)_ |     |      |          |       |                 |               |                 |
+| Release | Files | LOC | LLOC | SLOC | Comment tokens | Multi-line string lines | Single-line comment/docstring lines | Blank | Comment ratio (tokens/SLOC) | Delta vs. prior |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.7.4 | 13 | 1469 | 583 | 547 | 22 | 499 | 39 | 384 | 4.0% | _(first row, no prior)_ |

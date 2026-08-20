@@ -237,3 +237,61 @@ The same precedent is already established in this project: mypy, pyright
 and ty all run simultaneously despite real overlap in what they
 catch, genuine defense in depth from independent implementations,
 not wasted duplication.
+
+## The tool pyrigor’s own suppression works anywhere in a wrapped statement’s span, deliberately
+
+Confirmed the contrast directly tonight: suppressing ruff’s S607/S603
+findings on wrapped `subprocess.run(...)` calls required getting the
+`# noqa` onto the *exact* physical line ruff’s own diagnostic
+pointed to, sometimes the opening line, sometimes the arguments
+line, easy to get wrong (happened twice in one session). Same
+friction hit earlier with the tool bandit’s own `# nosec`, same-line only, no
+tolerance at all.
+
+The tool pyrigor’s own suppression mechanism, by design, does not have this
+fragility. A `# pyrigor CODE # reason` comment works on the line
+above the violation, or on any line within the violation’s own
+`end_line` span, not just one exact physical line. Confirmed by,
+`test_suppression_comment_on_middle_line_of_multiline_statement_suppresses`
+and
+`test_suppression_comment_on_closing_line_of_multiline_statement_suppresses`.
+
+Worth stating this explicitly as a real, deliberate design advantage
+in the README.md or the eventual suppression-syntax reference doc, not
+just an implicit property. Adopters coming from the ruff/bandit’s own
+stricter placement rules will likely appreciate knowing this
+up front.
+
+## The tool ruff’s select = ["ALL"] adopted, with a real, evidence-based ignore list
+
+Considered simply picking a curated set of categories versus
+enabling everything and reviewing what comes back. Chose "ALL" plus
+a deliberate ignore list, following Pickomino’s own real precedent
+(confirmed directly from its pyproject.toml), rather than guessing
+at categories in the abstract. Every ignored rule has a real,
+specific reason (D203/D213/D413 conflict with the chosen docstring
+convention, COM812 conflicts with the formatter, EM101/EM102/TRY003
+reflect this project’s own no-custom-exception-hierarchy style,
+CPY001 has no adopted copyright convention). Verified empirically at
+each step (427 findings raw, resolved category by category down to
+16 real, individually reviewed fixes) rather than trusting the
+ignore list’s own reasoning without checking real output.
+
+## Dev-tooling scripts share real logic via a `check: bool` parameter, not a hardcoded default
+
+The file check_definition_of_done.py and version_sync.py both needed the
+identical git-diff-inspection logic (staged_files,
+pyproject_version_changed), found as genuine duplicate code by
+pylint’s own R0801, not just an incidental shared literal (unlike
+the filename-constants decision, which stayed local per script).
+Extracted into scripts/_dev_tooling_shared.py.
+
+The two callers need genuinely different failure behavior, though:
+check_definition_of_done.py explicitly promises "never fails the
+commit" in its own docstring, so a real git failure should not
+crash it (check=False). The file version_sync.py makes no such promise and
+already has a real, intentional failure path (sys.exit(1)), so a
+real git failure surfacing (check=True) is more honest than
+silently continuing with empty data. Rather than hardcode one
+behavior into the shared functions, check is a required keyword
+argument, letting each caller express its own actual philosophy.

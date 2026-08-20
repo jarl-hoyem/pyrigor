@@ -17,7 +17,7 @@ def main() -> None:
     env["PYTHONUTF8"] = "1"
 
     # noinspection PyArgumentEqualDefault
-    result = subprocess.run(["complexipy", *sys.argv[1:]], env=env, check=False)  # nosec
+    result = subprocess.run(["complexipy", *sys.argv[1:]], env=env, check=False)  # nosec # noqa: S603, S607
     sys.exit(result.returncode)
 
 

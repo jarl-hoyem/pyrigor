@@ -23,7 +23,7 @@ def _run_git(*, args: list[str], cwd: Path) -> None:
         args: The git subcommand and its arguments.
         cwd: The repository to run inside.
     """
-    subprocess.run(["git", *args], cwd=cwd, capture_output=True, check=True)  # nosec -- fixed args, throwaway test repo
+    subprocess.run(["git", *args], cwd=cwd, capture_output=True, check=True)  # nosec # noqa: S603, S607
 
 
 def _init_repo(*, path: Path) -> None:
@@ -50,8 +50,12 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     Returns:
         The completed process, with captured stdout.
     """
-    return subprocess.run(  # nosec -- fixed script path, throwaway test repo
-        [sys.executable, str(_SCRIPT)], cwd=cwd, capture_output=True, text=True, check=True
+    return subprocess.run(  # nosec -- fixed script path, throwaway test repo  # noqa: S603
+        [sys.executable, str(_SCRIPT)],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=True,
     )
 
 

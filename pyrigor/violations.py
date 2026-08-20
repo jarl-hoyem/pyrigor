@@ -13,6 +13,7 @@ class Violation(NamedTuple):
     end_line: int
     column: int
     context_name: str
+    context_kind: str
     rule: Rule
 
 
@@ -62,15 +63,19 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
     """
     if isinstance(node, ast.AnnAssign):
         name = _name_from_ann_assign(node=node)
+        kind = "Variable"
     elif isinstance(node, ast.Call):
         name = _name_from_call(node=node)
+        kind = "Call"
     else:
         name = node.name
+        kind = "Function"
 
     return Violation(
         line=node.lineno,
         end_line=node.end_lineno or node.lineno,
         column=node.col_offset + 1,
         context_name=name,
+        context_kind=kind,
         rule=rule,
     )

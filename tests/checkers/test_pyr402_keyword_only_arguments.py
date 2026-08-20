@@ -72,7 +72,8 @@ def apply_correction(*args, **kwargs):
 def test_no_violation_for_single_named_param_before_args() -> None:
     """A single named param before *args is exempt from PYR402 (see PYR403).
 
-    The arguments *args/**kwargs are already exempt, leaving only one real param."""
+    The arguments *args/**kwargs are already exempt, leaving only one real param.
+    """
     source = """
 def apply_correction(weight, *args, **kwargs):
     ...

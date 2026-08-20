@@ -26,7 +26,7 @@ _DEFAULT_EXCLUDES = frozenset(
         "dist",
         ".eggs",
         "site-packages",
-    }
+    },
 )
 
 
@@ -159,8 +159,8 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     for violation in result.kept:
         location = f"{path}:{violation.line}:{violation.column}"
         print(
-            f"{location}: {violation.rule.name} Function '{violation.context_name}' "
-            f"{violation.rule.problem} ({violation.rule.symbolic_name})"
+            f"{location}: {violation.rule.name} {violation.context_kind} '{violation.context_name}' "
+            f"{violation.rule.problem} ({violation.rule.symbolic_name})",
         )
 
     return FileCheckResult(kept=result.kept, suppressed=result.suppressed)

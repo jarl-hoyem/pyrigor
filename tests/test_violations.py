@@ -33,3 +33,34 @@ def test_end_line_reflects_multiline_call_span() -> None:
 
     assert violation.line == 1
     assert violation.end_line == 3
+
+
+def test_context_kind_is_variable_for_ann_assign_node() -> None:
+    """make_violation should label an annotated-assignment node's kind as 'Variable', not 'Function'."""
+    stmt = ast.parse("x: tuple[int, str] = (1, 'a')").body[0]
+    assert isinstance(stmt, ast.AnnAssign)
+
+    violation = make_violation(node=stmt, rule=Rule.PYR301)
+
+    assert violation.context_kind == "Variable"
+
+
+def test_context_kind_is_call_for_call_node() -> None:
+    """make_violation should label a Call node's kind as 'Call', not 'Function'."""
+    stmt = ast.parse("compute_total(items)").body[0]
+    assert isinstance(stmt, ast.Expr)
+    assert isinstance(stmt.value, ast.Call)
+
+    violation = make_violation(node=stmt.value, rule=Rule.PYR406)
+
+    assert violation.context_kind == "Call"
+
+
+def test_context_kind_is_function_for_function_node() -> None:
+    """make_violation should label a function node's kind as 'Function'."""
+    stmt = ast.parse("def apply_correction(weight, bias):\n    ...\n").body[0]
+    assert isinstance(stmt, ast.FunctionDef)
+
+    violation = make_violation(node=stmt, rule=Rule.PYR402)
+
+    assert violation.context_kind == "Function"
