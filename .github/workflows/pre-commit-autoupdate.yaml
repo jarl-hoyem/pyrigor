@@ -23,6 +23,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.PYRIGOR_AUTOMERGE_PAT }}
           commit-message: "chore: autoupdate pre-commit hooks"
           title: "chore: autoupdate pre-commit hooks"
           branch: pre-commit-autoupdate
@@ -32,4 +33,4 @@ jobs:
         if: steps.cpr.outputs.pull-request-number
         run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PYRIGOR_AUTOMERGE_PAT }}
