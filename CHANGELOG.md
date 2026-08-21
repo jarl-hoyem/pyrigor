@@ -13,12 +13,23 @@ is usable for.
 
 ### Changed
 
-- CLI argument parsing (`--version`/`-V`, `--only`, paths) now uses
+- CLI argument parsing (`--version`/`-V`, `--select`, paths) now uses
   the standard library's `argparse` instead of hand-rolled `sys.argv`
-  scanning (#51). Real behavior improvements: `--only PYR401`
-  (space-separated) now works, previously only `--only=PYR401` was
+  scanning (#51). Real behavior improvements: `--select PYR401`
+  (space-separated) now works, previously only `--select=PYR401` was
   recognized. An unrecognized flag is now an error immediately instead of
   being silently treated as a path. Also `--help` is now available.
+- `--only` renamed to `--select`, matching ruff's naming convention
+  (#68). Same behavior, no deprecated alias — pyrigor has no users
+  yet.
+
+### Added
+
+- `--ignore=CODE,CODE` flag, the rule-axis opposite of `--select`
+  (#69). Excludes specific rules while running every other one;
+  combines with `--select` (start from its set, remove `--ignore`'s
+  codes) the same way ruff's own `select`/`ignore` combine. A
+  combination that leaves no rules to check errors immediately.
 
 ## [0.8.0] 2026-08-20
 

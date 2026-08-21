@@ -67,11 +67,15 @@ PYR301, PYR401, PYR402, PYR403, PYR405, and PYR406 are enforced today. A violati
 exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
 
 Run `pyrigor --version` to check the installed version.
-Use `--only=CODE,CODE` to restrict checking to specific rules, for
-example `pyrigor --only=PYR401,keyword-only-arguments path/`. The Codes
-may be given as the full code, the bare number, or the symbolic
-name, the same as suppression comments. An unrecognized code exits
-immediately with an error naming it.
+Use `--select=CODE,CODE` to restrict checking to specific rules, for
+example `pyrigor --select=PYR401,keyword-only-arguments path/`. Use
+`--ignore=CODE,CODE` to exclude specific rules instead, running
+every other one. Both may be combined — `--ignore` removes codes
+from `--select`'s set (or from every rule, if `--select` is
+omitted). The codes may be given as the full code, the bare number,
+or the symbolic name, the same as suppression comments. An
+unrecognized code exits immediately with an error naming it, as does
+a `--select`/`--ignore` combination that leaves no rules to check.
 
 To suppress a specific violation, add a same-line comment with a
 reason:

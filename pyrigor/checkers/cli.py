@@ -294,51 +294,82 @@ def _aggregate_results(*, results_by_file: dict[str, FileCheckResult]) -> _Check
     )
 
 
-def _matches_rule_filter(*, rule: Rule, only: set[str]) -> bool:
-    """Check whether a rule matches a lenient --only filter set.
+def _matches_rule_filter(*, rule: Rule, tokens: set[str]) -> bool:
+    """Check whether a rule matches a lenient token filter set.
 
     Args:
         rule: The rule to check.
-        only: Tokens from --only, each is a full code, bare number, or symbolic name.
+        tokens: Tokens to match against, each is a full code, bare number, or symbolic name.
 
     Returns:
-        True if the rule's code, numeric shorthand, or symbolic name is in only.
+        True if the rule's code, numeric shorthand, or symbolic name is in tokens.
     """
     code = rule.name
     shorthand = code.removeprefix("PYR")
     name = rule.symbolic_name
 
-    return bool(only & {code, shorthand, name})
+    return bool(tokens & {code, shorthand, name})
 
 
-def _filter_checkers(*, only: set[str] | None) -> tuple[RegisteredChecker, ...]:
-    """Filter CHECKERS down to only the rules matching --only if given.
+def _apply_select(*, checkers: tuple[RegisteredChecker, ...], select: set[str] | None) -> tuple[RegisteredChecker, ...]:
+    """Narrow checkers down to '--select's' set, or leave them unchanged if select is None.
 
     Args:
-        only: Tokens from --only, or None to run every registered checker.
+        checkers: The checkers to narrow.
+        select: Tokens from --select, or None to leave checkers unchanged.
 
     Returns:
-        The filtered checker tuple, or all the CHECKERS if only is None.
+        The narrowed checker tuple.
     """
-    if only is None:
-        return CHECKERS
+    if select is None:
+        return checkers
+    return tuple(entry for entry in checkers if _matches_rule_filter(rule=entry.rule, tokens=select))
 
-    return tuple(entry for entry in CHECKERS if _matches_rule_filter(rule=entry.rule, only=only))
+
+def _apply_ignore(*, checkers: tuple[RegisteredChecker, ...], ignore: set[str] | None) -> tuple[RegisteredChecker, ...]:
+    """Remove '--ignore's' set from checkers, or leave them unchanged if ignore is None.
+
+    Args:
+        checkers: The checkers to filter.
+        ignore: Tokens from --ignore, or None to leave checkers unchanged.
+
+    Returns:
+        The filtered checker tuple.
+    """
+    if ignore is None:
+        return checkers
+    return tuple(entry for entry in checkers if not _matches_rule_filter(rule=entry.rule, tokens=ignore))
 
 
-def main(*, paths: list[str], only: set[str] | None = None) -> int:
+def _filter_checkers(*, select: set[str] | None, ignore: set[str] | None) -> tuple[RegisteredChecker, ...]:
+    """Filter CHECKERS down to the rules matching --select, minus --ignore.
+
+    Args:
+        select: Tokens from --select, or None to start from every registered checker.
+        ignore: Tokens from --ignore, or None to exclude nothing.
+
+    Returns:
+        The filtered checker tuple.
+    """
+    selected = _apply_select(checkers=CHECKERS, select=select)
+    return _apply_ignore(checkers=selected, ignore=ignore)
+
+
+def main(*, paths: list[str], select: set[str] | None = None, ignore: set[str] | None = None) -> int:
     """Run all checkers against the given file paths.
 
     Args:
         paths: File or directory paths to check.
-        only: Rule codes/shorthand/symbolic names to restrict checking
-            to, or None to run every registered checker.
+        select: Rule codes/shorthand/symbolic names to restrict checking
+            to, or None to start from every registered checker.
+        ignore: Rule codes/shorthand/symbolic names to exclude from
+            checking, or None to exclude nothing.
 
     Returns:
         0 if no violations were found, 1 otherwise.
     """
     files = _collect_python_files(paths=paths)
-    checkers = _filter_checkers(only=only)
+    checkers = _filter_checkers(select=select, ignore=ignore)
     start = time.perf_counter()
 
     results_by_file = {path: _check_file(path=path, checkers=checkers) for path in files}
@@ -361,7 +392,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Build the console-script's argument parser.
 
     Returns:
-        A parser recognizing --version/-V, --only, and one or more paths.
+        A parser recognizing --version/-V, --select, --ignore, and one or more paths.
     """
     parser = argparse.ArgumentParser(prog="pyrigor", allow_abbrev=False)
     parser.add_argument(
@@ -371,46 +402,56 @@ def _build_parser() -> argparse.ArgumentParser:
         version=f"pyrigor {version('pyrigor')}",
     )
     parser.add_argument(
-        "--only",
-        # action="append", not the default, so a second --only can be detected and rejected below
+        "--select",
+        # action="append", not the default, so a second '--select' can be detected and rejected below
         action="append",
         help="Restrict checking to these rule codes, comma-separated (PYR402, 402, or keyword-only-arguments).",
+    )
+    parser.add_argument(
+        "--ignore",
+        # action="append", not the default, so a second '--ignore' can be detected and rejected below
+        action="append",
+        help="Exclude these rule codes from checking, comma-separated (PYR402, 402, or keyword-only-arguments).",
     )
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
 
 
-def _reject_repeated_only_flag(*, only: list[str] | None) -> None:
-    """Exit with an error if --only was given more than once.
+def _reject_repeated_flag(*, flag_name: str, values: list[str] | None) -> None:
+    """Exit with an error if a flag accepting one value was given more than once.
 
     Args:
-        only: The raw --only values argparse's append action collected.
+        flag_name: The flag's name, for the error message (for example, "--select").
+        values: The raw values argparse's append action is collected.
     """
-    if only is not None and len(only) > 1:
-        print("pyrigor: --only can only be given once (use --only=CODE,CODE for multiple rules)", file=sys.stderr)
+    if values is not None and len(values) > 1:
+        print(
+            f"pyrigor: {flag_name} can only be given once (use {flag_name}=CODE,CODE for multiple rules)",
+            file=sys.stderr,
+        )
         sys.exit(2)
 
 
-def _parse_only_tokens(*, only: list[str] | None) -> set[str] | None:
-    """Split --only's single collected value into its comma-separated tokens.
+def _parse_flag_tokens(*, values: list[str] | None) -> set[str] | None:
+    """Split a flag's single collected value into its comma-separated tokens.
 
     Args:
-        only: The raw --only values argparse's append action collected, already
-            confirmed by _reject_repeated_only_flag to contain at most one entry.
+        values: The raw values argparse's append action collected, already
+            confirmed by _reject_repeated_flag to contain at most one entry.
 
     Returns:
-        The parsed set of tokens, or None if --only was not given.
+        The parsed set of tokens, or None if the flag was not given.
     """
-    if not only:
+    if not values:
         return None
-    return {token.strip() for token in only[0].split(",")}
+    return {token.strip() for token in values[0].split(",")}
 
 
 def _known_rule_identities() -> set[str]:
     """Collect every valid way to refer to a registered rule: code, shorthand, symbolic name.
 
     Returns:
-        The full set of tokens --only will accept.
+        The full set of tokens --select/--ignore will accept.
     """
     codes = {entry.rule.name for entry in CHECKERS}
     shorthands = {entry.rule.name.removeprefix("PYR") for entry in CHECKERS}
@@ -419,18 +460,30 @@ def _known_rule_identities() -> set[str]:
     return codes | shorthands | symbolic_names
 
 
-def _validate_only_flag(*, only: set[str] | None) -> None:
-    """Exit with an error if --only contains a code that matches no registered rule.
+def _validate_flag_tokens(*, flag_name: str, tokens: set[str] | None) -> None:
+    """Exit with an error if tokens contain a code that matches no registered rule.
 
     Args:
-        only: Tokens from --only, or None if the flag was not given.
+        flag_name: The flag's name, for the error message (for example, "--select").
+        tokens: Tokens from the flag, or None if the flag was not given.
     """
-    if only is None:
+    if tokens is None:
         return
 
-    unknown = only - _known_rule_identities()
+    unknown = tokens - _known_rule_identities()
     if unknown:
-        print(f"pyrigor: unknown rule code(s) in --only: {', '.join(sorted(unknown))}", file=sys.stderr)
+        print(f"pyrigor: unknown rule code(s) in {flag_name}: {', '.join(sorted(unknown))}", file=sys.stderr)
+        sys.exit(2)
+
+
+def _reject_empty_selection(*, checkers: tuple[RegisteredChecker, ...]) -> None:
+    """Exit with an error if --select/--ignore combines to leave no rules to check.
+
+    Args:
+        checkers: The checkers --select/--ignore filtered down to.
+    """
+    if not checkers:
+        print("pyrigor: --select and --ignore combine to leave no rules to check", file=sys.stderr)
         sys.exit(2)
 
 
@@ -439,12 +492,16 @@ def run() -> None:
     parser = _build_parser()
     args = parser.parse_args()
 
-    _reject_repeated_only_flag(only=args.only)
-    only = _parse_only_tokens(only=args.only)
-    _validate_only_flag(only=only)
+    _reject_repeated_flag(flag_name="--select", values=args.select)
+    _reject_repeated_flag(flag_name="--ignore", values=args.ignore)
+    select = _parse_flag_tokens(values=args.select)
+    ignore = _parse_flag_tokens(values=args.ignore)
+    _validate_flag_tokens(flag_name="--select", tokens=select)
+    _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
+    _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
 
     try:
-        exit_code = main(paths=args.paths, only=only)
+        exit_code = main(paths=args.paths, select=select, ignore=ignore)
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(2)

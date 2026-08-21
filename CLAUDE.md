@@ -22,7 +22,8 @@ Run the linter itself:
 
 ```bash
 uv run pyrigor path/to/file.py [path/to/dir ...]
-uv run pyrigor --only=PYR401,PYR402 path/     # restrict to specific rules (code, bare number, or symbolic name)
+uv run pyrigor --select=PYR401,PYR402 path/   # restrict to specific rules (code, bare number, or symbolic name)
+uv run pyrigor --ignore=PYR406 path/          # exclude specific rules instead; combines with --select
 uv run pyrigor --version
 ```
 

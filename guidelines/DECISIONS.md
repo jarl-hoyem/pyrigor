@@ -129,6 +129,37 @@ removes that risk at the cost of not covering method calls at all,
 consistent with the guideline doc’s own examples, which are all
 bare-name, module-level or nested function calls.
 
+### The --select/--ignore combines like ruff’s select/ignore, and full-overlap combination errors
+
+`--only` was renamed to `--select` (#68), and `--ignore` was added
+(#69) as its rule-axis opposite, matching ruff’s own `select`/
+`ignore` pair rather than inventing pyrigor-specific terms (a
+principle first stated on #66).
+
+Combination semantics, verified against ruff’s own documented
+behavior rather than assumed: `--ignore` removes codes from
+`--select`’s set (or from every rule, if `--select` is omitted).
+Order on the command line never matters. Argparse collects each
+flag’s own value independently of where it sits relative to the
+other flag. `_filter_checkers()`’s combination logic is pure set
+arithmetic on the final parsed values, not a fold over argv in parse
+order. Partial overlap (`--select=PYR401,PYR402 --ignore=PYR402`,
+leaving PYR401) is the intended, normal use case, matching ruff’s
+own documented "select a category, ignore one rule within it"
+pattern — not an error.
+
+Full overlap is different in kind, not just degree — a combination
+that empties the selection entirely (`--select 403 --ignore 403`)
+produces zero checkers to run. That is technically successful but
+certainly unintended, the same failure shape `nargs="+"` already
+closed for zero paths (#51). The `_reject_empty_selection()` catches
+this in `run()`, not inside `main()`, keeping `main()` a pure
+function that never touches `sys.exit()`/stderr itself. This costs
+one extra, inexpensive call to `_filter_checkers()` (pure, iterating a
+small fixed tuple) but preserves that separation rather than
+threading exit-code concerns into the library function tests call
+directly.
+
 ### CLI exit code 2 covers both a crash and a bad invocation, deliberately not split
 
 When pyrigor's `run()` migrated from hand-rolled `sys.argv` scanning

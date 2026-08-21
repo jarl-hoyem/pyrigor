@@ -225,12 +225,13 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
     """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
 
     # noinspection PyUnusedLocal
-    def _boom(*, paths: list[str], only: set[str] | None) -> int:
+    def _boom(*, paths: list[str], select: set[str] | None, ignore: set[str] | None) -> int:
         # Must accept the same keywords as main()'s real call site
-        # (main (paths=args.paths, only=only)), or a TypeError is raised
-        # instead of the intended RuntimeError, still caught by the same
-        # except Exception handler but not exercising the real crash path.
-        del paths, only
+        # (main (paths=args.paths, select=select, ignore=ignore)), or a
+        # TypeError is raised instead of the intended RuntimeError, still
+        # caught by the same except Exception handler but not exercising
+        # the real crash path.
+        del paths, select, ignore
         raise RuntimeError("something genuinely broke")
 
     monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)
@@ -314,11 +315,11 @@ def test_summary_aggregates_multiple_suppressions_under_same_rule(
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_main_only_runs_specified_rule(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """With only={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
+def test_main_select_runs_specified_rule(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """With select={"PYR401"}, only PYR401 violations should be reported, even if others exist."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
 
-    main(paths=[str(tmp_path)], only={"PYR401"})
+    main(paths=[str(tmp_path)], select={"PYR401"})
 
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
@@ -326,14 +327,14 @@ def test_main_only_runs_specified_rule(tmp_path: Path, capsys: pytest.CaptureFix
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_parses_only_flag(
+def test_run_parses_select_flag(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """run() should parse --only=CODE, CODE out of argv and pass it to main()."""
+    """run() should parse --select=CODE, CODE out of argv and pass it to main()."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401", str(tmp_path)])
 
     with pytest.raises(SystemExit):
         run()
@@ -344,11 +345,11 @@ def test_run_parses_only_flag(
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """--only should accept a rule's symbolic-name, not just its code."""
+def test_main_select_accepts_symbolic_name(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """--select should accept a rule's symbolic-name, not just its code."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
 
-    main(paths=[str(tmp_path)], only={"namedtuple-returns"})
+    main(paths=[str(tmp_path)], select={"namedtuple-returns"})
 
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
@@ -356,14 +357,14 @@ def test_main_only_accepts_symbolic_name(tmp_path: Path, capsys: pytest.CaptureF
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_tolerates_whitespace(
+def test_run_select_flag_tolerates_whitespace(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--only=CODE, CODE with a space after the comma should still work."""
+    """--select=CODE, CODE with a space after the comma should still work."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401, PYR402", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401, PYR402", str(tmp_path)])
 
     with pytest.raises(SystemExit):
         run()
@@ -374,11 +375,11 @@ def test_run_only_flag_tolerates_whitespace(
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_main_only_accepts_bare_number_shorthand(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """--only should accept a rule's bare number, not just its full code."""
+def test_main_select_accepts_bare_number_shorthand(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """--select should accept a rule's bare number, not just its full code."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
 
-    main(paths=[str(tmp_path)], only={"401"})
+    main(paths=[str(tmp_path)], select={"401"})
 
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
@@ -386,13 +387,13 @@ def test_main_only_accepts_bare_number_shorthand(tmp_path: Path, capsys: pytest.
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_errors_on_unknown_code(
+def test_run_select_flag_errors_on_unknown_code(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--only with an unrecognized code should error immediately, not silently run zero checkers."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR999", str(tmp_path)])
+    """--select with an unrecognized code should error immediately, not silently run zero checkers."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR999", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
@@ -404,26 +405,29 @@ def test_run_only_flag_errors_on_unknown_code(
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_errors_on_repeated_flag(
+def test_run_select_flag_errors_on_repeated_flag(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A second --only= flag should error immediately, not get treated as a path."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", str(tmp_path)])
+    """A second --select= flag should error immediately, not get treated as a path."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401", "--select=PYR402", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
     assert exc_info.value.code == 2
     captured = capsys.readouterr()
-    assert "--only" in captured.err
+    assert "--select" in captured.err
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """More than two --only= flags should still error, not just exactly two."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", "--only=PYR403", str(tmp_path)])
+def test_run_select_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """More than two --select= flags should still error, not just exactly two."""
+    monkeypatch.setattr(
+        "sys.argv",
+        ["pyrigor", "--select=PYR401", "--select=PYR402", "--select=PYR403", str(tmp_path)],
+    )
 
     with pytest.raises(SystemExit) as exc_info:
         run()
@@ -432,9 +436,9 @@ def test_run_only_flag_errors_on_three_repeated_flags(tmp_path: Path, monkeypatc
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Two --only= flags with the same value should still error, not just when they disagree."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR401", str(tmp_path)])
+def test_run_select_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two --select= flags with the same value should still error, not just when they disagree."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401", "--select=PYR401", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
@@ -443,14 +447,14 @@ def test_run_only_flag_errors_on_repeated_identical_flag(tmp_path: Path, monkeyp
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_errors_on_repeated_flag_before_processing_files(
+def test_run_select_flag_errors_on_repeated_flag_before_processing_files(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """The repeated-flag error should fire before any file is checked, not after a partial run."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only=PYR401", "--only=PYR402", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401", "--select=PYR402", str(tmp_path)])
 
     with pytest.raises(SystemExit):
         run()
@@ -482,14 +486,14 @@ def test_run_no_paths_errors(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_only_flag_accepts_space_separated_form(
+def test_run_select_flag_accepts_space_separated_form(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--only PYR401 (space-separated, not --only=PYR401) should now work."""
+    """--select PYR401 (space-separated, not --select=PYR401) should now work."""
     (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--only", "PYR401", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select", "PYR401", str(tmp_path)])
 
     with pytest.raises(SystemExit):
         run()
@@ -513,3 +517,146 @@ def test_run_short_version_flag_prints_version_and_exits(
     captured = capsys.readouterr()
     assert exc_info.value.code == 0
     assert "pyrigor" in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_ignore_only_excludes_from_full_rule_set(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--ignore alone should exclude the given rule but still run every other one."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_ignore_flag_accepts_symbolic_name(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--ignore should accept a rule's symbolic name, not just its code."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=keyword-only-arguments", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_ignore_flag_accepts_space_separated_form(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--ignore PYR402 (space-separated, not --ignore=PYR402) should work."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore", "PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_ignore_flag_errors_on_unknown_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--ignore with an unrecognized code should error immediately, using --ignore in the message."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR999", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "PYR999" in captured.err
+    assert "--ignore" in captured.err
+    assert "unknown" in captured.err.lower()
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_ignore_flag_errors_on_repeated_flag(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A second --ignore= flag should error immediately, using --ignore in the message."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR401", "--ignore=PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "--ignore" in captured.err
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_select_and_ignore_combine_with_partial_overlap(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--select and --ignore together should start from '--select's' set and remove '--ignore's' codes."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR401,PYR402", "--ignore=PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_select_and_ignore_order_does_not_matter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--ignore given before --select should combine identically to --select given first."""
+    (tmp_path / "bad.py").write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR402", "--select=PYR401,PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    captured = capsys.readouterr()
+    assert "PYR401" in captured.out
+    assert "PYR402" not in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_select_and_ignore_full_overlap_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--select and --ignore naming the same rule should error, not silently check zero rules."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=403", "--ignore=403", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "no rules to check" in captured.err.lower()
