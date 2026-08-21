@@ -15,7 +15,6 @@
 | Rule: no variable names without vowels                                          | S     | M           |
 | Rule: no variable names under four characters                                   | S     | M           |
 | Adoption guide split: new project versus legacy                                 | M     | S           |
-| A static pyrigor badge                                                          | XS    | XS          |
 | A dynamic pyrigor status badge                                                  | S     | L           |
 | Summary output inconsistency (missing label)                                    | S     | XS          |
 | OSSF Secure Coding Guide, broader review                                        | M     | M           |
@@ -150,17 +149,6 @@ of pre-existing violations, likely needing a gradual, per-rule
 rollout strategy. Adopt one rule, fix it, add the next rather than
 turning on all rules at once. Worth a dedicated adoption guide
 covering both paths.
-
-### A static pyrigor badge, like ruff’s own
-
-Scoped: a plain static shields.io badge, no dynamic data, no
-hosting, matching ruff’s own badge in this README, which is also
-purely static, for example
-`https://img.shields.io/badge/checked%20with-pyrigor-blue`. Effort
-is trivial, deciding wording and color, adding a copyable Markdown
-snippet to CONTRIBUTING.md, or the README for adopting projects to
-use. Still gated on having a real adopting audience for the badge to
-matter to.
 
 ### A dynamic pyrigor status badge
 

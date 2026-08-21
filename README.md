@@ -21,6 +21,7 @@
 [![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![Dead code: vulture](https://img.shields.io/badge/dead%20code-vulture-brightgreen)](https://github.com/jendrikseipp/vulture)
 [![codespell](https://img.shields.io/badge/spelling-codespell-brightgreen)](https://github.com/codespell-project/codespell)
+[![Checked with pyrigor](https://img.shields.io/badge/checked%20with-pyrigor-blue)](https://github.com/jarl-hoyem/pyrigor)
 
 Catches the class of bug type checkers structurally cannot: a
 NamedTuple/keyword-only-argument/return-value-usage rule set for
@@ -148,6 +149,12 @@ remote hook, the same way you would add `ruff` or `black`:
 Pin `rev:` to a real, released tag, not `main`. Check the
 [release page](https://github.com/jarl-hoyem/pyrigor/releases) for
 the latest version.
+
+Show it in your own README:
+
+```markdown
+[![Checked with pyrigor](https://img.shields.io/badge/checked%20with-pyrigor-blue)](https://github.com/jarl-hoyem/pyrigor)
+```
 
 ## What this is
 

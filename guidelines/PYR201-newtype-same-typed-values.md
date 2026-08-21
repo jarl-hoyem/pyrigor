@@ -2,10 +2,10 @@
 
 ## Rule
 
-Any two or more values — function arguments or `NamedTuple` fields —
-that share an underlying type and could plausibly be confused for one
-another must use distinct `NewType` wrappers rather than the bare
-underlying type. Skip it where confusion is not realistically possible.
+Two or more separate, individually named parameters or `NamedTuple`
+fields, within a locally defined function or class, that share an
+identical bare type annotation, must use distinct `NewType` wrappers
+rather than the bare underlying type.
 
 ## Rationale
 
@@ -96,14 +96,20 @@ argument against using it wherever confusion is plausible.
 
 ## When this does not apply
 
-- Values of the same type that are genuinely interchangeable and never
-  confused in practice (for example, a list of same-typed sensor
-  readings where position/order carries no independent meaning).
-- A single occurrence of a type with no sibling value of the same type
-  nearby to be confused with.
-- Third-party APIs where wrapping the type would require constant
-  unwrapping at every call site with no realistic swap risk to guard
-  against.
+- A homogeneous collection of same-typed values (for example,
+  `list[float]` sensor readings) never matches this rule at all. It
+  is not expressed as separate, individually named parameters or
+  fields. Structurally excluded, not a judgment
+  call.
+- A function or class defined outside the codebase pyrigor is
+  checking is never in scope, matching PYR406's own established
+  scoping. A third-party API's own unwrapping cost is never pyrigor's
+  call to make.
+- A single occurrence of a type, with no sibling of the same type
+  nearby, is mechanically excluded by the "two or more" count itself.
+- Any remaining, genuine exception, use a suppression comment,
+  `# pyrigor: 201 # reason`, rather than expecting the rule to infer
+  it automatically.
 
 ## Related
 
