@@ -22,10 +22,31 @@
 [![Dead code: vulture](https://img.shields.io/badge/dead%20code-vulture-brightgreen)](https://github.com/jendrikseipp/vulture)
 [![codespell](https://img.shields.io/badge/spelling-codespell-brightgreen)](https://github.com/codespell-project/codespell)
 
-Disciplined Python patterns for catching bugs that type checkers and
-standard linters miss — inspired by safety-critical coding guidelines from
-other languages, adapted for a language and ecosystem they were not written
-for.
+Catches the class of bug type checkers structurally cannot: a
+NamedTuple/keyword-only-argument/return-value-usage rule set for
+Python, inspired by safety-critical coding guidelines from other
+languages.
+
+- Seven enforced rules, catching real, silent bugs mypy strict mode
+  passes clean
+- Validated against real, public codebases: CPython's stdlib, Home
+  Assistant, mypy, requests, hypothesis, abseil-py
+- Checks an 18,187-file real-world codebase in under a minute
+- Drop-in pre-commit integration, or run standalone
+
+## Table of Contents
+
+- [The problem, in one example](#the-problem-in-one-example)
+- [Usage](#usage)
+- [Adding pyrigor to your own project](#adding-pyrigor-to-your-own-project)
+- [What this is](#what-this-is)
+- [Status](#status)
+- [Guidelines](#guidelines)
+- [Philosophy](#philosophy)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+- [Contact](#contact)
+- [License](#license)
 
 ## The problem, in one example
 
@@ -45,7 +66,7 @@ def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float:
 compute_burn_time(thrust=fuel_mass, fuel_mass=thrust)
 ```
 
-This is pyrigor’s PYR201 rule, `NewType` for same-typed values at
+This is pyrigor's PYR201 rule, `NewType` for same-typed values at
 risk of being swapped. It is documented today, not yet enforced.
 What pyrigor already catches, right now:
 
@@ -86,20 +107,20 @@ def f(weight, bias):  # pyrigor PYR402 # matches a fixed external API
 ```
 
 Codes may be given as the full code (`PYR402`), the bare number
-(`402`), or the rule’s symbolic name (`keyword-only-arguments`).
+(`402`), or the rule's symbolic name (`keyword-only-arguments`).
 Multiple codes: `# pyrigor 402,403 # reason`. A suppression comment
 without a reason is ignored, and a warning is printed. Suppressed
 violations are counted per rule in the summary (`PYR402: 1
 suppressed`), not silently discarded.
 
-When stacking with another tool’s own suppression comment on the
-same line (`# nosec`, `# complexipy: ignore`, ...), put pyrigor’s
-own comment last — `# nosec  # pyrigor PYR402 # reason`. Pyrigor’s
-own comment must come after any other tool’s, since its reason
+When stacking with another tool's own suppression comment on the
+same line (`# nosec`, `# complexipy: ignore`, ...), put pyrigor's
+own comment last — `# nosec  # pyrigor PYR402 # reason`. Pyrigor's
+own comment must come after any other tool's comment, since its reason
 captures to the end of the line.
 
 A suppression comment may also go on the line directly above the
-violation, or anywhere within a multi-line statement’s own span —
+violation, or anywhere within a multi-line statement's own span —
 useful when a long, descriptive name plus the mandatory reason
 would not fit on the violating line itself:
 
@@ -119,7 +140,7 @@ remote hook, the same way you would add `ruff` or `black`:
 
 ```yaml
 - repo: https://github.com/jarl-hoyem/pyrigor
-  rev: v0.7.3
+  rev: v0.8.0
   hooks:
     - id: pyrigor
 ```
@@ -130,26 +151,25 @@ the latest version.
 
 ## What this is
 
-Python’s failure modes are often silent: implicit type coercion,
+Python's failure modes are often silent: implicit type coercion,
 positional-argument swaps between same-typed parameters, mutable default
 arguments, float equality checks, and tuple-unpacking that "type-checks"
 while being semantically wrong are all real, tool-catchable classes of
-bugs that slip past mypy, pylint, and ruff’s default rule sets.
+bugs that slip past mypy, pylint, and ruff's default rule sets.
 
-`pyrigor` collects a set of guidelines — and, over time, tooling to enforce
-them — aimed at closing those gaps.
+`pyrigor` is a set of guidelines, with real, working tooling
+enforcing them today, growing as more rules are built out.
 
 ## Status
 
-Early stage. As of mid 2026, six rules are implemented and enforced
-(PYR301, PYR401, PYR402, PYR403, PYR405, PYR406). Nine more are documented but
-not yet enforced.
+Early stage.
+
+Enforced: PYR301, PYR401, PYR402, PYR403, PYR405, PYR406.
+Documented, not yet enforced: PYR201, PYR202, PYR203, PYR204, PYR205,
+PYR302, PYR407, PYR501, PYR502.
 
 - [x] Guideline documentation
-- [x] Standalone AST-based checkers (pre-commit local hooks) — PYR301,
-  PYR401, PYR402, PYR403, PYR405, and PYR406 are implemented. PYR201, PYR202,
-  PYR203, PYR204, PYR205, PYR302, PYR404, PYR407, PYR501, PYR502 are documented
-  but not yet enforced.
+- [x] Standalone AST-based checkers (pre-commit local hooks)
 - [ ] pylint plugin
 
 ## Guidelines
@@ -172,7 +192,7 @@ Guidelines documented so far:
 | PYR401 | Use `NamedTuple` for any function returning more than one value         | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)      | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Force keyword-only arguments for single-parameter functions             | `pyrigor` CLI (pre-commit hook) |
-| PYR404 | Use immutable default argument values, never mutable ones               | Not yet implemented             |
+| PYR404 | Use immutable default argument values, never mutable ones               | Rejected, see `REJECTED.md`     |
 | PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`      | `pyrigor` CLI (pre-commit hook) |
 | PYR406 | Use every locally defined function's non-`None` return value            | `pyrigor` CLI (pre-commit hook) |
 | PYR407 | Require every locally defined generator function's result to be used    | Not yet implemented             |
@@ -193,12 +213,23 @@ the inconsistency pyrigor exists to close.
 
 ## Contributing
 
-1. Browse or open an issue on [GitHub Issues](https://github.com/jarl-hoyem/pyrigor/issues)
+1. Every change starts with an issue. Check
+   [open issues labeled `ready`](https://github.com/jarl-hoyem/pyrigor/issues?q=is%3Aissue+is%3Aopen+label%3Aready)
+   for a well-scoped starting point, or open a new one.
 2. Adding a new rule? Follow [`guidelines/ADDING_A_RULE.md`](./guidelines/ADDING_A_RULE.md) step by step.
 3. Run `pre-commit run --all-files` before pushing.
 4. Open a Pull Request.
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.
+
+## Acknowledgements
+
+The tool pyrigor's own rules draw directly on real, external sources, not
+invented in isolation: Steve McConnell's *Code Complete*, the OSSF
+Secure Coding Guide for Python, and Google's Python Style Guide.
+Built on the shoulders of the real, open source tooling, it runs
+alongside every day: ruff, pylint, mypy, pyright, and pytest, among
+others credited throughout this project's own guideline docs.
 
 ## Contact
 
