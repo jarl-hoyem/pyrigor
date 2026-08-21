@@ -37,6 +37,11 @@ just the three required minimums:
 plus `technical dept / refactoring` is a normal, expected
 combination, not redundant.
 
+`pending other work` always means a real "blocked by" relationship
+is set (GitHub’s native Relationships feature), pointing at the
+actual blocking issue, not just prose describing the blocker in the
+issue’s own body.
+
 ## Branching Strategy
 
 1. **All changes start with an issue.**

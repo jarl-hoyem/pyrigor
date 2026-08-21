@@ -126,6 +126,17 @@ knowledge only):
   release time. The changelog entry is the trigger. Waiting until
   release risks the close being forgotten entirely once [Unreleased]
   becomes a real, dated version heading, as happened with #11.
+- Guideline docs, rule descriptions, and issue text describe the current,
+  correct state, not the history of how they got that way. No
+  "earlier version allowed...", no "this was fixed tonight," no
+  narration of this project’s own past states or evolution. This is not
+  a ban on citing real, external sources. Citing McConnell,
+  OSSF, a style guide, or another real project’s own config is a
+  legitimate citation anywhere in the project, never a history lesson,
+  whether or not it happens to be about the past. DECISIONS.md
+  and REVIEW_CHECKLIST.md’s own "Earned by" sections are
+  explicit exceptions to the no-project-history part specifically,
+  their whole purpose is documenting past decisions and incidents.
 
 ## Releasing a version
 

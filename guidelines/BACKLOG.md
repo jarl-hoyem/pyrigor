@@ -44,7 +44,6 @@
 | Derive rules systematically from the software "-ilities"                        | M     | S           |
 | Group rules in documentation by the "-ilities" they serve                       | S     | S           |
 | Add remaining useful pre-commit-hooks entries                                   | S     | XS          |
-| Generate the project website automatically on release                           | M     | L           |
 | Broader tool candidates to consider (batch, unresearched)                       | S     | M           |
 | Make pyrigor discoverable (SEO)                                                 | M     | M           |
 | Optimize pyrigor for LLM discoverability                                        | M     | S           |
@@ -560,22 +559,6 @@ relevant given this is a Windows-developed project), `name-tests-
 test` (enforces the `test_*.py` naming convention pytest already
 relies on). The remaining ~16 are not relevant to a pure Python
 project (XML, submodule, simple-YAML-sorting hooks and similar).
-
-Value: S · Effort: XS
-
-### Generate the project website automatically on release
-
-Two distinct targets, worth scoping separately. The domains `pyrigor.com` and
-`pyrigor.org` were purchased early in this project but have no real
-site content yet, a dedicated project website is essentially a
-from-scratch build, real design and content work, not just
-automation. A GitHub Pages site generated from README.md and
-guidelines/ is a smaller, more mechanical task, closer to what
-`publish.yaml` could plausibly trigger automatically on a tagged
-release (same pattern as the changelog-date-fill idea already
-logged). Worth deciding, which, or both, and in what order, before
-committing to "automatic on release" as the actual trigger, since
-the from-scratch site content needs to exist completely first.
 
 ### Broader tool candidates to consider (batch, unresearched)
 
