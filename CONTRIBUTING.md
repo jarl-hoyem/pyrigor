@@ -29,18 +29,13 @@ Beyond `value:`/`effort:` (see sizing above) and a type label,
 check every issue against the full label set before finalizing, not
 just the three required minimums:
 
-`priority`, `pending other work`, `testing`,
+`priority`, `testing`,
 `technical debt / refactoring`, `good first issue`, `pedantic`,
 `documentation`, `tooling`, `rule in pyrigor`, and GitHub’s own defaults
 (`bug`, `enhancement`, `duplicate`, `invalid`, `wontfix`, `question`,
 `help wanted`). Multiple labels commonly apply at once, a type label
 plus `technical dept / refactoring` is a normal, expected
 combination, not redundant.
-
-`pending other work` always means a real "blocked by" relationship
-is set (GitHub’s native Relationships feature), pointing at the
-actual blocking issue, not just prose describing the blocker in the
-issue’s own body.
 
 ## Branching Strategy
 
