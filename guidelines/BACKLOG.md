@@ -9,7 +9,6 @@
 | Item                                                                            | Value | Effort      |
 |---------------------------------------------------------------------------------|-------|-------------|
 | Detect unnecessary suppression comments                                         | M     | M           |
-| Changelog draft generator                                                       | S     | L           |
 | mutmut unusable (blocked, upstream)                                             | —     | — (blocked) |
 | Review tool exemptions carried over from Pickomino                              | S     | S           |
 | Rule: no variable names without vowels                                          | S     | M           |
@@ -20,9 +19,6 @@
 | OSSF Secure Coding Guide, broader review                                        | M     | M           |
 | Rule: truthiness check on NamedTuple/dataclass                                  | M     | L           |
 | Auto fix for PYR402/PYR403                                                      | M     | L           |
-| README duplication when adding a rule                                           | M     | M           |
-| Rule list as a separate document                                                | S     | S           |
-| Proper citations in rule docs                                                   | S     | S           |
 | Rule: flag an old/unsupported Python version                                    | S     | M           |
 | Rule: ban "_and_" in function names                                             | S     | S           |
 | A sourcing list for future rules                                                | S     | S           |
@@ -50,16 +46,12 @@
 | Solo-developer bottleneck: investigate how to speed up                          | L     | M           |
 | Use every documented rule, not just enforced ones, to review the project itself | M     | L           |
 | Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
-| Support Read the Docs                                                           | M     | S           |
 | Style-check newly added backlog entries                                         | XS    | XS          |
 | Periodically review and prune BACKLOG.md                                        | S     | XS          |
 | Second-order performance findings, post-walk-fix (minor)                        | XS    | S           |
 | Dependabot doesn't cover Python deps                                            | XS    | S           |
-| PYR407 (reserved), discarding a generator call silently.                        | S     | M           |
 | Optional astroid-based obj.foo() resolution, isolated experiment                | S     | M           |
-| Submit CFP answers to Python conferences.                                       | L     | M           |
 | Relax complexipy/xenon threshold to go from solo to collaborative development   | M     | S           |
-| Migrate BACKLOG.md to GitHub Issues                                             | M     | M           |
 
 ## Future tooling ideas
 
@@ -74,26 +66,6 @@ or the rule’s logic changed) is not flagged as unnecessary —
 it just silently does nothing forever. Worth detecting and warning on
 stale/unnecessary suppressions, the same way `filter_suppressed`
 already warns on malformed or missing-reason ones.
-
-### Changelog draft generator
-
-`publish.yaml` could write the real release date into `CHANGELOG.md`
-automatically, reading `github.event.release.published_at` and
-replacing the matching version heading's `TODO`. Small, mechanical,
-worth doing whenever picked up.
-
-Generating the actual content is a different, harder problem, not
-worth doing the same way. A tool that dumps every commit message
-since the last tag tends to produce a noisy, unhelpful changelog,
-especially given this project’s own commit messages are often long
-and detailed for their own sake, not written as changelog-ready
-one-liners. A better middle ground: since commit messages already
-follow Conventional Commits (enforced by the `commitizen` hook), a
-script could group commits by type (`feat`, `fix`, `docs`, `chore`)
-since the last tag and generate a draft `CHANGELOG.md` section,
-reviewed and trimmed by hand before a release rather than written
-from scratch. Real, buildable, but a genuinely new tool, not a small
-addition.
 
 ### The tool mutmut is unusable, both in CI and locally
 
@@ -176,12 +148,12 @@ breakdown, matching the clarity the suppression line already has.
 https://github.com/ossf/wg-best-practices-os-developers/tree/main/docs/Secure-Coding-Guide-for-Python
 A real, structured, numbered guideline set (pyscg-NNNN), similar in
 spirit to pyrigor’s own PYRxxx documents, compliant/noncompliant
-example code per rule. Only three of its ~15+ guidelines were
-checked today (numbers section, coding-standards section). Worth a
-fuller pass across all ten sections (encoding, neutralization,
-exception handling, logging, concurrency, cryptography included) for
-further overlap or corroboration, given how directly relevant the
-three checked so far turned out to be.
+example code per rule. Only three of its ~15+ guidelines have been checked (the numbers
+section, the coding-standards section). Worth a fuller pass across
+all ten sections (encoding, neutralization, exception handling,
+logging, concurrency, cryptography included) for further overlap or
+corroboration, given how directly relevant the three checked so far
+turned out to be.
 
 ### Rule: `not x` / truthiness check a NamedTuple or dataclass is almost always wrong.
 
@@ -223,35 +195,6 @@ fix the signature and let resulting TypeErrors at call sites surface
 the remaining work. Given the earlier documented caution about
 `ruff --fix` "messing everything up," worth treating any auto fix
 here as opt-in and clearly scoped, not a default behavior.
-
-### README duplication when adding a new rule
-
-Adding a rule means updating the guideline table in
-the README.md by hand, a real, repeated source of drift (found stale
-multiple times already: PYR401/PYR403/PYR405 all shown as "not
-enforced" after they were). Directly connects to the single source
-of truth architecture already deferred (generate the table from
-rules.py + CHECKERS rather than hand-maintaining it). The same fix
-closes both this and the next item.
-
-### Rule list as a separate document
-
-Related to the above: the guideline table lives inside
-README.md itself. Worth considering whether it should be a separate
-generated file (`guidelines/RULES.md` or similar), README linking to
-it, rather than embedding a large, frequently stale table directly
-in the project’s front door.
-
-### Proper citations in rule docs
-
-Rule docs cite sources informally, prose mentioning
-"Steve McConnell’s *Code Complete*" or "Google’s Python Style Guide"
-inline. Worth a consistent, structured citation format per rule
-(book / article / talk / podcast, with a link where one exists), so
-a third party can verify the claim independently, rather than taking
-the doc’s word for it. PYR203 (McConnell), PYR401 (Google’s guide,
-now cited inline), and PYR406 (OSSF’s pyscg-0036, cited inline) are
-the existing candidates to retrofit into whatever format gets chosen.
 
 ### Rule: Flag an old/unsupported Python version
 
@@ -383,12 +326,12 @@ between them.
 A real, not-yet-systematic pass is needed across several input surfaces,
 each with a different failure mode:
 
-- **CLI arguments.** `--only` is now validated against known rule
-  identities, but other malformed forms are unchecked: `--only=`
-  with nothing after it, `--only` with no `=` at all, `--version`
-  combined with other flags, a completely empty argv. What each
-  should do (error clearly versus silently no-op) has not yet been
-  decided for most of these.
+- **CLI arguments.** `--select`/`--ignore` are validated against
+  known rule identities, but other malformed forms are unchecked:
+  `--select=` with nothing after it, `--select` with no `=` at all,
+  `--version` combined with other flags, a completely empty argv.
+  What each should do (error clearly versus silently no-op) has not
+  yet been decided for most of these.
 - **Paths.** A nonexistent path, a path with no read permission, a
   symlink loop while walking a directory, a large file (a
   performance concern, not a correctness one). BOM handling and
@@ -487,9 +430,10 @@ suggests its maintainers already care about the underlying problem,
 just lack a tool naming it. Solo or small-team maintainers, lower
 coordination cost to try a new pre-commit hook.
 
-Connects to the dormant call for proposals thread from earlier this
-session. Identifying candidates is a smaller problem than actually
-reaching them, worth tackling together.
+Connects directly to the Call for Papers (CFP) submission thread (its own tracked
+issue). Identifying candidates is a smaller problem than actually
+reaching them, worth tackling together once the talk itself is
+prepared.
 
 ### Formalize value-driven prioritization
 
@@ -541,7 +485,8 @@ yet added: `check-merge-conflict` (catches unresolved `<<<<<<<`
 markers), `check-docstring-first` (module docstring must be the
 first statement, matches existing pydocstyle discipline),
 `destroyed-symlinks` (catches a symlink replaced with a broken
-placeholder, real incident last night during the WSL detour),
+placeholder, a real, confirmed failure mode for this project's own
+WSL-based workflows)
 `check-illegal-windows-names` (flags filenames invalid on Windows,
 relevant given this is a Windows-developed project), `name-tests-
 test` (enforces the `test_*.py` naming convention pytest already
@@ -655,9 +600,9 @@ build, this is about the *mechanics* of building it faster.
 ### Use every documented rule, not just enforced ones, to review the project itself.
 
 `pyrigor` the tool can only enforce PYR301, PYR401, PYR402, PYR403,
-PYR405 automatically. The other nine documented-but-unbuilt rules
-(PYR201, PYR202, PYR203, PYR204, PYR205, PYR302, PYR501, PYR502, and
-PYR406 once written) have no way to be checked at all.
+PYR405, PYR406 automatically. The other eight documented-but-unbuilt
+rules (PYR201, PYR202, PYR203, PYR204, PYR205, PYR302, PYR501,
+PYR502) have no way to be checked at all.
 Manual review would be the only option until each is actually built.
 Worth a deliberate pass, applying each documented rule by hand
 against pyrigor’s own source, the same "does the tool follow its own
@@ -682,20 +627,6 @@ noqa`/`# nosec`/`# pylint: disable` comments already scattered
 through the code are a related but different case, worth checking
 each still has enough context to explain why the suppression is
 safe, not just, which rule it silences.
-
-### Support Read the Docs
-
-Connects to the website-generation item already logged. Read the
-Docs specifically build it from Sphinx (or mkdocs) configuration in
-the repo. It auto-publishes on a webhook per push or release, closer
-to the "GitHub Pages generated from README/guidelines" half of that
-item than the from-scratch dedicated-website half. Worth doing
-together, not as two separate builds, since both need the same
-underlying documentation source (Sphinx or mkdocs, both already
-listed as unresearched tool candidates in the earlier batch entry).
-Real, standard, low effort once a documentation generator is chosen,
-Read the Docs itself is free for open source projects and mostly
-configuration, not custom build work.
 
 ### Style-check newly added backlog entries
 
@@ -755,18 +686,6 @@ somewhere discoverable (`CONTRIBUTING.md` or `CLAUDE.md`), so a
 Python dependency bump is never improvised through whatever tool
 happens to be open, bypassing the lockfile.
 
-### PYR407 (reserved), discarding a generator call silently skips its entire body
-
-Distinct from PYR406, not a variant of it. PYR406 covers a function
-that runs and returns a value that gets discarded, wasted work.
-Calling a generator function and discarding the result is a
-different, arguably worse failure mode — none of the function’s body
-executes at all. The `yield` statement never runs until something iterates the
-result. Detection shape: a function annotated `-> Iterator[X]`,
-`Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`, called as a bare
-statement. Same structural, no-decorator design as PYR406 once
-built. Not yet scoped in detail.
-
 ### PYR406: `cls.foo()` class method calls, still undetected
 
 Out of scope for the same-class `self.foo()`
@@ -811,19 +730,6 @@ a real design pass (own `DECISIONS.md` entry) before starting, given
 it touches the project’s stated architectural philosophy, not just
 its rule set.
 
-### Submit Call for Papers (CfP) answers to Python conferences
-
-Referenced as a "dormant thread" twice already (the early-adopters
-entry above, and referenced before), never actually tracked as
-its own item. The tool now has real substance behind a pitch, six
-enforced rules, a measured 7x performance win, real findings against
-CPython stdlib, Home Assistant, mypy, hypothesis, requests, and
-abseil-py, and genuine engagement with public style guides (Google’s,
-OSSF’s). Worth identifying actual target conferences and their real
-deadlines (PyCon variants, EuroPython, local Python meetups), and
-drafting a real proposal, rather than continuing to reference this
-as dormant without tracking it as a concrete task.
-
 ### Relax complexipy/xenon thresholds when moving from solo to collaborative development
 
 Both are set strict right now, complexipy at 6, xenon requiring
@@ -845,20 +751,3 @@ actually happens, not before: relax both thresholds for everyone
 instead invest in clearer failure messages and onboarding docs
 explaining the reasoning and how to meet the bar, addressing the
 discouragement without lowering it.
-
-### Migrate BACKLOG.md to GitHub Issues
-
-A Real friction with the current file-based approach: every edit
-needs a commit, no native labels/assignees/filtering, and manual
-index-table maintenance. Issues would fix all three and remove
-commit overhead for routine backlog changes entirely.
-
-A Real trade-off worth weighing: everything in the BACKLOG.md is
-versioned in the same repo, same history, right alongside
-the commit that resolves it. Issues live outside git entirely, a
-real, if minor, loss of that property. If migrating, DECISIONS.md
-and REVIEW_CHECKLIST.md would need their own cross-referencing
-approach designed for linking to issues instead of a file, not
-preserved as-is just because the current linkage already exists.
-
-Not urgent, a real future decision, not immediate.
