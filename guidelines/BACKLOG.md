@@ -39,10 +39,8 @@
 | Derive rules systematically from the software "-ilities"                        | M     | S           |
 | Group rules in documentation by the "-ilities" they serve                       | S     | S           |
 | Add remaining useful pre-commit-hooks entries                                   | S     | XS          |
-| Broader tool candidates to consider (batch, unresearched)                       | S     | M           |
 | Make pyrigor discoverable (SEO)                                                 | M     | M           |
 | Optimize pyrigor for LLM discoverability                                        | M     | S           |
-| Keep a list of known, unfixed bugs                                              | S     | XS          |
 | Solo-developer bottleneck: investigate how to speed up                          | L     | M           |
 | Use every documented rule, not just enforced ones, to review the project itself | M     | L           |
 | Add inline `#` comments explaining "why," not just docstrings                   | M     | M           |
@@ -330,8 +328,9 @@ each with a different failure mode:
   known rule identities, but other malformed forms are unchecked:
   `--select=` with nothing after it, `--select` with no `=` at all,
   `--version` combined with other flags, a completely empty argv.
-  What each should do (error clearly versus silently no-op) has not
-  yet been decided for most of these.
+  A repeated flag silently misbehaving is already tracked separately
+  (#10). What the remaining forms should do (error clearly versus
+  silently no-op) has not yet been decided.
 - **Paths.** A nonexistent path, a path with no read permission, a
   symlink loop while walking a directory, a large file (a
   performance concern, not a correctness one). BOM handling and
@@ -493,54 +492,6 @@ test` (enforces the `test_*.py` naming convention pytest already
 relies on). The remaining ~16 are not relevant to a pure Python
 project (XML, submodule, simple-YAML-sorting hooks and similar).
 
-### Broader tool candidates to consider (batch, unresearched)
-
-A long, mixed list surfaced at once, worth splitting by the category
-rather than treating as one investigation:
-
-- **Already in use**: `gitleaks` (already in pre-commit).
-- **Testing/property-based**: `hypothesis` (property-based testing,
-  could strengthen pyrigor’s own test suite, not a pre-commit tool
-  itself), `doctest`, `tox`, `nox` (test-matrix runners, relevant if
-  multi-Python-version testing ever needs more than the existing CI
-  matrix).
-- **Complexity/quality**: `lizard` (cyclomatic complexity, overlaps
-  with xenon/radon already in use, worth comparing rather than
-  adding without checking).
-- **Documentation**: `Sphinx`, `mkdocs` (both relevant to the
-  website-generation backlog item, not pre-commit hooks).
-- **Performance/profiling**: `timeit`, `cProfile` (already used
-  manually for the ast walk finding, not something to add to
-  pre-commit), `memray` (memory profiler, connects to the
-  memory-safety research item already logged).
-- **Refactoring**: `rope` (a library, not a linter, unclear fit).
-- **Security/SAST**: `pysa` (Meta’s Python security analyzer),
-  `semgrep`, `SonarQube`, `trivy` (container/dependency scanning,
-  likely irrelevant, pyrigor ships no container), `safety` (version
-  pinned as "3.8.1" in the request, worth double-checking that
-  is the tool version and not confused with a Python version).
-- **Commercial/hosted**: `CodeClimate`, `Qodo`, likely out of scope
-  for a small open source project without a real budget or need.
-- **Unverified/unclear**: `pyscn`, `wily`, `Pystra`, none
-  independently confirmed to exist under these exact names or
-  understood well enough to categorize, worth verifying each exists
-  and what it does before further triage.
-- **Complexity/quality (additional)**: `tach` (Python module
-  boundary and dependency enforcement, not overlapping with
-  xenon/radon's complexity metrics, a genuinely different concern
-  worth its own look), `lcom` (Lack
-  of Cohesion of Methods, a class-cohesion metric, unclear, which
-  concrete tool implements it, worth verifying), `Prospector`
-  (meta-linter that wraps pylint/pyflakes/mccabe and others, likely
-  overlaps with the existing pylint/ruff stack, worth
-  comparing rather than adding on top), a module-coupling metric
-  tool (name not given, worth identifying a concrete candidate
-  before evaluating).
-
-Not scoped or prioritized. Worth a real pass, sorting genuine
-pre-commit candidates from adjacent-but-different tooling (testing,
-docs, profiling) before deciding what, if anything gets added.
-
 ### Make pyrigor discoverable Search Engine Optimisation
 
 No real discoverability work done yet, connects directly to the
@@ -566,18 +517,6 @@ description near the top of the README, structured data (`llms.txt`
 or similar emerging conventions, worth checking current practice
 rather than assuming), and making sure PyPI’s own project
 description is not just a copy-paste of the README’s badge row.
-
-### Keep a list of known, unfixed bugs
-
-No current place to track a confirmed, real bug that is deliberately
-not being fixed yet, distinct from `BACKLOG.md` (features and ideas)
-and `REJECTED.md` (rules considered and declined). The mutmut
-`copy_src_dir` failure is the first real candidate, confirmed,
-reproducible, environment-independent, only documented as
-a `BACKLOG.md` entry rather than a proper known-issues log. Worth a
-`guidelines/KNOWN_ISSUES.md`, matching the pattern of the other
-process docs already built for this project, or GitHub’s own
-Issues tab if the project moves toward using it.
 
 ### Solo-developer bottleneck: Investigate how to speed up
 
@@ -685,6 +624,11 @@ At minimum, `uv lock --upgrade-package <name>` (or `uv lock
 somewhere discoverable (`CONTRIBUTING.md` or `CLAUDE.md`), so a
 Python dependency bump is never improvised through whatever tool
 happens to be open, bypassing the lockfile.
+
+Once a Python ecosystem entry exists here, #22's own
+update-type-gating question (whether major/minor/patch bumps should
+auto-merge differently) should be considered for it too, not just
+the existing github-actions entry.
 
 ### PYR406: `cls.foo()` class method calls, still undetected
 
