@@ -486,6 +486,28 @@ def test_run_no_paths_errors(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_select_swallowing_path_prints_a_hint(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--select PATH (space form, no real code) should hint that PATH was consumed as --select's value.
+
+    A valid --ignore=CODE precedes it, so the hint scan must skip past a
+    non-culprit token before finding the actual swallowed value.
+    """
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR401", "--select", ".\\pyrigor\\"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert "'.\\pyrigor\\' was consumed as --select's value" in captured.err
+    assert "--select=PYR401" in captured.err
+    assert "the following arguments are required: paths" in captured.err
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_select_flag_accepts_space_separated_form(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -510,6 +532,22 @@ def test_run_short_version_flag_prints_version_and_exits(
 ) -> None:
     """run() with -V (the short form) should behave identically to --version."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "-V"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 0
+    assert "pyrigor" in captured.out
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_version_flag_overrides_missing_path_and_other_flags(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--version should short-circuit before --select is validated or paths is required, in either order."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select", "403", "--version"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()

@@ -7,13 +7,15 @@ import time
 from collections import Counter
 from importlib.metadata import version
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Never
 
 from pyrigor.checkers import CHECKERS, RegisteredChecker
 from pyrigor.checkers._shared import walk_once
 from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import Violation
+
+_MISSING_PATHS_MESSAGE = "the following arguments are required: paths"
 
 _DEFAULT_EXCLUDES = frozenset(
     {
@@ -388,13 +390,42 @@ def main(*, paths: list[str], select: set[str] | None = None, ignore: set[str] |
     return exit_code
 
 
+def _print_swallowed_path_hint() -> None:
+    """Print a hint if --select/--ignore's space-separated form likely consumed the intended path."""
+    argv = sys.argv[1:]
+    for index, arg in enumerate(argv[:-1]):
+        if arg in ("--select", "--ignore"):
+            print(
+                f"pyrigor: hint: '{argv[index + 1]}' was consumed as {arg}'s value, leaving no path "
+                f"argument. If {arg} was meant to filter by rule, give it a real code (e.g. "
+                f"{arg}=PYR401) and provide the path separately. Otherwise, remove {arg}.",
+                file=sys.stderr,
+            )
+            return
+
+
+class _PyrigorArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser that hints when --select/--ignore likely swallowed the path argument."""
+
+    # pyrigor 403 # overrides argparse.ArgumentParser.error()'s fixed positional signature
+    def error(self, message: str) -> Never:
+        """Print a hint before the default error if --select/--ignore likely ate a path.
+
+        Args:
+            message: argparse's own error message.
+        """
+        if message == _MISSING_PATHS_MESSAGE:
+            _print_swallowed_path_hint()
+        super().error(message)
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """Build the console-script's argument parser.
 
     Returns:
         A parser recognizing --version/-V, --select, --ignore, and one or more paths.
     """
-    parser = argparse.ArgumentParser(prog="pyrigor", allow_abbrev=False)
+    parser = _PyrigorArgumentParser(prog="pyrigor", allow_abbrev=False)
     parser.add_argument(
         "--version",
         "-V",
@@ -405,13 +436,19 @@ def _build_parser() -> argparse.ArgumentParser:
         "--select",
         # action="append", not the default, so a second '--select' can be detected and rejected below
         action="append",
-        help="Restrict checking to these rule codes, comma-separated (PYR402, 402, or keyword-only-arguments).",
+        help=(
+            "Restrict checking to these rule codes, comma-separated (full code, bare number, "
+            "or symbolic name: for example, PYR402, 402, or keyword-only-arguments)."
+        ),
     )
     parser.add_argument(
         "--ignore",
         # action="append", not the default, so a second '--ignore' can be detected and rejected below
         action="append",
-        help="Exclude these rule codes from checking, comma-separated (PYR402, 402, or keyword-only-arguments).",
+        help=(
+            "Exclude these rule codes from checking, comma-separated (full code, bare number, "
+            "or symbolic name: for example, PYR402, 402, or keyword-only-arguments)."
+        ),
     )
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
