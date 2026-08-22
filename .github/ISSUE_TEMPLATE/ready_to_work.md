@@ -22,7 +22,7 @@ GitHub labels, not text below:
 - [ ] An `effort:` label is applied
 
 <!-- Also apply a type label: bug, enhancement, documentation,
-technical dept / refactoring, testing, rule, or tooling. -->
+technical debt / refactoring, testing, rule in pyrigor, or tooling. -->
 
 Self-certified, an honest check, not independently verifiable:
 

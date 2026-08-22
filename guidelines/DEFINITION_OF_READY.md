@@ -10,7 +10,7 @@ An issue is ready to be worked on when:
   not effort alone. Prioritization depends on the relationship
   between them.
 - It has a type label (`bug`, `enhancement`, `documentation`,
-  `technical dept / refactoring`, `testing`, `rule`, or `tooling`).
+  `technical debt / refactoring`, `testing`, `rule in pyrigor`, or `tooling`).
 - The description contains real criteria for when the issue is done,
   not just a problem statement. For a new rule, this means pointing
   at `ADDING_A_RULE.md`'s own checklist. For anything else, a
