@@ -65,9 +65,13 @@ for "pyrigor got noisier."
 ## Code-quality statistics (% comments, % blank) per release
 
 **What:** run `radon raw` against pyrigor’s own source and record
-its line-count fields (loc, lloc, sloc, comments, multi-line string
-lines, single-line comment-or-docstring lines, blank), plus a
-derived comment ratio. Note: radon does not cleanly separate
+its line-count fields — `loc` (Lines of Code, every physical line),
+`lloc` (Logical Lines of Code, one count per logical statement,
+insensitive to line-wrapping or formatting choices), `sloc` (Source
+Lines of Code, physical lines that are neither blank nor a
+comment-only line), comments, multi-line string lines, single-line
+comment-or-docstring lines, blank — plus a derived comment ratio.
+Note: radon does not cleanly separate
 comments from docstrings — `single_comments` covers both standalone
 comments and one-line docstrings, and `multi` is multi-line string
 content, not docstrings specifically. Observational only
@@ -75,6 +79,14 @@ for now — no minimum ratio is enforced. If the
 trend shows something worth acting on later, that becomes its own,
 separately decided rule or hook, not an automatic consequence of
 adding this table.
+
+**Which to judge by:** `lloc` is the best signal for whether the
+code itself grew, since it is not affected by added blank lines,
+reformatting, or wrapped long lines the way `loc` and `sloc` are.
+Watch it against the comment ratio below — `lloc` growing while
+comments do not keep pace is the real erosion signal this table
+exists to catch, distinct from `loc`/`sloc` movement caused by pure
+reformatting.
 
 **Corpus:** pyrigor’s own source (`pyrigor/`) — no pinning question
 here, unlike the metric above, since there is nothing to hold
