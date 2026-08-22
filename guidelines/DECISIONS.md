@@ -183,6 +183,31 @@ CI wrapper that retries on exit 2 assuming it is transient, when a bad
 invocation is not). That is the evidence to revisit this, not a
 preference alone.
 
+## Fix classification: Adopt now, architecture: Defer
+
+Considered whether current rule-building should expect a future
+FixProposal architecture (detect()/suggest(), a three-tier fix
+classification: safe_fix/suggestion/guidance, full CLI→editor
+extension→Language Server Protocol (LSP) roadmap), per a real, external strategy document
+(#105).
+
+Split the decision cleanly. Documenting a real fix classification
+per rule costs nothing, no code changes and already proved
+valuable once: working through it caught a real, initial
+misclassification (PYR402/PYR403 first looked unsafe due to caller
+breakage, corrected once the actual, primary scenario, editor-time
+feedback on a function with no callers yet was considered). Adopted as a permanent, standing part of every new rule
+doc's own template.
+
+The actual FixProposal architecture itself (a real suggest()
+implementation, editor extensions, an LSP) is explicitly deferred,
+not adopted now. Building real engineering toward editor integration
+for a tool with zero real external adopters and no editor
+integration at all yet is exactly the kind of premature investment
+already identified as this project's biggest real risk. Revisit only
+once real, concrete demand exists, a real user asking, or genuine
+editor-integration work actually starting, not before.
+
 ## Development process and tooling
 
 ### The tool complexipy runs through a Python wrapper, not a .bat script
