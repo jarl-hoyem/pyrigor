@@ -24,7 +24,7 @@ also is not rebuilt or re-debated later.
 ## 1. Pick a number
 
 See [`NUMBERING.md`](./NUMBERING.md) for the bucket scheme. Check
-`guidelines/` and `BACKLOG.md` for the current highest number in the
+`guidelines/` and open GitHub Issues for the current highest number in the
 relevant bucket before claiming the next one.
 
 ## 2. Pick a name

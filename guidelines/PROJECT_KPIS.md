@@ -39,10 +39,20 @@ Record the per-rule breakdown from the summary output below.
 
 ### History
 
-| Release | Corpus pin | Files | Total violations | Per-rule breakdown | Delta vs. prior |
-|---|---|---|---|---|---|
-| 0.7.4 | home-assistant/core @ `ac63da9` | 18221 | 90921 | PYR301: 55, PYR401: 585, PYR402: 58819, PYR403: 30861, PYR405: 425, PYR406: 176 | _(first row, no prior)_ |
-| 0.8.0 | _(skipped)_ | | | | Neither #11 nor #46 changes what pyrigor detects (label text and suppression-comment recognition only), so a rescan would reproduce 0.7.4's row unchanged. Skipped deliberately, not forgotten. |
+| Release | Corpus pin                      | Files | Total violations | Delta vs. prior |
+|---------|---------------------------------|-------|------------------|-----------------|
+| 0.7.4   | home-assistant/core @ `ac63da9` | 18221 | 90921            | _(first row)_   |
+| 0.8.0   | _(skipped, see note below)_     |       |                  |                 |
+
+**Per-rule breakdown:**
+
+| Release | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
+|---------|--------|--------|--------|--------|--------|--------|
+| 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
+
+0.8.0 was skipped deliberately: neither #11 nor #46 changes what
+pyrigor detects (label text and suppression-comment recognition
+only), so a rescan would reproduce 0.7.4's row unchanged.
 
 ### Pin refreshes
 
@@ -60,9 +70,8 @@ lines, single-line comment-or-docstring lines, blank), plus a
 derived comment ratio. Note: radon does not cleanly separate
 comments from docstrings — `single_comments` covers both standalone
 comments and one-line docstrings, and `multi` is multi-line string
-content generally, not docstrings specifically. Migrated from
-`BACKLOG.md`, [#45](https://github.com/jarl-hoyem/pyrigor/issues/45).
-Observational only for now — no minimum ratio is enforced. If the
+content, not docstrings specifically. Observational only
+for now — no minimum ratio is enforced. If the
 trend shows something worth acting on later, that becomes its own,
 separately decided rule or hook, not an automatic consequence of
 adding this table.
@@ -86,7 +95,10 @@ comment ratio (`comments / sloc`) below.
 
 ### History
 
-| Release | Files | LOC | LLOC | SLOC | Comment tokens | Multi-line string lines | Single-line comment/docstring lines | Blank | Comment ratio (tokens/SLOC) | Delta vs. prior |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 0.7.4 | 13 | 1469 | 583 | 547 | 22 | 499 | 39 | 384 | 4.0% | _(first row, no prior)_ |
-| 0.8.0 | 13 | 1483 | 588 | 558 | 22 | 501 | 39 | 385 | 3.9% | LOC +14, LLOC +5, SLOC +11, blank +1, multi-line +2, comment ratio -0.1pp |
+| Release | Files | LOC  | LLOC | SLOC | Comments | Multi | Single-line | Blank | Comment ratio | Delta vs. prior |
+|---------|-------|------|------|------|----------|-------|-------------|-------|---------------|-----------------|
+| 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(first row)_   |
+| 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
+
+0.8.0 versus 0.7.4: LOC +14, LLOC +5, SLOC +11, blank +1, multi-line
+lines +2, comment ratio –0.1 percentage points.

@@ -106,9 +106,10 @@ knowledge only):
   public behavior (a return type, a CLI flag’s shape, a rule’s
   scope), the version bump and `CHANGELOG.md` entry reflect that,
 - not as a smaller change than it actually is.
-- **`BACKLOG.md` traceability.** If this work closes an existing
-  backlog entry, remove or mark it done. Do not leave it sitting as
-  if still open.
+- **Issue traceability.** If this work closes an existing GitHub
+  Issue, close it (see the close-at-changelog-entry-time rule
+  below). Do not leave it sitting open as if the work were still
+  pending.
 - **No sunk-cost bias in a design choice.** If an option is picked
   specifically because it avoids touching existing tests or code,
   rather than because it is the genuinely correct design, that is
@@ -118,8 +119,8 @@ knowledge only):
   affects performance, `PERFORMANCE.md` gets a note. Not required for
   every change, only ones where it is a real question.
 - **Gaps found later.** If a gap is found after work was already
-  called done, in this session or a future one, add it to
-  `BACKLOG.md` immediately. Do not let it go undocumented while
+  called done, in this session or a future one, create a GitHub
+  Issue for it immediately. Do not let it go undocumented while
   moving on to something else.
 - Close the corresponding GitHub Issue at the same time a CHANGELOG.md
   entry referencing it is added under [Unreleased], not later, at

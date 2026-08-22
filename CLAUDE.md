@@ -98,9 +98,7 @@ write-shaped Bash/PowerShell command patterns.
 
 ## Backlog and issue tracking
 
-New work items go to GitHub Issues, not `BACKLOG.md` — the file
-stays as-is, a historical archive of pre-existing items already
-written up.
+New work items go to GitHub Issues.
 
 Blocking relationships between issues uses GitHub’s native "blocked
 by" feature, not prose "Blocked on #N"/"Blocks #N" text in the issue
@@ -110,15 +108,6 @@ writing. It is a real, bidirectional, filterable relationship, not
 just a citation. Older issues (#66/#67) still use the prose form
 from before this convention started. Not worth migrating
 retroactively. Use the real feature going forward.
-
-When starting work on an existing `BACKLOG.md` item, migrate it to
-a GitHub issue first: copy the full write-up over, at full
-fidelity, not compressed, then delete the entry from `BACKLOG.md`
-entirely. Do not leave a pointer stub — git history already
-preserves the original text. Treat the deletion as a required step
-of the migration, not an afterthought. A forgotten deletion leaves
-the item duplicated — live in the issue, still dormant in the
-backlog — and at risk of being picked up a second time by mistake.
 
 Any GitHub issue action that changes its state — creating,
 editing, commenting on, labeling, or closing an issue — needs the

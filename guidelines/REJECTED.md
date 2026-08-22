@@ -60,7 +60,7 @@ step per `ADDING_A_RULE.md` step 0's overlap/feasibility check.
 
 These have not had a guideline doc written, specifically because the
 overlap check in `ADDING_A_RULE.md` step 0 was applied before
-writing one. Listed here rather than in `BACKLOG.md`'s general list,
+writing one. Listed here rather than as a separate GitHub issue,
 to keep the "likely already covered" reasoning visible alongside the
 confirmed rejection above.
 

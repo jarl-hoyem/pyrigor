@@ -33,9 +33,8 @@ about function call sites specifically and correctly sits in 4xx.
 
 ## Reserved but unwritten rules
 
-A rule number can be reserved in [`BACKLOG.md`](./BACKLOG.md) before
-its guideline doc exists, by noting "planned as PYR xxx" against the
-relevant backlog item. This prevents a later rule from
+A rule number can be reserved by opening a GitHub Issue stating the
+intended number before its guideline doc exists. This prevents a later rule from
 claiming the same number, which has happened once already in this
 project’s history (a file was misnamed `PYR404` when it should have
 been `PYR405`, colliding with the already-reserved mutable-defaults
@@ -61,9 +60,9 @@ As of this writing:
 - **5xx**: PYR501 (exhaustive match), PYR502 (explicit
   preconditions), PYR503 (safe archive extraction).
 
-Check [`BACKLOG.md`](./BACKLOG.md) and the existing `guidelines/`
-directory for the current highest number in a bucket before claiming
-the next one, rather than relying on this table alone, since it can
+Check the `guidelines/` directory and open GitHub Issues (search for
+existing PYRxxx mentions) for the current highest number in a bucket
+before claiming the next one, rather than relying on this table alone, since it can
 go stale.
 
 ## Adding a new rule

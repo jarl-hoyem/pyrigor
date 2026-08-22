@@ -36,8 +36,7 @@ No branch or commit begins without a corresponding GitHub Issue
 already existing. This applies even to small, solo work. An
 issue-first, however brief, keeps a real record of what was done and
 why, consistent with `CLAUDE.md`'s "Backlog and issue tracking"
-section, which already moved new work to GitHub Issues instead of
-`BACKLOG.md`.
+section: all work goes through GitHub Issues.
 
 ## Planning issues
 
