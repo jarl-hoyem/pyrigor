@@ -1,6 +1,6 @@
 # Rejected rules
 
-Rules that were considered, and not built — either because an
+Rules that were considered and not built — either because an
 existing tool already covers the pattern, or because the pattern
 cannot be checked without an unacceptable false-positive rate.
 Pyrigor exists to fill gaps other tools miss, not
@@ -14,7 +14,7 @@ covering tool, or the covering tool’s check turns out to have a real
 gap of its own, a rejected rule can be revisited. Note why
 revisiting if that happens.
 
-## PYR404 — Mutable default argument values
+## PYREJECT101 — Mutable default argument values
 
 Would have mandated `None` defaults over mutable ones
 (`def f(items: list = []):`). A full guideline doc was written before
@@ -27,21 +27,23 @@ pre-commit stack and in any project following pyrigor’s own
 `CONTRIBUTING.md` tooling recommendations.
 
 **Status**: guideline doc kept for now
-(`guidelines/PYR404-immutable-defaults.md`) as documentation of the
-reasoning, marked as not independently enforced by pyrigor and
-covered elsewhere. The rule number PYR404 remains reserved and
-should not be reused for a different rule.
+(`guidelines/rejected/PYREJECT101-immutable-defaults.md`) as
+documentation of the reasoning, marked as not independently
+enforced by pyrigor and covered elsewhere. Renumbered from PYR404
+into this rejected-rules namespace specifically so a real, built
+rule can reuse PYR404 itself, rather than leaving it permanently
+unusable.
 
 ## Non-atomic mutation under free-threading (PEP 703)
 
 Would have flagged patterns like `self.counter += 1` as unsafe under
-free-threaded (no-GIL) Python, since such an increment is not atomic
-the way e.g. `list.append` is.
+free-threaded no Global Interpreter Lock (GIL) Python, since such an increment is not atomic
+the way for example `list.append` is.
 
 **Rejected because**: not a tool-overlap case like the others in
 this document — no existing tool would catch this either. Rejected
-on false-positive grounds instead. `self.x += 1` is one of the most
-common idioms in ordinary, single-threaded Python; flagging it
+on false-positive grounds instead. The statement `self.x += 1` is one
+of the most common idioms in ordinary, single-threaded Python. Flagging it
 unconditionally would be almost entirely noise, and there is no way
 to tell from AST alone whether a given class is ever shared across
 threads under a free-threaded build. Detecting the real risk would
@@ -51,7 +53,7 @@ require actual concurrency analysis, not a local AST pattern.
 itself sourced from the Python Podcast's ["Python 3.13"](https://python-podcast.de/show/python-313/)
 episode (2024-11-12).
 
-**Status**: no guideline doc was ever written; rejected before that
+**Status**: no guideline doc was ever written. Rejected before that
 step per `ADDING_A_RULE.md` step 0's overlap/feasibility check.
 
 ## Not yet rejected, flagged as likely overlapping

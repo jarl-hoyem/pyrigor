@@ -71,8 +71,8 @@ specific call, never shared with any other call.
 
 ## Related
 
-- [PYR301](./PYR301-namedtuple-values.md) and
-  [PYR405](./PYR405-namedtuple-parameters.md) — both address a
+- [PYR301](../PYR301-namedtuple-values.md) and
+  [PYR405](../PYR405-namedtuple-parameters.md) — both address a
   different failure mode for parameter values (positional ambiguity
   in a bare tuple), not the shared-mutable-object problem this rule
   addresses. But worth reading together as part of the same general
@@ -81,5 +81,5 @@ specific call, never shared with any other call.
 ## Enforced by
 
 Not independently enforced — rejected, see
-[REJECTED.md](./REJECTED.md): covered by ruff's `B006` and pylint's
+[REJECTED.md](../REJECTED.md): covered by ruff's `B006` and pylint's
 `W0102`.

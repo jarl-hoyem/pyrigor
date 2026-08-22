@@ -68,7 +68,7 @@ silent write that only surfaces as a bug somewhere else later.
   [PYR301](./PYR301-namedtuple-values.md) — the same underlying
   concern, unnamed or unstructured mutability risk, addressed for
   tuples rather than dataclasses.
-- [PYR404](./PYR404-immutable-defaults.md) — a related but distinct
+- [PYR404](rejected/PYREJECT101-immutable-defaults.md) — a related but distinct
   concern: a mutable default argument value shared across calls,
   rather than a mutable field on a constructed instance.
 

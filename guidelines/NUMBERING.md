@@ -48,16 +48,18 @@ As of this writing:
 - **1xx**: none yet.
 - **2xx**: PYR201 (`NewType`), PYR202 (`Enum`), PYR203 (`Final`,
   general form), PYR204 (float tolerance), PYR205 (`Final`,
-  repeated-literal subset).
+  repeated-literal subset), PYR206 (`Decimal` from string, not
+  float).
 - **3xx**: PYR301 (`NamedTuple` for values), PYR302 (frozen
-  dataclasses).
+  dataclasses), PYR303 (iterate over a copy when mutating).
 - **4xx**: PYR401 (`NamedTuple` returns), PYR402/PYR403
-  (keyword-only arguments), PYR404 (immutable defaults — rejected,
-  not independently enforced, see `REJECTED.md`; number stays
-  reserved), PYR405 (`NamedTuple` parameters), PYR406 (return
-  values used).
+  (keyword-only arguments), PYR404 reused for a future
+  function-signature rule, no longer permanently reserved for the
+  rejected mutable-defaults candidate, see REJECTED.md and the
+  rejected-rules-numbering issue for why, PYR405 (`NamedTuple`
+  parameters), PYR406 (return values used).
 - **5xx**: PYR501 (exhaustive match), PYR502 (explicit
-  preconditions).
+  preconditions), PYR503 (safe archive extraction).
 
 Check [`BACKLOG.md`](./BACKLOG.md) and the existing `guidelines/`
 directory for the current highest number in a bucket before claiming
