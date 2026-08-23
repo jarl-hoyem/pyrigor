@@ -85,8 +85,9 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-PYR301, PYR401, PYR402, PYR403, PYR405, and PYR406 are enforced today. A violation
-exits non-zero and prints `path:line:col: PYR40x message (symbolic-name)`.
+Every rule marked enforced in [`guidelines/RULES.md`](./guidelines/RULES.md)
+runs automatically. A violation exits non-zero and prints
+`path:line:col: PYRxxx message (symbolic-name)`.
 
 Run `pyrigor --version` to check the installed version.
 Use `--select=CODE,CODE` to restrict checking to specific rules, for
@@ -171,9 +172,8 @@ enforcing them today, growing as more rules are built out.
 
 Early stage.
 
-Enforced: PYR301, PYR401, PYR402, PYR403, PYR405, PYR406.
-Documented, not yet enforced: PYR201, PYR202, PYR203, PYR204, PYR205,
-PYR206, PYR302, PYR303, PYR407, PYR501, PYR502, PYR503.
+See [`guidelines/RULES.md`](./guidelines/RULES.md) for the full,
+generated list of every rule and whether it is enforced yet.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks)
