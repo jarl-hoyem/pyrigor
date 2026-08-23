@@ -1,4 +1,4 @@
-# PYR406 — Require every locally defined function’s non-`None` return value to be used.
+# PYR406 — Use every locally defined function’s non-`None` return value
 
 ## Rule
 

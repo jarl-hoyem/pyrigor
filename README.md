@@ -173,7 +173,7 @@ Early stage.
 
 Enforced: PYR301, PYR401, PYR402, PYR403, PYR405, PYR406.
 Documented, not yet enforced: PYR201, PYR202, PYR203, PYR204, PYR205,
-PYR302, PYR407, PYR501, PYR502.
+PYR206, PYR302, PYR303, PYR407, PYR501, PYR502, PYR503.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks)
@@ -185,26 +185,10 @@ See [`guidelines/`](./guidelines) for the full list. Each guideline has a
 rule ID, rationale, example, and — once implemented — a link to its
 enforcing check.
 
-Guidelines documented so far:
-
-| ID     | Rule                                                                    | Enforced by                     |
-|--------|-------------------------------------------------------------------------|---------------------------------|
-| PYR201 | Use `NewType` for same-typed values at risk of being swapped            | Not yet implemented             |
-| PYR202 | Use `Enum` instead of magic strings, ints, or bools for closed states   | Not yet implemented             |
-| PYR203 | Use `Final` named constants for any number other than `0`, `1`, or `-1` | Not yet implemented             |
-| PYR204 | Never compare floats with `==`; use tolerance-based comparison          | Not yet implemented             |
-| PYR205 | Use a `Final` constant for a numeric literal duplicated in a file       | Not yet implemented             |
-| PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type            | `pyrigor` CLI (pre-commit hook) |
-| PYR302 | Use `frozen=True` for dataclasses holding structured state              | Not yet implemented             |
-| PYR401 | Use `NamedTuple` for any function returning more than one value         | `pyrigor` CLI (pre-commit hook) |
-| PYR402 | Force keyword-only arguments for 2+ function parameters (bare `*`)      | `pyrigor` CLI (pre-commit hook) |
-| PYR403 | Force keyword-only arguments for single-parameter functions             | `pyrigor` CLI (pre-commit hook) |
-| PYR404 | Use immutable default argument values, never mutable ones               | Rejected, see `REJECTED.md`     |
-| PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`      | `pyrigor` CLI (pre-commit hook) |
-| PYR406 | Use every locally defined function's non-`None` return value            | `pyrigor` CLI (pre-commit hook) |
-| PYR407 | Require every locally defined generator function's result to be used    | Not yet implemented             |
-| PYR501 | End a `match` over a closed set with `case _: assert_never(...)`        | Not yet implemented             |
-| PYR502 | State implicit input assumptions as explicit `assert` preconditions     | Not yet implemented             |
+[`guidelines/RULES.md`](./guidelines/RULES.md) has a generated table of
+every rule and whether it is enforced yet — generated from the real
+guideline docs and `CHECKERS`, never hand-maintained, so it cannot drift
+the way this table once did.
 
 ## Philosophy
 

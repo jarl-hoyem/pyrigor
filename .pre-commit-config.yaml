@@ -179,3 +179,9 @@ repos:
         entry: uv run --extra dev python scripts/version_sync.py
         pass_filenames: false
         always_run: true
+      - id: generate-rule-table
+        name: regenerate guidelines/RULES.md from the real guideline docs
+        language: system
+        entry: uv run --extra dev python scripts/generate_rule_table.py
+        pass_filenames: false
+        always_run: true

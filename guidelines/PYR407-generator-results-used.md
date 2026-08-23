@@ -1,4 +1,4 @@
-# PYR407 — Require every locally defined generator function’s result to be used
+# PYR407 — Use every locally defined generator function’s result
 
 ## Rule
 
