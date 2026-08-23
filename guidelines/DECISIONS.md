@@ -423,6 +423,29 @@ and ty all run simultaneously despite real overlap in what they
 catch, genuine defense in depth from independent implementations,
 not wasted duplication.
 
+### The tool pylint's check-quote-consistency rejected, real false positives found
+
+Tested empirically against pyrigor's own real source: two "findings,"
+both false positives, single quotes nested inside a double-quoted
+f-string's expression (`f"pyrigor {version('pyrigor')}"`,
+`f"...{', '.join(...)}"`), required on this project's own supported
+minimum Python (3.11, pre-PEP 701, cannot nest the same quote
+character inside an f-string's expression). The  `ruff-format` already
+correctly, intelligently leaves these alone, quote-nesting-aware.
+Enabling this setting would actively fight correct, necessary code,
+not just duplicate `ruff-format`. Rejected, not enabled.
+
+### The tool pylint's 'allow-global-unused-variables' rejected, real false positives found
+
+Initial testing was flawed, tested only under the setting's own
+default (true, permissive), never actually verified the flipped
+value. Once genuinely set to false: flags every module-level
+function as an "unused variable" unless it is called within its own
+defining file, exactly the wrong behavior for this codebase, which
+is built on small, individually importable, individually testable
+functions (find_violations, walk_once, count_parameters and every
+other checker function). Rejected, not enabled.
+
 ## The tool pyrigor’s own suppression works anywhere in a wrapped statement’s span, deliberately
 
 Confirmed the contrast directly tonight: suppressing ruff’s S607/S603
@@ -437,8 +460,7 @@ The tool pyrigor’s own suppression mechanism, by design, does not have this
 fragility. A `# pyrigor CODE # reason` comment works on the line
 above the violation, or on any line within the violation’s own
 `end_line` span, not just one exact physical line. Confirmed by,
-`test_suppression_comment_on_middle_line_of_multiline_statement_suppresses`
-and
+`test_suppression_comment_on_middle_line_of_multiline_statement_suppresses`. And confirmed by
 `test_suppression_comment_on_closing_line_of_multiline_statement_suppresses`.
 
 Worth stating this explicitly as a real, deliberate design advantage
