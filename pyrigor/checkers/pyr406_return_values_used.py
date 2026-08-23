@@ -66,7 +66,7 @@ def _annotation_name(*, annotation: ast.expr | None) -> str | None:
         a Name or Attribute annotation (including the base of a
         subscripted generic like Iterator[X]), a synthetic "UnionType"
         name for a PEP 604 union (X | Y), or None if there is no
-        annotation, or it doesn't resolve to a simple name.
+        annotation, or it does not resolve to a simple name.
     """
     if annotation is None:
         return None
@@ -94,7 +94,7 @@ def _is_method(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         that happens to share the method's name.
     """
     positional_args = list(node.args.posonlyargs) + list(node.args.args)
-    return bool(positional_args) and positional_args[0].arg in ("self", "cls")
+    return bool(positional_args) and positional_args[0].arg in {"self", "cls"}
 
 
 def _is_protected_return(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:

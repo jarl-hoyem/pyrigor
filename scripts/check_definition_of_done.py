@@ -7,6 +7,7 @@ step might have been missed.
 
 import sys
 
+# pylint: disable=import-private-name
 from _dev_tooling_shared import _PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 _CHANGELOG_MD = "CHANGELOG.md"

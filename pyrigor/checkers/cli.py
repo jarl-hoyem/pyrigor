@@ -104,7 +104,7 @@ def _read_source(*, path: str) -> str | None:
         path: The file to read.
 
     Returns:
-        The file's source text, or None if it couldn't be read.
+        The file's source text, or None if it could not be read.
     """
     try:
         return Path(path).read_text(encoding="utf-8-sig")
@@ -123,7 +123,7 @@ def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, 
 
     Returns:
         Every violation found, or an empty list if the source
-        couldn't be parsed.
+        could not be parsed.
     """
     try:
         tree = ast.parse(source)
@@ -391,10 +391,10 @@ def main(*, paths: list[str], select: set[str] | None = None, ignore: set[str] |
 
 
 def _print_swallowed_path_hint() -> None:
-    """Print a hint if --select/--ignore's space-separated form likely consumed the intended path."""
+    """Print a hint if the --select/--ignore space-separated form likely consumed the intended path."""
     argv = sys.argv[1:]
     for index, arg in enumerate(argv[:-1]):
-        if arg in ("--select", "--ignore"):
+        if arg in {"--select", "--ignore"}:
             print(
                 f"pyrigor: hint: '{argv[index + 1]}' was consumed as {arg}'s value, leaving no path "
                 f"argument. If {arg} was meant to filter by rule, give it a real code (e.g. "

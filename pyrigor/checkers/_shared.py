@@ -88,7 +88,7 @@ def count_parameters(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> _Parame
         (positional plus keyword-only, after stripping).
     """
     positional_args = list(node.args.posonlyargs) + list(node.args.args)
-    if positional_args and positional_args[0].arg in ("self", "cls"):
+    if positional_args and positional_args[0].arg in {"self", "cls"}:
         positional_args = positional_args[1:]
 
     total_params = len(positional_args) + len(node.args.kwonlyargs)

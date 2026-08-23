@@ -11,6 +11,7 @@ the release commit itself.
 import subprocess  # nosec -- fixed, local tooling commands only
 import sys
 
+# pylint: disable=import-private-name
 from _dev_tooling_shared import _PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 
