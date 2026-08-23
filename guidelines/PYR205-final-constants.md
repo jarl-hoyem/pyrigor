@@ -1,4 +1,4 @@
-# PYR205 — Use a `Final` constant for a numeric literal repeated across a file.
+# PYR205 — Use a `Final` constant for a numeric literal repeated across a file
 
 ## Rule
 

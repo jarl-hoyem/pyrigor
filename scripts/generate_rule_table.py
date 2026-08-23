@@ -96,17 +96,48 @@ def _collect_rows() -> list[RuleRow]:
     return rows
 
 
+def _render_row(*, row: RuleRow, id_width: int, title_width: int, enforced_width: int) -> str:
+    """Render one row (or the header, also expressed as a RuleRow), padded to fixed column widths.
+
+    Args:
+        row: The row to render.
+        id_width: The ID column's target width.
+        title_width: The Rule column's target width.
+        enforced_width: The Enforced by the column's target width.
+
+    Returns:
+        One column-aligned Markdown table row.
+    """
+    return (
+        f"| {row.rule_id.ljust(id_width)} | {row.title.ljust(title_width)} | {row.enforced_by.ljust(enforced_width)} |"
+    )
+
+
 def _render_table(*, rows: list[RuleRow]) -> str:
-    """Render the collected rows as a GitHub-flavored Markdown table.
+    """Render the collected rows as a column-aligned GitHub-flavored Markdown table.
 
     Args:
         rows: Already-sorted rule rows.
 
     Returns:
-        The full table as Markdown text, including the header row.
+        The full table as Markdown text, including the header row, with
+        every column padded to a consistent width, so the raw file reads
+        as a real, aligned table, not just valid-but-ragged markup.
     """
-    lines = ["| ID | Rule | Enforced by |", "|---|---|---|"]
-    lines.extend(f"| {row.rule_id} | {row.title} | {row.enforced_by} |" for row in rows)
+    header = RuleRow(rule_id="ID", title="Rule", enforced_by="Enforced by")
+    all_rows = [header, *rows]
+    id_width = max(len(row.rule_id) for row in all_rows)
+    title_width = max(len(row.title) for row in all_rows)
+    enforced_width = max(len(row.enforced_by) for row in all_rows)
+
+    separator = f"|{'-' * (id_width + 2)}|{'-' * (title_width + 2)}|{'-' * (enforced_width + 2)}|"
+    lines = [
+        _render_row(row=header, id_width=id_width, title_width=title_width, enforced_width=enforced_width),
+        separator,
+    ]
+    lines.extend(
+        _render_row(row=row, id_width=id_width, title_width=title_width, enforced_width=enforced_width) for row in rows
+    )
     return "\n".join(lines)
 
 

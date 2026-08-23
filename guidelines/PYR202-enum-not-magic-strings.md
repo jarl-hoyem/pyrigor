@@ -1,4 +1,4 @@
-# PYR202 — Use `Enum` instead of magic strings, ints, or bools for closed sets of states.
+# PYR202 — Use `Enum` instead of magic strings, ints, or bools for closed states
 
 ## Rule
 
@@ -137,7 +137,7 @@ naming judgment PYR301/401/405 depend on for a `NamedTuple` — plus a
 genuine technical choice this rule doc's own "Literal instead of
 Enum" note discusses: plain `Enum` versus `StrEnum`, depending on
 whether the value crosses a string-based boundary. The tool cannot
- construct either the naming or that choice on its own.
+construct either the naming or that choice on its own.
 
 ## When this does not apply
 
