@@ -87,9 +87,6 @@ addopts = [
 [tool.coverage.run]
 source = ["pyrigor"]
 
-[tool.pydocstyle]
-convention = "google"
-
 [tool.mutmut]
 source_paths = "pyrigor/"
 
