@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.9.0] 2026-08-23
+
 ### Changed
 
 - CLI argument parsing (`--version`/`-V`, `--select`, paths) now uses
@@ -20,14 +22,21 @@ is usable for.
   recognized. An unrecognized flag is now an error immediately instead of
   being silently treated as a path. Also `--help` is now available.
 - `--only` renamed to `--select`, matching ruff's naming convention
-  (#68). Same behavior, no deprecated alias — pyrigor has no users
+  (#68). Same behavior, no deprecated naming — pyrigor has no users
   yet.
 
 ### Added
 
+- `Severity` (`error`/`warning`/`info`, matching the Language Server
+  Protocol's own `DiagnosticSeverity` naming rather than inventing
+  pyrigor-specific terms) added to every rule's `RuleInfo`, can be accessed
+  via `Rule.PYRxxx.severity`. Graded by consequence severity if the
+  underlying pattern's bug actually occurs, not by how likely that is
+  — see `DECISIONS.md`'s "Severity" entry for the full per-rule
+  reasoning.
 - `--ignore=CODE,CODE` flag, the rule-axis opposite of `--select`
-  (#69). Excludes specific rules while running every other one;
-  combines with `--select` (start from its set, remove `--ignore`'s
+  (#69). Excludes specific rules while running every other one.
+  Combines with `--select` (start from its set, remove `--ignore`'s
   codes) the same way ruff's own `select`/`ignore` combine. A
   combination that leaves no rules to check errors immediately.
 
