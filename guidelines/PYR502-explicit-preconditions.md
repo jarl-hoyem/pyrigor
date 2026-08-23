@@ -67,20 +67,20 @@ requires of its inputs as a real, enforced precondition, rather than
 trusting every caller to already know and honor an assumption that
 was never written anywhere.
 
-**Why `raise`, not `assert`. The ** `assert` is the natural tool
+**Why `raise`, not `assert`?** `assert` is the natural tool
 for this, and earlier drafts of this guideline recommended it. It is
 the wrong choice for anything that actually matters: Python's `-O`
 flag removes every `assert` statement from the compiled bytecode
 entirely, and `-OO` goes further. A precondition check written as
 `assert` is not a weaker version of the check, it is no check at all
 in an optimized build, silently.
-<!-- @formatter:off -->
-This is a real, known Python gap,
-not a hypothetical one (see [OSSF’s Secure Coding Guide for Python,
-pyscg-0037](https://github.com/ossf/wg-best-practices-os-developers/tree/main/docs/Secure-Coding-Guide-for-Python/08_coding_standards/pyscg-0037)).
+
+This is a real, known Python gap, not a hypothetical one (see
+[OSSF’s Secure Coding Guide for Python, pyscg-0037][ossf-pyscg-0037]).
 `raise` with an explicit exception has no such gap, it runs
 identically regardless of optimization flags.
-<!-- @formatter:on -->
+
+[ossf-pyscg-0037]: https://github.com/ossf/wg-best-practices-os-developers/tree/main/docs/Secure-Coding-Guide-for-Python/08_coding_standards/pyscg-0037
 
 ## Fix classification
 
