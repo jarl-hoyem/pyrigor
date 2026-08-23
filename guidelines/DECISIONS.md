@@ -257,6 +257,65 @@ documented-but-unbuilt rules carry their severity in their own
 guideline doc only, until each is actually built, following
 `ADDING_A_RULE.md`'s checklist.
 
+## Opt-in rule tier: Real, two independent axes, no separate numbering
+
+Found while considering a "ban the walrus operator" rule (#163): every
+PYRxxx rule today is framed as eventually default-enforced, catching a
+silent bug type checkers/standard linters miss. A walrus-ban does not
+fit that framing — it is a genuine readability preference, not a
+silent-bug detector, but still a real, structurally checkable rule
+someone might deliberately want (#162).
+
+**Decision: yes, pyrigor supports a distinct, explicitly opt-in rule
+tier.** Real, concrete demand already exists (#163), and MISRA — the
+project's own repeatedly cited inspiration — already distinguishes
+Mandatory/Required/Advisory rules rather than treating an opinionated
+rule as beneath inclusion.
+
+**No separate numbering namespace, unlike `PYREJECT1xx`.** First
+proposed a `PYROPT1xx` prefix, mirroring the rejected-rules namespace.
+Rejected: `PYREJECT1xx` is safe specifically because rejection is
+permanent — nothing ever moves out of that bucket. An opt-in rule's
+tier is not permanent in the same way: a rule might start opt-in and
+later prove popular enough to go default, or the reverse. Baking tier
+into the number would mean renumbering on any such move, breaking
+every existing suppression comment and `--select`/`--ignore`
+reference written against the old number — exactly the unstable-identity problem this project has already been burned
+by (the
+`zip(CHECKERS, Rule)` positional-coupling bug. The "rule identity flows
+from one place"). Opt-in rules get a normal `PYRxxx` number from
+`NUMBERING.md`'s existing bucket scheme, same as any other rule.
+
+Verified this against a real precedent rather than assuming: MISRA C
+itself keeps rule numbers fixed and has a formal Guideline
+Re-categorization Plan (GRP) specifically for moving a rule between
+Mandatory/Required/Advisory without renumbering it — confirming
+number-stable, metadata-changeable is the established pattern for
+exactly this problem, not an invented workaround.
+
+**Two independent metadata axes on `RuleInfo`, not one:**
+
+- **`Tier`: `Default` | `Advisory`** (MISRA naming). Controls real CLI
+  behavior: `Default` rules run without being selected, matching
+  every rule today. `Advisory` rules are excluded from that implicit
+  default set — reachable only via explicit `--select=PYRxxx` (or
+  symbolic name), never by omitting `--select` (which means "run the
+  default set") and never via `--ignore` alone (which only removes
+  codes from an already-selected set. An `Advisory` rule was never in
+  that starting set).
+- **`Maturity`: `Stable` | `Preview`** (Ruff naming, checked against
+  Ruff's own docs rather than assumed). A genuinely different axis
+  from `Tier` — how proven a rule is, independent of whether it is
+  meant to be universal or opinionated. All six built rules
+  are retroactively `Stable`, already proven through this project's
+  own dogfooding history. `Preview` is documentation-only for now, no
+  CLI flag of its own — it does not gate whether a rule runs. `Tier`
+  alone does that. Not adding Ruff's `Deprecated`/
+  `Removed` states or a `--preview` CLI switch: no rule has ever
+  needed either, and building them speculatively would repeat the
+  premature-investment mistake the FixProposal deferral above already
+  identified. Add them later if real demand shows up, not now.
+
 ## Development process and tooling
 
 ### GitHub Issues are referenced as a bare `#N`, never a linked title
