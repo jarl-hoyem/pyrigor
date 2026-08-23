@@ -8,6 +8,12 @@ Contributions are welcome!
 - Provide a clear description and reproduction steps (for bugs).
 - Label the issue (type) if you can.
 
+New issues should be assigned to a Milestone at creation time, when
+a relevant one exists, not left for a later cleanup pass. Milestones
+exist to make real thematic clusters (see the repo's own Milestones
+list) visible and browsable, an issue sitting unassigned when a real
+match exists defeats that purpose immediately.
+
 ## Sizing Issues
 
 Effort and value are labeled `effort: XS` through `effort: L`, and

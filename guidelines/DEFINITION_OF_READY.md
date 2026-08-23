@@ -24,6 +24,7 @@ An issue is ready to be worked on when:
 - Every label from `CONTRIBUTING.md`'s full list has been checked
   against the issue, not just the required type/value/effort
   minimum. Multiple labels commonly apply together.
+- Assigned to a Milestone when a relevant one exists
 
 An issue meeting all the above gets the `ready` label. This does
 not require an assignee. Assignment happens when someone

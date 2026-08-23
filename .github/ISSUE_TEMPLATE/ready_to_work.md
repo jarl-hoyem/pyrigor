@@ -20,6 +20,7 @@ GitHub labels, not text below:
 
 - [ ] A `value:` label is applied
 - [ ] An `effort:` label is applied
+- [ ] Assigned to a Milestone when a relevant one exists
 
 <!-- Also apply a type label: bug, enhancement, documentation,
 technical debt / refactoring, testing, rule in pyrigor, or tooling. -->
