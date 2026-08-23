@@ -39,20 +39,28 @@ Record the per-rule breakdown from the summary output below.
 
 ### History
 
-| Release | Corpus pin                      | Files | Total violations | Delta vs. prior |
-|---------|---------------------------------|-------|------------------|-----------------|
-| 0.7.4   | home-assistant/core @ `ac63da9` | 18221 | 90921            | _(first row)_   |
-| 0.8.0   | _(skipped, see note below)_     |       |                  |                 |
+| Release | Corpus pin                      | Files | Total violations | Delta vs. prior           |
+|---------|---------------------------------|-------|------------------|---------------------------|
+| 0.7.4   | home-assistant/core @ `ac63da9` | 18221 | 90921            | _(first row)_             |
+| 0.8.0   | _(skipped, see note below)_     |       |                  |                           |
+| 0.9.0   | home-assistant/core @ `ac63da9` | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
 
 **Per-rule breakdown:**
 
 | Release | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
 |---------|--------|--------|--------|--------|--------|--------|
 | 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
+| 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
 only), so a rescan would reproduce 0.7.4's row unchanged.
+
+0.9.0's tiny +2 file / +6 violation difference from 0.7.4, despite
+the identical corpus pin and no detection-logic changes since, is
+most likely a minor extraction-method difference (a GitHub archive
+tarball this time, versus a `git clone` originally), not a real
+corpus or rule-behavior change.
 
 ### Pin refreshes
 
@@ -126,6 +134,13 @@ comment ratio (`comments / sloc`) below.
 |---------|-------|------|------|------|----------|-------|-------------|-------|---------------|-----------------|
 | 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(first row)_   |
 | 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
+| 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
 
 0.8.0 versus 0.7.4: LOC +14, LLOC +5, SLOC +11, blank +1, multi-line
 lines +2, comment ratio –0.1 percentage points.
+
+0.9.0 versus 0.8.0: LOC +122, LLOC +44, SLOC +70, comments +1,
+multi-line +31, single-line +2, blank +19, comment ratio –0.2
+percentage points. Real, expected growth (the `Severity` system, the
+argparse/`--select`/`--ignore` rewrite) — the comment ratio held
+steady despite it.
