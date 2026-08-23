@@ -321,6 +321,31 @@ new rules have repeatedly caught real bugs in pyrigor’s own
 in-progress source the moment they were built, before any release
 existed. Kept both, deliberately, rather than choosing one.
 
+### Self-hosted hook version lag is permanent and accepted, not a bug to fix
+
+`.pre-commit-config.yaml`'s self-hosted `jarl-hoyem/pyrigor` hook pin
+trails the actual released version by one release, structurally, not
+just occasionally (#21). The `version_sync.py` only re-syncs pins when a
+version bump is freshly staged in `pyproject.toml` — by the time a
+new tag exists on GitHub (after the release commit is pushed and the
+release published), there is no staged bump left to trigger a
+re-sync. The mechanism cannot close this gap on any later commit.
+
+Considered: a separate, scheduled workflow periodically checking
+whether the pinned rev matches the latest GitHub release and opening
+a PR to bump it, similar in spirit to `pre-commit-autoupdate.yaml`
+but targeted at this one pin.
+
+Chosen instead: accept the one-release lag as permanent, and
+document it explicitly where a reader would actually notice the
+drift (`.pre-commit-config.yaml`'s own comment), not only in
+`version_sync.py`'s docstring as before. A dedicated scheduled
+workflow is a real, ongoing maintenance surface for a cosmetic gap. The
+pinned entry's whole purpose is confirming the released package
+works the way an external adopter would use it, which it still does
+correctly one version behind. Revisit only if a real consumer is
+ever confused by the lag in practice, not preemptively.
+
 ### Pyrigor’s suppression comment must come last when stacked with another tool’s
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`)

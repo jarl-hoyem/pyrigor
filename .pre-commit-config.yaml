@@ -75,6 +75,10 @@ repos:
         # inline ignore statement over raising this number globally.
         args: [ "--max-complexity-allowed", "6" ]
   - repo: https://github.com/jarl-hoyem/pyrigor
+    # Rev: intentionally trails the latest release by one version, permanently --
+    # version_sync.py only re-syncs pins when a version bump is freshly staged,
+    # so there is no later trigger once a release actually ships. Accepted, not
+    # a bug -- see DECISIONS.md's "Self-hosted hook version lag" entry.
     rev: v0.8.0
     hooks:
       - id: pyrigor
