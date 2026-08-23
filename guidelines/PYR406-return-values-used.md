@@ -51,6 +51,15 @@ addresses directly for Python specifically. This rule enforces that
 guidance mechanically rather than relying on a reviewer noticing a
 missing assignment by eye.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** The right fix depends entirely on developer intent
+the tool cannot know, was the return value meant to be used and
+simply forgotten, or is discarding it actually fine here. Per #105's
+own adopted classification.
+
 ## Scope, deliberately narrow
 
 A blanket version of this rule, flag every discarded non-`None`

@@ -47,6 +47,18 @@ intent, "these are the same within an acceptable margin," the thing
 that is actually checked, rather than relying on exact bitwise
 equality that floating-point arithmetic cannot reliably guarantee.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** This is the flagship-worked example in the strategy
+document behind #105's own classification framework: the tool can
+flag that a float equality check may be unsafe here and point at
+`math.isclose`, but it should not pretend to know the correct,
+domain-specific tolerance for the comparison at hand. Guessing a
+default tolerance and presenting it as a confident fix risks
+silently masking a real precision requirement.
+
 ## When this does not apply
 
 - Comparing a float against a sentinel value that is guaranteed to be

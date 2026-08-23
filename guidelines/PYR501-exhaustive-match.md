@@ -76,6 +76,15 @@ data source produces an unexpected value, `assert_never` raises
 immediately, rather than the `match` statement completing
 silently having done nothing.
 
+## Fix classification
+
+**Kind:** `safe_fix`
+
+**Reasoning:** A pure, non-displacing addition. If every real case
+is already handled by an existing branch, the added `case _:
+assert_never(...)` is unreachable by construction and mypy accepts
+it silently. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - The value being matched is genuinely open-ended, not drawn from a

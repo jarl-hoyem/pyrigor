@@ -68,6 +68,16 @@ it the same way throughout this rule family, one named
 declaration, every reference updated together, with mypy flagging
 any attempt to later rebind it.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** The structural detection (a repeated literal) is
+mechanical, but the fix itself still needs the same real naming
+judgment as [PYR203](./PYR203-final-not-magic-numbers.md) — what to
+call the extracted constant. PYR205 narrows *detection*, not the
+naming difficulty the fix depends on.
+
 ## When this does not apply
 
 - Two occurrences of the same number that are coincidentally equal

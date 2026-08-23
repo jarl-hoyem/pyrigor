@@ -67,7 +67,7 @@ requires of its inputs as a real, enforced precondition, rather than
 trusting every caller to already know and honor an assumption that
 was never written anywhere.
 
-**Why `raise`, not `assert`.** `assert` is the natural tool
+**Why `raise`, not `assert`. The ** `assert` is the natural tool
 for this, and earlier drafts of this guideline recommended it. It is
 the wrong choice for anything that actually matters: Python's `-O`
 flag removes every `assert` statement from the compiled bytecode
@@ -81,6 +81,18 @@ pyscg-0037](https://github.com/ossf/wg-best-practices-os-developers/tree/main/do
 `raise` with an explicit exception has no such gap, it runs
 identically regardless of optimization flags.
 <!-- @formatter:on -->
+
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Stating an implicit assumption as a real precondition
+requires knowing what the assumption actually is, that `x` and `y`
+must share a shape, that a value must fall within a range, which is
+domain knowledge the AST alone cannot recover. The same limiting
+factor as [PYR204](./PYR204-float-tolerance.md): the tool can flag
+that an assumption looks unstated, but it cannot construct
+the check itself.
 
 ## When this does not apply
 

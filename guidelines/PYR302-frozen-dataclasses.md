@@ -52,6 +52,18 @@ being able to trust the value once constructed.
 immediately, at the point the mutation is attempted, rather than a
 silent write that only surfaces as a bug somewhere else later.
 
+## Fix classification
+
+**Kind:** `suggestion`
+
+**Reasoning:** Adding `frozen=True` is a concrete, previewable
+one-line change, but this rule's own "When this does not apply"
+section names a common, legitimate exception, a dataclass
+deliberately designed to accumulate or update state. The tool cannot
+tell that case apart from an oversight without a human confirming
+the class's actual intended mutability, so this sits at suggestion,
+not safe fix, despite the mechanical simplicity of the change itself.
+
 ## When this does not apply
 
 - A `dataclass` whose entire purpose is to accumulate or update state

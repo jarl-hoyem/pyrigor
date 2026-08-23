@@ -99,6 +99,15 @@ remaining gaps in the full picture:
 - Return-unpacking mislabeling for same-typed return fields →
   `NamedTuple` + `NewType` (PYR401 + PYR201)
 
+## Fix classification
+
+**Kind:** `safe_fix`
+
+**Reasoning:** Mechanical and correct. Any caller consequence is
+immediate and loud, via mypy/pyright flagging a positional argument
+against a keyword-only parameter as a hard type error, not a silent
+behavior change. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - Single-parameter functions, where there is no argument order to

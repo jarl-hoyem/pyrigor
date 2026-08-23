@@ -127,6 +127,18 @@ at the boundary, removing the `.value` unwrapping a plain `Enum`
 would otherwise require. Reserve a plain `Enum` for state that is
 purely internal and never serialized.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Converting a bare string/int/bool into an `Enum`
+needs a real, human-invented class name and member names — the same
+naming judgment PYR301/401/405 depend on for a `NamedTuple` — plus a
+genuine technical choice this rule doc's own "Literal instead of
+Enum" note discusses: plain `Enum` versus `StrEnum`, depending on
+whether the value crosses a string-based boundary. The tool cannot
+ construct either the naming or that choice on its own.
+
 ## When this does not apply
 
 - A value that is genuinely open-ended, not drawn from a fixed set

@@ -96,7 +96,7 @@ conventional choice there: it is what most external tools report by
 default (`cloc`, GitHub’s own stats) and what classic
 cost-estimation models like COCOMO are built on, so it is the only
 one of the three likely to be measuring the same thing as whatever
-number the other project published.The `lloc` is formatting-insensitive
+number the other project published. The `lloc` is formatting-insensitive
 and arguably the more honest size measure, but almost nothing
 outside Python tooling reports it, so it only works when both
 projects are measured with the same tool. Plain `loc` is the weakest

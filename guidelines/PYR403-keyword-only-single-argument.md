@@ -73,6 +73,15 @@ self-documentation benefit enough to pay that cost everywhere can
 adopt PYR403 explicitly. A team that does not value it can adopt PYR402 alone
 without missing out on genuine swap protection.
 
+## Fix classification
+
+**Kind:** `safe_fix`
+
+**Reasoning:** The same reasoning as
+[PYR402](./PYR402-keyword-only-arguments.md): mechanical and
+correct, and any caller consequence is immediate and loud via
+mypy/pyright, not silent. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - Functions with zero parameters — nothing to name.

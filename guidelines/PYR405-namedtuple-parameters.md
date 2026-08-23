@@ -48,6 +48,14 @@ access removes the positional slot as an attack surface, both at
 construction (`BotAction(row=3, col=7)`, unambiguous) and at use
 (`action.row`, `action.col`, no unpacking order to get wrong).
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Needs real, human naming judgment (the `NamedTuple`
+class name, its field names), independent of any caller-safety
+question. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - Genuinely homogeneous, order-independent, or unbounded-length tuples

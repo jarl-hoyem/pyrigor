@@ -47,6 +47,15 @@ deliberately carved out as separate territory, discarding a normal
 return value wastes real, already-computed work, discarding a
 generator call means the work never happened.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** The same reasoning as
+[PYR406](./PYR406-return-values-used.md): the right fix depends
+entirely on developer intent the tool cannot know. Per #105's own
+adopted classification.
+
 ## Scope, matching PYR406's own boundaries
 
 - Only functions defined within the codebase pyrigor are checking.

@@ -46,6 +46,14 @@ result.dj_db  # always the bias, regardless of unpacking order
 result.dj_dw  # always the weights
 ```
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Needs real, human naming judgment (the `NamedTuple`
+class name, its field names), independent of any caller-safety
+question. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - Single-value returns — nothing to unpack, rule is moot.

@@ -94,6 +94,16 @@ Combined, [PYR401](./PYR401-namedtuple-returns.md) and PYR201 catch:
 runtime, purely a mypy-time construct — so there is no performance
 argument against using it wherever confusion is plausible.
 
+## Fix classification
+
+**Kind:** `suggestion`
+
+**Reasoning:** The tool can propose a specific, previewable `NewType`
+wrapper and even guess plausible names from the parameter or field
+names involved, but it cannot guarantee the guessed name is the
+correct domain concept — a human confirms the design choice. Per
+#105's own adopted classification.
+
 ## When this does not apply
 
 - A homogeneous collection of same-typed values (for example,

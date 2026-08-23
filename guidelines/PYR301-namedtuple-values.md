@@ -51,6 +51,14 @@ function signature is involved at all.
 removes the positional slot as an attack surface, both at
 construction and at every point of use.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Needs real, human naming judgment (the `NamedTuple`
+class name, its field names), independent of any caller-safety
+question. Per #105's own adopted classification.
+
 ## When this does not apply
 
 - Genuinely homogeneous, order-independent, or unbounded-length tuples

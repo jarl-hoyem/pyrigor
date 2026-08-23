@@ -89,6 +89,17 @@ numbers represent a fixed set of named alternatives (`Enum`). Use
 PYR203 when the number is a single, specific threshold, limit, or
 coefficient with no sibling values to enumerate against.
 
+## Fix classification
+
+**Kind:** `guidance`
+
+**Reasoning:** Naming a magic number  requires
+understanding why that specific value was chosen, not just that it
+appears in the code. The tool can flag the literal and point at this
+guideline, but inventing a name like `MAX_RETRIES` versus something
+else entirely is a real human judgment call, the same limiting
+factor as PYR301/401/405's `NamedTuple` naming.
+
 ## When this does not apply
 
 - The literal is `0`, `1`, or `-1`. This is the only exemption.
