@@ -51,8 +51,10 @@ Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright
 ## Architecture
 
 **Rule identity flows from one place.** The file `pyrigor/rules.py` defines the `Rule` enum. Each member’s value is a
-`RuleInfo(symbolic_name, problem)`. A symbolic name (used in suppression comments and CLI output) and problem text
-(used in violation messages) are declared once, here, not duplicated per-checker.
+`RuleInfo(symbolic_name, problem, severity)`. A symbolic name (used in suppression comments and CLI output), problem
+text (used in violation messages), and a severity (`Severity.ERROR`/`WARNING`/`INFO`, matching the Language Server
+Protocol's own `DiagnosticSeverity` naming — see `DECISIONS.md`'s "Severity" entry) are declared once, here, not
+duplicated per-checker.
 
 **Pipeline:** `cli.py` (`main`) collects `.py` files → parses each with `ast.parse` once → `checkers/_shared.py`'s
 `walk_once()` walks the tree exactly once, splitting nodes into `WalkedNodes(function_nodes, assign_nodes,

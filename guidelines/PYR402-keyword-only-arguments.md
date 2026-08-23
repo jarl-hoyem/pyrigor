@@ -108,6 +108,15 @@ immediate and loud, via mypy/pyright flagging a positional argument
 against a keyword-only parameter as a hard type error, not a silent
 behavior change. Per #105's own adopted classification.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Defense-in-depth. Any positional-caller consequence
+is already caught by mypy/pyright (per #105's own `safe_fix`
+reasoning). See `DECISIONS.md`'s "Severity" entry for the full
+per-rule reasoning.
+
 ## When this does not apply
 
 - Single-parameter functions, where there is no argument order to

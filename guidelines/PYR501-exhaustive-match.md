@@ -85,6 +85,14 @@ is already handled by an existing branch, the added `case _:
 assert_never(...)` is unreachable by construction and mypy accepts
 it silently. Per #105's own adopted classification.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** A newly added case silently falls through as a no-op,
+with nothing to indicate anything went wrong. See `DECISIONS.md`'s
+"Severity" entry for the full per-rule reasoning.
+
 ## When this does not apply
 
 - The value being matched is genuinely open-ended, not drawn from a

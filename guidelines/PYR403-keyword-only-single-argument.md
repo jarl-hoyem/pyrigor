@@ -82,6 +82,15 @@ without missing out on genuine swap protection.
 correct, and any caller consequence is immediate and loud via
 mypy/pyright, not silent. Per #105's own adopted classification.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Same reasoning as
+[PYR402](./PYR402-keyword-only-arguments.md): defense-in-depth Any
+positional-caller consequence is already caught by
+mypy/pyright.
+
 ## When this does not apply
 
 - Functions with zero parameters — nothing to name.

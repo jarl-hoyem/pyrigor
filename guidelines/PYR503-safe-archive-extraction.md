@@ -40,6 +40,14 @@ construct confidently. Given the two archive types need different
 real fixes, this sits at `suggestion`, not `safe_fix`, for the
 rule.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** A real, confirmed vulnerability class (Zip Slip), not
+just a code-quality concern. See `DECISIONS.md`'s "Severity" entry
+for the full per-rule reasoning.
+
 ## When this does not apply
 
 - Extracting an archive whose contents are fully, verifiably

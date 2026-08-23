@@ -59,6 +59,14 @@ domain-specific tolerance for the comparison at hand. Guessing a
 default tolerance and presenting it as a confident fix risks
 silently masking a real precision requirement.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** Float-equality bugs are a classic, well-documented
+correctness failure class. See `DECISIONS.md`'s "Severity" entry for
+the full per-rule reasoning.
+
 ## When this does not apply
 
 - Comparing a float against a sentinel value that is guaranteed to be

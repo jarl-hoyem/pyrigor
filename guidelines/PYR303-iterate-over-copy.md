@@ -37,6 +37,14 @@ body does not mutate the sequence, the copy is a harmless
 no-op. If it does, this is exactly the correct fix. No design
 judgment or naming decision is required.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** Skips elements — real, silent data loss, no
+exception raised. See `DECISIONS.md`'s "Severity" entry for the full
+per-rule reasoning.
+
 ## When this does not apply
 
 - Iterating over a sequence, the loop body never mutates at all.

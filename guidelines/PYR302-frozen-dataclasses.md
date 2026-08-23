@@ -64,6 +64,14 @@ tell that case apart from an oversight without a human confirming
 the class's actual intended mutability, so this sits at suggestion,
 not safe fix, despite the mechanical simplicity of the change itself.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Prevents accidental mutation — real, but narrower
+blast radius than a genuinely silent correctness bug. See
+`DECISIONS.md`'s "Severity" entry for the full per-rule reasoning.
+
 ## When this does not apply
 
 - A `dataclass` whose entire purpose is to accumulate or update state

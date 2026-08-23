@@ -93,12 +93,20 @@ coefficient with no sibling values to enumerate against.
 
 **Kind:** `guidance`
 
-**Reasoning:** Naming a magic number  requires
+**Reasoning:** Naming a magic number requires
 understanding why that specific value was chosen, not just that it
 appears in the code. The tool can flag the literal and point at this
 guideline, but inventing a name like `MAX_RETRIES` versus something
 else entirely is a real human judgment call, the same limiting
 factor as PYR301/401/405's `NamedTuple` naming.
+
+## Severity
+
+**Level:** `info`
+
+**Reasoning:** Readability/maintainability and drift prevention, not
+a silent-wrong-output risk. See `DECISIONS.md`'s "Severity" entry
+for the full per-rule reasoning.
 
 ## When this does not apply
 

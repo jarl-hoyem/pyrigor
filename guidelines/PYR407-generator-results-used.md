@@ -56,6 +56,14 @@ generator call means the work never happened.
 entirely on developer intent the tool cannot know. Per #105's own
 adopted classification.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** Worse than [PYR406](./PYR406-return-values-used.md)'s
+own case — discarding a generator call means the work never happened
+at all, not merely computed and thrown away.
+
 ## Scope, matching PYR406's own boundaries
 
 - Only functions defined within the codebase pyrigor are checking.

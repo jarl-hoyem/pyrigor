@@ -139,6 +139,14 @@ Enum" note discusses: plain `Enum` versus `StrEnum`, depending on
 whether the value crosses a string-based boundary. The tool cannot
 construct either the naming or that choice on its own.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Prevents typo-driven silent failures, a real risk but
+not yet observed misbehaving. See `DECISIONS.md`'s "Severity" entry
+for the full per-rule reasoning.
+
 ## When this does not apply
 
 - A value that is genuinely open-ended, not drawn from a fixed set

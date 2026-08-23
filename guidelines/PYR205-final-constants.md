@@ -78,6 +78,14 @@ judgment as [PYR203](./PYR203-final-not-magic-numbers.md) — what to
 call the extracted constant. PYR205 narrows *detection*, not the
 naming difficulty the fix depends on.
 
+## Severity
+
+**Level:** `info`
+
+**Reasoning:** Same reasoning as
+[PYR203](./PYR203-final-not-magic-numbers.md): readability/maintainability
+and drift prevention, not a silent-wrong-output risk.
+
 ## When this does not apply
 
 - Two occurrences of the same number that are coincidentally equal

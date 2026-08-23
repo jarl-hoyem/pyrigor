@@ -34,6 +34,14 @@ mechanically safe and directly corrects the actual, virtually always
 intended behavior, an exact decimal value. No design judgment is
 required.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** Constructs a different value than the one
+written — a real precision bug. See `DECISIONS.md`'s "Severity"
+entry for the full per-rule reasoning.
+
 ## When this does not apply
 
 - A `Decimal` constructed from an existing `int`, another `Decimal`,

@@ -60,6 +60,15 @@ the tool cannot know, was the return value meant to be used and
 simply forgotten, or is discarding it actually fine here. Per #105's
 own adopted classification.
 
+## Severity
+
+**Level:** `error`
+
+**Reasoning:** A computed value is silently discarded — real work
+already done, thrown away with nothing to indicate anything went
+wrong. See `DECISIONS.md`'s "Severity" entry for the full per-rule
+reasoning.
+
 ## Scope, deliberately narrow
 
 A blanket version of this rule, flag every discarded non-`None`

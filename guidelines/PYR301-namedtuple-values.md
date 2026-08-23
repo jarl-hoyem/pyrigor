@@ -59,6 +59,14 @@ construction and at every point of use.
 class name, its field names), independent of any caller-safety
 question. Per #105's own adopted classification.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Real swap-risk protection, but partially caught by
+other means and narrower blast radius than error-tier rules. See
+`DECISIONS.md`'s "Severity" entry for the full per-rule reasoning.
+
 ## When this does not apply
 
 - Genuinely homogeneous, order-independent, or unbounded-length tuples

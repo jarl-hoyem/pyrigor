@@ -94,6 +94,15 @@ factor as [PYR204](./PYR204-float-tolerance.md): the tool can flag
 that an assumption looks unstated, but it cannot construct
 the check itself.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Turns a distant, confusing failure into an immediate
+one — real, but the underlying bug would eventually surface some
+other way too. See `DECISIONS.md`'s "Severity" entry for the full
+per-rule reasoning.
+
 ## When this does not apply
 
 - The assumption is already fully captured by the type system itself,

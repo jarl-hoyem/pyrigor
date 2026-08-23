@@ -48,6 +48,7 @@ Add a member to the `Rule` enum in `pyrigor/rules.py`:
 PYRxxx = RuleInfo(
     symbolic_name="...",
     problem="...",
+    severity=Severity.WARNING,  # ERROR | WARNING | INFO, see DECISIONS.md's "Severity" entry
 )
 ```
 

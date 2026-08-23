@@ -104,6 +104,14 @@ names involved, but it cannot guarantee the guessed name is the
 correct domain concept — a human confirms the design choice. Per
 #105's own adopted classification.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Prevents same-typed-value confusion but requires the
+swap to actually occur. See `DECISIONS.md`'s "Severity" entry for
+the full per-rule reasoning.
+
 ## When this does not apply
 
 - A homogeneous collection of same-typed values (for example,

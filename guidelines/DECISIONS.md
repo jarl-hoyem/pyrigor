@@ -208,6 +208,55 @@ already identified as this project's biggest real risk. Revisit only
 once real, concrete demand exists, a real user asking, or genuine
 editor-integration work actually starting, not before.
 
+## Severity: Language Server Protocol DiagnosticSeverity naming adopted, real per-rule levels assigned
+
+A real `severity` field is needed for the planned `--output-format
+json` diagnostic schema (file, line/column, rule ID, message,
+severity, per `pyrigor_strategy.txt`'s own Stage 1 requirements), and
+nothing in pyrigor's own `Rule`/`RuleInfo` structure provided one
+until now (#158).
+
+Scheme: reused the Language Server Protocol's own `DiagnosticSeverity`
+naming (`Error`, `Warning`, `Information`, `Hint`) rather than
+inventing pyrigor-specific terms, matching the same "match an
+existing tool's own naming, do not invent" principle already applied
+to `--select`/`--ignore` (#66). Chosen specifically because pyrigor's
+own roadmap already commits to eventual LSP integration (#152,
+deferred but decided) — assigning severities in LSP's own vocabulary
+now means zero translation layer once that work actually starts. Used
+three of LSP's four levels (`error`/`warning`/`info`, the common short
+form of `Information`) — `Hint` was not used, since none of pyrigor's
+18 rules are pure editor-hint-level suggestions. Even the
+lightest-weight ones are real, considered diagnostics.
+
+Graded by consequence severity if the underlying pattern's bug
+actually occurs, not by how likely that is — a rule catching a rare
+but catastrophic bug outranks one catching a common but low-stakes
+one.
+
+| Rule(s)              | Severity | Why                                                                      |
+|----------------------|----------|--------------------------------------------------------------------------|
+| PYR503               | error    | A real, confirmed vulnerability class (Zip Slip), not just style         |
+| PYR303               | error    | Silently skips elements, real silent data loss, no exception raised      |
+| PYR501               | error    | A newly added case silently falls through as a no-op                     |
+| PYR204               | error    | Float-equality bugs are a classic, well-documented failure class         |
+| PYR206               | error    | Silently constructs a different value than the one written               |
+| PYR406/PYR407        | error    | A computed value is discarded, or a generator body never executes at all |
+| PYR301/PYR401/PYR405 | warning  | Real swap-risk protection, narrower blast radius than error-tier         |
+| PYR402/PYR403        | warning  | Defense-in-depth; caller consequence already loud via mypy/pyright       |
+| PYR201               | warning  | Prevents same-typed-value confusion, requires the swap to occur          |
+| PYR202               | warning  | Prevents typo-driven failures, not yet seen misbehaving in practice      |
+| PYR302               | warning  | Prevents accidental mutation, narrower blast radius than error-tier      |
+| PYR502               | warning  | Turns a distant, confusing failure into an immediate, clear one          |
+| PYR203/PYR205        | info     | Readability and drift prevention, not a silent-wrong-output risk         |
+
+Wired into `pyrigor/rules.py` for the six built rules (a `Severity`
+enum, not a bare string — using one here would contradict PYR202's
+own point while implementing severity for it). The twelve
+documented-but-unbuilt rules carry their severity in their own
+guideline doc only, until each is actually built, following
+`ADDING_A_RULE.md`'s checklist.
+
 ## Development process and tooling
 
 ### GitHub Issues are referenced as a bare `#N`, never a linked title

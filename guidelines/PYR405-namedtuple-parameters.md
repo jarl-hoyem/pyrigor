@@ -56,6 +56,15 @@ construction (`BotAction(row=3, col=7)`, unambiguous) and at use
 class name, its field names), independent of any caller-safety
 question. Per #105's own adopted classification.
 
+## Severity
+
+**Level:** `warning`
+
+**Reasoning:** Same reasoning as
+[PYR301](./PYR301-namedtuple-values.md): real swap-risk protection,
+but partially caught by other means and narrower blast radius than
+error-tier rules.
+
 ## When this does not apply
 
 - Genuinely homogeneous, order-independent, or unbounded-length tuples

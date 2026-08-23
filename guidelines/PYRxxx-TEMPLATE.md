@@ -56,6 +56,33 @@ handle it.>
 would have to be true for it to move to a stricter tier, if
 anything.>
 
+## Severity
+
+<Added following #158's real, per-rule severity assignment (see
+DECISIONS.md's "Severity" entry for the adoption decision this
+template implements). Graded by consequence severity if the
+underlying pattern's bug actually occurs, not by how likely that is
+— a rule catching a rare but catastrophic bug outranks one catching
+a common but low-stakes one. Uses the Language Server Protocol's own
+`DiagnosticSeverity` naming, not an invented pyrigor-specific term.>
+
+**Level:** `error` | `warning` | `info`
+
+- **`error`** — the pattern this rule catches is a real, confirmed
+  correctness or security bug class, often severe or hard to detect.
+  Example: PYR503 (Zip Slip, an actual vulnerability class), PYR303
+  (silently skipped elements — real data loss).
+- **`warning`** — real defense-in-depth against a swap/misuse risk,
+  but narrower blast radius or partially caught by other means
+  (mypy, tests). Example: PYR402/PYR403 (keyword-only — any caller
+  consequence is already caught by mypy/pyright).
+- **`info`** — readability/maintainability, not a silent-wrong-output
+  risk. Example: PYR203/PYR205 (magic numbers/`Final` constants).
+
+**Reasoning:** <Why this rule sits at this level specifically —
+what would have to be true for it to move to a stricter or lighter
+tier, if anything.>
+
 ## When this does not apply
 
 <List genuine, considered exclusions — a structural exemption, a
