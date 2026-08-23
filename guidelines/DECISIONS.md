@@ -210,6 +210,32 @@ editor-integration work actually starting, not before.
 
 ## Development process and tooling
 
+### GitHub Issues are referenced as a bare `#N`, never a linked title
+
+Now that `BACKLOG.md` is retired and every real work item lives as a
+GitHub Issue, `DECISIONS.md` and `REVIEW_CHECKLIST.md` needed a
+single, deliberate convention for referencing one, rather than an
+adhoc choice made differently each time (#101).
+
+Checked the actual, current practice across both files first, rather
+than picking a convention in the abstract: every existing reference
+in `DECISIONS.md` already uses a bare `#N` (`(#68)`, `on #66`,
+`#19 added...`, `#56 (move to an org...) still stands`), sometimes
+with a short inline parenthetical gloss when the number alone would
+not orient an unfamiliar reader, sometimes without. The file `REVIEW_CHECKLIST.md`
+has no issue-number references at all.
+
+Chosen: keep the already-consistent bare `#N` form, with an optional
+short parenthetical gloss at the author's own discretion for a
+number a reader is unlikely to recognize on sight. Not a linked
+Markdown title — GitHub already auto-links a bare `#N` inline within
+its own rendering, so a manual `[title](url)` link would be
+a redundant markup for zero real benefit, and would also silently go
+stale if the issue's title is ever edited later.
+
+No retrofit needed: every existing reference in both files already
+matches this convention.
+
 ### The tool complexipy runs through a Python wrapper, not a .bat script
 
 The tool complexipy’s own console output (via `rich`) crashes on Windows’
