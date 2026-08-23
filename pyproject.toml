@@ -91,7 +91,11 @@ source = ["pyrigor"]
 source_paths = "pyrigor/"
 
 [tool.pylint.main]
-load-plugins = ["pylint.extensions.magic_value"]
+load-plugins = [
+  "pylint.extensions.magic_value",
+  "pylint.extensions.docparams",
+  "pylint.extensions.docstyle",
+]
 
 [tool.pylint.format]
 max-line-length = 120
