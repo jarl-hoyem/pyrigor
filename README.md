@@ -177,7 +177,7 @@ PYR206, PYR302, PYR303, PYR407, PYR501, PYR502, PYR503.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks)
-- [ ] pylint plugin
+- [ ] Editor integration (deferred until real demand exists, see #152)
 
 ## Guidelines
 
