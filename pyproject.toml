@@ -33,6 +33,7 @@ dev = [
   "ty>=0.0.71",
   "ruff>=0.16.3",
   "mutmut>=3.4.0",
+  "pylint>=4.0.7",
 ]
 
 [tool.setuptools.packages.find]
@@ -119,6 +120,15 @@ load-plugins = [
 
 [tool.pylint.format]
 max-line-length = 120
+
+[tool.pylint."messages control"]
+enable = [
+  "bad-inline-option",
+  "deprecated-pragma",
+  "file-ignored",
+  "use-symbolic-message-instead",
+  "useless-suppression",
+]
 
 [tool.bandit]
 

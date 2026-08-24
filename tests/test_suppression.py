@@ -9,7 +9,7 @@ from pyrigor.rules import Rule
 
 # noinspection PyProtectedMember
 from pyrigor.suppression import (
-    _suppressed_tokens,  # pylint: disable=protected-access
+    _suppressed_tokens,
     filter_suppressed,
 )
 from pyrigor.violations import Violation
@@ -313,7 +313,7 @@ def test_bare_other_tool_comment_on_line_above_does_not_suppress_or_warn(capsys:
 
 
 def test_pyrigor_comment_before_other_tool_comment_still_suppresses_despite_polluted_reason() -> None:
-    """Pyrigor's comment before another tool's still suppresses, despite a polluted reason (a known limitation)."""
+    """Pyrigor's comment before another tool has still suppresses, despite a polluted reason (a known limitation)."""
     source = "def apply_correction(weight, bias):  # pyrigor 402 # positional swap risk  # nosec\n    ...\n"
     violations = [
         Violation(

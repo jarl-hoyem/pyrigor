@@ -17,11 +17,7 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-# pylint's own pre-commit hook runs in an isolated venv with only pytest
-# installed (see .pre-commit-config.yaml), not pyrigor itself -- the
-# import is real and correct everywhere the script actually runs
-# (system-installed mypy/pyright/ty, and the script itself, all pass).
-from pyrigor.checkers import CHECKERS  # pylint: disable=import-error
+from pyrigor.checkers import CHECKERS
 
 _GUIDELINES_DIR = Path("guidelines")
 _OUTPUT_PATH = _GUIDELINES_DIR / "RULES.md"

@@ -18,11 +18,6 @@ repos:
       - id: end-of-file-fixer  # Makes sure files end in a newline and only a newline.
       - id: trailing-whitespace
       - id: mixed-line-ending
-  - repo: https://github.com/pycqa/pylint
-    rev: v4.0.7
-    hooks:
-      - id: pylint
-        additional_dependencies: [ "pytest" ]  # add pyrigor's runtime deps here as they're introduced
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.4
     hooks:
@@ -78,8 +73,20 @@ repos:
     rev: v0.8.0
     hooks:
       - id: pyrigor
+  # Tools that need the project's own real dependencies installed to
+  # work correctly (resolving imports, checking types against actual
+  # third-party packages) run here. They run via the project's own uv-managed
+  # dev environment, rather than an isolated pre-commit environment
+  # with no access to pyrigor's own dependencies. Their real version
+  # lives in pyproject.toml's dev extras, a single source of truth, not
+  # a separate rev: pin the way every tool above this point uses.
   - repo: local
     hooks:
+      - id: pylint
+        name: pylint
+        language: system
+        entry: uv run --extra dev pylint
+        types: [ python ]
       - id: pyright
         name: pyright
         language: system
