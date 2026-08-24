@@ -49,8 +49,8 @@ alongside `DEFINITION_OF_DONE.md`.
    (`pre-commit run bandit --files ...`), not the manual scan that
    had already been trusted as enough.
 
-4. **When reviewing a comparison source fetched in one pass (like
-   Pickomino’s own config), was every distinct section actually
+4. **When reviewing a comparison source fetched in one pass,
+   was every distinct section actually
    individually evaluated, not just the one that produced the most
    obvious finding?**
    ← rule: `DEFINITION_OF_DONE.md`, Correctness
@@ -92,6 +92,22 @@ alongside `DEFINITION_OF_DONE.md`.
    real command-line flags. It passed "by coincidence" rather than
    actually exercising the crash path — invisible to any review that
    reasoned about the code without running it.
+
+7. **Was a finding produced under a flag that disables the underlying
+   check entirely (like `--disable=all`), not just narrows which
+   messages display, re-verified against the real, full config
+   before being trusted?**
+   ← rule: `DEFINITION_OF_DONE.md`, Correctness
+   *Earned by:* #47's original investigation used `--disable=all
+   --enable=<5 messages>` to isolate a handful of pylint messages.
+   `--disable=all` disables the underlying checks themselves, not
+   just their display, so every local `# pylint: disable=` comment
+   for an already-globally disabled check trivially showed as
+   `useless-suppression`, an artifact of the test, not a genuine
+   finding. 19 "stale suppressions" were reported this way,
+   none of them were real. Caught only by running the actual, full config
+   directly and finding just two genuine results, a real, significant
+   difference from the original count.
 
 ## Retroactive applications
 
