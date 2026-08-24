@@ -12,7 +12,7 @@ re-deciding at every new rule.
 short as possible — "mandated" naming is often shorter than
 "banned" naming, since it does not need a `no-`/`not-` qualifier.
 
-```
+```text
 PYR402-keyword-only-arguments   (mandates keyword-only)
 PYR401-namedtuple-returns       (mandates NamedTuple, for returns)
 ```
@@ -23,7 +23,7 @@ Add a `-not-X` qualifier only when the mandate-only name would be
 genuinely ambiguous about what it is replacing — when the mandated
 thing alone does not imply what is wrong.
 
-```
+```text
 PYR202-enum-not-magic-strings
 ```
 

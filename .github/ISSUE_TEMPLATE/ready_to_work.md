@@ -35,7 +35,7 @@ Self-certified, an honest check, not independently verifiable:
   the ones already mentioned above, for anything else that
   applies
 
-## Too big or unclear:
+## Too big or unclear
 
 If this is larger than the largest real effort size (`L`), involves
 a genuine architectural decision, or blocks several other issues,

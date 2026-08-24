@@ -153,8 +153,8 @@ knowledge only):
    (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their own commit.
 5. **Run pyscn's clone detection** (`uvx pyscn@latest analyze .
    --select clones`), review real findings against the known,
-   deliberate architectural patterns (checker 'find_violations'
-   wrappers, _shared.py's helper functions), file an issue for
+   deliberate architectural patterns (checker `find_violations`
+   wrappers, `_shared.py`'s helper functions), file an issue for
    anything genuinely new.
 6. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
    and title) with real release notes.

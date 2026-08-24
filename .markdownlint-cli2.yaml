@@ -3,3 +3,14 @@ config:
     line_length: 120
     tables: false
   MD060: false
+  # This project's own documented convention (DECISIONS.md's "GitHub
+  # Issues are referenced as a bare #N" entry): markdownlint mistakes
+  # a line starting with #N for atx heading syntax missing a space.
+  MD018: false
+  MD024:
+    siblings_only: true
+ignores:
+  - ".venv/**"
+  - "htmlcov/**"
+  - "*.egg-info/**"
+  - "target/**"

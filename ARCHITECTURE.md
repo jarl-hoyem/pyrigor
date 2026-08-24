@@ -10,7 +10,7 @@ behind specific choices rather than duplicating that reasoning here.
 
 ## Pipeline
 
-```
+```text
 CLI entry (run())
   -> collect .py files (recursing directories, skipping excluded ones)
   -> for each file:
@@ -34,7 +34,7 @@ checker independently walking the tree.
 
 Confirmed directly from the real import statements, not guessed:
 
-```
+```text
 rules.py                 (foundation, no internal dependencies)
     ^
 violations.py            (depends only on rules.py)
