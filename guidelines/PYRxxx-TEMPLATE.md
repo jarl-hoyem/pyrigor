@@ -107,9 +107,7 @@ pyrigor`, then `pyrigor path/to/file.py`)." If documented but not yet
 enforced: state that plainly, do not imply automatic checking that
 does not exist.>
 
-<!-- markdownlint-disable-next-line MD033 -- <source> is a placeholder here, not real HTML -->
-
-## A note on <source>, if applicable
+## A note on <source>, if applicable <!-- markdownlint-disable-line MD033 -- placeholder, not real HTML -->
 
 <Optional. If an existing citation (McConnell, Google's Style Guide,
 OSSF's Secure Coding Guide, a PEP, ...) directly informs or

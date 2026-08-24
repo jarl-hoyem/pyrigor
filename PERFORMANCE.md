@@ -79,12 +79,12 @@ already-collected nodes, not another full tree walk.
   not file count alone. The stdlib includes some huge, complex
   modules (`typing.py`, `re/_parser.py`). Home Assistant’s codebase
   is many smaller, more uniform integration files.
-    - **No crashes across either large run**, including real edge cases
-      the smaller ML-repo test did not surface: a UTF-8 Byte Order Mark, (BOM)
-      crash, an unrelated non-UTF-8 file
-      crash, and scanning into a differently
-      named venv folder — all found and fixed before these runs (see
-      CHANGELOG/release notes for v0.2.2 – v0.2.3).
+  - **No crashes across either large run**, including real edge cases
+    the smaller ML-repo test did not surface: a UTF-8 Byte Order Mark, (BOM)
+    crash, an unrelated non-UTF-8 file
+    crash, and scanning into a differently
+    named venv folder — all found and fixed before these runs (see
+    CHANGELOG/release notes for v0.2.2 – v0.2.3).
 - **Checker-count scaling**: architecturally, checkers previously
   each called `ast.parse()` independently — a real, avoidable cost
   that would scale linearly with checker count. Fixed by
