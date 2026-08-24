@@ -170,7 +170,21 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     return FileCheckResult(kept=result.kept, suppressed=result.suppressed)
 
 
-def _format_rule_breakdown(*, violations: list[Violation]) -> str:
+def _rule_count_breakdown(*, violations: list[Violation], suffix: str = "") -> str:
+    """Build a per-rule violation count breakdown string, optionally suffixed.
+
+    Args:
+        violations: Violations to count, grouped by rule.
+        suffix: Text appended after each count (for example, " suppressed"), or "" for none.
+
+    Returns:
+        A comma-separated "Rule: count[suffix]" breakdown, sorted by rule name.
+    """
+    counts = Counter(v.rule.name for v in violations)
+    return ", ".join(f"{rule}: {count}{suffix}" for rule, count in sorted(counts.items()))
+
+
+def _format_rule_breakdown(*, violations: KeptViolations) -> str:
     """Build a per-rule violation count breakdown string.
 
     Args:
@@ -179,11 +193,10 @@ def _format_rule_breakdown(*, violations: list[Violation]) -> str:
     Returns:
         A comma-separated "Rule: count" breakdown, for example, "PYR401: 2, PYR402: 5".
     """
-    counts = Counter(v.rule.name for v in violations)
-    return ", ".join(f"{rule}: {count}" for rule, count in sorted(counts.items()))
+    return _rule_count_breakdown(violations=violations)
 
 
-def _format_suppressed_breakdown(*, suppressed: list[Violation]) -> str:
+def _format_suppressed_breakdown(*, suppressed: SuppressedViolations) -> str:
     """Build a per-rule suppressed-violation count breakdown string.
 
     Args:
@@ -192,8 +205,7 @@ def _format_suppressed_breakdown(*, suppressed: list[Violation]) -> str:
     Returns:
         A comma-separated "Rule: count suppressed" breakdown.
     """
-    counts = Counter(v.rule.name for v in suppressed)
-    return ", ".join(f"{rule}: {count} suppressed" for rule, count in sorted(counts.items()))
+    return _rule_count_breakdown(violations=suppressed, suffix=" suppressed")
 
 
 def _print_file_breakdown(*, violations_by_file: dict[str, KeptViolations]) -> None:
