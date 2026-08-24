@@ -6,27 +6,43 @@ repos:
     rev: v6.0.0
     hooks:
       - id: debug-statements  # Check for debugger imports and breakpoint() in python files.
+        stages: [ pre-commit ]
       - id: check-ast  # Check whether files parse as valid python.
+        stages: [ pre-commit ]
       - id: fix-byte-order-marker  # Removes UTF-8 byte order marker.
+        stages: [ pre-commit ]
       - id: check-json
+        stages: [ pre-commit ]
       - id: detect-private-key
+        stages: [ pre-commit ]
       - id: check-toml
+        stages: [ pre-commit ]
       - id: check-yaml
+        stages: [ pre-commit ]
       - id: check-added-large-files
+        stages: [ pre-commit ]
       - id: check-shebang-scripts-are-executable
+        stages: [ pre-commit ]
       - id: check-case-conflict  # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
+        stages: [ pre-commit ]
       - id: end-of-file-fixer  # Makes sure files end in a newline and only a newline.
+        stages: [ pre-commit ]
       - id: trailing-whitespace
+        stages: [ pre-commit ]
       - id: mixed-line-ending
+        stages: [ pre-commit ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.4
     hooks:
       - id: ruff
+        stages: [ pre-commit ]
       - id: ruff-format
+        stages: [ pre-commit ]
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
+        stages: [ pre-commit ]
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.18.0
     hooks:
@@ -36,12 +52,14 @@ repos:
     rev: v1.7.12
     hooks:
       - id: actionlint
+        stages: [ pre-commit ]
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
       - id: bandit
         args: [ "-c", "pyproject.toml" ]
         additional_dependencies: [ "bandit[toml]" ]
+        stages: [ pre-commit ]
   - repo: https://github.com/jendrikseipp/vulture
     rev: v2.16
     hooks:
@@ -50,10 +68,12 @@ repos:
         # against pyrigor/, scripts/, and tests/ produced zero false
         # positives at this threshold, no evidence raising it would help.
         args: [ "pyrigor", "scripts", "tests" ]
+        stages: [ pre-commit ]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
     hooks:
       - id: codespell
+        stages: [ pre-commit ]
   - repo: https://github.com/rohaquinlop/complexipy-pre-commit
     rev: v7.0.1
     hooks:
@@ -65,6 +85,7 @@ repos:
         # exceeds this, prefer a refactoring, or a scoped, justified
         # inline ignore statement over raising this number globally.
         args: [ "--max-complexity-allowed", "6" ]
+        stages: [ pre-commit ]
   - repo: https://github.com/jarl-hoyem/pyrigor
     # Rev: intentionally trails the latest release by one version, permanently --
     # version_sync.py only re-syncs pins when a version bump is freshly staged,
@@ -73,6 +94,7 @@ repos:
     rev: v0.8.0
     hooks:
       - id: pyrigor
+        stages: [ pre-commit ]
   # Tools that need the project's own real dependencies installed to
   # work correctly (resolving imports, checking types against actual
   # third-party packages) run here. They run via the project's own uv-managed
@@ -87,6 +109,7 @@ repos:
         language: system
         entry: uv run --extra dev pylint
         types: [ python ]
+        stages: [ pre-commit ]
       - id: pyright
         name: pyright
         language: system
@@ -94,6 +117,7 @@ repos:
         args:
           - --project=pyproject.toml
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: ty
         name: ty
         language: system
@@ -102,6 +126,7 @@ repos:
           - check
           - .
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: mypy
         name: mypy
         language: system
@@ -109,6 +134,7 @@ repos:
         args:
           - .
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: xenon
         name: xenon
         language: python
@@ -128,6 +154,7 @@ repos:
           - pyrigor/
           - scripts/
           - tests/
+        stages: [ pre-commit ]
       - id: xenon-shared
         name: xenon (relaxed to B, for files with a documented exception)
         language: python
@@ -149,6 +176,7 @@ repos:
           - pyrigor/checkers/_shared.py
           # Add a new file's own path here, and its matching
           # `*filename.py` glob to the strict hook's --exclude above.
+        stages: [ pre-commit ]
       - id: radon-maintainability
         name: radon maintainability
         entry: radon mi
@@ -157,46 +185,54 @@ repos:
         args: [ "--min", "A", "pyrigor", "tests" ]
         additional_dependencies: [ "radon==6.0.1" ]
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: uv-lock-check
         name: uv lock check
         language: python
         entry: uv lock --check
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: pyrigor
         name: pyrigor (WIP self-check, uncommitted code)
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli pyrigor scripts tests
         types: [ python ]
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: pytest
         name: pytest
         language: system
         entry: uv run --extra dev pytest
         pass_filenames: false
+        stages: [ pre-commit ]
       - id: dod-check
         name: DoD - warn on likely missed doc/changelog updates
         language: system
         entry: uv run --extra dev python scripts/check_definition_of_done.py
         pass_filenames: false
         always_run: true
+        stages: [ pre-commit ]
       - id: version-sync
         name: sync hook versions and uv.lock on a version bump
         language: system
         entry: uv run --extra dev python scripts/version_sync.py
         pass_filenames: false
         always_run: true
+        stages: [ pre-commit ]
       - id: generate-rule-table
         name: regenerate guidelines/RULES.md from the real guideline docs
         language: system
         entry: uv run --extra dev python scripts/generate_rule_table.py
         pass_filenames: false
         always_run: true
+        stages: [ pre-commit ]
       - id: pip-audit
         name: pip-audit (fast, local environment)
         language: system
         entry: uv run --extra dev --with pip-audit pip-audit --local
         pass_filenames: false
         always_run: true
+        stages: [ pre-commit ]
       - id: pip-audit-locked
         name: pip-audit (precise, exact uv.lock versions, pre-push/CI only)
         language: system
