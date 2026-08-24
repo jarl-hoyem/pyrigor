@@ -173,7 +173,6 @@ repos:
         language: system
         entry: uv run --extra dev pytest
         pass_filenames: false
-        stages: [ pre-push ]
       - id: dod-check
         name: DoD - warn on likely missed doc/changelog updates
         language: system
@@ -193,8 +192,15 @@ repos:
         pass_filenames: false
         always_run: true
       - id: pip-audit
-        name: pip-audit
+        name: pip-audit (fast, local environment)
+        language: system
+        entry: uv run --extra dev --with pip-audit pip-audit --local
+        pass_filenames: false
+        always_run: true
+      - id: pip-audit-locked
+        name: pip-audit (precise, exact uv.lock versions, pre-push/CI only)
         language: system
         entry: uv run --with pip-audit python scripts/run_pip_audit.py
         pass_filenames: false
         always_run: true
+        stages: [ pre-push ]
