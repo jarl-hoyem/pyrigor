@@ -19,7 +19,7 @@ import tokenize
 from io import StringIO
 from typing import NamedTuple
 
-from pyrigor.violations import Violation
+from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
 
 class _SuppressionInfo(NamedTuple):
@@ -32,8 +32,8 @@ class _SuppressionInfo(NamedTuple):
 class SuppressionResult(NamedTuple):
     """The result of filtering violations by suppression comments."""
 
-    kept: list[Violation]
-    suppressed: list[Violation]
+    kept: KeptViolations
+    suppressed: SuppressedViolations
 
 
 _SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s+(?P<tokens>.+)$")
@@ -69,7 +69,7 @@ def _suppressed_tokens(*, comment: str) -> _SuppressionInfo:
     Returns:
         The suppression information is found in this comment, or an
         empty _SuppressionInfo if there is none. If the comment
-        mentions "pyrigor" but doesn't match the expected pattern, a
+        mentions "pyrigor" but does not match the expected pattern, a
         warning is printed.
     """
     match = _SUPPRESSION_PATTERN.search(comment)
@@ -131,7 +131,7 @@ def _candidate_comments(*, violation: Violation, comments: dict[int, str]) -> li
         The comment on the line directly above the violation,
         followed by the comment on every line within the violation's
         own span (line through 'end_line'). A missing dict entry
-        (no comment on that line, or the line doesn't exist) yields "".
+        (no comment on that line, or the line does not exist) yields "".
     """
     above = [comments.get(violation.line - 1, "")]
     span = [comments.get(lineno, "") for lineno in range(violation.line, violation.end_line + 1)]
@@ -166,7 +166,7 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> Suppressio
         The violations that are kept, and the ones that were suppressed.
     """
     if not violations:
-        return SuppressionResult(kept=[], suppressed=[])
+        return SuppressionResult(kept=KeptViolations([]), suppressed=SuppressedViolations([]))
 
     comments = _comments_by_line(source=source)
 
@@ -178,4 +178,4 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> Suppressio
         else:
             kept.append(violation)
 
-    return SuppressionResult(kept=kept, suppressed=suppressed)
+    return SuppressionResult(kept=KeptViolations(kept), suppressed=SuppressedViolations(suppressed))

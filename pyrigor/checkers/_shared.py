@@ -1,13 +1,13 @@
 """Shared AST helpers used by more than one pyrigor checker."""
 
 import ast
-from typing import NamedTuple, Protocol
+from typing import Final, NamedTuple, Protocol
 
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
-_UNBOUNDED_TUPLE_SLICE_LENGTH = 2  # tuple[X, ...] always has exactly [type, Ellipsis]
-_MINIMUM_MULTI_VALUE_COUNT = 2  # two or more elements means "multiple values"
+_UNBOUNDED_TUPLE_SLICE_LENGTH: Final = 2  # tuple[X, ...] always has exactly [type, Ellipsis]
+_MINIMUM_MULTI_VALUE_COUNT: Final = 2  # two or more elements means "multiple values"
 
 
 def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:

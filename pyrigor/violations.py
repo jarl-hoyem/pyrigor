@@ -1,7 +1,7 @@
 """Shared violation type produced by all of pyrigor's checkers."""
 
 import ast
-from typing import NamedTuple
+from typing import NamedTuple, NewType
 
 from pyrigor.rules import Rule
 
@@ -15,6 +15,10 @@ class Violation(NamedTuple):
     context_name: str
     context_kind: str
     rule: Rule
+
+
+KeptViolations = NewType("KeptViolations", list[Violation])
+SuppressedViolations = NewType("SuppressedViolations", list[Violation])
 
 
 def _name_from_ann_assign(*, node: ast.AnnAssign) -> str:

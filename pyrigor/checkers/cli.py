@@ -7,15 +7,16 @@ import time
 from collections import Counter
 from importlib.metadata import version
 from pathlib import Path
-from typing import NamedTuple, Never
+from typing import Final, NamedTuple, Never
 
 from pyrigor.checkers import CHECKERS, RegisteredChecker
 from pyrigor.checkers._shared import walk_once
 from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
-from pyrigor.violations import Violation
+from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
 _MISSING_PATHS_MESSAGE = "the following arguments are required: paths"
+_EXIT_CODE_USAGE_ERROR: Final = 2
 
 _DEFAULT_EXCLUDES = frozenset(
     {
@@ -138,8 +139,8 @@ def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, 
 class FileCheckResult(NamedTuple):
     """A single file's checked violations, split by suppression."""
 
-    kept: list[Violation]
-    suppressed: list[Violation]
+    kept: KeptViolations
+    suppressed: SuppressedViolations
 
 
 def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCheckResult:
@@ -154,7 +155,7 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     """
     source = _read_source(path=path)
     if source is None:
-        return FileCheckResult(kept=[], suppressed=[])
+        return FileCheckResult(kept=KeptViolations([]), suppressed=SuppressedViolations([]))
 
     violations = _run_checkers(path=path, source=source, checkers=checkers)
     result = filter_suppressed(violations=violations, source=source)
@@ -195,7 +196,7 @@ def _format_suppressed_breakdown(*, suppressed: list[Violation]) -> str:
     return ", ".join(f"{rule}: {count} suppressed" for rule, count in sorted(counts.items()))
 
 
-def _print_file_breakdown(*, violations_by_file: dict[str, list[Violation]]) -> None:
+def _print_file_breakdown(*, violations_by_file: dict[str, KeptViolations]) -> None:
     """Print each file's own violation count, skipping clean files.
 
     Args:
@@ -210,9 +211,9 @@ def _print_summary(
     *,
     files: list[str],
     elapsed: float,
-    violations: list[Violation],
-    violations_by_file: dict[str, list[Violation]],
-    suppressed: list[Violation],
+    violations: KeptViolations,
+    violations_by_file: dict[str, KeptViolations],
+    suppressed: SuppressedViolations,
 ) -> None:
     """Print the per-file breakdown, per-rule breakdown, suppression breakdown, and timing summary.
 
@@ -238,12 +239,12 @@ def _print_summary(
 class _CheckResults(NamedTuple):
     """Aggregated results across every checked file."""
 
-    all_violations: list[Violation]
-    all_suppressed: list[Violation]
-    kept_by_file: dict[str, list[Violation]]
+    all_violations: KeptViolations
+    all_suppressed: SuppressedViolations
+    kept_by_file: dict[str, KeptViolations]
 
 
-def _collect_all_violations(*, results_by_file: dict[str, FileCheckResult]) -> list[Violation]:
+def _collect_all_violations(*, results_by_file: dict[str, FileCheckResult]) -> KeptViolations:
     """Flatten every file's kept violations into one list.
 
     Args:
@@ -252,10 +253,10 @@ def _collect_all_violations(*, results_by_file: dict[str, FileCheckResult]) -> l
     Returns:
         Every kept violation across all files.
     """
-    return [v for result in results_by_file.values() for v in result.kept]
+    return KeptViolations([v for result in results_by_file.values() for v in result.kept])
 
 
-def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> list[Violation]:
+def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> SuppressedViolations:
     """Flatten every file's suppressed violations into one list.
 
     Args:
@@ -264,10 +265,10 @@ def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> l
     Returns:
         Every suppressed violation across all files.
     """
-    return [v for result in results_by_file.values() for v in result.suppressed]
+    return SuppressedViolations([v for result in results_by_file.values() for v in result.suppressed])
 
 
-def _kept_by_file(*, results_by_file: dict[str, FileCheckResult]) -> dict[str, list[Violation]]:
+def _kept_by_file(*, results_by_file: dict[str, FileCheckResult]) -> dict[str, KeptViolations]:
     """Extract each file's kept violations, for the per-file breakdown.
 
     Args:
@@ -466,7 +467,7 @@ def _reject_repeated_flag(*, flag_name: str, values: list[str] | None) -> None:
             f"pyrigor: {flag_name} can only be given once (use {flag_name}=CODE,CODE for multiple rules)",
             file=sys.stderr,
         )
-        sys.exit(2)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
 def _parse_flag_tokens(*, values: list[str] | None) -> set[str] | None:
@@ -510,7 +511,7 @@ def _validate_flag_tokens(*, flag_name: str, tokens: set[str] | None) -> None:
     unknown = tokens - _known_rule_identities()
     if unknown:
         print(f"pyrigor: unknown rule code(s) in {flag_name}: {', '.join(sorted(unknown))}", file=sys.stderr)
-        sys.exit(2)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
 def _reject_empty_selection(*, checkers: tuple[RegisteredChecker, ...]) -> None:
@@ -521,7 +522,7 @@ def _reject_empty_selection(*, checkers: tuple[RegisteredChecker, ...]) -> None:
     """
     if not checkers:
         print("pyrigor: --select and --ignore combine to leave no rules to check", file=sys.stderr)
-        sys.exit(2)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
 def run() -> None:
@@ -541,7 +542,7 @@ def run() -> None:
         exit_code = main(paths=args.paths, select=select, ignore=ignore)
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
-        sys.exit(2)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
 
     sys.exit(exit_code)
 

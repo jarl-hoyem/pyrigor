@@ -1,12 +1,13 @@
 """PYR402 checker: flag functions with parameters before a bare `*`."""
 
 import ast
+from typing import Final
 
 from pyrigor.checkers._shared import WalkedNodes, count_parameters, find_function_violations
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation
 
-_MINIMUM_PARAMS_FOR_RULE = 2  # single-parameter functions are exempt, see PYR403
+_MINIMUM_PARAMS_FOR_RULE: Final = 2  # single-parameter functions are exempt, see PYR403
 
 
 def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
