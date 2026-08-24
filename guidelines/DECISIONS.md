@@ -620,3 +620,20 @@ Verified directly, this very entry is the content of that test PR:
   to reflect this. The real gap is not "self-approval is allowed,"
   it is "the only way to merge solo is an administrator override that skips
   the review gate entirely."
+
+### xenon's two-tier grade system
+
+The tool xenon has no per-function suppression mechanism, unlike complexipy's
+inline `# complexipy: ignore`. The `xenon-shared` hook (relaxed to
+grade B) exists specifically for files with a documented, real
+exception (currently `_shared.py`'s `walk_once`, see the 'ast.walk'
+entry above), while the default `xenon` hook stays at strict grade A
+for everything else. A file only qualifies for the relaxed hook once
+it has its own DECISIONS.md-documented reason, not by default.
+
+### The tool vulture's confidence threshold
+
+Kept at its default (60), deliberately, not tuned. Real runs against
+pyrigor/, scripts/ and tests/ produced zero false positives at this
+threshold, no evidence raising it would help, and raising it risks
+missing genuine dead code.
