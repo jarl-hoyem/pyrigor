@@ -55,11 +55,6 @@ repos:
         stages: [ pre-commit ]
       - id: ruff-format
         stages: [ pre-commit ]
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.18.1
-    hooks:
-      - id: markdownlint-cli2
-        stages: [ pre-commit ]
   # Security.
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
@@ -97,6 +92,11 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
+        stages: [ pre-commit ]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.18.1
+    hooks:
+      - id: markdownlint-cli2
         stages: [ pre-commit ]
   - repo: https://github.com/rohaquinlop/complexipy-pre-commit
     rev: v7.0.1
