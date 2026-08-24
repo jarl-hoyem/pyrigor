@@ -192,3 +192,9 @@ repos:
         entry: uv run --extra dev python scripts/generate_rule_table.py
         pass_filenames: false
         always_run: true
+      - id: pip-audit
+        name: pip-audit
+        language: system
+        entry: uv run --with pip-audit python scripts/run_pip_audit.py
+        pass_filenames: false
+        always_run: true
