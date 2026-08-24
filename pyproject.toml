@@ -92,6 +92,7 @@ source = ["pyrigor"]
 source_paths = "pyrigor/"
 
 [tool.pylint.main]
+fail-on = ["I"]
 load-plugins = [
   "pylint.extensions.magic_value",
   "pylint.extensions.docparams",
