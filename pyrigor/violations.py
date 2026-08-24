@@ -1,9 +1,11 @@
 """Shared violation type produced by all of pyrigor's checkers."""
 
 import ast
-from typing import NamedTuple, NewType
+from typing import Literal, NamedTuple, NewType
 
 from pyrigor.rules import Rule
+
+ContextKind = Literal["Function", "Variable", "Call"]
 
 
 class Violation(NamedTuple):
@@ -13,7 +15,7 @@ class Violation(NamedTuple):
     end_line: int
     column: int
     context_name: str
-    context_kind: str
+    context_kind: ContextKind
     rule: Rule
 
 
@@ -65,6 +67,7 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
     Returns:
         A populated Violation.
     """
+    kind: ContextKind
     if isinstance(node, ast.AnnAssign):
         name = _name_from_ann_assign(node=node)
         kind = "Variable"
