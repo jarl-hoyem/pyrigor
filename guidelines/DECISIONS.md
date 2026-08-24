@@ -637,3 +637,23 @@ Kept at its default (60), deliberately, not tuned. Real runs against
 pyrigor/, scripts/ and tests/ produced zero false positives at this
 threshold, no evidence raising it would help, and raising it risks
 missing genuine dead code.
+
+### `tach` adopted for module-boundary enforcement, real boundaries from real architecture
+
+`tach check` ran clean, zero findings, against a `tach.toml` marking
+every individual `pyrXXX_*.py` checker as its own isolated module
+(never importing another checker, only
+`_shared.py`/`rules.py`/`violations.py`), `_shared.py` and `cli.py`
+each as their own module, and `scripts/`/`tests/` each as one coarse
+module separate from the real package. The clean result confirms
+these boundaries were already followed informally. Adopted despite
+finding nothing today, for its preventive value against a future
+accidental import, matching this project's own stated philosophy
+(README.md: "Do not rely on convention or code review where a tool
+can enforce correctness instead") — not because a current violation
+demanded it. See #7.
+
+Real, ongoing cost: `tach.toml` needs updating whenever a new
+`pyrXXX` checker is added, or the new file silently falls outside
+`tach check`'s tracking — `ADDING_A_RULE.md`'s own checklist gained a
+step for this.

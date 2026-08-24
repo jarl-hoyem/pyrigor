@@ -27,6 +27,3 @@ be lost inside a closed issue's comment thread.
 | allow-global-unused-variables=false (pylint) | Style            | Rejected                                                     | Flags every module-level function as unused unless called within its own defining file, wrong for this codebase's architecture | —                                                                              |
 | pydocstyle                                   | Style            | Removed, redundant                                           | Ruff's own D-rule category (select = ["ALL"]) already reimplements it, identical convention setting, zero discrepancy found    | —                                                                              |
 | code_style (pylint extension)                | Style            | Rejected                                                     | Real findings (walrus-operator suggestions), but conflicts with this project's own deliberate readability judgment             | —                                                                              |
-
-`tach` is tracked separately, still in progress, see #7, not
-duplicated into this table.

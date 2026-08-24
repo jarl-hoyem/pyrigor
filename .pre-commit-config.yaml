@@ -213,6 +213,14 @@ repos:
           - scripts/
           - tests/
         stages: [ pre-commit ]
+      - id: tach
+        name: tach (module-boundary enforcement)
+        entry: tach check
+        language: python
+        additional_dependencies: [ "tach==0.35.0" ]
+        files: (\.py$|tach\.toml$)
+        pass_filenames: false
+        stages: [ pre-commit ]
       # Project-specific.
       - id: uv-lock-check
         name: uv lock check

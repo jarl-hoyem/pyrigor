@@ -113,18 +113,26 @@ was skipped. No automated check catches a
 missing registration. Do this step deliberately, and confirm by
 running `pyrigor` against a file that should trigger the new rule.
 
-## 8. Update the README
+## 8. Mark the checker in tach.toml
+
+Mark the new checker file as its own module in `tach.toml`, isolated
+from every other `pyrXXX` checker, the same as every existing one.
+A checker not marked here falls outside `tach check`'s tracking
+entirely, silently — the same class of gap `CHECKERS` registration
+already warns about above. Run `tach check` to confirm.
+
+## 9. Update the README
 
 Add a row to the guideline table in `README.md`, in numeric order,
 with the correct "Enforced by" value.
 
-## 9. Add a pre-commit hook, if enforced
+## 10. Add a pre-commit hook, if enforced
 
 Confirm the hook in `.pre-commit-config.yaml` still says "runs every
 registered checker" accurately. If checkers are ever split into
 separate hooks again, add a new hook entry here.
 
-## 10. Run the full suite
+## 11. Run the full suite
 
 `pre-commit run --all-files`. All checks are green, 100 percent coverage,
 before committing.
