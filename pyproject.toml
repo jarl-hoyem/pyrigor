@@ -47,6 +47,7 @@ line-length = 120
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "COM812", # Ruff Format remains authoritative for trailing commas. Avoids the formatter-conflict warning.
   "EM101", # descriptive f-strings directly in exceptions is this project's own established style
   "EM102", # same reasoning as EM101, an inline f-string in a raise is fine here, not a custom-exception project
   "TRY003", # long messages passed directly to builtin exceptions, no custom exception hierarchy adopted
