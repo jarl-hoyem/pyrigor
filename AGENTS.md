@@ -105,6 +105,10 @@ maintainer's time:
     code paths, moderate debugging, and reviews requiring judgment.
   - Use a frontier model for challenging architecture, subtle semantics,
     hard-to-reproduce bugs, or security-sensitive review.
+- Before starting a clearly mechanical task, recommend a cheaper model. State
+  that only the user can switch the primary session's model. Delegated
+  subagents may use a cheaper model when delegation is appropriate. Wait for
+  the user's choice before proceeding.
 - Increase model capability or reasoning effort only when task complexity or
   observed failure warrants it. Reserve the most expensive reasoning modes for
   work where their quality gain justifies the additional cost.
@@ -193,6 +197,12 @@ pattern verbatim.
 - Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) — see `guidelines/DECISIONS.md`
   for why `NamedTuple` and `NewType` close different gaps.
 - Google-style docstrings (pydocstyle-checked) on public functions.
+- Write short documentation sentences that do not trigger PyCharm's
+  sentence-length inspection. Prefer splitting sentences over using semicolons.
+- Preserve the repository's existing 'crlf' line endings when editing Markdown
+  instruction files. Do not introduce mixed line endings.
+- Use byte-preserving operations for encoding or line-ending conversions.
+  Verify the resulting bytes and text before finishing.
 - 100% test coverage (branch included) is enforced on every commit, not aspirational.
 - Before declaring any feature/fix done, apply `guidelines/DEFINITION_OF_DONE.md` and
   `guidelines/REVIEW_CHECKLIST.md` — both are living checklists earned by real defects that previously slipped

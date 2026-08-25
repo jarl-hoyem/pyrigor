@@ -210,8 +210,8 @@ editor-integration work actually starting, not before.
 
 ## Severity: Language Server Protocol DiagnosticSeverity naming adopted, real per-rule levels assigned
 
-A real `severity` field is needed for the planned `--output-format
-json` diagnostic schema (file, line/column, rule ID, message,
+A real `severity` field is used by the `--output-format=json`
+diagnostic schema (file, line/column, rule ID, message,
 severity, per `pyrigor_strategy.txt`'s own Stage 1 requirements), and
 nothing in pyrigor's own `Rule`/`RuleInfo` structure provided one
 until now (#158).

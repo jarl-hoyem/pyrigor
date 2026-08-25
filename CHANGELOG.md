@@ -11,6 +11,12 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- `--output-format=json` emits schema-validated v1 JSON diagnostics for
+  the editor and tooling integrations, including source locations, rule metadata,
+  suppression summaries, and structured read/parse errors (#179).
+
 ## [0.9.0] 2026-08-23
 
 ### Changed
