@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.10.0] 2026-08-25
+
 ### Added
 
 - `--output-format=json` emits schema-validated v1 JSON diagnostics for

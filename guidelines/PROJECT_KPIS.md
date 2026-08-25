@@ -39,11 +39,12 @@ Record the per-rule breakdown from the summary output below.
 
 ### History
 
-| Release | Corpus pin                      | Files | Total violations | Delta vs. prior           |
-|---------|---------------------------------|-------|------------------|---------------------------|
-| 0.7.4   | home-assistant/core @ `ac63da9` | 18221 | 90921            | _(first row)_             |
-| 0.8.0   | _(skipped, see note below)_     |       |                  |                           |
-| 0.9.0   | home-assistant/core @ `ac63da9` | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
+| Release | Corpus pin                       | Files | Total violations | Delta vs. prior           |
+|---------|----------------------------------|-------|------------------|---------------------------|
+| 0.7.4   | home-assistant/core @ `ac63da9`  | 18221 | 90921            | _(first row)_             |
+| 0.8.0   | _(skipped, see note below)_      |       |                  |                           |
+| 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
+| 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
 
 **Per-rule breakdown:**
 
@@ -51,6 +52,7 @@ Record the per-rule breakdown from the summary output below.
 |---------|--------|--------|--------|--------|--------|--------|
 | 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
 | 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
+| 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
@@ -69,6 +71,8 @@ so a future reader does not mistake "home-assistant added new code"
 for "pyrigor got noisier."
 
 - _(none yet)_
+- 0.10.0 uses `80fd0c5f` because the previous `ac63da9` pin is no
+  longer available from the Home Assistant repository.
 
 ## Code-quality statistics (% comments, % blank) per release
 
@@ -135,6 +139,7 @@ comment ratio (`comments / sloc`) below.
 | 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(first row)_   |
 | 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
 | 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
+| 0.10.0  | 13    | 1811 | 736  | 778  | 23       | 539   | 54          | 440   | 3.0%          | -0.7 pp         |
 
 0.8.0 versus 0.7.4: LOC +14, LLOC +5, SLOC +11, blank +1, multi-line
 lines +2, comment ratio –0.1 percentage points.

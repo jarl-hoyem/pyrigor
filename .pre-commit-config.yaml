@@ -94,7 +94,7 @@ repos:
       - id: codespell
         stages: [ pre-commit ]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.18.1
+    rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
         stages: [ pre-commit ]
@@ -116,7 +116,7 @@ repos:
     # version_sync.py only re-syncs pins when a version bump is freshly staged,
     # so there is no later trigger once a release actually ships. Accepted, not
     # a bug -- see DECISIONS.md's "Self-hosted hook version lag" entry.
-    rev: v0.8.0
+    rev: v0.9.0
     hooks:
       - id: pyrigor
         stages: [ pre-commit ]
