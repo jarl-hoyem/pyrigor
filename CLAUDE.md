@@ -97,6 +97,17 @@ maintainer's time:
 - Reuse context already gathered in the conversation. Do not refetch or
   restate it without a concrete reason.
 - Batch a related read-only inspection into a few tool calls.
+- Use the least expensive model tier likely to complete the task correctly:
+  - Use an economy/fast model for mechanical edits, documentation
+    synchronization, file reordering, straightforward tests, and known-pattern
+    fixes.
+  - Use a balanced general-purpose model for normal implementation, unfamiliar
+    code paths, moderate debugging, and reviews requiring judgment.
+  - Use a frontier model for challenging architecture, subtle semantics,
+    hard-to-reproduce bugs, or security-sensitive review.
+- Increase model capability or reasoning effort only when task complexity or
+  observed failure warrants it. Reserve the most expensive reasoning modes for
+  work where their quality gain justifies the additional cost.
 - Prepare one cohesive, exact diff for the approval instead of requesting a series
   of small edits.
 - Use targeted validation proportional to the change. Do not duplicate the
