@@ -87,6 +87,30 @@ caused real bugs before: guideline-doc filename slug must exactly match the `Rul
 (enforced by `tests/test_rules_docs_sync.py`). Check first whether ruff/pylint/mypy-strict already cover the pattern
 before writing a rule (otherwise it goes in `guidelines/REJECTED.md`, not as a new rule).
 
+## Economical agent workflow
+
+Work efficiently with model tokens, tool calls, network access, and the
+maintainer's time:
+
+- Read only the issue-relevant code and documentation. Do not produce project
+  overviews for the maintainer unless explicitly requested.
+- Reuse context already gathered in the conversation. Do not refetch or
+  restate it without a concrete reason.
+- Batch a related read-only inspection into a few tool calls.
+- Prepare one cohesive, exact diff for the approval instead of requesting a series
+  of small edits.
+- Use targeted validation proportional to the change. Do not duplicate the
+  full pre-commit suite when the maintainer's commit workflow runs it,
+  unless targeted checks reveal risk or the maintainer requests it.
+- Prefer public browser access for GitHub reads. Use authenticated CLI access
+  only when the browser cannot retrieve required information.
+- Do not use subagents for small or sequential tasks.
+- Keep progress updates brief and report only information that affects the
+  task or requires a decision.
+- The maintainer handles staging, commits, and pushes. Provide a
+  copy-paste-ready commit message after verified file changes.
+- Combine the approved closing comment and issue close into one GitHub action.
+
 ## Approval before file changes
 
 Every file change — Edit/Write calls, and any Bash/PowerShell command
