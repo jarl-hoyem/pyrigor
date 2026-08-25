@@ -40,10 +40,6 @@ dev = [
 where = ["."]
 include = ["pyrigor*"]
 
-[tool.mypy]
-python_version = "3.11"
-strict = true
-
 [tool.ruff]
 target-version = "py311"
 line-length = 120
@@ -70,26 +66,18 @@ convention = "google"
 "pyrigor/checkers/cli.py" = ["T201"]  # print is the CLI's own real output mechanism
 "pyrigor/suppression.py" = ["T201"]  # print is this module's own real stderr-warning mechanism
 
-[tool.pytest.ini_options]
-markers = [
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
-addopts = [
-  "-m", "not slow",
-  "--cov=pyrigor",
-  "--cov-branch",
-  "--cov-report=html",
-  "--cov-report=term-missing",
-  "--cov-fail-under=100",
-  "--strict-markers",
-  "-W", "error",
-]
+[tool.bandit]
 
-[tool.coverage.run]
-source = ["pyrigor"]
+[tool.bandit.assert_used]
+skips = ["*tests/*"]
 
-[tool.mutmut]
-source_paths = "pyrigor/"
+[tool.codespell]
+# astroid: a real Python library name (pylint's inference engine), not a typo for "asteroid"
+ignore-words-list = "astroid"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
 
 [tool.pylint.main]
 fail-on = ["I"]
@@ -134,11 +122,23 @@ enable = [
 ]
 disable = ["consider-using-assignment-expr"]
 
-[tool.bandit]
+[tool.coverage.run]
+source = ["pyrigor"]
 
-[tool.bandit.assert_used]
-skips = ["*tests/*"]
+[tool.mutmut]
+source_paths = "pyrigor/"
 
-[tool.codespell]
-# astroid: a real Python library name (pylint's inference engine), not a typo for "asteroid"
-ignore-words-list = "astroid"
+[tool.pytest.ini_options]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+addopts = [
+  "-m", "not slow",
+  "--cov=pyrigor",
+  "--cov-branch",
+  "--cov-report=html",
+  "--cov-report=term-missing",
+  "--cov-fail-under=100",
+  "--strict-markers",
+  "-W", "error",
+]
