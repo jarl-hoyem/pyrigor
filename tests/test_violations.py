@@ -64,3 +64,13 @@ def test_context_kind_is_function_for_function_node() -> None:
     violation = make_violation(node=stmt, rule=Rule.PYR402)
 
     assert violation.context_kind == "Function"
+
+
+def test_make_violation_captures_end_column() -> None:
+    """make_violation should retain the AST's end column for JSON ranges."""
+    statement = ast.parse("def load(a, b):\n    ...\n").body[0]
+    assert isinstance(statement, ast.FunctionDef)
+
+    violation = make_violation(node=statement, rule=Rule.PYR402)
+
+    assert violation.end_column == 8

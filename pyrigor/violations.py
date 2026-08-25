@@ -17,6 +17,7 @@ class Violation(NamedTuple):
     context_name: str
     context_kind: ContextKind
     rule: Rule
+    end_column: int = 1
 
 
 KeptViolations = NewType("KeptViolations", list[Violation])
@@ -82,6 +83,7 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
         line=node.lineno,
         end_line=node.end_lineno or node.lineno,
         column=node.col_offset + 1,
+        end_column=(node.end_col_offset + 1 if node.end_col_offset is not None else node.col_offset + 1),
         context_name=name,
         context_kind=kind,
         rule=rule,

@@ -24,12 +24,21 @@ class Severity(Enum):
     INFO = "info"
 
 
+class Fixability(Enum):
+    """The kind of fix guidance a rule can provide."""
+
+    SAFE_FIX = "safe_fix"
+    SUGGESTION = "suggestion"
+    GUIDANCE = "guidance"
+
+
 class RuleInfo(NamedTuple):
-    """The symbolic name, problem description, and severity of a rule."""
+    """The stable metadata associated with a rule."""
 
     symbolic_name: str
     problem: str
     severity: Severity
+    fixability: Fixability
 
 
 class Rule(Enum):
@@ -39,35 +48,41 @@ class Rule(Enum):
         symbolic_name="namedtuple-values",
         problem="is annotated as a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
+        fixability=Fixability.GUIDANCE,
     )
 
     PYR401 = RuleInfo(
         symbolic_name="namedtuple-returns",
         problem="returns a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
+        fixability=Fixability.GUIDANCE,
     )
     PYR402 = RuleInfo(
         symbolic_name="keyword-only-arguments",
         problem="has positional parameters; all parameters should be keyword-only",
         severity=Severity.WARNING,
+        fixability=Fixability.SAFE_FIX,
     )
 
     PYR403 = RuleInfo(
         symbolic_name="keyword-only-single-argument",
         problem="has a single positional parameter; it should be keyword-only",
         severity=Severity.WARNING,
+        fixability=Fixability.SAFE_FIX,
     )
 
     PYR405 = RuleInfo(
         symbolic_name="namedtuple-parameters",
         problem="has a parameter typed as a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
+        fixability=Fixability.GUIDANCE,
     )
 
     PYR406 = RuleInfo(
         symbolic_name="return-values-used",
         problem="is called and its return value is discarded; use the result",
         severity=Severity.ERROR,
+        fixability=Fixability.GUIDANCE,
     )
 
     @property
@@ -82,5 +97,10 @@ class Rule(Enum):
 
     @property
     def severity(self) -> Severity:
-        """The rule's severity level, matching LSP's DiagnosticSeverity naming."""
+        """The rule's severity level, matching Language Server Protocol's DiagnosticSeverity naming."""
         return self.value.severity
+
+    @property
+    def fixability(self) -> Fixability:
+        """The rule's fix classification from its guideline."""
+        return self.value.fixability

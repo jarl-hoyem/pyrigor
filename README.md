@@ -100,6 +100,12 @@ or the symbolic name, the same as suppression comments. An
 unrecognized code exits immediately with an error naming it, as does
 a `--select`/`--ignore` combination that leaves no rules to check.
 
+For the machine-readable editor or tooling integration, use
+`--output-format=json`. It emits one JSON document containing diagnostics,
+read/parse errors, and suppression counts The default human-readable format
+is unchanged. See [`guidelines/JSON_DIAGNOSTICS.md`](./guidelines/JSON_DIAGNOSTICS.md)
+for the contract and schema.
+
 To suppress a specific violation, add a same-line comment with a
 reason:
 

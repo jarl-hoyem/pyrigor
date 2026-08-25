@@ -3,7 +3,7 @@
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
-from pyrigor.rules import Rule, Severity
+from pyrigor.rules import Fixability, Rule, Severity
 
 
 def test_pyr402_rule_has_correct_code_and_name() -> None:
@@ -18,12 +18,19 @@ def test_pyr402_rule_has_warning_severity() -> None:
 
 
 def test_pyr406_rule_has_error_severity() -> None:
-    """Rule PYR406 (a genuinely silent, discarded-value bug) should be ERROR severity."""
+    """Rule PYR406 (a genuinely silent, discarded-value bug) should be error severity."""
     assert Rule.PYR406.severity == Severity.ERROR
 
 
+def test_rule_fixability_matches_guideline_classification() -> None:
+    """Rule metadata exposes the existing guideline fix classifications."""
+    assert Rule.PYR402.fixability == Fixability.SAFE_FIX
+    assert Rule.PYR301.fixability == Fixability.GUIDANCE
+    assert Fixability.SUGGESTION.value == "suggestion"
+
+
 def test_severity_values_match_lsp_naming() -> None:
-    """Severity's string values should match LSP's own DiagnosticSeverity naming, for #159's future JSON output."""
+    """Severity's string values should match Language Server Protocol's own DiagnosticSeverity naming: JSON output."""
     assert Severity.ERROR.value == "error"
     assert Severity.WARNING.value == "warning"
     assert Severity.INFO.value == "info"
