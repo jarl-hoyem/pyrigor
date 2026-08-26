@@ -112,17 +112,13 @@ repos:
         stages: [ pre-commit ]
   # Project-specific.
   - repo: https://github.com/jarl-hoyem/pyrigor
-    # Rev: intentionally trails the latest release by one version, permanently --
-    # version_sync.py only re-syncs pins when a version bump is freshly staged,
-    # so there is no later trigger once a release actually ships. Accepted, not
-    # a bug -- see DECISIONS.md's "Self-hosted hook version lag" entry.
-    rev: v0.10.0
+    # The published self-hosted hook intentionally lags until the next release
+    # is completed. That lag is accepted, so the pinned hook always references
+    # an existing released tag. Update this pin after each release.
+    rev: v0.11.0
     hooks:
       - id: pyrigor
-        # This is pre-commit's file filter, not pyrigor's native --exclude.
-        # Keep intentional manual fixtures out of the automatic hook while
-        # retaining them for direct manual runs.
-        exclude: ^manual-tests/
+        args: [ --exclude, manual-tests ]
         stages: [ pre-commit ]
   # Tools that need the project's own real dependencies installed to
   # work correctly (resolving imports, checking types against actual

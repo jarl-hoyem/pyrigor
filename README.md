@@ -151,9 +151,10 @@ remote hook, the same way you would add `ruff` or `black`:
 
 ```yaml
 - repo: https://github.com/jarl-hoyem/pyrigor
-  rev: v0.8.0
+  rev: v0.11.0
   hooks:
     - id: pyrigor
+      args: [ --exclude, generated ]
 ```
 
 Pin `rev:` to a real, released tag, not `main`. Check the

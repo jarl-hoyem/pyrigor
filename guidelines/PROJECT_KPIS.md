@@ -30,10 +30,18 @@ come from home-assistant’s own code changing instead of pyrigor’s.
 
 **How:**
 
+Keep one local checkout outside this repository and reuse it for each
+release. The checkout is not part of the project and must not be committed.
+Before each run, check out the pin recorded in the table:
+
 ```bash
-git clone --depth 1 --branch <pinned-tag-or-commit> https://github.com/home-assistant/core /tmp/ha-core
-uv run pyrigor /tmp/ha-core > /tmp/kpi-run.txt
+git -C <persistent-ha-core-checkout> checkout --detach <pinned-tag-or-commit>
+uv run pyrigor <persistent-ha-core-checkout> > /tmp/kpi-run.txt
 ```
+
+Fetch or clone the checkout only when establishing it or deliberately
+refreshing the corpus pin. Record any deliberate refresh in the
+**Pin refreshes** section below.
 
 Record the per-rule breakdown from the summary output below.
 
@@ -45,6 +53,7 @@ Record the per-rule breakdown from the summary output below.
 | 0.8.0   | _(skipped, see note below)_      |       |                  |                           |
 | 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
 | 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
+| 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
 
 **Per-rule breakdown:**
 
@@ -53,6 +62,7 @@ Record the per-rule breakdown from the summary output below.
 | 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
 | 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
 | 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
+| 0.11.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
@@ -140,12 +150,4 @@ comment ratio (`comments / sloc`) below.
 | 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
 | 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
 | 0.10.0  | 13    | 1811 | 736  | 778  | 23       | 539   | 54          | 440   | 3.0%          | -0.7 pp         |
-
-0.8.0 versus 0.7.4: LOC +14, LLOC +5, SLOC +11, blank +1, multi-line
-lines +2, comment ratio –0.1 percentage points.
-
-0.9.0 versus 0.8.0: LOC +122, LLOC +44, SLOC +70, comments +1,
-multi-line +31, single-line +2, blank +19, comment ratio –0.2
-percentage points. Real, expected growth (the `Severity` system, the
-argparse/`--select`/`--ignore` rewrite) — the comment ratio held
-steady despite it.
+| 0.11.0  | 13    | 1855 | 747  | 812  | 23       | 543   | 56          | 444   | 2.8%          | -0.2 pp         |
