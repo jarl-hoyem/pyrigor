@@ -202,6 +202,23 @@ def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytes
     assert exc_info.value.code == 0
 
 
+def test_run_accepts_repeated_exclude_flags(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should pass every repeated --exclude path to the file collector."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    first.write_text("def one(a, b):\n    ...\n")
+    second.write_text("def two(a, b):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--exclude", str(first), "--exclude", str(second), str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_output_format_json_emits_json(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
@@ -363,6 +380,24 @@ def test_main_excludes_explicit_file(*, tmp_path: Path, capsys: pytest.CaptureFi
     assert "Checked 0 files" in capsys.readouterr().out
 
 
+def test_main_combines_file_and_directory_exclusions(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Multiple exclusions should combine without affecting remaining files."""
+    keep = tmp_path / "keep.py"
+    excluded_file = tmp_path / "excluded.py"
+    excluded_dir = tmp_path / "generated"
+    excluded_dir.mkdir()
+    keep.write_text("def keep(*, value):\n    ...\n")
+    excluded_file.write_text("def excluded(a, b):\n    ...\n")
+    nested = excluded_dir / "nested.py"
+    nested.write_text("def nested(a, b):\n    ...\n")
+
+    assert main(paths=[str(tmp_path)], excludes=[str(excluded_file), str(excluded_dir), str(excluded_dir)]) == 0
+    captured = capsys.readouterr()
+    assert "Checked 1 file" in captured.out
+    assert "excluded.py" not in captured.out
+    assert "nested.py" not in captured.out
+
+
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """main() should print how many files were checked and how long it took."""
@@ -489,13 +524,13 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
     """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
 
     # noinspection PyUnusedLocal
-    def _boom(*, paths: list[str], select: set[str] | None, ignore: set[str] | None) -> int:
+    def _boom(*, paths: list[str], select: set[str] | None, ignore: set[str] | None, excludes: list[str] | None) -> int:
         # Must accept the same keywords as main()'s real call site
         # (main (paths=args.paths, select=select, ignore=ignore)), or a
         # TypeError is raised instead of the intended RuntimeError, still
         # caught by the same except Exception handler but not exercising
         # the real crash path.
-        del paths, select, ignore
+        del paths, select, ignore, excludes
         raise RuntimeError("something genuinely broke")
 
     monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)
