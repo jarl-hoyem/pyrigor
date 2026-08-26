@@ -48,6 +48,14 @@ repos:
         stages: [ pre-commit ]
       - id: check-case-conflict  # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
         stages: [ pre-commit ]
+  - repo: local
+    hooks:
+      - id: text-hygiene
+        name: reject control characters and mojibake
+        language: system
+        entry: uv run python scripts/check_text_hygiene.py
+        stages: [ pre-commit ]
+        files: "\\.(py|md|toml|ya?ml|json|txt|lock)$"
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.4
     hooks:
@@ -249,14 +257,7 @@ repos:
         types: [ python ]
         pass_filenames: false
         stages: [ pre-commit ]
-      # Tests.
-      - id: pytest
-        name: pytest
-        language: system
-        entry: uv run --extra dev pytest
-        pass_filenames: false
-        stages: [ pre-commit ]
-      # Dependency audits, slowest, external concern, last.
+      # Fast local dependency audit runs before the slower test suite.
       - id: pip-audit
         name: pip-audit (fast, local environment)
         language: system
@@ -264,6 +265,16 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [ pre-commit ]
+      # Tests.
+      - id: pytest
+        name: pytest
+        # The suite must include the deliberate test matrix required by
+        # DEFINITION_OF_DONE.md. Passing tests cannot prove untested paths.
+        language: system
+        entry: uv run --extra dev pytest
+        pass_filenames: false
+        stages: [ pre-commit ]
+      # Precise locked dependency audit is pre-push/CI only and intentionally slow.
       - id: pip-audit-locked
         name: pip-audit (precise, exact uv.lock versions, pre-push/CI only)
         language: system

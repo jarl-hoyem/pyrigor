@@ -87,6 +87,12 @@ caused real bugs before: guideline-doc filename slug must exactly match the `Rul
 (enforced by `tests/test_rules_docs_sync.py`). Check first whether ruff/pylint/mypy-strict already cover the pattern
 before writing a rule (otherwise it goes in `guidelines/REJECTED.md`, not as a new rule).
 
+For every implementation change, build and run a deliberate test matrix:
+normal behavior, edge and boundary cases, meaningful combinations, and
+relevant negative or error paths. Never treat a passing happy-path test,
+static analysis, or a vague request to "add a test" as evidence that the
+matrix is complete. See `guidelines/DEFINITION_OF_DONE.md`.
+
 ## Economical agent workflow
 
 Work efficiently with model tokens, tool calls, network access, and the

@@ -8,11 +8,21 @@ conversations except what is written here.
 
 ## The rule
 
-Before saying something is done, list every property it was
-explicitly claimed to have during this conversation, then confirm a
-test exists for each one, individually. Do not infer "tests pass" as
+Before saying something is done, list every property the change is
+claimed to have in its issue, acceptance criteria, documentation, or
+implementation, then confirm a test exists for each one, individually.
+Do not infer "tests pass" as
 "every claimed property is tested." A passing test suite only proves
 correctness for what was actually tested.
+
+For every implementation change, deliberately build and run a test
+matrix before declaring it done. The matrix must cover normal
+behavior, edge and boundary cases, meaningful combinations of options
+or inputs, and relevant negative or error paths. If a category does
+not apply, record that judgment rather than silently omitting
+it. This is mandatory even when the initial request only says to
+"add a test" or static analysis suggests that existing tests are
+enough.
 
 This applies with extra force when a feature is scoped as "behaves
 like an existing feature." In that case, the existing feature’s own

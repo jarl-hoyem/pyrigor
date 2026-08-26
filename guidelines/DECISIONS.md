@@ -127,7 +127,7 @@ a false positive on some unrelated bare call elsewhere in the file
 that happens to share the method’s name. Excluding likely methods
 removes that risk at the cost of not covering method calls at all,
 consistent with the guideline doc’s own examples, which are all
-bare-name, module-level or nested function calls.
+bare-name, module level or nested function calls.
 
 ### The --select/--ignore combines like ruff’s select/ignore, and full-overlap combination errors
 
@@ -256,6 +256,18 @@ own point while implementing severity for it). The twelve
 documented-but-unbuilt rules carry their severity in their own
 guideline doc only, until each is actually built, following
 `ADDING_A_RULE.md`'s checklist.
+
+### JSON diagnostics are a versioned contract, not a serialization detail
+
+The `--output-format=json` output is an editor and tooling API. Its
+published JSON Schema is therefore part of the API: contract tests must
+validate actual output for clean results, diagnostics, suppression and
+operational errors. Rule metadata such as severity and fixability has one
+canonical source in `RuleInfo`. Documentation and tests should detect drift
+rather than duplicate the classification independently. Human output remains
+a separate compatibility surface. Source locations expose Python text
+columns (code points), not encoded byte offsets, and Unicode behavior is
+covered explicitly.
 
 ## Opt-in rule tier: Real, two independent axes, no separate numbering
 

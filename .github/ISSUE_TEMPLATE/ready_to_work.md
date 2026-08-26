@@ -18,8 +18,10 @@ about: Create an issue that meets this project's own readiness bar
 ## Done when
 
 <!-- Real, checkable done-criteria, not just a restated problem statement.
-For a new rule, point at the 'ADDING_A_RULE.md' checklist
-instead of writing this from scratch. -->
+For a new rule, point at the 'ADDING_A_RULE.md' checklist instead of writing this from scratch.
+Include the test matrix: Normal
+behavior, edge/boundary cases, meaningful combinations, and relevant
+negative/error paths. -->
 
 ## Readiness checklist
 

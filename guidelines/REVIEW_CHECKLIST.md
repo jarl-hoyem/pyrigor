@@ -109,6 +109,16 @@ alongside `DEFINITION_OF_DONE.md`.
    directly and finding just two genuine results, a real, significant
    difference from the original count.
 
+8. **For every implementation change, was a deliberate test matrix
+   run covering normal behavior, edge and boundary cases, meaningful
+   combinations, and relevant negative or error paths?**
+   ← rule: `DEFINITION_OF_DONE.md`, Correctness
+   *Earned by:* #179's initial JSON tests covered selected values but
+   omitted important combinations and negative paths. Expanding the
+   tests exposed a real implementation bug. A passing happy-path test
+   and a request to "add more tests" are not a substitute for this
+   matrix.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior
