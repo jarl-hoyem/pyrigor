@@ -340,6 +340,29 @@ def test_directory_walk_excludes_venv(tmp_path: Path, capsys: pytest.CaptureFixt
     assert "vendored.py" not in captured.out
 
 
+def test_main_excludes_user_selected_directory(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """--exclude should omit files below an excluded directory."""
+    included = tmp_path / "included.py"
+    included.write_text("def apply_correction(weight, bias):\n    ...\n")
+    excluded_dir = tmp_path / "generated"
+    excluded_dir.mkdir()
+    (excluded_dir / "excluded.py").write_text("def another(a, b):\n    ...\n")
+
+    assert main(paths=[str(tmp_path)], excludes=[str(excluded_dir)]) == 1
+    captured = capsys.readouterr()
+    assert "included.py" in captured.out
+    assert "excluded.py" not in captured.out
+
+
+def test_main_excludes_explicit_file(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """--exclude should omit an explicitly supplied file too."""
+    excluded = tmp_path / "excluded.py"
+    excluded.write_text("def apply_correction(weight, bias):\n    ...\n")
+
+    assert main(paths=[str(excluded)], excludes=[str(excluded)]) == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """main() should print how many files were checked and how long it took."""

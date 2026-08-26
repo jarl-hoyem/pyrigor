@@ -99,6 +99,9 @@ omitted). The codes may be given as the full code, the bare number,
 or the symbolic name, the same as suppression comments. An
 unrecognized code exits immediately with an error naming it, as does
 a `--select`/`--ignore` combination that leaves no rules to check.
+Use `--exclude PATH` to omit a file or directory and everything below
+it. Repeat the option to exclude multiple paths. This exclusion is
+applied by pyrigor itself, independently of any pre-commit file filter.
 
 For the machine-readable editor or tooling integration, use
 `--output-format=json`. It emits one JSON document containing diagnostics,

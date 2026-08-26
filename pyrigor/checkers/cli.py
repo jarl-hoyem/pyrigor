@@ -73,37 +73,54 @@ def _is_excluded(*, path: Path) -> bool:
     return any(part in _DEFAULT_EXCLUDES or part.endswith(".egg-info") for part in path.parts)
 
 
-def _files_in_directory(*, path: Path) -> list[str]:
+def _is_path_excluded(*, path: Path, excludes: tuple[Path, ...]) -> bool:
+    """Check whether a path is within one of the user-excluded paths."""
+    resolved = path.resolve()
+    return any(resolved == excluded or excluded in resolved.parents for excluded in excludes)
+
+
+def _files_in_directory(*, path: Path, excludes: tuple[Path, ...]) -> list[str]:
     """Recursively find every .py file in a directory, skipping excluded ones.
 
     Args:
         path: The directory to walk.
+        excludes: Resolved files or directories to omit.
 
     Returns:
         Every non-excluded .py file found.
     """
-    return [str(f) for f in path.rglob("*.py") if not _is_excluded(path=f)]
+    return [
+        str(f)
+        for f in path.rglob("*.py")
+        if not _is_excluded(path=f) and not _is_path_excluded(path=f, excludes=excludes)
+    ]
 
 
-def _candidates_for_path(*, path: str) -> list[str]:
+def _candidates_for_path(*, path: str, excludes: tuple[Path, ...]) -> list[str]:
     """Expand a single file or directory argument into its .py file candidates.
 
     Args:
         path: A file or directory path.
+        excludes: Resolved files or directories to omit.
 
     Returns:
         [path] itself if it is a file, or every non-excluded .py file
         found by recursively walking it if it is a directory.
     """
     p = Path(path)
-    return _files_in_directory(path=p) if p.is_dir() else [path]
+    return (
+        _files_in_directory(path=p, excludes=excludes)
+        if p.is_dir()
+        else ([] if _is_path_excluded(path=p, excludes=excludes) else [path])
+    )
 
 
-def _collect_python_files(*, paths: list[str]) -> list[str]:
+def _collect_python_files(*, paths: list[str], excludes: list[str] | None = None) -> list[str]:
     """Expand a mix of file and directory paths into a flat list of distinct .py files.
 
     Args:
         paths: File or directory paths.
+        excludes: Files or directories to omit, or None for no user exclusions.
 
     Returns:
         Every distinct .py file found — paths given directly, or
@@ -115,14 +132,24 @@ def _collect_python_files(*, paths: list[str]) -> list[str]:
     """
     files: list[str] = []
     seen: set[Path] = set()
+    excluded_paths = tuple(Path(path).resolve() for path in (excludes or []))
     for path in paths:
-        for candidate in _candidates_for_path(path=path):
-            resolved = Path(candidate).resolve()
-            if resolved not in seen:
-                seen.add(resolved)
-                files.append(candidate)
+        _append_unique_candidates(
+            candidates=_candidates_for_path(path=path, excludes=excluded_paths),
+            files=files,
+            seen=seen,
+        )
 
     return files
+
+
+def _append_unique_candidates(*, candidates: list[str], files: list[str], seen: set[Path]) -> None:
+    """Append candidates not already represented by a resolved path."""
+    for candidate in candidates:
+        resolved = Path(candidate).resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            files.append(candidate)
 
 
 def _read_source(*, path: str) -> _SourceResult:
@@ -522,11 +549,13 @@ def main(
     select: set[str] | None = None,
     ignore: set[str] | None = None,
     output_format: OutputFormat = "human",
+    excludes: list[str] | None = None,
 ) -> int:
     """Run all checkers against the given file paths.
 
     Args:
         paths: File or directory paths to check.
+        excludes: Files or directories to omit, or None for no user exclusions.
         select: Rule codes/shorthand/symbolic names to restrict checking
             to, or None to start from every registered checker.
         ignore: Rule codes/shorthand/symbolic names to exclude from
@@ -536,7 +565,7 @@ def main(
     Returns:
         0 if no violations were found, 1 otherwise.
     """
-    files = _collect_python_files(paths=paths)
+    files = _collect_python_files(paths=paths, excludes=excludes)
     checkers = _filter_checkers(select=select, ignore=ignore)
     start = time.perf_counter()
 
@@ -626,6 +655,12 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=("human", "json"),
         default=None,
         help="Output format (default: human).",
+    )
+    parser.add_argument(
+        "--exclude",
+        action="append",
+        metavar="PATH",
+        help="Exclude this file or directory (and its contents); may be repeated.",
     )
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
@@ -717,7 +752,13 @@ def run() -> None:
     _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
 
     try:
-        exit_code = main(paths=args.paths, select=select, ignore=ignore, output_format=output_format)
+        exit_code = main(
+            paths=args.paths,
+            select=select,
+            ignore=ignore,
+            output_format=output_format,
+            excludes=args.exclude,
+        )
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)
