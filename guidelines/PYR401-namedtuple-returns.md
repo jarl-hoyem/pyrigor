@@ -5,6 +5,10 @@
 Any function returning more than one value must return a `NamedTuple`
 rather than a plain `tuple`.
 
+This rule applies only to return annotations. Tuple parameters and
+stored tuple-typed values remain governed by PYR405 and PYR301,
+respectively.
+
 ## Rationale
 
 A function with a fully typed return annotation like `tuple[np.ndarray, float]`

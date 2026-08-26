@@ -8,6 +8,9 @@ whether it is a variable, a dataclass/attrs field, a dict value, or any
 other typed value. Function parameters and return types are covered
 by their own, more specific rules. See “Related” below.
 
+This rule covers tuple-typed values outside function signatures.
+Parameters and return annotations are governed by PYR405 and PYR401.
+
 ```python
 # Bad
 last_position: tuple[int, int] = (3, 7)

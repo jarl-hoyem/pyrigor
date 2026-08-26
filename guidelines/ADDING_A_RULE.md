@@ -65,6 +65,10 @@ Select `severity` and `fixability` deliberately from the guideline's
 canonical source for implemented rules The documentation-sync test
 must pass before the rule is considered complete.
 
+A planned guideline may declare severity and fixability before its
+`RuleInfo` entry exists. Once the rule is implemented, add the matching
+`RuleInfo` entry and make the synchronization test pass.
+
 ## 5. If the rule is enforced, write the checker
 
 - File: `pyrigor/checkers/pyrXXX_<symbolic-name>.py`.

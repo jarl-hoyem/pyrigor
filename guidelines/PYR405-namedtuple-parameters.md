@@ -5,6 +5,10 @@
 A function parameter typed as a bare, fixed-length `tuple` (for
 example `tuple[int, int]`) must use a `NamedTuple` type instead.
 
+This rule applies only to parameter annotations. Return annotations and
+other tuple-typed values remain governed by PYR401 and PYR301,
+respectively.
+
 ```python
 # Bad
 def step_bot(*, action: tuple[int, int]) -> None:
