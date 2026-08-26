@@ -622,8 +622,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-format",
+        action="append",
         choices=("human", "json"),
-        default="human",
+        default=None,
         help="Output format (default: human).",
     )
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
@@ -707,14 +708,16 @@ def run() -> None:
 
     _reject_repeated_flag(flag_name="--select", values=args.select)
     _reject_repeated_flag(flag_name="--ignore", values=args.ignore)
+    _reject_repeated_flag(flag_name="--output-format", values=args.output_format)
     select = _parse_flag_tokens(values=args.select)
     ignore = _parse_flag_tokens(values=args.ignore)
+    output_format = cast("OutputFormat", args.output_format[0] if args.output_format else "human")
     _validate_flag_tokens(flag_name="--select", tokens=select)
     _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
     _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
 
     try:
-        exit_code = main(paths=args.paths, select=select, ignore=ignore, output_format=args.output_format)
+        exit_code = main(paths=args.paths, select=select, ignore=ignore, output_format=output_format)
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)

@@ -203,6 +203,112 @@ def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytes
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_json_emits_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should pass '--output-format=json' through to the CLI."""
+    bad_file = tmp_path / "bad.py"
+    bad_file.write_text("def apply_correction(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format=json", str(bad_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 1
+    assert json.loads(capsys.readouterr().out)["diagnostics"][0]["code"] == "PYR402"
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_accepts_space_form(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should accept the space-separated --output-format form."""
+    clean_file = tmp_path / "clean.py"
+    clean_file.write_text("x = 1\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format", "json", str(clean_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert json.loads(capsys.readouterr().out)["diagnostics"] == []
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_human_remains_human(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Explicit human output should retain the existing text format."""
+    bad_file = tmp_path / "bad.py"
+    bad_file.write_text("def apply_correction(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format=human", str(bad_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 1
+    assert "PYR402" in captured.out
+    with pytest.raises(json.JSONDecodeError):
+        json.loads(captured.out)
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_combines_with_filters(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """JSON output should respect both select and ignore filters."""
+    bad_file = tmp_path / "bad.py"
+    bad_file.write_text("def one(a, b):\n    ...\n\ndef two() -> tuple[int, int]:\n    ...\n")
+    monkeypatch.setattr(
+        "sys.argv", ["pyrigor", "--output-format=json", "--select=PYR401", "--ignore=PYR402", str(bad_file)]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    document = json.loads(capsys.readouterr().out)
+    assert exc_info.value.code == 1
+    assert [diagnostic["code"] for diagnostic in document["diagnostics"]] == ["PYR401"]
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_rejects_invalid_value(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An unsupported output format should fail during argument parsing."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format=xml", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_requires_a_value(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing output-format value should fail during argument parsing."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_run_output_format_rejects_repeated_flag(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A repeated output-format flag should fail instead of silently choosing one."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--output-format=json", "--output-format=human", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert "--output-format" in capsys.readouterr().err
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_walks_a_directory_for_python_files(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Passing a directory should recursively find and check every .py file inside it."""
     (tmp_path / "bad.py").write_text("def apply_correction(weight, bias):\n    ...\n")
