@@ -205,7 +205,7 @@ def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytes
 def test_run_accepts_repeated_exclude_flags(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """run() should pass every repeated --exclude path to the file collector."""
+    """run() should pass every repeated --exclude the path to the file collector."""
     first = tmp_path / "first.py"
     second = tmp_path / "second.py"
     first.write_text("def one(a, b):\n    ...\n")

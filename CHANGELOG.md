@@ -11,6 +11,13 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.11.0] 2026-08-26
+
+### Added
+
+- Native repeatable `--exclude PATH` support for omitting files and
+  directories from analysis (#33).
+
 ## [0.10.0] 2026-08-25
 
 ### Added
