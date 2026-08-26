@@ -117,10 +117,13 @@ maintainer's time:
 - Use targeted validation proportional to the change. Do not duplicate the
   full pre-commit suite when the maintainer's commit workflow runs it,
   unless targeted checks reveal risk or the maintainer requests it.
+- Always run `pre-commit run --all-files` after the final changes and before
+  providing a commit message. Do not hand validation back to the maintainer
+  unless a hook fails and its failure is reported explicitly.
 - Prefer public browser access for GitHub reads. Use authenticated CLI access
   only when the browser cannot retrieve required information.
-- When current GitHub state matters, explicitly refresh issue/PR data before
-  answering; do not rely on cached issue context. Confirm the repository state
+- When the current GitHub state matters, explicitly refresh issue/PR data before
+  answering. Do not rely on cached issue context. Confirm the repository state
   locally with `git status` and `git log -1`. If remote state matters, run
   `git fetch origin` first.
 - Do not use subagents for small or sequential tasks.
