@@ -7,6 +7,14 @@ about: Create an issue that meets this project's own readiness bar
 
 <!-- What is the real problem, not just a symptom or a vague idea. -->
 
+## In scope
+
+<!-- List the work included in this issue. -->
+
+## Out of scope
+
+<!-- List related work deliberately excluded from this issue. -->
+
 ## Done when
 
 <!-- Real, checkable done-criteria, not just a restated problem statement.
