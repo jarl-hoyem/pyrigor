@@ -119,6 +119,10 @@ repos:
     rev: v0.9.0
     hooks:
       - id: pyrigor
+        # This is pre-commit's file filter, not pyrigor's native --exclude.
+        # Keep intentional manual fixtures out of the automatic hook while
+        # retaining them for direct manual runs.
+        exclude: ^manual-tests/
         stages: [ pre-commit ]
   # Tools that need the project's own real dependencies installed to
   # work correctly (resolving imports, checking types against actual

@@ -65,6 +65,7 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "PLR2004"]  # Assert is pytest's idiom, literal comparisons test's job, not a magic value
 "tests/*.py" = ["INP001"]  # bare tests/ directory has no __init__.py by design, pytest discovers it directly
+"manual-tests/**/*.py" = ["INP001"]  # standalone manual fixtures, not an importable package
 "scripts/**" = ["T201", "INP001"]  # Print is these dev-tooling scripts' output. Standalone scripts, not a package.
 "pyrigor/checkers/cli.py" = ["T201"]  # print is the CLI's own real output mechanism
 "pyrigor/suppression.py" = ["T201"]  # print is this module's own real stderr-warning mechanism
