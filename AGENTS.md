@@ -7,7 +7,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 `pyrigor` is a Python coding-discipline guideline collection and CLI linter.
 Guidelines live in `guidelines/PYRxxx-*.md`. A subset is enforced today by
 AST-based checkers under `pyrigor/checkers/`. It targets Python 3.11+ and is
-dogfooded on itself (pyrigor’s own source must pass its own checks).
+dogfooded on itself (pyrigor's own source must pass its own checks).
 
 ## Commands
 
@@ -50,18 +50,18 @@ Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright
 
 ## Architecture
 
-**Rule identity flows from one place.** The file `pyrigor/rules.py` defines the `Rule` enum. Each member’s value is a
+**Rule identity flows from one place.** The file `pyrigor/rules.py` defines the `Rule` enum. Each member's value is a
 `RuleInfo(symbolic_name, problem, severity)`. A symbolic name (used in suppression comments and CLI output), problem
 text (used in violation messages), and a severity (`Severity.ERROR`/`WARNING`/`INFO`, matching the Language Server
 Protocol's own `DiagnosticSeverity` naming — see `DECISIONS.md`'s "Severity" entry) are declared once, here, not
 duplicated per-checker.
 
-**Pipeline:** `cli.py` (`main`) collects `.py` files → parses each with `ast.parse` once → `checkers/_shared.py`'s
+**Pipeline:** `cli.py` (`main`) collects `.py` files -> parses each with `ast.parse` once ->  `checkers/_shared.py`'s
 `walk_once()` walks the tree exactly once, splitting nodes into `WalkedNodes(function_nodes, assign_nodes,
-call_statement_nodes, class_nodes)` for every checker to reuse → each registered checker's `find_violations(*, nodes:
-WalkedNodes)` runs against those pre-walked nodes → `suppression.py`'s `filter_suppressed()` splits results into
+call_statement_nodes, class_nodes)` for every checker to reuse -> each registered checker's `find_violations(*, nodes:
+WalkedNodes)` runs against those pre-walked nodes ->  `suppression.py`'s `filter_suppressed()` splits results into
 kept/suppressed based on same-line
-`# pyrigor CODE # reason` comments → CLI prints and summarizes.
+`# pyrigor CODE # reason` comments -> CLI prints and summarizes.
 
 The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why
 a per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled
@@ -78,7 +78,7 @@ that exists but is not added to `CHECKERS` silently never runs. This has happene
 so the message text cannot drift from the rule it is tied to.
 
 **Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE`
-token may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) — the same
+token may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) - the same
 three forms `--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honored.
 
 **Adding a new rule** is a defined, checklist-driven process — follow `guidelines/ADDING_A_RULE.md` step by step
@@ -136,21 +136,36 @@ maintainer's time:
 ## Approval before file changes
 
 Every file change — Edit/Write calls, and any Bash/PowerShell command
-writing to disk (`sed -i`, redirects, `git add`/`commit`, or similar) —
-needs the user’s explicit go-ahead in chat first, with the concrete
+writing to disk (`sed -i`, redirects, `git add`/
+`commit`, or similar) — needs the user's explicit go-ahead in chat first, with the concrete
 diff or new content shown, not just a plan description. Applies
 regardless of how small or mechanical the change looks. See
 `~/.Codex/settings.json`'s `permissions.ask` list for the
 harness-enforced subset of this — Edit/Write always, plus specific
 write-shaped Bash/PowerShell command patterns.
 
+Before and after every file edit, preserve bytes outside the intended change.
+Do not rewrite whole files through PowerShell or other text-mode tools. Use
+byte-preserving patch operations, then verify the diff, encoding, line endings,
+and mojibake markers. If byte preservation cannot be guaranteed, stop and ask.
+
+After every file edit, run the relevant pre-commit checks. Fix any findings
+before presenting the result.
+
 ## Backlog and issue tracking
 
 New work items go to GitHub Issues.
 
-Blocking relationships between issues uses GitHub’s native "blocked
+When creating a GitHub issue, always use the repository's issue template.
+Preserve its headings and order. Do not substitute headings such as
+"Acceptance criteria" for the template's "Done when" heading. If the
+template cannot be found, inspect it before drafting the issue. Before
+creation, verify the template headings, labels, milestone availability, and
+required fields.
+
+Blocking relationships between issues uses GitHub's native "blocked
 by" feature, not prose "Blocked on #N"/"Blocks #N" text in the issue
-body. Set it via the UI, or the `addBlockedBy` GraphQL mutation —
+body. Set it via the UI, or the `addBlockedBy` GraphQL mutation -
 `gh issue`/`gh api` REST have no direct subcommand for it as of this
 writing. It is a real, bidirectional, filterable relationship, not
 just a citation. Older issues (#66/#67) still use the prose form
@@ -159,7 +174,7 @@ retroactively. Use the real feature going forward.
 
 Any GitHub issue action that changes its state — creating,
 editing, commenting on, labeling, or closing an issue — needs the
-user’s explicit go-ahead first, the same as a file edit. Show what
+user's explicit go-ahead first, the same as a file edit. Show what
 will be created, changed, or said before doing it, not just
 describe the plan.
 
@@ -185,14 +200,14 @@ is genuinely the intent — a closing keyword in a commit message
 *is* the close action, not just a citation, and needs the same
 go-ahead as calling `gh issue close` directly.
 
-GitHub’s scanner has no concept of quotation or descriptive context
-either — it matches the literal text, full stop. Issue #11 was
+GitHub's scanner has no concept of quotation or descriptive context
+either—it matches the literal text, full stop. Issue #11 was
 auto-closed by a commit whose message *quoted* a wrong changelog
-line ("v0.8.0’s own CHANGELOG.md entry said, 'Closes #11,' but #11
+line ("v0.8.0's own CHANGELOG.md entry said, 'Closes #11,' but #11
 was still open") specifically to explain why that line was wrong.
 The quoted phrase alone was enough to trigger the same auto-close it
 was describing as ineffective, with no closing comment, same as
-#10. Quoting someone else’s bad closing-keyword text, even to
+#10. Quoting someone else's bad closing-keyword text, even to
 correct it, needs the same care as writing one directly. Rephrase
 the quoted reference (for example, "an entry claiming to close #11") or add
 a zero-width break, rather than reproducing the exact keyword-then-#N
@@ -200,8 +215,8 @@ pattern verbatim.
 
 ## Project-wide conventions
 
-- All checker/CLI functions use keyword-only arguments (`*,`) — pyrigor enforces this on itself (PYR402/PYR403).
-- Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) — see `guidelines/DECISIONS.md`
+- All checker/CLI functions use keyword-only arguments (`*,`) - pyrigor enforces this on itself (PYR402/PYR403).
+- Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) - see `guidelines/DECISIONS.md`
   for why `NamedTuple` and `NewType` close different gaps.
 - Google-style docstrings (pydocstyle-checked) on public functions.
 - Write short documentation sentences that do not trigger PyCharm's
@@ -212,6 +227,6 @@ pattern verbatim.
   Verify the resulting bytes and text before finishing.
 - 100% test coverage (branch included) is enforced on every commit, not aspirational.
 - Before declaring any feature/fix done, apply `guidelines/DEFINITION_OF_DONE.md` and
-  `guidelines/REVIEW_CHECKLIST.md` — both are living checklists earned by real defects that previously slipped
+  `guidelines/REVIEW_CHECKLIST.md`  - both are living checklists earned by real defects that previously slipped
   through (for example, an untested edge case in `--only`'s lenient-form parsing), not generic boilerplate.
 - Design/architecture *why*, not just *what*, belongs in `guidelines/DECISIONS.md`.
