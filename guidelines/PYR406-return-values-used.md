@@ -141,7 +141,9 @@ instead, a separate rule.
 
 ## Related
 
-None yet.
+- [PYR407](./PYR407-generator-results-used.md) — the specialized
+  generator-result case, where discarding the result prevents the
+  generator body from running at all.
 
 ## Enforced by
 

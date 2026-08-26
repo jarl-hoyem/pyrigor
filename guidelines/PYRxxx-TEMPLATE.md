@@ -83,6 +83,14 @@ a common but low-stakes one. Uses the Language Server Protocol's own
 what would have to be true for it to move to a stricter or lighter
 tier, if anything.>
 
+## Rule metadata
+
+The `RuleInfo` entry in `pyrigor/rules.py` is the canonical source for
+the rule's symbolic name, problem text, severity, and fixability. The
+values declared in this document's `Fix classification` and `Severity`
+sections must match that entry once the rule is implemented. The
+documentation-sync test checks this agreement.
+
 ## When this does not apply
 
 <List genuine, considered exclusions — a structural exemption, a

@@ -45,10 +45,13 @@ is update the other rule’s doc too, not just this one.
 Add a member to the `Rule` enum in `pyrigor/rules.py`:
 
 ```python
+from pyrigor.rules import Fixability, RuleInfo, Severity
+
 PYRxxx = RuleInfo(
     symbolic_name="...",
     problem="...",
     severity=Severity.WARNING,  # ERROR | WARNING | INFO, see DECISIONS.md's "Severity" entry
+    fixability=Fixability.GUIDANCE,  # SAFE_FIX | SUGGESTION | GUIDANCE
 )
 ```
 
@@ -56,6 +59,11 @@ The filename slug from step 3 and `symbolic_name` here must match
 exactly. This is checked automatically by
 `tests/test_rules_docs_sync.py`, but it only catches the mismatch
 after the fact, so get it right the first time.
+
+Select `severity` and `fixability` deliberately from the guideline's
+`Severity` and `Fix classification` sections. The `RuleInfo` is the
+canonical source for implemented rules The documentation-sync test
+must pass before the rule is considered complete.
 
 ## 5. If the rule is enforced, write the checker
 
@@ -113,7 +121,7 @@ was skipped. No automated check catches a
 missing registration. Do this step deliberately, and confirm by
 running `pyrigor` against a file that should trigger the new rule.
 
-## 8. Mark the checker in tach.toml
+## 8. Mark the checker in the tach.toml
 
 Mark the new checker file as its own module in `tach.toml`, isolated
 from every other `pyrXXX` checker, the same as every existing one.
