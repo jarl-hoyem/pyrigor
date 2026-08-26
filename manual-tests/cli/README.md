@@ -36,6 +36,32 @@ Expected stdout is one JSON document containing diagnostics with codes
 `PYR401`, `PYR402`, and `PYR406`. The summary reports four diagnostics.
 The exit code is `1`.
 
+## Path exclusion
+
+```powershell
+uv run pyrigor --exclude manual-tests/cli/violations.py manual-tests/cli
+```
+
+Expected output does not mention `violations.py`, but still reports the
+diagnostics from `nested/nested_violations.py` and `unicode.py`. The exit code
+is `1`.
+
+```powershell
+uv run pyrigor --exclude manual-tests/cli/nested manual-tests/cli
+```
+
+Expected output does not mention `nested_violations.py`, but still reports the
+diagnostics from `violations.py` and `unicode.py`. The exit code is `1`.
+
+```powershell
+uv run pyrigor --exclude manual-tests/cli/violations.py --exclude manual-tests/cli/nested manual-tests/cli
+```
+
+Expected output excludes both `violations.py` and
+`nested/nested_violations.py`, while still checking the clean, suppressed, and
+Unicode fixtures. The Unicode fixture produces one diagnostic, so the exit
+code is `1`.
+
 ## Suppression
 
 ```powershell
