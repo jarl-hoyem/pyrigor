@@ -155,13 +155,32 @@ def _bound_names_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, set[str]]:
 
 def _node_bindings(*, node: ast.AST) -> set[str]:
     """Return names bound by one AST node."""
-    if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-        return {node.id}
+    if isinstance(node, ast.Name):
+        return _stored_name(node=node)
     if isinstance(node, ast.arg):
         return {node.arg}
+    if isinstance(node, (ast.Import, ast.ImportFrom)):
+        return _import_bindings(node=node)
     if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
         return set()
     return {node.name, *_function_argument_names(node=node)}
+
+
+def _import_bindings(*, node: ast.Import | ast.ImportFrom) -> set[str]:
+    """Return names introduced by an import statement."""
+    return {_import_alias_name(alias=alias, is_plain_import=isinstance(node, ast.Import)) for alias in node.names}
+
+
+def _stored_name(*, node: ast.Name) -> set[str]:
+    """Return a name only when the node stores it."""
+    return {node.id} if isinstance(node.ctx, ast.Store) else set()
+
+
+def _import_alias_name(*, alias: ast.alias, is_plain_import: bool) -> str:
+    """Return the local name introduced by one import alias."""
+    if alias.asname:
+        return alias.asname
+    return alias.name.split(".")[0] if is_plain_import else alias.name
 
 
 def _function_argument_names(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:

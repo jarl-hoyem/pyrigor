@@ -267,6 +267,21 @@ def outer(value, *args, **kwargs):
     assert violations == []
 
 
+def test_does_not_flag_imported_name_shadowing_protected_function() -> None:
+    """Imported names must stop fallback to an outer protected function."""
+    for import_statement in ("import other as value", "from other import value"):
+        source = f"""
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    {import_statement}
+    value()
+"""
+        violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+        assert violations == []
+
+
 def test_flags_self_call_to_same_class_method() -> None:
     """A self.foo() call within a method of the same class that defines foo() should be flagged."""
     source = """
