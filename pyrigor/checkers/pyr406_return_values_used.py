@@ -147,12 +147,29 @@ def _bound_nodes_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, dict[str, list
     """Collect name-binding nodes by lexical scope, in source order."""
     bound: dict[ast.AST, dict[str, list[ast.AST]]] = {}
     for node in nodes.parents:
+        if _inside_class_body(node=node, parents=nodes.parents):
+            continue
         if _is_comprehension_target(node=node, parents=nodes.parents):
             continue
         scope = nearest_function_scope(node=node, parents=nodes.parents)
-        for name in _node_bindings(node=node):
-            bound.setdefault(scope, {}).setdefault(name, []).append(node)
+        _add_bindings(bound=bound, scope=scope, node=node)
     return bound
+
+
+def _add_bindings(*, bound: dict[ast.AST, dict[str, list[ast.AST]]], scope: ast.AST, node: ast.AST) -> None:
+    """Add one node's bindings to its lexical scope."""
+    for name in _node_bindings(node=node):
+        bound.setdefault(scope, {}).setdefault(name, []).append(node)
+
+
+def _inside_class_body(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
+    """Return whether a node belongs to a class body rather than a method body."""
+    parent = parents.get(node)
+    if parent is None or isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return False
+    if isinstance(parent, ast.ClassDef):
+        return True
+    return _inside_class_body(node=parent, parents=parents)
 
 
 def _is_comprehension_target(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
@@ -259,6 +276,8 @@ def _bare_call_is_protected(
 ) -> bool:
     """Resolve one bare call through its lexical scopes."""
     if not isinstance(call.func, ast.Name):
+        return False
+    if _inside_class_body(node=call, parents=nodes.parents):
         return False
     scope = nearest_function_scope(node=call, parents=nodes.parents)
     for candidate_scope in function_scopes(scope=scope, parents=nodes.parents):

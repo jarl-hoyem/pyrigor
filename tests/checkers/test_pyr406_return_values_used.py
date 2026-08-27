@@ -489,6 +489,37 @@ def handle(items):
     assert violations[0].context_name == "compute_total"
 
 
+def test_class_body_binding_does_not_shadow_module_function() -> None:
+    """A class body's local binding must not leak into the enclosing module scope."""
+    source = """
+def compute_total(items) -> float:
+    ...
+
+class Example:
+    compute_total = lambda items: None
+
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
+def test_class_body_bare_call_is_out_of_scope() -> None:
+    """Bare calls in a class body are not resolved as function-scope calls by PYR406."""
+    source = """
+def compute_total(items) -> float:
+    ...
+
+class Example:
+    compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
 def test_no_violation_when_protected_function_is_rebound_by_lambda() -> None:
     """A later lambda binding replaces the protected function for bare-name resolution."""
     source = """
