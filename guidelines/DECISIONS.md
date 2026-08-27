@@ -468,12 +468,41 @@ neighbors, but it is correctly changed-files-only — pylint checks one
 file at a time, same as ruff. Left as-is, deliberately, not "fixed"
 into whole-project.
 
-`vulture` is the one real gap found: its `args:` hardcode the three
-directories it scans (`pyrigor scripts tests`), so it already
-behaves as whole-project on every commit, but never declares
-`pass_filenames: false` the way every other whole-project hook does
-— the config does not say what it is actually doing. Known, not yet
-applied. The fix is a one-line addition, no behavior change.
+Three tools — `vulture`, `radon-maintainability`, and the strict
+`xenon` — hardcoded directory allowlists (`pyrigor scripts tests`,
+or a subset — radon's list was even missing `scripts/`), so each
+silently stopped covering any directory added later. Confirmed real:
+`manual-tests/` was never scanned by any of the three. Running
+the tool vulture against it directly found three real hits (`nested_function`,
+`café`, `unused_pair`), all structural false positives — each
+fixture's entry point is invoked externally by the pyrigor CLI, never
+referenced from anywhere else in the corpus, the same property
+already established for pyrigor's own self-check exclusion of these
+files. Running radon and xenon against it found nothing — trivial
+one-line fixtures do not trip complexity or maintainability
+thresholds, so unlike vulture, no exclusion was needed for either.
+
+`ty`, `mypy`, and `pyright` don't have this problem: confirmed
+empirically (`mypy .` reports checking exactly 44 source files, never
+touching `.venv`), all three have real, built-in smart defaults that
+skip virtual environments and build artifacts without any
+configuration. Vulture's own `--help` says plainly it has none: "For
+each directory Vulture analyzes all contained `*.py` files."
+
+Fixed by pointing all three at the project (`.`) instead of a
+hardcoded allowlist, with an explicit, evidence-based denylist
+instead: `.venv`, `htmlcov`, and `*.egg-info` for all three (never
+real source), plus `manual-tests` for the tool vulture specifically. Verified
+empirically for each: identical results to before, now covering
+`scripts/` (radon) and `manual-tests/` (radon, xenon) that were
+previously invisible.
+
+`xenon-shared`'s own single-file list and `tach.toml`'s `[[modules]]`
+list are deliberately not touched by this — both are curated by
+design, not incidental directory discovery. A new file earning a
+relaxed complexity threshold, or a new package joining tach's
+dependency graph, should require a real decision each time, not
+silently inherit coverage the way a lint scan should.
 
 ### Self-hosted hook version lag is permanent and accepted, not a bug to fix
 

@@ -92,9 +92,15 @@ repos:
     hooks:
       - id: vulture
         # Default confidence (60) kept deliberately: two real runs
-        # against pyrigor/, scripts/, and tests/ produced zero false
-        # positives at this threshold, no evidence raising it would help.
-        args: [ "pyrigor", "scripts", "tests" ]
+        # produced zero false positives at this threshold, no evidence
+        # raising it would help.
+        # Scans the whole project (`.`), not a hardcoded directory
+        # list. manual-tests is deliberately excluded: every fixture's
+        # entry point is invoked externally by the pyrigor CLI, never
+        # referenced in-corpus, so vulture flags it as unused by
+        # design. See DECISIONS.md.
+        args: [ ".", "--exclude", "manual-tests,.venv,htmlcov,pyrigor.egg-info" ]
+        pass_filenames: false
         stages: [ pre-commit ]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
@@ -195,7 +201,7 @@ repos:
         entry: radon mi
         language: python
         types: [ python ]
-        args: [ "--min", "A", "pyrigor", "tests" ]
+        args: [ "--min", "A", ".", "--ignore", ".venv,htmlcov,*.egg-info" ]
         additional_dependencies: [ "radon==6.0.1" ]
         pass_filenames: false
         stages: [ pre-commit ]
@@ -237,9 +243,8 @@ repos:
           - --max-modules=A
           - --max-average=A
           - --exclude=*_shared.py
-          - pyrigor/
-          - scripts/
-          - tests/
+          - --ignore=.venv,htmlcov,*.egg-info
+          - .
         stages: [ pre-commit ]
       - id: tach
         name: tach (module-boundary enforcement)
