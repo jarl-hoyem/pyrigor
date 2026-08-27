@@ -119,6 +119,17 @@ alongside `DEFINITION_OF_DONE.md`.
    and a request to "add more tests" are not a substitute for this
    matrix.
 
+9. **For a release-sensitive or packaging change, was the installed
+   wheel and source distribution exercised through the real user-facing
+   entry point, independently of the editable checkout?**
+   ← rule: `DEFINITION_OF_DONE.md`, Release artifacts are tested as
+   installed artifacts
+   *Earned by:* the source-level suite passed while confidence in the
+   release path still required separate wheel and source-distribution
+   installation checks. Editable-source tests cannot expose an
+   incomplete manifest, missing entry point, or artifact-only runtime
+   discrepancy.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior

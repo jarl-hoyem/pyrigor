@@ -108,6 +108,12 @@ knowledge only):
   new test for this change. Already standard practice here
   (`pre-commit run --all-files`), stated explicitly, so it is not
   skipped under time pressure.
+- **Release artifacts are tested as installed artifacts.** Before a
+  release, build both the wheel and source distribution, install each
+  in an isolated environment, and exercise the real CLI. Verify the
+  entry point, clean output, diagnostics, JSON output, suppression,
+  and operational errors. Source-checkout tests cannot prove that the
+  package manifest, entry point, or artifact contents are correct.
 - **Bug fixes get a reproducing test first.** Write the test that
   captures the reported bug before writing the fix, not after —
   confirms the fix actually addresses what was reported, not just a

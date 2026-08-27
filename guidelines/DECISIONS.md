@@ -4,6 +4,23 @@ A running log of *why* a structural choice was made, not just the
 result. Read this before asking "why does the code do it this way"
 rather than re-deriving the reasoning from scratch.
 
+## Testing and release confidence
+
+### Adversarial test matrices and installed-artifact checks are complementary
+
+The PYR406 torture-test pass found real defects in lexical binding:
+later lambda and import rebinding, comprehension-local targets and
+class-body bindings all produced incorrect results until tested as
+deliberate combinations. The lesson is broader than PYR406: test the
+behavior an adversarial reader would try to break, not only the happy
+path or the line that motivated the change.
+
+The same pass also verified the built wheel and source distribution in
+isolated environments. The editable checkout had already passed, but
+that could not prove the release artifacts contained the right modules
+and entry point. The source-level matrices and installed-artifact
+smoke tests are separate confidence layers. Neither replaces the other.
+
 ## pyrigor architecture and rules
 
 ### NamedTuple and NewType close different gaps
