@@ -135,6 +135,13 @@ repos:
   # with no access to pyrigor's own dependencies. Their real version
   # lives in pyproject.toml's dev extras, a single source of truth, not
   # a separate rev: pin the way every tool above this point uses.
+  # Most of the hooks below force a whole-project scan (`pass filenames:
+  # false`, usually with the fixed directory args) because each needs
+  # cross-file or whole-program context to be correct — see
+  # DECISIONS.md's "Pre-commit hooks scope to changed files unless a
+  # tool genuinely needs whole-project context" for the full policy
+  # and per-tool reasoning. `pylint` below is the one deliberate
+  # exception in this block, still changed-files-only.
   - repo: local
     hooks:
       # Type/correctness checkers, fastest first.
@@ -168,6 +175,9 @@ repos:
         language: system
         entry: uv run --extra dev pylint
         types: [ python ]
+        # Changed-files-only, unlike its neighbors above
+        # — pylint checks one file at a time. Its findings never
+        # depend on another file. See DECISIONS.md.
         stages: [ pre-commit ]
       # More complexity/quality, fastest first.
       - id: radon-maintainability
