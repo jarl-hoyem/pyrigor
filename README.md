@@ -214,6 +214,8 @@ the inconsistency pyrigor exists to close.
 
 ## Contributing
 
+Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
 1. Every change starts with an issue. Check
    [open issues labeled `ready`](https://github.com/jarl-hoyem/pyrigor/issues?q=is%3Aissue+is%3Aopen+label%3Aready)
    for a well-scoped starting point, or open a new one.
@@ -240,7 +242,3 @@ questions or ideas, open an issue.
 ## License
 
 MIT
-
-## Code of Conduct
-
-See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

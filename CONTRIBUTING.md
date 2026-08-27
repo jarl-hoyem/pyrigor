@@ -1,6 +1,6 @@
 # Contributing to pyrigor
 
-Contributions are welcome!
+Contributions are welcome! Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Creating Issues
 
