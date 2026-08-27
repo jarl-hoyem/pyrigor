@@ -282,6 +282,54 @@ def outer() -> None:
         assert violations == []
 
 
+def test_does_not_flag_exception_alias_shadowing_protected_function() -> None:
+    """An exception alias must stop fallback to an outer-protected function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    try:
+        pass
+    except Exception as value:
+        value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
+def test_does_not_flag_match_binding_shadowing_protected_function() -> None:
+    """A capture-pattern binding must stop fallback to an outer protected function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(item) -> None:
+    match item:
+        case value:
+            value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
+def test_tracks_star_and_mapping_pattern_bindings() -> None:
+    """All named structural-pattern bindings must stop the outer lookup."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(item) -> None:
+    match item:
+        case [*value]:
+            value()
+        case {**value}:
+            value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
 def test_flags_self_call_to_same_class_method() -> None:
     """A self.foo() call within a method of the same class that defines foo() should be flagged."""
     source = """

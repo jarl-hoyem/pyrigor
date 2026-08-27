@@ -159,11 +159,24 @@ def _node_bindings(*, node: ast.AST) -> set[str]:
         return _stored_name(node=node)
     if isinstance(node, ast.arg):
         return {node.arg}
+    return _other_node_bindings(node=node)
+
+
+def _other_node_bindings(*, node: ast.AST) -> set[str]:
+    """Return bindings for non-name, non-argument nodes."""
+    if isinstance(node, (ast.ExceptHandler, ast.MatchAs, ast.MatchStar, ast.MatchMapping)):
+        return _pattern_bindings(node=node)
     if isinstance(node, (ast.Import, ast.ImportFrom)):
         return _import_bindings(node=node)
     if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
         return set()
     return {node.name, *_function_argument_names(node=node)}
+
+
+def _pattern_bindings(*, node: ast.ExceptHandler | ast.MatchAs | ast.MatchStar | ast.MatchMapping) -> set[str]:
+    """Return names introduced by an exception alias or match pattern."""
+    name = getattr(node, "name", None) or getattr(node, "rest", None)
+    return {name} if name else set()
 
 
 def _import_bindings(*, node: ast.Import | ast.ImportFrom) -> set[str]:
