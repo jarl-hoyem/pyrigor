@@ -169,7 +169,11 @@ def function_scopes(*, scope: ast.AST, parents: dict[ast.AST, ast.AST]) -> Itera
     yield scope
     parent = parents.get(scope)
     if parent is not None:
-        parent_scope = nearest_function_scope(node=parent, parents=parents)
+        parent_scope = (
+            parent
+            if isinstance(parent, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef))
+            else nearest_function_scope(node=parent, parents=parents)
+        )
         yield from function_scopes(scope=parent_scope, parents=parents)
 
 
