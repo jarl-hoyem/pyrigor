@@ -473,6 +473,22 @@ compute_total(items)
     assert not violations
 
 
+def test_comprehension_target_does_not_shadow_outer_protected_function() -> None:
+    """Python 3 comprehension targets are local to the comprehension, not the enclosing function."""
+    source = """
+def compute_total(items) -> float:
+    ...
+
+def handle(items):
+    [compute_total for compute_total in items]
+    compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
 def test_no_violation_when_protected_function_is_rebound_by_lambda() -> None:
     """A later lambda binding replaces the protected function for bare-name resolution."""
     source = """

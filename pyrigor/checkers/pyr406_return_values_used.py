@@ -2,6 +2,7 @@
 
 import ast
 from collections.abc import Iterator
+from typing import cast
 
 from pyrigor.checkers._shared import (
     WalkedNodes,
@@ -146,10 +147,37 @@ def _bound_nodes_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, dict[str, list
     """Collect name-binding nodes by lexical scope, in source order."""
     bound: dict[ast.AST, dict[str, list[ast.AST]]] = {}
     for node in nodes.parents:
+        if _is_comprehension_target(node=node, parents=nodes.parents):
+            continue
         scope = nearest_function_scope(node=node, parents=nodes.parents)
         for name in _node_bindings(node=node):
             bound.setdefault(scope, {}).setdefault(name, []).append(node)
     return bound
+
+
+def _is_comprehension_target(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
+    """Return whether a node binds a name in a comprehension-local target."""
+    if not isinstance(node, ast.Name) or not isinstance(node.ctx, ast.Store):
+        return False
+    current = cast("ast.AST", cast("object", node))
+    parent = _nearest_comprehension(node=current, parents=parents)
+    return parent is not None and _is_in_target(node=node, comprehension=parent)
+
+
+def _nearest_comprehension(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> ast.comprehension | None:
+    """Find the nearest enclosing comprehension unless a new lexical scope intervenes."""
+    parent = parents.get(node)
+    if isinstance(parent, ast.comprehension):
+        return parent
+    if parent is None or isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return None
+    return _nearest_comprehension(node=parent, parents=parents)
+
+
+def _is_in_target(*, node: ast.Name, comprehension: ast.comprehension) -> bool:
+    """Return whether a name belongs to a comprehension's target expression."""
+    target = cast("ast.AST", cast("object", comprehension.target))
+    return any(candidate is node for candidate in ast.walk(target))
 
 
 def _node_bindings(*, node: ast.AST) -> set[str]:
