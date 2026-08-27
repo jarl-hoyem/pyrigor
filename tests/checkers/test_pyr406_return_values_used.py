@@ -473,6 +473,34 @@ compute_total(items)
     assert not violations
 
 
+def test_no_violation_when_protected_function_is_rebound_by_lambda() -> None:
+    """A later lambda binding replaces the protected function for bare-name resolution."""
+    source = """
+def compute_total(items) -> float:
+    ...
+
+compute_total = lambda items: None
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
+def test_no_violation_when_protected_function_is_rebound_by_import() -> None:
+    """A later import binding replaces the protected function for bare-name resolution."""
+    source = """
+def compute_total(items) -> float:
+    ...
+
+from other import compute_total
+compute_total(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert not violations
+
+
 def test_flags_bare_call_for_pep604_union_return() -> None:
     """A PEP 604 union return (`int | str`) must still have its return value used."""
     source = """

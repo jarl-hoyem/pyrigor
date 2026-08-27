@@ -177,20 +177,6 @@ def function_scopes(*, scope: ast.AST, parents: dict[ast.AST, ast.AST]) -> Itera
         yield from function_scopes(scope=parent_scope, parents=parents)
 
 
-def direct_function_definitions(
-    *,
-    scope: ast.AST,
-    function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
-    parents: dict[ast.AST, ast.AST],
-) -> dict[str, list[ast.FunctionDef | ast.AsyncFunctionDef]]:
-    """Group function definitions that belong directly to one lexical scope."""
-    definitions: dict[str, list[ast.FunctionDef | ast.AsyncFunctionDef]] = {}
-    for definition in function_nodes:
-        if nearest_function_scope(node=definition, parents=parents) is scope:
-            definitions.setdefault(definition.name, []).append(definition)
-    return definitions
-
-
 def call_statement_value(*, node: ast.AST) -> ast.Call | None:
     """Return a bare call-statement's inner Call node if the node is one.
 

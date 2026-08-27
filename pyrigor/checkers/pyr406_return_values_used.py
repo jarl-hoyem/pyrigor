@@ -6,7 +6,6 @@ from collections.abc import Iterator
 from pyrigor.checkers._shared import (
     WalkedNodes,
     call_statement_value,
-    direct_function_definitions,
     function_scopes,
     nearest_function_scope,
 )
@@ -143,13 +142,13 @@ def _is_protected_definition(
     )
 
 
-def _bound_names_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, set[str]]:
-    """Collect ordinary name bindings by lexical scope."""
-    bound: dict[ast.AST, set[str]] = {}
+def _bound_nodes_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, dict[str, list[ast.AST]]]:
+    """Collect name-binding nodes by lexical scope, in source order."""
+    bound: dict[ast.AST, dict[str, list[ast.AST]]] = {}
     for node in nodes.parents:
-        bindings = _node_bindings(node=node)
         scope = nearest_function_scope(node=node, parents=nodes.parents)
-        bound.setdefault(scope, set()).update(bindings)
+        for name in _node_bindings(node=node):
+            bound.setdefault(scope, {}).setdefault(name, []).append(node)
     return bound
 
 
@@ -208,21 +207,36 @@ def _function_argument_names(*, node: ast.FunctionDef | ast.AsyncFunctionDef) ->
     return names
 
 
+def _latest_binding(*, bindings: list[ast.AST]) -> ast.AST:
+    """Return the effective source-order binding from a non-empty list."""
+    return max(bindings, key=lambda node: (int(getattr(node, "lineno", 0)), int(getattr(node, "col_offset", 0))))
+
+
+def _binding_is_protected(*, call: ast.Call, bindings: list[ast.AST], protected_names: set[str]) -> bool:
+    """Classify the effective binding for a name at one call site."""
+    latest = _latest_binding(bindings=bindings)
+    return isinstance(latest, (ast.FunctionDef, ast.AsyncFunctionDef)) and _is_protected_definition(
+        call=call,
+        definitions=[latest],
+        protected_names=protected_names,
+    )
+
+
 def _bare_call_is_protected(
-    *, call: ast.Call, nodes: WalkedNodes, protected_names: set[str], bound_names: dict[ast.AST, set[str]]
+    *,
+    call: ast.Call,
+    nodes: WalkedNodes,
+    protected_names: set[str],
+    bound_nodes: dict[ast.AST, dict[str, list[ast.AST]]],
 ) -> bool:
     """Resolve one bare call through its lexical scopes."""
     if not isinstance(call.func, ast.Name):
         return False
     scope = nearest_function_scope(node=call, parents=nodes.parents)
     for candidate_scope in function_scopes(scope=scope, parents=nodes.parents):
-        definitions = direct_function_definitions(
-            scope=candidate_scope, function_nodes=nodes.function_nodes, parents=nodes.parents
-        ).get(call.func.id, [])
-        if definitions:
-            return _is_protected_definition(call=call, definitions=definitions, protected_names=protected_names)
-        if call.func.id in bound_names.get(candidate_scope, set()):
-            return False
+        bindings = bound_nodes.get(candidate_scope, {}).get(call.func.id, [])
+        if bindings:
+            return _binding_is_protected(call=call, bindings=bindings, protected_names=protected_names)
     return False
 
 
@@ -346,7 +360,7 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
         Every bare-statement Call node whose func is a Name matching
         a protected function name.
     """
-    bound_names = _bound_names_by_scope(nodes=nodes)
+    bound_nodes = _bound_nodes_by_scope(nodes=nodes)
     return [
         call
         for call in nodes.call_statement_nodes
@@ -354,7 +368,7 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
             call=call,
             nodes=nodes,
             protected_names=protected_names,
-            bound_names=bound_names,
+            bound_nodes=bound_nodes,
         )
     ]
 
