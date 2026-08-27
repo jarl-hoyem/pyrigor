@@ -225,6 +225,21 @@ def outer() -> None:
     assert violations == []
 
 
+def test_uses_last_same_scope_definition_for_bare_call() -> None:
+    """Sequential redefinition follows Python's last-binding semantics."""
+    source = """
+def value() -> None:
+    return None
+
+def value() -> int:
+    return 1
+
+value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert len(violations) == 1
+
+
 def test_flags_self_call_to_same_class_method() -> None:
     """A self.foo() call within a method of the same class that defines foo() should be flagged."""
     source = """

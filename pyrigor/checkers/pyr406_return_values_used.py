@@ -134,12 +134,12 @@ def _protected_function_names(*, function_nodes: list[ast.FunctionDef | ast.Asyn
 def _is_protected_definition(
     *, call: ast.Call, definitions: list[ast.FunctionDef | ast.AsyncFunctionDef], protected_names: set[str]
 ) -> bool:
-    """Check whether a call resolves to one protected definition."""
+    """Check whether a call resolves to the last protected definition in scope."""
     return (
-        len(definitions) == 1
+        bool(definitions)
         and isinstance(call.func, ast.Name)
         and call.func.id in protected_names
-        and _is_protected_return(node=definitions[0])
+        and _is_protected_return(node=definitions[-1])
     )
 
 
