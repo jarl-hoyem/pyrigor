@@ -472,13 +472,27 @@ Three tools — `vulture`, `radon-maintainability`, and the strict
 `xenon` — hardcoded directory allowlists (`pyrigor scripts tests`,
 or a subset — radon's list was even missing `scripts/`), so each
 silently stopped covering any directory added later. Confirmed real:
-`manual-tests/` was never scanned by any of the three. Running
-the tool vulture against it directly found three real hits (`nested_function`,
-`café`, `unused_pair`), all structural false positives — each
-fixture's entry point is invoked externally by the pyrigor CLI, never
-referenced from anywhere else in the corpus, the same property
-already established for pyrigor's own self-check exclusion of these
-files. Running radon and xenon against it found nothing — trivial
+`manual-tests/` was never scanned by any of the three. Running the
+tool vulture against the directory at once found three hits
+(`nested_function`, `café`, `unused_pair`) — but testing each fixture
+file individually, in isolation, told a fuller story: five of the six
+files have a real finding, not three. The other two (`clean.py`'s
+`add`, `suppressed.py`'s `apply_correction`and `violations.py`'s
+own `run`) only looked used in the whole-directory scan because of
+coincidental name collisions elsewhere in the codebase — a real
+`run()` in `pyrigor/checkers/cli.py`, and `apply_correction`/`add` as
+pyrigor's own pervasive example-function names reused across several
+real test files. Vulture's unused-detection is name-based, not
+scope-aware, so it cannot tell those apart from a fixture's own
+same-named function — a fragile basis for narrowing, since renaming
+`cli.py`'s `run()` would silently start flagging `violations.py`'s
+own `run()` too, for a reason unrelated to that fixture's own
+content. Every fixture's entry point is invoked externally by the
+pyrigor CLI, never referenced from anywhere else in the corpus, the
+same property already established for pyrigor's own self-check
+exclusion of these files. A real, per-file property confirmed by
+isolated testing, not an artifact of scanning them together. Running
+radon and xenon against the directory found nothing — trivial
 one-line fixtures do not trip complexity or maintainability
 thresholds, so unlike vulture, no exclusion was needed for either.
 
