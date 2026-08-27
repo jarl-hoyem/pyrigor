@@ -143,7 +143,40 @@ def _is_protected_definition(
     )
 
 
-def _bare_call_is_protected(*, call: ast.Call, nodes: WalkedNodes, protected_names: set[str]) -> bool:
+def _bound_names_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, set[str]]:
+    """Collect ordinary name bindings by lexical scope."""
+    bound: dict[ast.AST, set[str]] = {}
+    for node in nodes.parents:
+        bindings = _node_bindings(node=node)
+        scope = nearest_function_scope(node=node, parents=nodes.parents)
+        bound.setdefault(scope, set()).update(bindings)
+    return bound
+
+
+def _node_bindings(*, node: ast.AST) -> set[str]:
+    """Return names bound by one AST node."""
+    if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+        return {node.id}
+    if isinstance(node, ast.arg):
+        return {node.arg}
+    if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return set()
+    return {node.name, *_function_argument_names(node=node)}
+
+
+def _function_argument_names(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
+    """Return all argument names belonging to a function scope."""
+    names = {arg.arg for arg in (*node.args.posonlyargs, *node.args.args, *node.args.kwonlyargs)}
+    if node.args.vararg:
+        names.add(node.args.vararg.arg)
+    if node.args.kwarg:
+        names.add(node.args.kwarg.arg)
+    return names
+
+
+def _bare_call_is_protected(
+    *, call: ast.Call, nodes: WalkedNodes, protected_names: set[str], bound_names: dict[ast.AST, set[str]]
+) -> bool:
     """Resolve one bare call through its lexical scopes."""
     if not isinstance(call.func, ast.Name):
         return False
@@ -154,6 +187,8 @@ def _bare_call_is_protected(*, call: ast.Call, nodes: WalkedNodes, protected_nam
         ).get(call.func.id, [])
         if definitions:
             return _is_protected_definition(call=call, definitions=definitions, protected_names=protected_names)
+        if call.func.id in bound_names.get(candidate_scope, set()):
+            return False
     return False
 
 
@@ -277,10 +312,16 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
         Every bare-statement Call node whose func is a Name matching
         a protected function name.
     """
+    bound_names = _bound_names_by_scope(nodes=nodes)
     return [
         call
         for call in nodes.call_statement_nodes
-        if _bare_call_is_protected(call=call, nodes=nodes, protected_names=protected_names)
+        if _bare_call_is_protected(
+            call=call,
+            nodes=nodes,
+            protected_names=protected_names,
+            bound_names=bound_names,
+        )
     ]
 
 

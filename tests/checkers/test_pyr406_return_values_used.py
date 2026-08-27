@@ -240,6 +240,33 @@ value()
     assert len(violations) == 1
 
 
+def test_does_not_flag_local_lambda_shadowing_protected_function() -> None:
+    """A local non-function binding must stop outer-scope resolution."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value = lambda: None
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
+def test_tracks_vararg_and_kwarg_bindings() -> None:
+    """Argument bindings must also prevent the fallback to an outer function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(value, *args, **kwargs):
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
 def test_flags_self_call_to_same_class_method() -> None:
     """A self.foo() call within a method of the same class that defines foo() should be flagged."""
     source = """
