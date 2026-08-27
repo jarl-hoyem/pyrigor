@@ -430,6 +430,51 @@ new rules have repeatedly caught real bugs in pyrigor’s own
 in-progress source the moment they were built, before any release
 existed. Kept both, deliberately, rather than choosing one.
 
+### Pre-commit hooks scope to changed files unless a tool genuinely needs whole-project context
+
+`.pre-commit-config.yaml` mixes two real scoping models across its
+hooks — most run against only the files that changed (pre-commit's
+own default, no `pass_filenames: false`), a smaller set force a
+whole-project scan every commit (`pass_filenames: false`, usually
+with fixed directory `args:`). This was never a deliberate,
+documented split. Auditing the actual file found it already mostly
+matches a real principle, just never named.
+
+Changed-files-only, correctly: `ruff`, `ruff-format`, `gitleaks`,
+`actionlint`, `bandit`, `codespell`, `markdownlint-cli2`,
+`complexipy`, `pylint`, `text-hygiene`, and the published, pinned
+`pyrigor` hook. Every one of these produces findings that are
+strictly local to the files it looks at. Nothing about an
+untouched file's own cleanliness can change from editing a different
+one, so re-checking it on every commit would be pure waste.
+
+Whole-project, always, correctly: `ty`, `mypy`, `pyright`,
+`radon-maintainability`, `xenon` (both entries), `tach`,
+`uv-lock-check`, `dod-check`, `generate-rule-table`, `pip-audit`,
+`pytest`, and the local, 'wip' `pyrigor` self-check (see "The tool
+pyrigor runs two self-checks" above for why that one and the
+published one are scoped differently on purpose). Each
+needs cross-file or whole-program context to be completely correct: type
+inference across module boundaries, module-boundary enforcement
+itself, lock-file consistency against the full dependency set, a
+generated file that must reflect every real guideline doc, an
+environment-wide dependency audit and a test suite where a change in
+one file can break a test that lives in another. Scoping any of these
+to only the changed files would make them wrong, not just faster.
+
+`pylint` looks miscategorized, sitting in the "Type/correctness
+checkers, the fastest first" comment block beside three whole-project
+neighbors, but it is correctly changed-files-only — pylint checks one
+file at a time, same as ruff. Left as-is, deliberately, not "fixed"
+into whole-project.
+
+`vulture` is the one real gap found: its `args:` hardcode the three
+directories it scans (`pyrigor scripts tests`), so it already
+behaves as whole-project on every commit, but never declares
+`pass_filenames: false` the way every other whole-project hook does
+— the config does not say what it is actually doing. Known, not yet
+applied. The fix is a one-line addition, no behavior change.
+
 ### Self-hosted hook version lag is permanent and accepted, not a bug to fix
 
 `.pre-commit-config.yaml`'s self-hosted `jarl-hoyem/pyrigor` hook pin
