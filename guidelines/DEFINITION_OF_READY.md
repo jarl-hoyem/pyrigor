@@ -25,6 +25,8 @@ An issue is ready to be worked on when:
   against the issue, not just the required type/value/effort
   minimum. Multiple labels commonly apply together.
 - Assigned to a Milestone when a relevant one exists
+- Its full comment thread has been read, not just the description —
+  scope may have changed or been clarified there after the filing.
 
 An issue meeting all the above gets the `ready` label. This does
 not require an assignee. Assignment happens when someone

@@ -120,6 +120,12 @@ knowledge only):
   Issue, close it (see the close-at-changelog-entry-time rule
   below). Do not leave it sitting open as if the work were still
   pending.
+- **Read every comment before closing.** Before closing a GitHub
+  Issue as part of this work, read its full comment thread, not just
+  the original description. A scope change, a raised question, or a
+  still-open concern discussed there is easy to miss if only the
+  description gets checked. Nothing should be left open or
+  unanswered when the issue closes.
 - **No sunk-cost bias in a design choice.** If an option is picked
   specifically because it avoids touching existing tests or code,
   rather than because it is the genuinely correct design, that is
