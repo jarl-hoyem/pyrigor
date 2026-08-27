@@ -640,6 +640,42 @@ Verified directly, this very entry is the content of that test PR:
   it is "the only way to merge solo is an administrator override that skips
   the review gate entirely."
 
+### `ruff format` adopted over `black`, confirmed empirically not assumed
+
+Real comparison run against this project's own source (`pyrigor/`,
+`scripts/`, `tests/`), not assumed from either tool's reputation:
+`black --check --diff` (matching `line-length = 120`) found exactly
+one real disagreement — a blank line `black` wants inserted after a
+module docstring immediately followed by a comment. 14 files, always
+the same single-line pattern, nothing else. Output is otherwise
+identical.
+
+Timing on the same run: `ruff format --check` finished in 0.24s,
+`black --check --fast` in 4.43s — roughly 18x, though at this
+codebase's small size that gap is dominated by `black`'s own
+Python-interpreter startup cost, not necessarily per-file work; the
+direction (ruff, written in Rust, faster) is real and expected, the
+exact multiple is not a claim about scale.
+
+Chosen for both reasons together, not either alone: near-identical
+output removes any real formatting-preference cost to switching, and
+`ruff` is already a required dependency for linting (`select =
+["ALL"]`) — `ruff format` adds zero new tools or config surfaces,
+where `black` would be a second, separate one doing overlapping work.
+
+Real history behind this, not just the comparison above: `black` and
+`ruff` fighting circularly, each run undoing the other's formatting
+choice, was a genuine, repeated problem before `ruff format` replaced
+`black` outright, with smaller versions of the same fight against
+`isort` too. It traces back further than this project: the same
+shape of conflict, PyCharm's own built-in formatter against `black`,
+is where this whole line of tool-configuration discipline actually
+started, in Pickomino (see the "Pickomino inheritance audit"
+milestone) — `black` won that round. `ruff` won the next one.
+Consolidating onto one tool per job, instead of layering several with
+overlapping opinions, came from living through both, not from reading
+about either.
+
 ### xenon's two-tier grade system
 
 The tool xenon has no per-function suppression mechanism, unlike complexipy's
