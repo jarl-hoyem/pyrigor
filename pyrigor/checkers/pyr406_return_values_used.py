@@ -3,7 +3,13 @@
 import ast
 from collections.abc import Iterator
 
-from pyrigor.checkers._shared import WalkedNodes, call_statement_value
+from pyrigor.checkers._shared import (
+    WalkedNodes,
+    call_statement_value,
+    direct_function_definitions,
+    function_scopes,
+    nearest_function_scope,
+)
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
@@ -113,7 +119,7 @@ def _is_protected_return(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
 
 
 def _protected_function_names(*, function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef]) -> set[str]:
-    """Collect the names of every locally defined function whose return value must be used.
+    """Collect protected names for compatibility with the shared checker API.
 
     Args:
         function_nodes: Every function definition in the file.
@@ -123,6 +129,32 @@ def _protected_function_names(*, function_nodes: list[ast.FunctionDef | ast.Asyn
         likely methods (see _is_method).
     """
     return {node.name for node in function_nodes if _is_protected_return(node=node) and not _is_method(node=node)}
+
+
+def _is_protected_definition(
+    *, call: ast.Call, definitions: list[ast.FunctionDef | ast.AsyncFunctionDef], protected_names: set[str]
+) -> bool:
+    """Check whether a call resolves to one protected definition."""
+    return (
+        len(definitions) == 1
+        and isinstance(call.func, ast.Name)
+        and call.func.id in protected_names
+        and _is_protected_return(node=definitions[0])
+    )
+
+
+def _bare_call_is_protected(*, call: ast.Call, nodes: WalkedNodes, protected_names: set[str]) -> bool:
+    """Resolve one bare call through its lexical scopes."""
+    if not isinstance(call.func, ast.Name):
+        return False
+    scope = nearest_function_scope(node=call, parents=nodes.parents)
+    for candidate_scope in function_scopes(scope=scope, parents=nodes.parents):
+        definitions = direct_function_definitions(
+            scope=candidate_scope, function_nodes=nodes.function_nodes, parents=nodes.parents
+        ).get(call.func.id, [])
+        if definitions:
+            return _is_protected_definition(call=call, definitions=definitions, protected_names=protected_names)
+    return False
 
 
 def _direct_methods(*, class_def: ast.ClassDef) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -248,7 +280,7 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
     return [
         call
         for call in nodes.call_statement_nodes
-        if isinstance(call.func, ast.Name) and call.func.id in protected_names
+        if _bare_call_is_protected(call=call, nodes=nodes, protected_names=protected_names)
     ]
 
 

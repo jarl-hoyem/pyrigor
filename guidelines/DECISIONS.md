@@ -129,6 +129,13 @@ removes that risk at the cost of not covering method calls at all,
 consistent with the guideline doc’s own examples, which are all
 bare-name, module level or nested function calls.
 
+The lexical-scope utilities used to resolve those bare names live in
+`checkers/_shared.py`, rather than in PYR406. This is deliberate: the
+documented PYR407 generator-result rule has the same local-definition
+and bare-call boundaries and is the planned second consumer. The
+shared layer provides scope structure. Each rule retains its own
+return-value classification.
+
 ### The --select/--ignore combines like ruff’s select/ignore, and full-overlap combination errors
 
 `--only` was renamed to `--select` (#68), and `--ignore` was added

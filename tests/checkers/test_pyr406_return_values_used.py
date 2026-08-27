@@ -119,7 +119,7 @@ fail("boom")
 
 
 def test_no_violation_for_unrecognized_annotation_shape() -> None:
-    """An annotation shape PYR406 can't resolve to a simple name (a call expression) should not be flagged."""
+    """An annotation shape PYR406 cannot resolve to a simple name (a call expression) should not be flagged."""
     source = """
 def compute_total(items) -> some_registry.lookup("total"):
     ...
@@ -181,6 +181,48 @@ def outer():
 
     assert len(violations) == 1
     assert violations[0].context_name == "helper"
+
+
+def test_does_not_flag_shadowed_bare_function_with_none_return() -> None:
+    """A local function shadowing a protected name must not be reported as protected."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    def value() -> None:
+        return None
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
+def test_flags_protected_shadowing_local_function() -> None:
+    """A protected local definition must still be reported despite an outer same-name function."""
+    source = """
+def value() -> None:
+    return None
+
+def outer() -> None:
+    def value() -> int:
+        return 1
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert len(violations) == 1
+
+
+def test_ignores_unresolved_bare_call_inside_nested_function() -> None:
+    """An unresolved name must not be inferred to return a protected value."""
+    source = """
+def outer() -> None:
+    def helper() -> int:
+        return 1
+    missing()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
 
 
 def test_flags_self_call_to_same_class_method() -> None:
@@ -339,7 +381,7 @@ compute_total(items)
 
 
 def test_no_violation_for_non_union_binop_annotation() -> None:
-    """A BinOp annotation that isn't a union (for example, arithmetic) should not be treated as protected."""
+    """A BinOp annotation that is not a union (for example, arithmetic) should not be treated as protected."""
     source = """
 def compute_total(items) -> int + str:
     ...

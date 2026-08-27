@@ -1,6 +1,7 @@
 """Shared AST helpers used by more than one pyrigor checker."""
 
 import ast
+from collections.abc import Iterator
 from typing import Final, NamedTuple, Protocol
 
 from pyrigor.rules import Rule
@@ -152,6 +153,38 @@ class WalkedNodes(NamedTuple):
     assign_nodes: list[ast.AnnAssign]
     call_statement_nodes: list[ast.Call]
     class_nodes: list[ast.ClassDef]
+    parents: dict[ast.AST, ast.AST]
+
+
+def nearest_function_scope(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> ast.AST:
+    """Find the nearest function or module scope containing a node."""
+    current = parents.get(node)
+    if current is None or isinstance(current, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+        return current if current is not None else node
+    return nearest_function_scope(node=current, parents=parents)
+
+
+def function_scopes(*, scope: ast.AST, parents: dict[ast.AST, ast.AST]) -> Iterator[ast.AST]:
+    """Yield a scope and each enclosing function or module scope."""
+    yield scope
+    parent = parents.get(scope)
+    if parent is not None:
+        parent_scope = nearest_function_scope(node=parent, parents=parents)
+        yield from function_scopes(scope=parent_scope, parents=parents)
+
+
+def direct_function_definitions(
+    *,
+    scope: ast.AST,
+    function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
+    parents: dict[ast.AST, ast.AST],
+) -> dict[str, list[ast.FunctionDef | ast.AsyncFunctionDef]]:
+    """Group function definitions that belong directly to one lexical scope."""
+    definitions: dict[str, list[ast.FunctionDef | ast.AsyncFunctionDef]] = {}
+    for definition in function_nodes:
+        if nearest_function_scope(node=definition, parents=parents) is scope:
+            definitions.setdefault(definition.name, []).append(definition)
+    return definitions
 
 
 def call_statement_value(*, node: ast.AST) -> ast.Call | None:
@@ -184,6 +217,7 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
     assign_nodes = []
     call_statement_nodes = []
     class_nodes = []
+    parents: dict[ast.AST, ast.AST] = {}
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             function_nodes.append(node)
@@ -195,9 +229,12 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
             call_statement = call_statement_value(node=node)
             if call_statement is not None:
                 call_statement_nodes.append(call_statement)
+        for child in ast.iter_child_nodes(node):
+            parents[child] = node
     return WalkedNodes(
         function_nodes=function_nodes,
         assign_nodes=assign_nodes,
         call_statement_nodes=call_statement_nodes,
         class_nodes=class_nodes,
+        parents=parents,
     )

@@ -83,13 +83,36 @@ a common but low-stakes one. Uses the Language Server Protocol's own
 what would have to be true for it to move to a stricter or lighter
 tier, if anything.>
 
+## Tier and maturity
+
+<Added following #162's real, two-axis classification (see
+DECISIONS.md's "Opt-in rule tier" entry for the adoption decision this
+template implements). Two independent axes, neither implied by the
+other.>
+
+**Tier:** `Default` | `Advisory`
+
+- **`Default`** — runs without being selected, the same as every rule
+  today. Catches a silent bug type checkers/standard linters miss.
+- **`Advisory`** — excluded from the implicit default set, reachable
+  only via explicit `--select=PYRxxx` (or symbolic name). A genuine,
+  opinionated preference someone might deliberately want, not a
+  silent-bug detector — for example, a real performance concern rather
+  than a correctness one.
+
+**Maturity:** `Stable` | `Preview`
+
+- **`Stable`** — proven through real dogfooding history.
+- **`Preview`** — documentation-only for now, no CLI flag of its own;
+  does not gate whether the rule runs. `Tier` alone controls that.
+
 ## Rule metadata
 
 The `RuleInfo` entry in `pyrigor/rules.py` is the canonical source for
 the rule's symbolic name, problem text, severity, and fixability. The
-values declared in this document's `Fix classification` and `Severity`
-sections must match that entry once the rule is implemented. The
-documentation-sync test checks this agreement.
+values declared in this document's `Fix classification`, `Severity`,
+and `Tier and maturity` sections must match that entry once the rule
+is implemented. The documentation-sync test checks this agreement.
 
 ## When this does not apply
 
