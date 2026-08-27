@@ -337,6 +337,37 @@ exactly this problem, not an invented workaround.
 
 ## Development process and tooling
 
+### Tool findings: Fix, then suppress narrow before broad
+
+Real, six-step order, not "fix or ignore": **fix → line suppress →
+function suppress → file suppress → folder suppress → project
+exclude.** Each step moves down this list only once the narrower
+option genuinely does not fit — never skipped to for convenience.
+
+Why the order matters: each step hides more code from a tool's own
+scrutiny than the last. Line suppression affects one line. A
+function-level exemption (complexipy's own `# complexipy: ignore`)
+still leaves the rest of that file checked. A file-level exemption
+(xenon-shared, scoped to `_shared.py` by name) means nothing in that
+one file is checked by that tool again — but everything else still
+is checked. A folder-level exemption (ruff's own `per-file-ignores`:
+`"tests/**"` for `S101`/`PLR2004`, since `assert` is pytest's own
+idiom and a literal comparison is the test's own job, not a magic
+value. The `"scripts/**"` for `T201`, since `print` is a standalone
+script's real output) is broader still, exempting every file a whole
+directory ever contains, present or future — a real, deliberate
+reason at the directory's own scope, not one file's. A project-wide
+exclude (`markdownlint`'s `MD018` disabled outright) means no file
+anywhere, ever, is checked for that pattern — the largest, most
+permanent blind spot a tool-finding response can create, reserved
+for when the finding itself is wrong for the project, not just
+wrong in one spot.
+
+This was not decided in the abstract — it is the pattern this project's
+own real decisions already follow, named explicitly here for the
+first time rather than left implicit. Each level above has a real,
+already-adopted precedent, not a hypothetical one.
+
 ### GitHub Issues are referenced as a bare `#N`, never a linked title
 
 Now that `BACKLOG.md` is retired and every real work item lives as a
@@ -646,22 +677,22 @@ Real comparison run against this project's own source (`pyrigor/`,
 `scripts/`, `tests/`), not assumed from either tool's reputation:
 `black --check --diff` (matching `line-length = 120`) found exactly
 one real disagreement — a blank line `black` wants inserted after a
-module docstring immediately followed by a comment. 14 files, always
+module docstring immediately followed by a comment. Fourteen files, always
 the same single-line pattern, nothing else. Output is otherwise
 identical.
 
-Timing on the same run: `ruff format --check` finished in 0.24s,
-`black --check --fast` in 4.43s — roughly 18x, though at this
+Timing on the same run: `ruff format --check` finished in 0.24 s,
+`black --check --fast` in 4.43 s — 18x, though at this
 codebase's small size that gap is dominated by `black`'s own
-Python-interpreter startup cost, not necessarily per-file work; the
+Python-interpreter startup cost, not necessarily per-file work. The
 direction (ruff, written in Rust, faster) is real and expected, the
-exact multiple is not a claim about scale.
+exact multiple is not a claim about the scale.
 
 Chosen for both reasons together, not either alone: near-identical
 output removes any real formatting-preference cost to switching, and
 `ruff` is already a required dependency for linting (`select =
 ["ALL"]`) — `ruff format` adds zero new tools or config surfaces,
-where `black` would be a second, separate one doing overlapping work.
+where `black` would be a second, separate tool doing overlapping work.
 
 Real history behind this, not just the comparison above: `black` and
 `ruff` fighting circularly, each run undoing the other's formatting
@@ -671,7 +702,7 @@ choice, was a genuine, repeated problem before `ruff format` replaced
 shape of conflict, PyCharm's own built-in formatter against `black`,
 is where this whole line of tool-configuration discipline actually
 started, in Pickomino (see the "Pickomino inheritance audit"
-milestone) — `black` won that round. `ruff` won the next one.
+milestone) — `black` won that round. The tool `ruff` won the next one.
 Consolidating onto one tool per job, instead of layering several with
 overlapping opinions, came from living through both, not from reading
 about either.
