@@ -16,6 +16,7 @@ guideline doc for its full rationale.
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type            | `pyrigor` CLI (pre-commit hook) |
 | PYR302 | Use `frozen=True` for dataclasses holding structured state              | Not yet implemented             |
 | PYR303 | Iterate over a copy when the loop body may mutate the sequence          | Not yet implemented             |
+| PYR304 | Use `deque` for queue-style container operations                        | Not yet implemented             |
 | PYR401 | Use `NamedTuple` for multi-value returns                                | `pyrigor` CLI (pre-commit hook) |
 | PYR402 | Force keyword-only arguments for all parameters                         | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Use keyword-only arguments even for single-parameter functions          | `pyrigor` CLI (pre-commit hook) |
