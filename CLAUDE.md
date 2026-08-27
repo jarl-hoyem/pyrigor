@@ -158,6 +158,13 @@ and mojibake markers. If byte preservation cannot be guaranteed, stop and ask.
 After every file edit, run the relevant pre-commit checks. Fix any findings
 before presenting the result.
 
+A suppression comment (`# pyrigor CODE # reason`, `# pylint: disable=`,
+`# type: ignore`, `# noqa`, or any equivalent) needs its own explicit
+go-ahead, separate from the approval of the surrounding diff. Before adding
+one, state what the tool is flagging, why fixing it directly is not the
+better answer here, and the reason text the suppression will carry. Wait
+for a clear yes before adding it.
+
 ## Backlog and issue tracking
 
 New work items go to GitHub Issues.
