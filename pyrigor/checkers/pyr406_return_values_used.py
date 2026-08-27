@@ -168,6 +168,8 @@ def _other_node_bindings(*, node: ast.AST) -> set[str]:
         return _pattern_bindings(node=node)
     if isinstance(node, (ast.Import, ast.ImportFrom)):
         return _import_bindings(node=node)
+    if isinstance(node, ast.ClassDef):
+        return {node.name}
     if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
         return set()
     return {node.name, *_function_argument_names(node=node)}
