@@ -24,6 +24,14 @@ it. This is mandatory even when the initial request only says to
 "add a test" or static analysis suggests that existing tests are
 enough.
 
+For every rule, also record whether name shadowing can affect its
+result: none, partial, or full. Name-resolving rules must test every
+applicable shadowing class. Syntax-only rules must explain why the
+dimension does not apply. The shared matrix includes module and local
+rebinding, nested functions, `global`, `nonlocal`, class bodies,
+comprehensions, imports and aliases, arguments, exception aliases,
+match bindings, sequential redefinitions, lambdas, and classes.
+
 This applies with extra force when a feature is scoped as "behaves
 like an existing feature." In that case, the existing feature’s own
 test file is the checklist. Read it. Confirm an equivalent test

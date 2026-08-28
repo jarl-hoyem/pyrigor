@@ -103,8 +103,8 @@ other.>
 **Maturity:** `Stable` | `Preview`
 
 - **`Stable`** — proven through real dogfooding history.
-- **`Preview`** — documentation-only for now, no CLI flag of its own;
-  does not gate whether the rule runs. `Tier` alone controls that.
+- **`Preview`** — documentation-only for now and has no CLI flag of its own.
+  `Tier` alone controls whether the rule runs.
 
 ## Rule metadata
 

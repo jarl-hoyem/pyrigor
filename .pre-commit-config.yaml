@@ -94,7 +94,7 @@ repos:
         # Default confidence (60) kept deliberately: two real runs
         # produced zero false positives at this threshold, no evidence
         # raising it would help.
-        # Scans the whole project (`.`), not a hardcoded directory
+        # Scans the entire project (`.`), not a hardcoded directory
         # list. manual-tests is deliberately excluded: every fixture's
         # entry point is invoked externally by the pyrigor CLI, never
         # referenced in-corpus, so vulture flags it as unused by

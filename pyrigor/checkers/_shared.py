@@ -21,9 +21,11 @@ def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:
         True if this is tuple[X, ...], homogeneous and unbounded,
         with no fixed positional meaning.
     """
-    return (
-        len(elts) == _UNBOUNDED_TUPLE_SLICE_LENGTH and isinstance(elts[1], ast.Constant) and elts[1].value is Ellipsis
-    )
+    if len(elts) != _UNBOUNDED_TUPLE_SLICE_LENGTH:
+        return False
+
+    unbounded_marker = elts[1]
+    return isinstance(unbounded_marker, ast.Constant) and unbounded_marker.value is Ellipsis
 
 
 def _get_tuple_subscript_slice(*, annotation: ast.expr | None) -> ast.Tuple | None:

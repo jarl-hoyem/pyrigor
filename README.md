@@ -28,8 +28,8 @@ NamedTuple/keyword-only-argument/return-value-usage rule set for
 Python, inspired by safety-critical coding guidelines from other
 languages.
 
-- Seven enforced rules, catching real, silent bugs mypy strict mode
-  passes clean
+- Enforced rules catching real, silent bugs mypy strict mode passes
+  clean
 - Validated against real, public codebases: CPython's stdlib, Home
   Assistant, mypy, requests, hypothesis, abseil-py
 - Checks an 18,187-file real-world codebase in under a minute
@@ -142,7 +142,11 @@ def apply_correction_for_the_pytest_fixture_injection_case(weight, bias):
 ```
 
 The same-line still works exactly as before — these are additional
-locations, not a replacement.
+locations, not a replacement. This flexibility is a deliberate design
+advantage over tools like ruff or bandit, which require the suppression
+comment to sit on the exact physical line of the violation, making it
+easy to place incorrectly on wrapped statements. Pyrigor's suppression
+works anywhere within the violation's span, so placement matters less.
 
 ## Adding pyrigor to your own project
 
@@ -224,6 +228,12 @@ Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
 4. Open a Pull Request.
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.
+
+## Feedback
+
+Evaluating pyrigor for your own project? Open an
+[issue](https://github.com/jarl-hoyem/pyrigor/issues) and tell me
+about your use case — I use real adoption signals to drive priorities.
 
 ## Acknowledgements
 

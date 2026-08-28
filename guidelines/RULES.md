@@ -13,6 +13,9 @@ guideline doc for its full rationale.
 | PYR204 | Use tolerance-based comparison for floats, never `==`                   | Not yet implemented             |
 | PYR205 | Use a `Final` constant for a numeric literal repeated across a file     | Not yet implemented             |
 | PYR206 | Construct Decimal from a string literal, never a float literal          | Not yet implemented             |
+| PYR207 | Use a frozen container for a module-level constant dict or set          | Not yet implemented             |
+| PYR208 | Declare a `TypedDict` closed unless deliberately open                   | Not yet implemented             |
+| PYR209 | Use the `sentinel` builtin, not a hand-rolled `object()` marker         | Not yet implemented             |
 | PYR301 | Use `NamedTuple` instead of a bare fixed-length `tuple` type            | `pyrigor` CLI (pre-commit hook) |
 | PYR302 | Use `frozen=True` for dataclasses holding structured state              | Not yet implemented             |
 | PYR303 | Iterate over a copy when the loop body may mutate the sequence          | Not yet implemented             |

@@ -130,6 +130,16 @@ alongside `DEFINITION_OF_DONE.md`.
    incomplete manifest, missing entry point, or artifact-only runtime
    discrepancy.
 
+10. **For a rule, was shadowing relevance declared as none, partial,
+    or full, with every applicable shadowing class tested or the
+    exclusion justified?**
+    ← rule: `DEFINITION_OF_DONE.md`, Correctness
+    *Earned by:* the PYR406 torture-test pass found real false
+    positives and negatives caused by rebinding, comprehension-local
+    names, and class-body scope. A name-resolution rule cannot be
+    trusted from direct-definition tests alone, while syntax-only
+    rules should not accumulate irrelevant scope cases.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior

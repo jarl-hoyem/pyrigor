@@ -71,6 +71,14 @@ def _suppressed_tokens(*, comment: str) -> _SuppressionInfo:
         empty _SuppressionInfo if there is none. If the comment
         mentions "pyrigor" but does not match the expected pattern, a
         warning is printed.
+
+    Note:
+        When stacking with another tool's suppression comment (for example,
+        `# nosec` or `# complexipy: ignore`), place pyrigor's comment
+        last: `# nosec  # pyrigor CODE # reason`. The reason text is
+        captured to the end of the line, so pyrigor's comment must come
+        after comments from other tools. See guidelines/DECISIONS.md for the full
+        rationale.
     """
     match = _SUPPRESSION_PATTERN.search(comment)
     if match is None:

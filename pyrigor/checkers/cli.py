@@ -660,7 +660,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--exclude",
         action="append",
         metavar="PATH",
-        help="Exclude this file or directory (and its contents); may be repeated.",
+        help="Exclude this file or directory (and its contents), comma-separated; may be repeated.",
     )
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
@@ -694,6 +694,27 @@ def _parse_flag_tokens(*, values: list[str] | None) -> set[str] | None:
     if not values:
         return None
     return {token.strip() for token in values[0].split(",")}
+
+
+def _parse_exclude_flags(*, values: list[str] | None) -> list[str] | None:
+    """Split --exclude flags' comma-separated values into a flat list of paths.
+
+    Unlike --select/--ignore (single flag, comma-separated), --exclude
+    permits repetition. Each invocation can now be comma-separated, and all
+    results flatten into one list.
+
+    Args:
+        values: The raw values argparse's append action collected for --exclude.
+
+    Returns:
+        A flat list of paths (each stripped of whitespace), or None if the flag was not given.
+    """
+    if not values:
+        return None
+    result: list[str] = []
+    for value in values:
+        result.extend(token.strip() for token in value.split(","))
+    return result
 
 
 def _known_rule_identities() -> set[str]:
@@ -746,6 +767,7 @@ def run() -> None:
     _reject_repeated_flag(flag_name="--output-format", values=args.output_format)
     select = _parse_flag_tokens(values=args.select)
     ignore = _parse_flag_tokens(values=args.ignore)
+    excludes = _parse_exclude_flags(values=args.exclude)
     output_format = cast("OutputFormat", args.output_format[0] if args.output_format else "human")
     _validate_flag_tokens(flag_name="--select", tokens=select)
     _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
@@ -757,7 +779,7 @@ def run() -> None:
             select=select,
             ignore=ignore,
             output_format=output_format,
-            excludes=args.exclude,
+            excludes=excludes,
         )
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)

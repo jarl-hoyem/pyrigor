@@ -103,6 +103,23 @@ bugs in every one of them:
   (positional-only markers, `*args`/`**kwargs`, single-element
   tuples, ...).
 
+Also declare the rule's shadowing relevance before finalizing its
+tests:
+
+```text
+Shadowing relevance: none / partial / full
+Reason:
+Cases covered:
+```
+
+For name-resolving rules, cover the applicable shared shadowing
+matrix: module and local rebinding, nested functions, `global`,
+`nonlocal`, class bodies, comprehensions, imports and aliases,
+arguments, exception aliases, match bindings, sequential
+redefinitions, lambdas, and classes. For syntax-only rules, record
+why shadowing cannot affect the result instead of adding irrelevant
+tests.
+
 ## 7. Register the checker
 
 Add the checker's `find_violations` to `CHECKERS` in

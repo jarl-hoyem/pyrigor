@@ -1,7 +1,7 @@
 """Tests for pyrigor's checker CLI entry point."""
 # test assertions compare against expected literal values by design,
-# not a magic-value problem
-# pylint: disable=magic-value-comparison
+# this is a large, cohesive test module, not a magic-value problem
+# pylint: disable=magic-value-comparison, too-many-lines
 
 import json
 from pathlib import Path
@@ -211,6 +211,83 @@ def test_run_accepts_repeated_exclude_flags(
     first.write_text("def one(a, b):\n    ...\n")
     second.write_text("def two(a, b):\n    ...\n")
     monkeypatch.setattr("sys.argv", ["pyrigor", "--exclude", str(first), "--exclude", str(second), str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
+# noinspection DuplicatedCode
+def test_run_exclude_accepts_comma_separated_paths(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should parse --exclude=PATH, PATH as comma-separated exclusions."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    first.write_text("def one(a, b):\n    ...\n")
+    second.write_text("def two(a, b):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--exclude", f"{first!s},{second!s}", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
+# noinspection DuplicatedCode
+def test_run_exclude_tolerates_whitespace_after_comma(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should tolerate whitespace after commas in --exclude values."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    first.write_text("def one(a, b):\n    ...\n")
+    second.write_text("def two(a, b):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--exclude", f"{first!s}, {second!s}", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
+def test_run_exclude_combines_repeated_flags_with_comma_separated(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should flatten repeated --exclude flags that also contain commas."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    third = tmp_path / "third.py"
+    first.write_text("def one(a, b):\n    ...\n")
+    second.write_text("def two(a, b):\n    ...\n")
+    third.write_text("def three(a, b):\n    ...\n")
+    monkeypatch.setattr(
+        "sys.argv",
+        ["pyrigor", "--exclude", f"{first!s},{second!s}", "--exclude", str(third), str(tmp_path)],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "Checked 0 files" in capsys.readouterr().out
+
+
+def test_run_exclude_handles_leading_and_trailing_whitespace(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """run() should strip leading and trailing whitespace from comma-separated paths."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    first.write_text("def one(a, b):\n    ...\n")
+    second.write_text("def two(a, b):\n    ...\n")
+    # The parser must preserve intentional padding around the list separator.
+    exclusion_value = f"  {first!s}" + "  " + "," + "  " + f"{second!s}  "
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--exclude", exclusion_value, str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()

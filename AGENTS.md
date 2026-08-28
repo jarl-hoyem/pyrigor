@@ -48,6 +48,17 @@ pre-commit run --all-files
 Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright --project=pyproject.toml`,
 `uv run ty check .`, `uv run ruff check` / `ruff format`.
 
+Alternatively, use `just` — a simpler task runner — for copy-paste-runnable recipes:
+
+```bash
+just help     # List all available recipes
+just lint     # Run pre-commit
+just test     # Run pytest
+just pyrigor  # Run pyrigor
+```
+
+See the `justfile` in the repository root for the full set of recipes.
+
 ## Architecture
 
 **Rule identity flows from one place.** The file `pyrigor/rules.py` defines the `Rule` enum. Each member's value is a

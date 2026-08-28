@@ -26,6 +26,9 @@ pyrigor = "pyrigor.checkers.cli:run"
 
 [project.optional-dependencies]
 dev = [
+  "setuptools>=68",
+  "wheel",
+  "pip",
   "pytest>=9.1.1",
   "pytest-cov>=6.3.0",
   "jsonschema>=4.23.0",

@@ -25,7 +25,7 @@ def add_item(*, item: str, items: list[str] | None = None) -> list[str]:
 A default argument value is evaluated exactly once, at the point the
 function is defined, not once per call. For an immutable default
 (`0`, `""`, `None`), this distinction never matters, since the value
-cannot change no matter how many calls share it. For a mutable
+cannot change regardless how many calls share it. For a mutable
 default, every call that does not explicitly pass its own value
 shares the same object, across every call, for the entire
 lifetime of the function.
@@ -80,6 +80,5 @@ specific call, never shared with any other call.
 
 ## Enforced by
 
-Not independently enforced — rejected, see
-[REJECTED.md](../REJECTED.md): covered by ruff's `B006` and pylint's
-`W0102`.
+This rejected rule is covered by the guidance in [REJECTED.md](../REJECTED.md),
+Ruff's `B006`, and Pylint's `W0102`.

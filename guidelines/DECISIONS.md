@@ -521,12 +521,13 @@ configuration. Vulture's own `--help` says plainly it has none: "For
 each directory Vulture analyzes all contained `*.py` files."
 
 Fixed by pointing all three at the project (`.`) instead of a
-hardcoded allowlist, with an explicit, evidence-based denylist
-instead: `.venv`, `htmlcov`, and `*.egg-info` for all three (never
-real source), plus `manual-tests` for the tool vulture specifically. Verified
+hardcoded allowlist, with an explicit, evidence-based denylist.
+All three exclude `.venv`, `htmlcov`, and `*.egg-info` (never real
+source). Vulture also excludes `manual-tests` with `--exclude`, while
+radon and xenon use `--ignore` for the same patterns. Verified
 empirically for each: identical results to before, now covering
-`scripts/` (radon) and `manual-tests/` (radon, xenon) that were
-previously invisible.
+`scripts/` (radon missed it initially) and `manual-tests/` (all three
+missed it) that were previously invisible.
 
 `xenon-shared`'s own single-file list and `tach.toml`'s `[[modules]]`
 list are deliberately not touched by this — both are curated by
@@ -825,9 +826,12 @@ it has its own DECISIONS.md-documented reason, not by default.
 ### The tool vulture's confidence threshold
 
 Kept at its default (60), deliberately, not tuned. Real runs against
-pyrigor/, scripts/ and tests/ produced zero false positives at this
+pyrigor/, scripts/, tests/ and manual-tests/ produced zero false positives at this
 threshold, no evidence raising it would help, and raising it risks
-missing genuine dead code.
+missing genuine dead code. (Per-file isolation testing of the manual-test
+fixtures revealed real unused findings in five of six files. They only
+appeared "used" in whole-directory scans because of name collisions with
+real code elsewhere, a fragile basis for any narrowing.)
 
 ### `tach` adopted for module-boundary enforcement, real boundaries from real architecture
 
