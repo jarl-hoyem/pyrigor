@@ -19,8 +19,8 @@ For every implementation change, deliberately build and run a test
 matrix before declaring it done. The matrix must cover normal
 behavior, edge and boundary cases, meaningful combinations of options
 or inputs, and relevant negative or error paths. If a category does
-not apply, record that judgment rather than silently omitting
-it. This is mandatory even when the initial request only says to
+not apply, record that judgment rather than silently omitting it.
+This is mandatory even when the initial request only says to
 "add a test" or static analysis suggests that existing tests are
 enough.
 
@@ -163,9 +163,8 @@ knowledge only):
   narration of this project’s own past states or evolution. This is not
   a ban on citing real, external sources. Citing McConnell,
   OSSF, a style guide, or another real project’s own config is a
-  legitimate citation anywhere in the project, never a history lesson,
-  whether or not it happens to be about the past. DECISIONS.md
-  and REVIEW_CHECKLIST.md’s own "Earned by" sections are
+  legitimate citation anywhere in the project, never a history lesson.
+- DECISIONS.md and REVIEW_CHECKLIST.md’s own "Earned by" sections are
   explicit exceptions to the no-project-history part specifically,
   their whole purpose is documenting past decisions and incidents.
 
