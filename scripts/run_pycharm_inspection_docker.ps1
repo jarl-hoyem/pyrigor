@@ -1,0 +1,87 @@
+param(
+    [string]$ImageName = "pyrigor-pycharm-inspector"
+)
+
+<#
+.DESCRIPTION
+PyCharm CLI inspection runner using Docker isolation.
+
+ADVANTAGES:
+- Zero impact on host PyCharm IDE or config
+- No lock file conflicts
+- Repeatable, isolated environment
+- No manual recovery needed
+
+REQUIREMENTS:
+- Docker installed and running
+- Image built: docker build -t pyrigor-pycharm-inspector docker/
+#>
+
+$ErrorActionPreference = "Stop"
+
+$project = (Resolve-Path "$PSScriptRoot\..").Path
+$inspectionProfile = Join-Path $project ".idea\inspectionProfiles\Project_Default.xml"
+$output = Join-Path (Split-Path $project) "pycharm-inspection-results"
+$log = Join-Path (Split-Path $project) "pycharm-inspection.log"
+
+if (-not (Test-Path $inspectionProfile))
+{
+    throw "Inspection profile not found: $inspectionProfile"
+}
+
+if (Test-Path $output)
+{
+    Remove-Item $output -Recurse -Force
+}
+
+if (Test-Path $log)
+{
+    Remove-Item $log -Force
+}
+
+Write-Host "Building Docker image if needed..."
+docker build -t $ImageName docker/ | Out-Null
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Docker build failed with exit code $LASTEXITCODE"
+}
+
+Write-Host "Running PyCharm inspection in Docker..."
+$projectForward = $project -replace '\\', '/'
+$outputForward = $output -replace '\\', '/'
+
+$args = @(
+    "run", "--rm",
+    "--mount", ("type=bind,source=" + $projectForward + ",target=/project"),
+    "--mount", ("type=bind,source=" + $outputForward + ",target=/results"),
+    $ImageName,
+    "/opt/pycharm/bin/pycharm.sh", "inspect", "C:/project", ".idea/inspectionProfiles/Project_Default.xml", "C:/results",
+    "-format", "json", "-v2", "-d", "C:/project"
+)
+$containerOutput = & docker $args 2>&1
+
+$inspectionExitCode = $LASTEXITCODE
+
+if ($inspectionExitCode -ne 0)
+{
+    Write-Host $containerOutput
+    throw "PyCharm inspection failed with exit code $inspectionExitCode"
+}
+
+# Parse results
+$reports = Get-ChildItem $output -Filter "*.json" -Recurse |
+    Where-Object Name -ne ".descriptions.json"
+
+$total = 0
+foreach ($report in $reports)
+{
+    $data = Get-Content $report.FullName -Raw | ConvertFrom-Json
+    $total += @($data.problems).Count
+}
+
+Write-Host "PyCharm inspection completed."
+Write-Host "Reports: $( $reports.Count )"
+Write-Host "Findings: $total"
+Write-Host "Output: $output"
+Write-Host ""
+Write-Host "Host PyCharm IDE was not affected"
