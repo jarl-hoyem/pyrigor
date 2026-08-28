@@ -25,6 +25,15 @@ comparable. The pin is deliberately not bumped on every release —
 only on a deliberate, noted refresh — otherwise a count change could
 come from home-assistant’s own code changing instead of pyrigor’s.
 
+**Persistent local checkout:** `C:\Users\jarl\smallgig\core`. Reuse this
+checkout; it is already populated and should not be cloned again. The
+release KPI command therefore is:
+
+```powershell
+git -C C:\Users\jarl\smallgig\core checkout --detach 80fd0c5f
+uv run pyrigor C:\Users\jarl\smallgig\core > $env:TEMP\kpi-run.txt
+```
+
 **When:** once per release, as part of the release checklist in
 `DEFINITION_OF_DONE.md`.
 
@@ -54,6 +63,7 @@ Record the per-rule breakdown from the summary output below.
 | 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
 | 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
 | 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
+| 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | -13/-13 vs 0.11.0         |
 
 **Per-rule breakdown:**
 
@@ -63,6 +73,7 @@ Record the per-rule breakdown from the summary output below.
 | 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
 | 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
 | 0.11.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
+| 0.12.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
