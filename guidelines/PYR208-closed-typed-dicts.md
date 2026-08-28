@@ -12,6 +12,7 @@ class UserPayload(TypedDict):
     name: str
     email: str
 
+
 # Good
 class UserPayload(TypedDict, closed=True):
     name: str
@@ -28,6 +29,7 @@ not flag this:
 class UserPayload(TypedDict):
     name: str
     email: str
+
 
 # A typo'd key, and an extra one. mypy passes this cleanly —
 # every declared key is present with the right type, and TypedDict's

@@ -15,10 +15,12 @@ Parameters and return annotations are governed by PYR405 and PYR401.
 # Bad
 last_position: tuple[int, int] = (3, 7)
 
+
 # Good
 class Position(NamedTuple):
     row: int
     col: int
+
 
 last_position: Position = Position(row=3, col=7)
 ```

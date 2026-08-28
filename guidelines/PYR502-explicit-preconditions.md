@@ -19,10 +19,12 @@ def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
     # silently assumes x.shape == y.shape
     ...
 
+
 # Bad — assert is stripped under python -O
 def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
     assert x.shape == y.shape, "x and y must have matching shapes"
     ...
+
 
 # Good
 def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:

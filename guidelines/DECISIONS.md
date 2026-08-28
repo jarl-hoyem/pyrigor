@@ -83,6 +83,7 @@ class GradientResult(NamedTuple):
     dj_dw: Weight
     dj_db: Bias
 
+
 def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult:
     ...
     return GradientResult(dj_dw=dj_dw, dj_db=dj_db)

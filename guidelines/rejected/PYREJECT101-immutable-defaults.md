@@ -13,6 +13,7 @@ def add_item(*, item: str, items: list[str] = []) -> list[str]:
     items.append(item)
     return items
 
+
 # Good
 def add_item(*, item: str, items: list[str] | None = None) -> list[str]:
     items = items if items is not None else []
@@ -34,6 +35,7 @@ lifetime of the function.
 def add_item(*, item: str, items: list[str] = []) -> list[str]:
     items.append(item)
     return items
+
 
 first = add_item(item="a")
 # first == ["a"], as expected

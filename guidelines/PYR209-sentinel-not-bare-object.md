@@ -10,14 +10,17 @@ identity comparison, as a "no value provided" marker, must use the
 # Bad
 _MISSING = object()
 
+
 def get(*, key: str, default: object = _MISSING) -> object:
     if default is _MISSING:
         ...
+
 
 # Good
 from sentinel import sentinel
 
 _MISSING = sentinel("Missing")
+
 
 def get(*, key: str, default: object = _MISSING) -> object:
     if default is _MISSING:

@@ -12,6 +12,7 @@ def process_items(items: list[Item]) -> Iterator[Result]:
     for item in items:
         yield transform(item)
 
+
 # Bad
 process_items(items)
 
@@ -37,6 +38,7 @@ def log_and_yield_results(items: list[Item]) -> Iterator[Result]:
     for item in items:
         logger.info("processing %s", item)
         yield transform(item)
+
 
 def handle_request(items: list[Item]) -> None:
     log_and_yield_results(items)  # bug: nothing runs at all, no logging, no transforms

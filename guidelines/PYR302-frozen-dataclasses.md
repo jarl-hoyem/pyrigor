@@ -13,6 +13,7 @@ class TrainingConfig:
     learning_rate: float
     max_epochs: int
 
+
 # Good
 @dataclass(frozen=True)
 class TrainingConfig:

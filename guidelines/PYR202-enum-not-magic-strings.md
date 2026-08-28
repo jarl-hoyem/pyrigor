@@ -13,10 +13,12 @@ status = "converged"
 # Good
 from enum import Enum, auto
 
+
 class ConvergenceStatus(Enum):
     RUNNING = auto()
     CONVERGED = auto()
     MAX_ITERS_REACHED = auto()
+
 
 status = ConvergenceStatus.CONVERGED
 ```

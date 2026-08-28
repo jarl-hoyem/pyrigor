@@ -15,13 +15,14 @@ def step_bot(*, action: tuple[int, int]) -> None:
     row, col = action
     ...
 
+
 # Good
 class BotAction(NamedTuple):
     row: int
     col: int
 
-def step_bot(*, action: BotAction) -> None:
-    ...
+
+def step_bot(*, action: BotAction) -> None: ...
 ```
 
 ## Rationale
@@ -35,6 +36,7 @@ function from *accepting* one as a parameter.
 def step_bot(*, action: tuple[int, int]) -> None:
     row, col = action
     ...
+
 
 # Is this (row, col) or (col, row)? Nothing in the type or the call
 # site says. Both orderings type-check identically.

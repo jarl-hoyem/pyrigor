@@ -10,12 +10,11 @@ alone, or both.
 
 ```python
 # Bad
-def main(paths: list[str]) -> int:
-    ...
+def main(paths: list[str]) -> int: ...
+
 
 # Good
-def main(*, paths: list[str]) -> int:
-    ...
+def main(*, paths: list[str]) -> int: ...
 ```
 
 ## Rationale
@@ -31,8 +30,8 @@ goes wrong. A single-parameter function can still be called with the
 still the wrong variable, passed by mistake:
 
 ```python
-def main(paths: list[str]) -> int:
-    ...
+def main(paths: list[str]) -> int: ...
+
 
 # Both are lists of strings. Nothing about the call site indicates
 # what `changed_files` actually is, or confirms it's the right thing
@@ -47,8 +46,8 @@ self-check at the point of writing and at every point of reading it
 again later:
 
 ```python
-def main(*, paths: list[str]) -> int:
-    ...
+def main(*, paths: list[str]) -> int: ...
+
 
 main(paths=changed_files)
 ```

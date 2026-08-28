@@ -59,8 +59,9 @@ get past mypy today.
 Thrust = NewType("Thrust", float)
 FuelMass = NewType("FuelMass", float)
 
-def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float:
-    ...
+
+def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float: ...
+
 
 # Both floats. Nothing about a bare float stops this from running,
 # type-checking cleanly, and silently swapping the two values.
@@ -137,8 +138,7 @@ would not fit on the violating line itself:
 
 ```python
 # pyrigor PYR402 # long test names plus a mandatory reason need more room
-def apply_correction_for_the_pytest_fixture_injection_case(weight, bias):
-    ...
+def apply_correction_for_the_pytest_fixture_injection_case(weight, bias): ...
 ```
 
 The same-line still works exactly as before — these are additional

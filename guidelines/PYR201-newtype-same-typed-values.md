@@ -13,8 +13,8 @@ Different-typed arguments are already protected by mypy: a swap at the
 call site is a type mismatch and gets caught.
 
 ```python
-def compute_gradient(x: np.ndarray, y: np.ndarray, w: np.ndarray, b: float) -> ...:
-    ...
+def compute_gradient(x: np.ndarray, y: np.ndarray, w: np.ndarray, b: float) -> ...: ...
+
 
 # Swapping w and b here is a type error — mypy catches it, nothing to add.
 compute_gradient(x, y, b, w)  # error: expected ndarray, got float
@@ -25,8 +25,8 @@ parameters are structurally identical, so a swap is a silent,
 valid-looking call:
 
 ```python
-def apply_correction(weight: float, bias: float) -> float:
-    ...
+def apply_correction(weight: float, bias: float) -> float: ...
+
 
 # Both floats. Types line up. mypy passes. The values are swapped.
 apply_correction(bias, weight)
@@ -41,8 +41,9 @@ from typing import NewType
 Weight = NewType("Weight", float)
 Bias = NewType("Bias", float)
 
-def apply_correction(weight: Weight, bias: Bias) -> float:
-    ...
+
+def apply_correction(weight: Weight, bias: Bias) -> float: ...
+
 
 apply_correction(bias, weight)  # error: expected Weight, got Bias
 ```
@@ -60,6 +61,7 @@ class GradientResult(NamedTuple):
     dj_dw: float
     dj_db: float
 
+
 # Both floats — named access alone doesn't stop this from compiling
 # with the values swapped at construction time.
 GradientResult(dj_dw=dj_db_value, dj_db=dj_dw_value)
@@ -71,9 +73,11 @@ GradientResult(dj_dw=dj_db_value, dj_db=dj_dw_value)
 Weight = NewType("Weight", float)
 Bias = NewType("Bias", float)
 
+
 class GradientResult(NamedTuple):
     dj_dw: Weight
     dj_db: Bias
+
 
 def compute_gradient_logistic(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult:
     ...

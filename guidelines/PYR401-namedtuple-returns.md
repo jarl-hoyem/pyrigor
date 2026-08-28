@@ -21,6 +21,7 @@ def compute_gradient(x: np.ndarray, y: np.ndarray, w: np.ndarray, b: float) -> t
     ...
     return dj_dw, dj_db
 
+
 # Silent bug: types match position-for-position, so mypy passes.
 # The names are swapped, and nothing catches it until dj_dw_wrong is
 # used somewhere its true type (float) breaks — e.g. calling .tolist()
@@ -41,9 +42,11 @@ class GradientResult(NamedTuple):
     dj_dw: np.ndarray
     dj_db: float
 
+
 def compute_gradient(x: np.ndarray, y: np.ndarray, w: np.ndarray, b: float) -> GradientResult:
     ...
     return GradientResult(dj_dw=dj_dw, dj_db=dj_db)
+
 
 result = compute_gradient(x, y, w, b)
 result.dj_db  # always the bias, regardless of unpacking order

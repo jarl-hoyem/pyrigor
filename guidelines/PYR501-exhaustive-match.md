@@ -48,6 +48,7 @@ class ConvergenceStatus(Enum):
     MAX_ITERS_REACHED = auto()
     DIVERGED = auto()  # added later, elsewhere in the codebase
 
+
 # This match statement, written before DIVERGED existed, still
 # compiles and runs. If status is DIVERGED, none of the branches
 # match, and the match statement completes having done nothing,

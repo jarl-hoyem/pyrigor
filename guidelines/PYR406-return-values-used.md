@@ -8,8 +8,8 @@ site. Calling it as a bare expression statement and discarding the
 result is a violation.
 
 ```python
-def compute_total(items: list[Item]) -> float:
-    ...
+def compute_total(items: list[Item]) -> float: ...
+
 
 # Bad
 compute_total(items)
@@ -35,8 +35,8 @@ whatever depended on it downstream either uses a stale or default
 value or fails much later, far from the actual mistake.
 
 ```python
-def validate_and_normalize(data: RawInput) -> NormalizedInput:
-    ...
+def validate_and_normalize(data: RawInput) -> NormalizedInput: ...
+
 
 def handle_request(data: RawInput) -> None:
     validate_and_normalize(data)  # bug: result discarded

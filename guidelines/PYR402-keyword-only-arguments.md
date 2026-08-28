@@ -9,12 +9,11 @@ applies even when every argument has a distinct type and even when
 
 ```python
 # Bad
-def compute_gradient(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult:
-    ...
+def compute_gradient(x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult: ...
+
 
 # Good
-def compute_gradient(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult:
-    ...
+def compute_gradient(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> GradientResult: ...
 ```
 
 ## Rationale
@@ -29,8 +28,9 @@ swap, the same way it catches any other type mismatch.
 Weight = NewType("Weight", float)
 Bias = NewType("Bias", float)
 
-def apply_correction(weight: Weight, bias: Bias) -> float:
-    ...
+
+def apply_correction(weight: Weight, bias: Bias) -> float: ...
+
 
 # mypy catches this: bias_value is typed Bias, first parameter expects
 # Weight. PYR201 alone is sufficient here, *if* every value in the
