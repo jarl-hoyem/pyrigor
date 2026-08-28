@@ -65,6 +65,10 @@ Record the per-rule breakdown from the summary output below.
 | 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
 | 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | -13/-13 vs 0.11.0         |
 
+The 13-violation decrease is entirely from PYR406 (`176` → `163`) after
+improved lexical-scope and binding resolution. All other tracked rule counts
+were unchanged, and the corpus pin was unchanged.
+
 **Per-rule breakdown:**
 
 | Release | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
