@@ -246,7 +246,7 @@ others credited throughout this project's own guideline docs.
 
 ## Contact
 
-Maintained by [jarl-hoyem](https://github.com/jarl-hoyem). For
+Created and maintained by [jarl-hoyem](https://github.com/jarl-hoyem). For
 questions or ideas, open an issue.
 
 ## License
