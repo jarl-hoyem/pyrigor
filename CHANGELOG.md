@@ -11,6 +11,29 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.12.0] 2026-08-28
+
+### Added
+
+- Documented PYR207 (frozen constant containers), PYR208 (closed typed
+  dictionaries), and PYR209 (sentinel builtins instead of hand-rolled
+  `object()` sentinels), with all three registered in the generated rule
+  table (#191, #192, #193).
+- Added adversarial testing across CLI behavior, checker semantics,
+  suppression handling, and error paths (#183).
+
+### Fixed
+
+- Hardened PYR406 return-value analysis across lexical bindings, imports,
+  redefinitions, classes, comprehensions, and nested scopes.
+- Fixed PyCharm inspection tooling to preserve settings and validate its
+  configurable inspection path.
+
+### Changed
+
+- Expanded CI and pre-commit quality checks, developer tooling, and release
+  verification support.
+
 ## [0.11.0] 2026-08-26
 
 ### Added
