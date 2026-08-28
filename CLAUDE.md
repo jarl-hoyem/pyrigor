@@ -149,6 +149,13 @@ maintainer's time:
 - The maintainer handles staging, commits, and pushes. Provide a
   copy-paste-ready commit message after verified file changes.
 - Combine the approved closing comment and issue close into one GitHub action.
+- Before release or issue work, reread this file, `AGENTS.md`, the relevant
+  issue template, and applicable project guidance; do not rely on memory from
+  another session.
+- Validate commit messages against the repository's actual Commitizen
+  configuration before recommending them; use only configured commit types.
+- Treat `.pyscn/` reports as temporary output: remove them after inspection;
+  do not commit or add them to `.gitignore`.
 
 ## Approval before file changes
 
@@ -175,6 +182,8 @@ go-ahead, separate from the approval of the surrounding diff. Before adding
 one, state what the tool is flagging, why fixing it directly is not the
 better answer here, and the reason text the suppression will carry. Wait
 for a clear yes before adding it.
+
+Do not add `Co-Authored-By:` trailers to commit messages.
 
 ## Backlog and issue tracking
 
