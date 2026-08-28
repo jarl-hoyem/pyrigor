@@ -12,7 +12,8 @@ from pyrigor.checkers._shared import _is_unbounded_homogeneous_tuple, walk_once
 
 def test_unbounded_homogeneous_tuple_requires_two_elements() -> None:
     """A tuple slice with another length is not the unbounded tuple form."""
-    elements = [cast("ast.expr", ast.Name(id="item"))]  # noinspection PyInvalidCastInspection
+    # noinspection PyInvalidCast
+    elements = [cast("ast.expr", ast.Name(id="item"))]
     assert not _is_unbounded_homogeneous_tuple(elts=elements)
 
 
