@@ -129,7 +129,7 @@ repos:
     # The published self-hosted hook intentionally lags until the next release
     # is completed. That lag is accepted, so the pinned hook always references
     # an existing released tag. Update this pin after each release.
-    rev: v0.11.0
+    rev: v0.12.0
     hooks:
       - id: pyrigor
         # Excludes only the fixtures that deliberately contain real,
