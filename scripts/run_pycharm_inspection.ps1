@@ -5,10 +5,18 @@ $inspectionProfile = Join-Path $project ".idea\inspectionProfiles\Project_Defaul
 $output = Join-Path (Split-Path $project) "pycharm-inspection-results"
 $log = Join-Path (Split-Path $project) "pycharm-inspection.log"
 $inspector = "C:\Program Files\JetBrains\PyCharm 2024.3.5\bin\pycharm64.exe"
+$normalConfig = Join-Path $env:APPDATA "JetBrains\PyCharm2025.2"
+$normalOptions = Join-Path $normalConfig "options"
+$optionsBackup = Join-Path $env:TEMP "pyrigor-pycharm-options-$([guid]::NewGuid().ToString('N') )"
 
 if (Get-Process pycharm64 -ErrorAction SilentlyContinue)
 {
     throw "Close PyCharm before running the command-line inspector."
+}
+
+if (-not (Test-Path $normalOptions))
+{
+    throw "Cannot protect the PyCharm configuration: $normalOptions does not exist."
 }
 
 if (Test-Path $output)
@@ -25,11 +33,22 @@ $inspectionExitCode = 0
 New-Item $output -ItemType Directory -Force | Out-Null
 $stdout = New-TemporaryFile
 $stderr = New-TemporaryFile
-$process = Start-Process -FilePath $inspector `
-    -ArgumentList @("inspect", $project, $inspectionProfile, $output, "-format", "json", "-v2", "-d", $project) `
-    -Wait -PassThru -NoNewWindow `
-    -RedirectStandardOutput $stdout.FullName `
-    -RedirectStandardError $stderr.FullName
+New-Item $optionsBackup -ItemType Directory -Force | Out-Null
+Copy-Item (Join-Path $normalOptions "*") -Destination $optionsBackup -Recurse -Force
+try
+{
+    $process = Start-Process -FilePath $inspector `
+        -ArgumentList @("inspect", $project, $inspectionProfile, $output, "-format", "json", "-v2", "-d", $project) `
+        -Wait -PassThru -NoNewWindow `
+        -RedirectStandardOutput $stdout.FullName `
+        -RedirectStandardError $stderr.FullName
+}
+finally
+{
+    Remove-Item $normalOptions -Recurse -Force
+    Copy-Item (Join-Path $optionsBackup "*") -Destination $normalOptions -Recurse -Force
+    Remove-Item $optionsBackup -Recurse -Force
+}
 Get-Content $stdout.FullName, $stderr.FullName | Add-Content -Path $log -Encoding utf8
 Remove-Item $stdout.FullName, $stderr.FullName -Force
 $inspectionExitCode = $process.ExitCode
