@@ -2,6 +2,24 @@ param(
     [string]$PyCharmPath = "C:\Program Files\JetBrains\PyCharm 2024.3.5\bin\pycharm64.exe"
 )
 
+<#
+.DESCRIPTION
+PyCharm CLI inspection runner with config isolation.
+
+KNOWN LIMITATIONS:
+- Requires PyCharm IDE to be closed during inspection (checked at line 29)
+- Temporarily modifies PyCharm config via backup/restore (lines 51-52, 67-69)
+- If interrupted, config can become corrupted, requiring manual recovery:
+  * Clear lock: Remove-Item "$env:APPDATA\JetBrains\PyCharm2025.2\.lock" -Force
+  * Restart PyCharm IDE to recreate config
+
+DESIGN NOTES:
+PyCharm's CLI inspection does not support truly isolated config directories
+(attempted via -Didea.config.path). The backup/restore approach is the only
+working solution that preserves the project's inspection profiles and settings.
+This limitation is inherent to PyCharm's CLI architecture, not this script.
+#>
+
 $ErrorActionPreference = "Stop"
 
 $project = (Resolve-Path "$PSScriptRoot\..").Path
