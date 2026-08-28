@@ -1,10 +1,25 @@
+param(
+    [string]$PyCharmPath = "C:\Program Files\JetBrains\PyCharm 2024.3.5\bin\pycharm64.exe"
+)
+
 $ErrorActionPreference = "Stop"
 
 $project = (Resolve-Path "$PSScriptRoot\..").Path
 $inspectionProfile = Join-Path $project ".idea\inspectionProfiles\Project_Default.xml"
 $output = Join-Path (Split-Path $project) "pycharm-inspection-results"
 $log = Join-Path (Split-Path $project) "pycharm-inspection.log"
-$inspector = "C:\Program Files\JetBrains\PyCharm 2024.3.5\bin\pycharm64.exe"
+
+if (-not (Test-Path $inspectionProfile))
+{
+    throw "Inspection profile not found: $inspectionProfile"
+}
+
+if (-not (Test-Path $PyCharmPath))
+{
+    throw "PyCharm executable not found: $PyCharmPath"
+}
+
+$inspector = $PyCharmPath
 $normalConfig = Join-Path $env:APPDATA "JetBrains\PyCharm2025.2"
 $normalOptions = Join-Path $normalConfig "options"
 $optionsBackup = Join-Path $env:TEMP "pyrigor-pycharm-options-$([guid]::NewGuid().ToString('N') )"
@@ -37,6 +52,10 @@ New-Item $optionsBackup -ItemType Directory -Force | Out-Null
 Copy-Item (Join-Path $normalOptions "*") -Destination $optionsBackup -Recurse -Force
 try
 {
+    # PyCharm CLI: inspect <project> <profile> <output-dir> -format json -v2 -d <project-root>
+    # -format json: structured JSON output for parsing
+    # -v2: verbose mode (progress/diagnostic output)
+    # -d: explicitly set project root for scoping
     $process = Start-Process -FilePath $inspector `
         -ArgumentList @("inspect", $project, $inspectionProfile, $output, "-format", "json", "-v2", "-d", $project) `
         -Wait -PassThru -NoNewWindow `
