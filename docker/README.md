@@ -21,10 +21,10 @@ Download from <https://www.docker.com/products/docker-desktop>
 ### 2. Build the image
 
 ```powershell
-docker build -t pyrigor-pycharm-inspector docker/
+docker build -t pyrigor-pycharm-inspector -f docker/pycharm.Dockerfile docker/
 ```
 
-This creates a lightweight image (~1.5GB) with PyCharm CLI pre-installed.
+This creates an image (approximately 5.4GB, 1.4GB compressed) with PyCharm CLI pre-installed.
 
 ### 3. Run inspection
 
@@ -32,16 +32,14 @@ This creates a lightweight image (~1.5GB) with PyCharm CLI pre-installed.
 .\scripts\run_pycharm_inspection_docker.ps1
 ```
 
-Or manually:
+The script automatically:
 
-```powershell
-docker run --rm `
-  -v "C:\path\to\project:C:/project" `
-  -v "C:\path\to\results:C:/results" `
-  pyrigor-pycharm-inspector `
-  inspect C:/project ".idea/inspectionProfiles/Project_Default.xml" "C:/results" `
-  -format json -v2 -d "C:/project"
-```
+- Discovers all source directories (excluding .venv, build artifacts, etc.)
+- Mounts the project and output directories
+- Runs PyCharm inspection with optimal settings
+- Parses and reports findings
+
+For manual invocation, see the script source for current PyCharm CLI arguments.
 
 ## Benefits
 
@@ -55,8 +53,8 @@ docker run --rm `
 ## Trade-offs
 
 - Docker must be installed and running
-- Slower first run (image download ~800MB, extraction ~700MB)
-- Later runs are fast (~5–10 seconds overhead)
+- First run downloads image (1.4GB compressed, expands to approximately 5.4GB)
+- Later runs are fast (no download, quick startup)
 
 ## Troubleshooting
 
@@ -71,6 +69,7 @@ docker run --rm `
 
 ### "Out-of-disk space"
 
-- Docker image is ~1.5GB
+- Docker image is approximately 5.4GB (1.4GB compressed)
 - Result directory size depends on the project
-- Clean with `docker image prune -a` if needed
+- Clean Docker cache: `docker builder prune`
+- Remove unused images: `docker image prune -a`
