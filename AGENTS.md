@@ -1,5 +1,12 @@
 # AGENTS.md
 
+## Response formatting preference
+
+When providing text intended for copying, put it in a fenced code block so the
+user can copy it with one click.
+
+Keep AGENTS.md and CLAUDE.md synchronized when changing repository guidance.
+
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## What this is
