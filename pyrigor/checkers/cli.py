@@ -784,8 +784,8 @@ def run() -> None:
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)
-
-    sys.exit(exit_code)
+    else:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":  # pragma: no cover
