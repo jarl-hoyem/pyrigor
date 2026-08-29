@@ -9,7 +9,8 @@ from pathlib import Path
 import jsonschema
 import pytest
 
-from pyrigor.checkers.cli import main, run
+# noinspection PyProtectedMember
+from pyrigor.checkers.cli import CheckError, _FixSourceResult, main, run
 
 SCHEMA = json.loads((Path(__file__).parents[2] / "schemas" / "pyrigor-diagnostics-v1.json").read_text(encoding="utf-8"))
 
@@ -200,6 +201,366 @@ def test_run_delegates_to_main_using_sys_argv(tmp_path: Path, monkeypatch: pytes
         run()
 
     assert exc_info.value.code == 0
+
+
+def test_run_fix_select_pyr402_writes_changed_file(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--fix with explicit PYR402 selection applies the safe fixer in place."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_text() == "def apply(*, weight, bias):\n    ...\n"
+    assert "source.py" in capsys.readouterr().out
+
+
+def test_run_diff_does_not_write_and_shows_patch(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--diff previews the PYR402 fix without modifying the source file."""
+    source_file = tmp_path / "source.py"
+    original = "def apply(weight, bias):\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", "--select=PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_text() == original
+    assert "-def apply(weight, bias):" in capsys.readouterr().out
+
+
+def test_run_fix_requires_explicit_pyr402_selection(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fixer options reject invocations without explicit PYR402 selection."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert "explicit --select=PYR402" in capsys.readouterr().err
+
+
+def test_run_show_fixes_requires_fix(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--show-fixes cannot be used without --fix."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--show-fixes", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert "requires --fix" in capsys.readouterr().err
+
+
+def test_run_fix_leaves_clean_file_unchanged(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fixing a clean file produces no change report."""
+    source_file = tmp_path / "source.py"
+    original = "def apply(*, weight, bias):\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_text() == original
+    assert capsys.readouterr().out == ""
+
+
+def test_run_fix_reports_unreadable_file(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fixing reports a source read error without writing a file."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+    monkeypatch.setattr(
+        "pyrigor.checkers.cli._read_fix_source",
+        lambda *, path: _FixSourceResult(
+            source=None, error=CheckError(file=path, kind="read_error", message="permission denied")
+        ),
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "permission denied" in capsys.readouterr().err
+
+
+def test_run_fix_reports_missing_file(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fixing a missing path reports the underlying read error."""
+    missing = tmp_path / "missing.py"
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(missing)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "missing.py" in capsys.readouterr().err
+
+
+def test_run_fix_honors_exclusions(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fix mode does not modify files excluded by --exclude."""
+    included = tmp_path / "included.py"
+    excluded = tmp_path / "excluded.py"
+    included.write_text("def included(left, right):\n    ...\n")
+    excluded.write_text("def excluded(left, right):\n    ...\n")
+    monkeypatch.setattr(
+        "sys.argv", ["pyrigor", "--fix", "--select", "PYR402", "--exclude", str(excluded), str(tmp_path)]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert included.read_text() == "def included(*, left, right):\n    ...\n"
+    assert excluded.read_text() == "def excluded(left, right):\n    ...\n"
+    assert "included.py" in capsys.readouterr().out
+
+
+def test_run_fix_covers_cli_signature_matrix(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """CLI fixer preserves supported signature forms and skips varargs/already-fixed functions."""
+    source_file = tmp_path / "signatures.py"
+    source_file.write_text(
+        "@decorator(option=True)\n"
+        "def decorated(value: int, limit: int = 1) -> int:\n"
+        "    return value + limit\n\n"
+        "class Worker:\n"
+        "    async def run(self, value, limit):\n"
+        "        return value + limit\n\n"
+        "def variadic(value, limit, *rest):\n"
+        "    return value + limit\n\n"
+        "def already(*, value, limit):\n"
+        "    return value + limit\n"
+    )
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select=PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_text() == (
+        "@decorator(option=True)\n"
+        "def decorated(*, value: int, limit: int = 1) -> int:\n"
+        "    return value + limit\n\n"
+        "class Worker:\n"
+        "    async def run(self, *, value, limit):\n"
+        "        return value + limit\n\n"
+        "def variadic(value, limit, *rest):\n"
+        "    return value + limit\n\n"
+        "def already(*, value, limit):\n"
+        "    return value + limit\n"
+    )
+
+
+def test_run_fix_reports_non_utf8_source_without_modifying_it(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fix mode reports unsupported source encoding and preserves the bytes."""
+    source_file = tmp_path / "source.py"
+    original = b"def apply(left, right):\n    # nonascii: \xe9\n    ...\n"
+    source_file.write_bytes(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_bytes() == original
+    assert "source.py" in capsys.readouterr().err
+
+
+def test_run_fix_show_fixes_reports_each_changed_file(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--show-fixes reports every changed file when combined with --fix."""
+    first = tmp_path / "first.py"
+    second = tmp_path / "second.py"
+    first.write_text("def first(left, right):\n    ...\n")
+    second.write_text("def second(left, right):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--show-fixes", "--select", "PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    _assert_fixed_files(
+        output=capsys.readouterr().out,
+        expected={
+            first: "def first(*, left, right):\n    ...\n",
+            second: "def second(*, left, right):\n    ...\n",
+        },
+    )
+
+
+def _assert_fixed_files(*, output: str, expected: dict[Path, str]) -> None:
+    """Assert fixer reporting and resulting contents for multiple files."""
+    assert "Fixed" in output
+    for path, source in expected.items():
+        assert path.name in output
+        assert path.read_text() == source
+
+
+def test_run_diff_shows_all_changed_functions_without_writing(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--diff previews every eligible function while preserving the source."""
+    source_file = tmp_path / "source.py"
+    original = "def first(left, right):\n    ...\n\ndef second(left, right):\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    output = capsys.readouterr().out
+    assert exc_info.value.code == 0
+    assert output.count("-def ") == 2
+    assert source_file.read_text() == original
+
+
+def test_run_fix_preserves_utf8_bom(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--fix preserves a UTF-8 BOM while applying the signature edit."""
+    source_file = tmp_path / "source.py"
+    original = "\ufeff# coding: utf-8\ndef apply(left, right):\n    ...\n"
+    # noinspection PyArgumentEqualDefault
+    source_file.write_bytes(original.encode("utf-8"))
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    # noinspection PyArgumentEqualDefault
+    assert source_file.read_bytes() == "\ufeff# coding: utf-8\ndef apply(*, left, right):\n    ...\n".encode("utf-8")
+
+
+def test_run_fix_preserves_crlf_line_endings(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--fix preserves CRLF line endings while applying the signature edit."""
+    source_file = tmp_path / "source.py"
+    original = "def apply(left, right):\r\n    ...\r\n"
+    # noinspection PyArgumentEqualDefault
+    source_file.write_bytes(original.encode("utf-8"))
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_bytes() == b"def apply(*, left, right):\r\n    ...\r\n"
+
+
+def test_run_fix_reports_rejected_signature_without_skipping_other_files(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A rejected signature is reported while another file can still be fixed."""
+    rejected = tmp_path / "rejected.py"
+    fixable = tmp_path / "fixable.py"
+    rejected.write_text("def rejected(left, right, /):\n    ...\n")
+    fixable.write_text("def apply(left, right):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "rejected.py" in capsys.readouterr().err
+    assert fixable.read_text() == "def apply(*, left, right):\n    ...\n"
+
+
+def test_run_fix_preserves_mixed_line_endings(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--fix preserves mixed line endings outside the signature edit."""
+    source_file = tmp_path / "source.py"
+    original = b"# first\r\ndef apply(left, right):\n\t...\r\n# last\n"
+    source_file.write_bytes(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_bytes() == b"# first\r\ndef apply(*, left, right):\n\t...\r\n# last\n"
+
+
+def test_run_fix_preserves_unedited_bytes(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--fix changes only the keyword-only separator bytes."""
+    source_file = tmp_path / "source.py"
+    original = b"# prefix \xc3\xa9\r\ndef apply(left: int, right: int = 2):  # suffix \xc3\xa9\n    ...\r\n"
+    source_file.write_bytes(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit):
+        run()
+
+    fixed = source_file.read_bytes()
+    assert fixed.replace(b"*, ", b"") == original
+
+
+def test_run_fix_leaves_suppression_comments_unchanged(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--fix does not invent or remove suppression comments as a side effect."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(left, right):  # pyrigor PYR402 # public API\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert "# pyrigor PYR402 # public API" in source_file.read_text()
+
+
+def test_run_fix_rejects_json_output_combination(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fix mode rejects JSON output because fixer reporting is textual."""
+    source_file = tmp_path / "source.py"
+    original = "def apply(left, right):\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr(
+        "sys.argv", ["pyrigor", "--fix", "--output-format", "json", "--select", "PYR402", str(source_file)]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert source_file.read_text() == original
+    assert "output-format" in capsys.readouterr().err
+
+
+def test_cli_help_documents_fixer_modes(*, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
+    """CLI help exposes the fixer, diff, and reporting options."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    output = capsys.readouterr().out
+    assert exc_info.value.code == 0
+    assert "--fix" in output
+    assert "--diff" in output
+    assert "--show-fixes" in output
 
 
 def test_run_accepts_repeated_exclude_flags(

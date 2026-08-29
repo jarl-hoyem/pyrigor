@@ -11,6 +11,12 @@ is usable for.
 
 ## [Unreleased]
 
+### Added
+
+- Added explicit `--fix` and `--diff` CLI modes for safe PYR402
+  keyword-only argument fixes, with byte-preserving handling for UTF-8
+  BOMs and CRLF input.
+
 ## [0.12.0] 2026-08-28
 
 ### Added

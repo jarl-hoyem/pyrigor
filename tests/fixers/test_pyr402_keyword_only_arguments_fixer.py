@@ -168,6 +168,7 @@ def test_rejects_signature_when_opening_parenthesis_cannot_be_located() -> None:
 
         __slots__ = ()
 
+        # noinspection PyTypeHints
         def find(
             self, sub: str, start: SupportsIndex | None = None, end: SupportsIndex | None = None
         ) -> int:  # pyrigor PYR402 # mirrors str.find for the test double
@@ -188,6 +189,7 @@ def test_rejects_method_when_comma_cannot_be_located() -> None:
 
         __slots__ = ()
 
+        # noinspection PyTypeHints
         def find(
             self, sub: str, start: SupportsIndex | None = None, end: SupportsIndex | None = None
         ) -> int:  # pyrigor PYR402 # mirrors str.find for the test double

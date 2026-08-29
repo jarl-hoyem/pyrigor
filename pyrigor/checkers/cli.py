@@ -2,6 +2,7 @@
 
 import argparse
 import ast
+import difflib
 import json
 import sys
 import time
@@ -12,6 +13,7 @@ from typing import Final, Literal, NamedTuple, Never, cast
 
 from pyrigor.checkers import CHECKERS, RegisteredChecker
 from pyrigor.checkers._shared import walk_once
+from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixResult, FixStatus, fix_source
 from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
@@ -52,6 +54,39 @@ class _SourceResult(NamedTuple):
 
     source: str | None
     error: CheckError | None
+
+
+class _FixSourceResult(NamedTuple):
+    """The byte-preserving source used by fixer mode and any file error."""
+
+    source: bytes | None
+    error: CheckError | None
+
+
+class _PreparedFix(NamedTuple):
+    """A fixer result and whether the original source had a BOM."""
+
+    result: FixResult
+    bom: bool
+
+
+class _FixInput(NamedTuple):
+    """A readable source and its prepared fixer result."""
+
+    original: bytes
+    prepared: _PreparedFix
+
+
+class _RunOptions(NamedTuple):
+    """Validated options needed to execute the CLI."""
+
+    paths: list[str]
+    select: set[str] | None
+    ignore: set[str] | None
+    excludes: list[str] | None
+    output_format: OutputFormat
+    fix: bool
+    diff: bool
 
 
 class _CheckerResult(NamedTuple):
@@ -168,6 +203,14 @@ def _read_source(*, path: str) -> _SourceResult:
             source=None,
             error=CheckError(file=path, kind="read_error", message=str(error)),
         )
+
+
+def _read_fix_source(*, path: str) -> _FixSourceResult:
+    """Read fixer input as bytes so BOMs and line endings can be preserved."""
+    try:
+        return _FixSourceResult(source=Path(path).read_bytes(), error=None)
+    except OSError as error:
+        return _FixSourceResult(source=None, error=CheckError(file=path, kind="read_error", message=str(error)))
 
 
 def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, ...]) -> _CheckerResult:
@@ -662,6 +705,9 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="PATH",
         help="Exclude this file or directory (and its contents), comma-separated; may be repeated.",
     )
+    parser.add_argument("--fix", action="store_true", help="Apply safe fixes for the explicitly selected rules.")
+    parser.add_argument("--diff", action="store_true", help="Show safe fixes as a unified diff without writing.")
+    parser.add_argument("--show-fixes", action="store_true", help="Report files changed by --fix.")
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
 
@@ -757,35 +803,135 @@ def _reject_empty_selection(*, checkers: tuple[RegisteredChecker, ...]) -> None:
         sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
+def _validate_fix_selection(
+    *, fix: bool, diff: bool, show_fixes: bool, select: set[str] | None, output_format: OutputFormat
+) -> None:
+    """Require explicit PYR402 selection for fixer modes."""
+    if (fix or diff) and output_format == _JSON_OUTPUT_FORMAT:
+        print("pyrigor: fixer options cannot be combined with --output-format json", file=sys.stderr)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
+    _validate_show_fixes(fix=fix, show_fixes=show_fixes)
+    _validate_fixer_selection(fix=fix, diff=diff, select=select)
+
+
+def _validate_show_fixes(*, fix: bool, show_fixes: bool) -> None:
+    """Require --fix when --show-fixes is requested."""
+    if show_fixes and not fix:
+        print("pyrigor: --show-fixes requires --fix", file=sys.stderr)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
+
+
+def _validate_fixer_selection(*, fix: bool, diff: bool, select: set[str] | None) -> None:
+    """Require explicit PYR402 selection for fix and diff modes."""
+    if (fix or diff) and not (select and _matches_rule_filter(rule=Rule.PYR402, tokens=select)):
+        print("pyrigor: fixer options require explicit --select=PYR402", file=sys.stderr)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
+
+
+def _run_fixes(*, paths: list[str], excludes: list[str] | None, diff: bool) -> int:
+    """Apply or preview the selected safe fixes."""
+    for path in _collect_python_files(paths=paths, excludes=excludes):
+        _fix_path(path=path, diff=diff)
+    return 0
+
+
+def _fix_path(*, path: str, diff: bool) -> None:
+    """Apply or preview a fix for one path."""
+    fix_input = _read_and_prepare_fix(path=path)
+    if fix_input is None:
+        return
+    original, prepared = fix_input
+    result, bom = prepared
+    if result.status is FixStatus.UNCHANGED:
+        return
+    if diff:
+        _print_fix_diff(path=path, original=original, fixed=cast("bytes", result.source))
+        return
+    Path(path).write_bytes((b"\xef\xbb\xbf" if bom else b"") + cast("bytes", result.source))
+    print(f"Fixed {path}")
+
+
+def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
+    """Read one file and prepare its safe fix, reporting rejected inputs."""
+    source_result = _read_fix_source(path=path)
+    if source_result.source is None:
+        print(f"{path}: {source_result.error.message if source_result.error else 'read error'}", file=sys.stderr)
+        return None
+    try:
+        prepared = _fix_source(source=source_result.source)
+    except (FixRejectedError, UnicodeDecodeError) as error:
+        print(f"{path}: fix rejected: {error}", file=sys.stderr)
+        return None
+    return _FixInput(original=source_result.source, prepared=prepared)
+
+
+def _fix_source(*, source: bytes) -> _PreparedFix:
+    """Run the fixer after removing an optional UTF-8 BOM."""
+    bom = source.startswith(b"\xef\xbb\xbf")
+    return _PreparedFix(result=fix_source(source=source[3:] if bom else source), bom=bom)
+
+
+def _print_fix_diff(*, path: str, original: bytes, fixed: bytes) -> None:
+    """Print a unified diff for one byte-preserving source fix."""
+    print(
+        "".join(
+            difflib.unified_diff(
+                original.decode("utf-8-sig").splitlines(keepends=True),
+                fixed.decode("utf-8-sig").splitlines(keepends=True),
+                fromfile=path,
+                tofile=path,
+            )
+        ),
+        end="",
+    )
+
+
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
     parser = _build_parser()
-    args = parser.parse_args()
+    options = _parse_run_options(args=parser.parse_args())
 
-    _reject_repeated_flag(flag_name="--select", values=args.select)
-    _reject_repeated_flag(flag_name="--ignore", values=args.ignore)
-    _reject_repeated_flag(flag_name="--output-format", values=args.output_format)
-    select = _parse_flag_tokens(values=args.select)
-    ignore = _parse_flag_tokens(values=args.ignore)
-    excludes = _parse_exclude_flags(values=args.exclude)
-    output_format = cast("OutputFormat", args.output_format[0] if args.output_format else "human")
-    _validate_flag_tokens(flag_name="--select", tokens=select)
-    _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
-    _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
+    if options.fix or options.diff:
+        sys.exit(_run_fixes(paths=options.paths, excludes=options.excludes, diff=options.diff))
 
     try:
         exit_code = main(
-            paths=args.paths,
-            select=select,
-            ignore=ignore,
-            output_format=output_format,
-            excludes=excludes,
+            paths=options.paths,
+            select=options.select,
+            ignore=options.ignore,
+            output_format=options.output_format,
+            excludes=options.excludes,
         )
     except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)
     else:
         sys.exit(exit_code)
+
+
+def _parse_run_options(*, args: argparse.Namespace) -> _RunOptions:
+    """Parse and validate the namespace produced by the CLI parser."""
+    _reject_repeated_flag(flag_name="--select", values=args.select)
+    _reject_repeated_flag(flag_name="--ignore", values=args.ignore)
+    _reject_repeated_flag(flag_name="--output-format", values=args.output_format)
+    select = _parse_flag_tokens(values=args.select)
+    ignore = _parse_flag_tokens(values=args.ignore)
+    _validate_flag_tokens(flag_name="--select", tokens=select)
+    _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
+    _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
+    output_format = cast("OutputFormat", args.output_format[0] if args.output_format else "human")
+    _validate_fix_selection(
+        fix=args.fix, diff=args.diff, show_fixes=args.show_fixes, select=select, output_format=output_format
+    )
+    return _RunOptions(
+        paths=args.paths,
+        select=select,
+        ignore=ignore,
+        excludes=_parse_exclude_flags(values=args.exclude),
+        output_format=cast("OutputFormat", args.output_format[0] if args.output_format else "human"),
+        fix=args.fix,
+        diff=args.diff,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover

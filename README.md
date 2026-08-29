@@ -104,6 +104,18 @@ Use `--exclude PATH` to omit a file or directory and everything below it.
 Repeat the option to exclude multiple paths. This exclusion is
 applied by pyrigor itself, independently of any pre-commit file filter.
 
+PYR402 can be fixed explicitly after reviewing the planned change:
+
+```bash
+pyrigor --fix --select PYR402 path/
+pyrigor --diff --select=PYR402 path/
+```
+
+`--fix` writes only the selected safe fixes and reports changed files.
+`--diff` previews the same changes without writing. Fixer modes require
+explicit PYR402 selection; ordinary linting remains read-only. Both
+`--select PYR402` and `--select=PYR402` are accepted.
+
 For the machine-readable editor or tooling integration, use
 `--output-format=json`. It emits one JSON document containing diagnostics,
 read/parse errors, and suppression counts. The default human-readable format

@@ -16,6 +16,9 @@ DIST = ROOT / "dist"
 SCHEMA = ROOT / "schemas" / "pyrigor-diagnostics-v1.json"
 EXPECTED_ARTIFACT_COUNT = 2
 WINDOWS_PLATFORM = "nt"
+FIXER_INPUT = "def apply(left, right):\n    ...\n"
+FIXER_OUTPUT = "def apply(*, left, right):\n    ...\n"
+FIXER_DIFF_LINE = "-def apply(left, right):"
 
 
 class ArtifactPair(NamedTuple):
@@ -60,9 +63,40 @@ def _artifact_results(*, artifact: Path, environment: Path) -> dict[str, dict[st
     }
     executable_name = "pyrigor.exe" if os.name == WINDOWS_PLATFORM else "pyrigor"
     executable = environment / ("Scripts" if os.name == WINDOWS_PLATFORM else "bin") / executable_name
-    return {
+    results = {
         name: _run_artifact(executable=executable, artifact=artifact, target=target) for name, target in targets.items()
     }
+    _run_fixer_smoke(executable=executable, artifact=artifact, fixture=environment / "fixer-fixture.py")
+    return results
+
+
+def _run_fixer_smoke(*, executable: Path, artifact: Path, fixture: Path) -> None:
+    """Verify the installed entry point applies and previews a PYR402 fix."""
+    fixture.write_text(FIXER_INPUT, encoding="utf-8", newline="")
+    # noinspection PyArgumentEqualDefault
+    fix = subprocess.run(  # noqa: S603  # nosec B603 - trusted local executable and temporary fixture
+        [str(executable), "--fix", "--select", "PYR402", str(fixture)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if fix.returncode != 0 or fixture.read_text(encoding="utf-8") != FIXER_OUTPUT:
+        raise RuntimeError(f"{artifact.name} fixer failed: {fix.stderr}")
+    fixture.write_text(FIXER_INPUT, encoding="utf-8", newline="")
+    _run_fixer_diff(executable=executable, artifact=artifact, fixture=fixture)
+
+
+def _run_fixer_diff(*, executable: Path, artifact: Path, fixture: Path) -> None:
+    """Verify the installed entry point previews a fix without writing."""
+    # noinspection PyArgumentEqualDefault
+    diff = subprocess.run(  # noqa: S603  # nosec B603 - trusted local executable and temporary fixture
+        [str(executable), "--diff", "--select=PYR402", str(fixture)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if diff.returncode != 0 or fixture.read_text(encoding="utf-8") != FIXER_INPUT or FIXER_DIFF_LINE not in diff.stdout:
+        raise RuntimeError(f"{artifact.name} fixer diff failed: {diff.stderr}")
 
 
 def _install_artifact(*, artifact: Path, environment: Path) -> None:

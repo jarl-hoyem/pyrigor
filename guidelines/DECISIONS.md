@@ -54,8 +54,8 @@ distinct, so mypy catches the swap.
 
 NamedTuple closes a separate gap: even with a fully typed
 multi-value return (for example, tuple[np.ndarray, float]), mypy
-checks the type at each position but not the name the caller gives
-it. A caller can unpack into misleadingly named variables
+checks the type at each position but not the name the caller gives it.
+A caller can unpack into misleadingly named variables
 (dj_db_temp, dj_dw_temp = ... when the function actually returns
 dj_dw, dj_db), and mypy will not catch it, because the types still
 line up positionally, only the semantics are wrong. This is a silent
@@ -354,6 +354,21 @@ exactly this problem, not an invented workaround.
   identified. Add them later if real demand shows up, not now.
 
 ## Development process and tooling
+
+### Fixer interface: explicit selection, in-place fix, diff preview
+
+The first fixer is exposed through `--fix --select PYR402`, with `--diff`
+providing a non-writing unified-diff preview. Both `--option value` and
+`--option=value` forms are accepted because they are equivalent argparse
+interfaces users reasonably expect.
+
+Fixer modes require explicit PYR402 selection. Unlike a general-purpose
+linter that may fix every rule marked safe, pyrigor's PYR402 transformation
+can make existing positional calls fail at runtime. Requiring the rule in
+the command makes that behavior deliberate and auditable. Rejected or
+unsupported source is reported and left unchanged; the fixer never inserts
+automatic suppressions. Source bytes, UTF-8 BOMs and line endings are
+preserved wherever the source can be decoded as UTF-8.
 
 ### Tool findings: Fix, then suppress narrow before broad
 
