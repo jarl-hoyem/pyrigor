@@ -41,6 +41,10 @@ test-slow:
 lint:
     pre-commit run --all-files
 
+# Run PyCharm inspections in Docker (requires Docker)
+inspect:
+    .\scripts\run_pycharm_inspection_docker.ps1
+
 # Type-check with mypy
 mypy:
     uv run mypy .
