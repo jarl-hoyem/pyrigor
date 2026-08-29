@@ -28,6 +28,14 @@ This creates an image (approximately 5.4GB, 1.4GB compressed) with PyCharm CLI p
 
 ### 3. Run inspection
 
+Via justfile (recommended):
+
+```powershell
+just inspect
+```
+
+Or directly:
+
 ```powershell
 .\scripts\run_pycharm_inspection_docker.ps1
 ```
