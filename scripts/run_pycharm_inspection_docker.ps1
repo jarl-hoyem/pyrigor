@@ -40,10 +40,17 @@ if (Test-Path $log)
 }
 
 Write-Host "Building Docker image if needed..."
-docker build -t $ImageName docker/ | Out-Null
-if ($LASTEXITCODE -ne 0)
+$prevErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+docker build -t $ImageName docker/ > $null 2>&1
+$imageBuildExit = $LASTEXITCODE
+$ErrorActionPreference = $prevErrorAction
+
+# Verify image exists (docker build writes to stderr even on success)
+$imageExists = docker images --quiet $ImageName 2> $null
+if (-not $imageExists -and $imageBuildExit -ne 0)
 {
-    throw "Docker build failed with exit code $LASTEXITCODE"
+    throw "Docker build failed with exit code $imageBuildExit"
 }
 
 Write-Host "Running PyCharm inspection in Docker..."
@@ -92,7 +99,7 @@ $args = @(
     "--mount", ("type=bind,source=" + $projectForward + ",target=/project"),
     "--mount", ("type=bind,source=" + $outputForward + ",target=/results"),
     $ImageName,
-    "/opt/pycharm/bin/pycharm.sh", "inspect", "C:/project", ".idea/inspectionProfiles/Project_Default.xml", "C:/results",
+    "/opt/pycharm/bin/pycharm.sh", "inspect", "/project", ".idea/inspectionProfiles/Project_Default.xml", "/results",
     "-format", "json", "-v2"
 )
 
@@ -102,9 +109,11 @@ foreach ($dir in $scanDirs)
     $args += "-d"
     $args += $dir
 }
+$prevErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 $containerOutput = & docker $args 2>&1
-
 $inspectionExitCode = $LASTEXITCODE
+$ErrorActionPreference = $prevErrorAction
 
 if ($inspectionExitCode -ne 0)
 {
