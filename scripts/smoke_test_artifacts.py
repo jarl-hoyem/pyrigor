@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess  # nosec B404 - this script intentionally invokes trusted local uv tooling
 import tempfile
+import tomllib
 from pathlib import Path
 from typing import NamedTuple, cast
 
@@ -81,8 +82,12 @@ def _install_artifact(*, artifact: Path, environment: Path) -> None:
 
 def _build_artifacts() -> ArtifactPair:
     """Build the distributions and return the wheel and source archive."""
+    # Remove stale releases so the artifact count below describes this build.
+    if DIST.exists():
+        shutil.rmtree(DIST)
     subprocess.run([_uv_executable(), "build"], cwd=ROOT, check=True)  # noqa: S603  # nosec B603
-    artifacts = sorted(DIST.glob("pyrigor-*.whl")) + sorted(DIST.glob("pyrigor-*.tar.gz"))
+    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    artifacts = sorted(DIST.glob(f"pyrigor-{version}*.whl")) + sorted(DIST.glob(f"pyrigor-{version}*.tar.gz"))
     if len(artifacts) != EXPECTED_ARTIFACT_COUNT:
         raise RuntimeError(f"Expected one wheel and one source distribution, found: {artifacts}")
     return ArtifactPair(wheel=artifacts[0], sdist=artifacts[1])
