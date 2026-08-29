@@ -42,7 +42,7 @@ if (Test-Path $log)
 Write-Host "Building Docker image if needed..."
 $prevErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
-docker build -t $ImageName docker/ > $null 2>&1
+docker build -t $ImageName -f docker/pycharm.Dockerfile docker/ > $null 2>&1
 $imageBuildExit = $LASTEXITCODE
 $ErrorActionPreference = $prevErrorAction
 
