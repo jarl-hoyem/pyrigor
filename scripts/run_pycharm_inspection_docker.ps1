@@ -50,14 +50,58 @@ Write-Host "Running PyCharm inspection in Docker..."
 $projectForward = $project -replace '\\', '/'
 $outputForward = $output -replace '\\', '/'
 
+# Generate source directory list dynamically from .py file locations
+$exclusions = @('.venv', 'htmlcov', '.git', '__pycache__', '.pytest_cache', '.egg-info', 'node_modules', '.mypy_cache', '.ruff_cache', 'dist', 'build')
+$sourceDirs = @()
+Get-ChildItem -Path $project -Filter "*.py" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+    $dir = Split-Path $_.FullName
+    $excluded = $false
+    foreach ($exclusion in $exclusions)
+    {
+        if ($dir -like "*$exclusion*")
+        {
+            $excluded = $true
+            break
+        }
+    }
+    if (-not $excluded)
+    {
+        $sourceDirs += $dir
+    }
+}
+$sourceDirs = $sourceDirs | Select-Object -Unique | Sort-Object
+
+if ($sourceDirs.Count -eq 0)
+{
+    Write-Host "Warning: No source directories found. Scanning entire project."
+    $scanDirs = @("/project")
+}
+else
+{
+    $scanDirs = @()
+    foreach ($dir in $sourceDirs)
+    {
+        $dirForward = $dir -replace '\\', '/'
+        $relDir = $dirForward -replace [regex]::Escape($projectForward), '/project'
+        $scanDirs += $relDir
+    }
+}
+
 $args = @(
     "run", "--rm",
     "--mount", ("type=bind,source=" + $projectForward + ",target=/project"),
     "--mount", ("type=bind,source=" + $outputForward + ",target=/results"),
     $ImageName,
     "/opt/pycharm/bin/pycharm.sh", "inspect", "C:/project", ".idea/inspectionProfiles/Project_Default.xml", "C:/results",
-    "-format", "json", "-v2", "-d", "C:/project"
+    "-format", "json", "-v2"
 )
+
+# Add discovered directories
+foreach ($dir in $scanDirs)
+{
+    $args += "-d"
+    $args += $dir
+}
 $containerOutput = & docker $args 2>&1
 
 $inspectionExitCode = $LASTEXITCODE
