@@ -5,6 +5,10 @@
 When providing text intended for copying, put it in a fenced code block so the
 user can copy it with one click.
 
+The maintainer commits and pushes changes. The agent must never commit or push.
+Do not begin work on an issue without explicit authorization. When reporting
+validation, say “all tests” rather than emphasizing test counts.
+
 Keep AGENTS.md and CLAUDE.md synchronized when changing repository guidance.
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
