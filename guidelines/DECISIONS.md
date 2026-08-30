@@ -370,6 +370,16 @@ unsupported source is reported and left unchanged; the fixer never inserts
 automatic suppressions. Source bytes, UTF-8 BOMs and line endings are
 preserved wherever the source can be decoded as UTF-8.
 
+### Fixer encoding boundary: reject non-UTF-8 sources
+
+The PYR402 fixer explicitly rejects source files that cannot be decoded
+as UTF-8, including other declared source encodings. Python 3.11+
+support does not make arbitrary source encodings safe on the round-trip:
+encoding detection, rewriting and byte preservation would each need
+separate guarantees. Leaving an unsupported file unchanged is safer than
+risking corruption. Broader source-encoding support is deferred to a
+separate design decision.
+
 ### Tool findings: Fix, then suppress narrow before broad
 
 Real, six-step order, not "fix or ignore": **fix → line suppress →

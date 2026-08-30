@@ -391,6 +391,48 @@ def test_run_fix_reports_non_utf8_source_without_modifying_it(
     assert "source.py" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    ("encoding", "text"),
+    [
+        ("latin-1", "# coding: latin-1\ndef apply(left, right):\n    # café\n    ...\n"),
+        ("cp1252", "# coding: cp1252\ndef apply(left, right):\n    # €\n    ...\n"),
+    ],
+)
+def test_run_fix_rejects_declared_non_utf8_source_without_modifying_it(
+    *, encoding: str, text: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fix mode rejects valid non-UTF-8 source files, preserving their bytes."""
+    source_file = tmp_path / f"source-{encoding}.py"
+    original = text.encode(encoding)
+    source_file.write_bytes(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_bytes() == original
+    assert source_file.name in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(("encoding", "marker"), [("latin-1", "café"), ("cp1252", "€")])
+def test_run_diff_rejects_declared_non_utf8_source_without_modifying_it(
+    *, encoding: str, marker: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Diff mode rejects non-UTF-8 source files without producing a diff."""
+    source_file = tmp_path / f"source-{encoding}.py"
+    original = (f"# coding: {encoding}\ndef apply(left, right):\n    # {marker}\n    ...\n").encode(encoding)
+    source_file.write_bytes(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--diff", "--select", "PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert source_file.read_bytes() == original
+    assert "---" not in capsys.readouterr().out
+
+
 def test_run_fix_show_fixes_reports_each_changed_file(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
