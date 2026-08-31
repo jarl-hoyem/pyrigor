@@ -9,7 +9,7 @@ from pyrigor.rules import Rule
 
 # noinspection PyProtectedMember
 from pyrigor.suppression import (
-    _suppressed_tokens,
+    _suppressed_tokens,  # pyright: ignore[reportPrivateUsage]
     filter_suppressed,
 )
 from pyrigor.violations import Violation

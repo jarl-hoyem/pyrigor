@@ -81,7 +81,7 @@ def _collect_rows() -> list[RuleRow]:
         since every rule number is zero-padded to three digits).
     """
     enforced = _enforced_rule_names()
-    rows = []
+    rows: list[RuleRow] = []
     for path in sorted(_GUIDELINES_DIR.glob("PYR*.md")):
         rule_id = _rule_id_from_filename(path=path)
         if rule_id is None:

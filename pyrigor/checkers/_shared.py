@@ -205,10 +205,10 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
         Every function, annotated-assignment, bare call-statement,
         and class definition node that is found.
     """
-    function_nodes = []
-    assign_nodes = []
-    call_statement_nodes = []
-    class_nodes = []
+    function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
+    assign_nodes: list[ast.AnnAssign] = []
+    call_statement_nodes: list[ast.Call] = []
+    class_nodes: list[ast.ClassDef] = []
     parents: dict[ast.AST, ast.AST] = {}
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):

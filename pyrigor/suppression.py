@@ -178,8 +178,8 @@ def filter_suppressed(*, violations: list[Violation], source: str) -> Suppressio
 
     comments = _comments_by_line(source=source)
 
-    kept = []
-    suppressed = []
+    kept: list[Violation] = []
+    suppressed: list[Violation] = []
     for violation in violations:
         if _is_suppressed(violation=violation, comments=comments):
             suppressed.append(violation)

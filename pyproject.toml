@@ -35,11 +35,11 @@ dev = [
   "types-jsonschema>=4.24.0",
   "mypy>=2.3.0",
   "pyright>=1.1.411",
-  "ty>=0.0.71",
+  "ty>=0.0.76",
   "ruff>=0.16.3",
   "radon==6.0.1",
   "mutmut>=3.4.0",
-  "pylint>=4.0.7",
+  "pylint>=4.0.8",
 ]
 
 [tool.setuptools.packages.find]
@@ -86,6 +86,16 @@ ignore-words-list = "astroid"
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[tool.pyright]
+exclude = [
+  ".venv",
+  "dist",
+  "htmlcov",
+  "**/__pycache__",
+]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
 
 [tool.pylint.main]
 fail-on = ["I"]

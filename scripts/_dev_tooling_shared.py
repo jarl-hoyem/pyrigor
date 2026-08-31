@@ -2,7 +2,7 @@
 
 import subprocess  # nosec -- fixed git commands only, no untrusted input
 
-_PYPROJECT_TOML = "pyproject.toml"
+PYPROJECT_TOML = "pyproject.toml"
 
 
 def staged_files(*, check: bool) -> list[str]:
@@ -36,7 +36,7 @@ def pyproject_version_changed(*, check: bool) -> bool:
         True if a version bump is present in the staged diff.
     """
     result = subprocess.run(  # nosec  # noqa: S603
-        ["git", "diff", "--cached", "--", _PYPROJECT_TOML],  # noqa: S607
+        ["git", "diff", "--cached", "--", PYPROJECT_TOML],  # noqa: S607
         capture_output=True,
         text=True,
         check=check,

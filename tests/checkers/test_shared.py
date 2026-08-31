@@ -7,7 +7,7 @@ import ast
 from typing import cast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import _is_unbounded_homogeneous_tuple, walk_once
+from pyrigor.checkers._shared import _is_unbounded_homogeneous_tuple, walk_once  # pyright: ignore[reportPrivateUsage]
 
 
 def test_unbounded_homogeneous_tuple_requires_two_elements() -> None:

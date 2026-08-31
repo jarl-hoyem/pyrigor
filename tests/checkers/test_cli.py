@@ -10,14 +10,14 @@ import jsonschema
 import pytest
 
 # noinspection PyProtectedMember
-from pyrigor.checkers.cli import CheckError, _FixSourceResult, main, run
+from pyrigor.checkers.cli import CheckError, _FixSourceResult, main, run  # pyright: ignore[reportPrivateUsage]
 
 SCHEMA = json.loads((Path(__file__).parents[2] / "schemas" / "pyrigor-diagnostics-v1.json").read_text(encoding="utf-8"))
 
 
 def _assert_valid_schema(*, document: dict[str, object]) -> None:
     """Assert that a JSON output document conforms to the published schema."""
-    jsonschema.Draft202012Validator(SCHEMA).validate(document)
+    jsonschema.Draft202012Validator(SCHEMA).validate(document)  # pyright: ignore[reportUnknownMemberType]
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -290,11 +290,16 @@ def test_run_fix_reports_unreadable_file(
     source_file = tmp_path / "source.py"
     source_file.write_text("def apply(weight, bias):\n    ...\n")
     monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+
+    def unreadable_source(*, path: str) -> _FixSourceResult:
+        """Return the read error used to exercise fixer error handling."""
+        return _FixSourceResult(
+            source=None, error=CheckError(file=path, kind="read_error", message="permission denied")
+        )
+
     monkeypatch.setattr(
         "pyrigor.checkers.cli._read_fix_source",
-        lambda *, path: _FixSourceResult(
-            source=None, error=CheckError(file=path, kind="read_error", message="permission denied")
-        ),
+        unreadable_source,
     )
 
     with pytest.raises(SystemExit) as exc_info:
@@ -374,6 +379,8 @@ def test_run_fix_covers_cli_signature_matrix(*, tmp_path: Path, monkeypatch: pyt
     )
 
 
+# Intentional duplication: keep the encoding-specific tests' arrange/act/assert steps explicit.
+# noinspection DuplicatedCode
 def test_run_fix_reports_non_utf8_source_without_modifying_it(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -404,6 +411,8 @@ def test_run_fix_rejects_declared_non_utf8_source_without_modifying_it(
     """Fix mode rejects valid non-UTF-8 source files, preserving their bytes."""
     source_file = tmp_path / f"source-{encoding}.py"
     original = text.encode(encoding)
+    # Intentional duplication: keep the encoding-specific tests' arrange/act/assert steps explicit.
+    # noinspection DuplicatedCode
     source_file.write_bytes(original)
     monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
 
@@ -421,7 +430,7 @@ def test_run_diff_rejects_declared_non_utf8_source_without_modifying_it(
 ) -> None:
     """Diff mode rejects non-UTF-8 source files without producing a diff."""
     source_file = tmp_path / f"source-{encoding}.py"
-    original = (f"# coding: {encoding}\ndef apply(left, right):\n    # {marker}\n    ...\n").encode(encoding)
+    original = f"# coding: {encoding}\ndef apply(left, right):\n    # {marker}\n    ...\n".encode(encoding)
     source_file.write_bytes(original)
     monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--diff", "--select", "PYR402", str(source_file)])
 

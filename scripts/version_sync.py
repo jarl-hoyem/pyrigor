@@ -12,12 +12,12 @@ import subprocess  # nosec -- fixed, local tooling commands only
 import sys
 
 # pylint: disable=import-private-name
-from _dev_tooling_shared import _PYPROJECT_TOML, pyproject_version_changed, staged_files
+from _dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 
 def main() -> None:
     """Run pre-commit auto update and uv lock if a version bump is staged, then prompt to re-commit."""
-    if _PYPROJECT_TOML not in staged_files(check=True) or not pyproject_version_changed(check=True):
+    if PYPROJECT_TOML not in staged_files(check=True) or not pyproject_version_changed(check=True):
         sys.exit(0)
 
     print("pyproject.toml version changed: running pre-commit autoupdate and uv lock.")

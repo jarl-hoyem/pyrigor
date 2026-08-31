@@ -8,7 +8,7 @@ step might have been missed.
 import sys
 
 # pylint: disable=import-private-name
-from _dev_tooling_shared import _PYPROJECT_TOML, pyproject_version_changed, staged_files
+from _dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 _CHANGELOG_MD = "CHANGELOG.md"
 _RULES_PY = "pyrigor/rules.py"
@@ -21,7 +21,7 @@ def _check_changelog_sync(*, files: list[str]) -> None:
     Args:
         files: Every staged path.
     """
-    if _PYPROJECT_TOML in files and pyproject_version_changed(check=False) and _CHANGELOG_MD not in files:
+    if PYPROJECT_TOML in files and pyproject_version_changed(check=False) and _CHANGELOG_MD not in files:
         print("Note: pyproject.toml version changed but CHANGELOG.md did not. See guidelines/DEFINITION_OF_DONE.md.")
 
 
