@@ -100,7 +100,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build mutmut Docker image
-        run: docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile docker/
+        run: docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile .
 
       - name: Run mutation testing in Docker
         run: |
