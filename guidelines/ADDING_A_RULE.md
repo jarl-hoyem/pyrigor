@@ -163,5 +163,5 @@ separate hooks again, add a new hook entry here.
 
 ## 11. Run the full suite
 
-`pre-commit run --all-files`. All checks are green, 100 percent coverage,
+`just check`. All checks are green, 100 percent coverage,
 before committing.

@@ -42,7 +42,7 @@ test-slow:
     uv run pytest -m slow
 
 # Run all quality gates (pre-commit or pre-push stage)
-lint stage="pre-commit":
+check stage="pre-commit":
     uv run pre-commit run --all-files --hook-stage {{stage}}
 
 # Run PyCharm inspections in Docker (requires Docker)

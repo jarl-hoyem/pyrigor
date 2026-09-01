@@ -44,19 +44,19 @@ jobs:
           uv sync
           uv pip install pre-commit
 
-      - name: Run pre-commit (default-stage hooks)
+      - name: Run quality checks (pre-commit stage)
         env:
           # pip-audit currently fails during import on Python 3.15 because
           # its dependency stack still imports the removed `imp` module.
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit' || '' }}
-        run: just lint
+        run: just check
 
-      - name: Run pre-commit (pre-push-stage hooks)
+      - name: Run quality checks (pre-push stage)
         env:
           # The locked audit uses the same pip-audit stack and is likewise
           # incompatible with the Python 3.15 prerelease environment.
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit-locked' || '' }}
-        run: just lint pre-push
+        run: just check pre-push
   stdlib-smoke-test:
     runs-on: ubuntu-latest
     steps:

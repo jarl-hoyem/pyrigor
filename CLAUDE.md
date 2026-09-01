@@ -50,7 +50,7 @@ uv run pytest -m slow                                       # slow tests are des
 Run all quality gates (same checks CI runs via pre-commit, so there is no separate CI-only config to drift):
 
 ```bash
-pre-commit run --all-files
+just check
 ```
 
 `pytest` currently runs as part of this (no `stages:` restriction is active yet — the pytest hook in
@@ -63,7 +63,7 @@ Alternatively, use `just` — a simpler task runner — for copy-paste-runnable 
 
 ```bash
 just help     # List all available recipes
-just lint     # Run pre-commit
+just check    # Run pre-commit
 just test     # Run pytest
 just pyrigor  # Run pyrigor
 ```
@@ -145,7 +145,7 @@ maintainer's time:
 - Use targeted validation proportional to the change. Do not duplicate the
   full pre-commit suite when the maintainer's commit workflow runs it,
   unless targeted checks reveal risk or the maintainer requests it.
-- Always run `pre-commit run --all-files` after the final changes and before
+- Always run `just check` after the final changes and before
   providing a commit message. Do not hand validation back to the maintainer
   unless a hook fails and its failure is reported explicitly.
 - Prefer public browser access for GitHub reads. Use authenticated CLI access

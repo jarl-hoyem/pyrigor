@@ -114,7 +114,7 @@ knowledge only):
 
 - **No known regressions.** The full test suite passes, not just the
   new test for this change. Already standard practice here
-  (`pre-commit run --all-files`), stated explicitly, so it is not
+  (`just check`), stated explicitly, so it is not
   skipped under time pressure.
 - **Release artifacts are tested as installed artifacts.** Before a
   release, build both the wheel and source distribution, install each
