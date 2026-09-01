@@ -42,7 +42,11 @@ test-slow:
     uv run pytest -m slow
 
 # Run all quality gates (pre-commit or pre-push stage)
+# The --intent-to-add first: pre-commit's --all-files enumerates `git ls-files`,
+# so an untracked new file is never checked, and every hook still reports
+# Passed. This records paths only, stages no content, and skips ignored files.
 check stage="pre-commit":
+    git add --intent-to-add .
     uv run pre-commit run --all-files --hook-stage {{stage}}
 
 # Run PyCharm inspections in Docker (requires Docker)
