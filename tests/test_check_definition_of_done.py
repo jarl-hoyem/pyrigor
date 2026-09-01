@@ -56,7 +56,7 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     if not script_path.exists():
         # noinspection PyArgumentEqualDefault
         result = subprocess.run(  # nosec
-            ["git", "rev-parse", "--show-toplevel"],  # noqa: S607
+            ["git", "-C", "/project", "rev-parse", "--show-toplevel"],  # noqa: S607
             capture_output=True,
             text=True,
             check=False,
