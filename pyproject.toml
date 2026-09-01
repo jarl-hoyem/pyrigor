@@ -102,7 +102,7 @@ source = ["pyrigor"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
-tests = "pytest tests/ -x -q -o addopts="
+tests = "pytest tests/ -x -q --override-ini=addopts="
 
 [tool.pytest.ini_options]
 markers = [
