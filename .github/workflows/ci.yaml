@@ -110,4 +110,4 @@ jobs:
 
       - name: Clean up mutants directory
         if: always()
-        run: rm -rf mutants/
+        run: sudo rm -rf mutants/
