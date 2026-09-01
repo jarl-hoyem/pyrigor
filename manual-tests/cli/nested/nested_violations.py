@@ -1,6 +1,6 @@
-"""A nested manual-test fixture."""
+"""A recursive-directory manual-test fixture."""
 
 
-def nested_function(value: int, other: int) -> int:
-    """Trigger PYR402 during recursive directory testing."""
+def recursive_fixture(value: int, other: int) -> int:
+    """Trigger PYR402 while testing recursive directory discovery."""
     return value + other

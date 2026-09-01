@@ -236,7 +236,7 @@ Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
    [open issues labeled `ready`](https://github.com/jarl-hoyem/pyrigor/issues?q=is%3Aissue+is%3Aopen+label%3Aready)
    for a well-scoped starting point, or open a new one.
 2. Adding a new rule? Follow [`guidelines/ADDING_A_RULE.md`](./guidelines/ADDING_A_RULE.md) step by step.
-3. Run `pre-commit run --all-files` before pushing.
+3. Run `just lint` before pushing.
 4. Open a Pull Request.
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.

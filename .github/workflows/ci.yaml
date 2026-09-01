@@ -49,14 +49,14 @@ jobs:
           # pip-audit currently fails during import on Python 3.15 because
           # its dependency stack still imports the removed `imp` module.
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit' || '' }}
-        run: uv run pre-commit run --all-files
+        run: just lint
 
       - name: Run pre-commit (pre-push-stage hooks)
         env:
           # The locked audit uses the same pip-audit stack and is likewise
           # incompatible with the Python 3.15 prerelease environment.
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit-locked' || '' }}
-        run: uv run pre-commit run --all-files --hook-stage pre-push
+        run: just lint pre-push
   stdlib-smoke-test:
     runs-on: ubuntu-latest
     steps:

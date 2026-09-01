@@ -1,9 +1,13 @@
+# Use the native shell on Windows; Unix keeps just's default POSIX shell.
+[windows]
+set shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 # Development tasks for pyrigor
 
 # Setup: install dependencies and pre-commit hooks
 setup:
     uv sync --extra dev
-    pre-commit install
+    uv run pre-commit install
 
 # Run pyrigor on a file or directory
 pyrigor path="pyrigor":
@@ -37,9 +41,9 @@ test-single file test:
 test-slow:
     uv run pytest -m slow
 
-# Run all quality gates (pre-commit)
-lint:
-    pre-commit run --all-files
+# Run all quality gates (pre-commit or pre-push stage)
+lint stage="pre-commit":
+    uv run pre-commit run --all-files --hook-stage {{stage}}
 
 # Run PyCharm inspections in Docker (requires Docker)
 inspect:

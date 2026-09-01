@@ -90,14 +90,14 @@ Expected human output contains `PYR402` and does not contain `PYR301` or
 uv run pyrigor --output-format=json --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected JSON contains `PYR301` and `PYR406`, but not `PYR402`. The exit
-code is `1`.
+Expected JSON contains `PYR401` and `PYR406`, but not `PYR402`. The summary
+reports three diagnostics, and the exit code is `1`.
 
 ```powershell
-uv run pyrigor --output-format=json --select=PYR301,PYR402 --ignore=PYR402 manual-tests/cli/violations.py
+uv run pyrigor --output-format=json --select=PYR401,PYR402 --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected JSON contains only `PYR301`. The exit code is `1`.
+Expected JSON contains only `PYR401`. The exit code is `1`.
 
 ## Multiple files and recursive directories
 
@@ -105,8 +105,8 @@ Expected JSON contains only `PYR301`. The exit code is `1`.
 uv run pyrigor manual-tests/cli/clean.py manual-tests/cli/violations.py
 ```
 
-Expected human output reports the violation file and the clean file, with
-an overall exit code of `1`.
+Expected human output reports violations from `violations.py`, confirms that
+two files were checked, and exits with `1`.
 
 ```powershell
 uv run pyrigor --output-format=json manual-tests/cli

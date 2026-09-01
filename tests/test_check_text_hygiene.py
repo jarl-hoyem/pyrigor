@@ -1,4 +1,5 @@
 """Tests for the text-hygiene pre-commit checker."""
+# pylint: disable=duplicate-code  # Independent subprocess setup is deliberate in this test module.
 # pylint: disable=magic-value-comparison
 
 import subprocess  # nosec B404 -- test invokes a fixed local checker script

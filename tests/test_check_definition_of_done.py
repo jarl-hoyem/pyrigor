@@ -5,6 +5,7 @@ rather than importing its internals — scripts/ is not a package, and this
 matches REVIEW_CHECKLIST.md's own preference for testing the actual, real
 invocation over a convenient proxy for it.
 """
+# pylint: disable=duplicate-code  # Independent subprocess setup is deliberate in this test module.
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
 # pylint: disable=magic-value-comparison

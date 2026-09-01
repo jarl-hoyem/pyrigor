@@ -98,7 +98,7 @@ next commit after a release, not the release commit itself.
 
 ## Before Submitting a Pull Request
 
-- Run all pre-commit checks: `pre-commit run --all-files`
+- Run all pre-commit checks: `just lint`
 - Ensure tests pass: `uv run pytest`
 - Add tests for new features — **100% coverage is enforced** (`--cov-fail-under=100`,
   branch coverage included) on every commit.
