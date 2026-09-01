@@ -33,15 +33,16 @@ enough yet, not a size to label and leave as one item.
 
 Beyond `value:`/`effort:` (see sizing above) and a type label,
 check every issue against the full label set before finalizing, not
-just the three required minimums:
+just the three required minimums.
 
-`priority`, `testing`,
-`technical debt / refactoring`, `good first issue`, `pedantic`,
-`documentation`, `tooling`, `rule in pyrigor`, and GitHub’s own defaults
-(`bug`, `enhancement`, `duplicate`, `invalid`, `wontfix`, `question`,
-`help wanted`). Multiple labels commonly apply at once, a type label
-plus `technical dept / refactoring` is a normal, expected
-combination, not redundant.
+GitHub’s own label picker is the source of truth. Every label
+carries a description there, shown at the point where you apply it,
+so this file does not repeat the list. A copy here only drifts, as
+it already had.
+
+Multiple labels commonly apply at once, a type label plus
+`technical debt / refactoring` is a normal, expected combination,
+not redundant.
 
 ## Branching Strategy
 

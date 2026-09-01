@@ -41,7 +41,7 @@ Self-certified, an honest check, not independently verifiable:
   not just a restated problem
 - [ ] Considered whether this should be split smaller before
   filing it as one issue
-- [ ] Checked the full label list in `CONTRIBUTING.md`, not just
+- [ ] Checked the full label list in GitHub's label picker, not just
   the ones already mentioned above, for anything else that
   applies
 
