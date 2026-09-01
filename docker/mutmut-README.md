@@ -5,7 +5,7 @@ Run mutation tests reproducibly in an isolated Docker environment.
 ## Setup
 
 ```powershell
-docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile docker/
+docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile .
 ```
 
 ## Run

@@ -11,7 +11,7 @@ $projectForward = $project -replace '\\', '/'
 Write-Host "Building mutmut Docker image..."
 $prevErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
-docker build -t $ImageName -f docker/mutmut.Dockerfile docker/ > $null 2>&1
+docker build -t $ImageName -f docker/mutmut.Dockerfile . > $null 2>&1
 $imageBuildExit = $LASTEXITCODE
 $ErrorActionPreference = $prevErrorAction
 
