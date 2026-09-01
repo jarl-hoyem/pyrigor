@@ -91,24 +91,23 @@ jobs:
       - name: Build and smoke-test release artifacts
         run: uv run python scripts/smoke_test_artifacts.py
 
-# For later
-#  mutation-test:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v7
-#
-#      - name: Install uv
-#        uses: astral-sh/setup-uv@v7
-#
-#      - name: Set up Python
-#        run: uv python install 3.14
-#
-#      - name: Install project
-#        run: uv sync --extra dev
-#
-#      - name: Run mutation testing
-#        run: uv run mutmut run
-#
-#      - name: Show results
-#        if: always()
-#        run: uv run mutmut results
+  mutation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build mutmut Docker image
+        run: docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile docker/
+
+      - name: Run mutation testing in Docker
+        run: |
+          docker run --rm \
+            --mount type=bind,source="$(pwd)",target=/project \
+            pyrigor-mutmut run
+
+      - name: Clean up mutants directory
+        if: always()
+        run: rm -rf mutants/
