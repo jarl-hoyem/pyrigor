@@ -16,9 +16,12 @@ from pyrigor.violations import Violation
 class _CheckerFun(Protocol):  # pylint: disable=too-few-public-methods
     """A checker's find_violations function, called by a keyword."""
 
-    def __call__(self, *, nodes: WalkedNodes) -> list[Violation]: ...
+    def __call__(self, *, nodes: WalkedNodes) -> list[Violation]:
+        """Return violations found in the pre-walked nodes."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
+# noinspection DuplicatedCode  # Intentional small NamedTuple structure matching shared checker records.
 class RegisteredChecker(NamedTuple):
     """A checker explicitly paired with the rule it enforces.
 

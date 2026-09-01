@@ -56,6 +56,18 @@ episode (2024-11-12).
 **Status**: no guideline doc was ever written. Rejected before that
 step per `ADDING_A_RULE.md` step 0's overlap/feasibility check.
 
+## Missing docstrings on private functions and methods
+
+Would have required docstrings on private module-level functions and
+methods, including single- and double-underscore names.
+
+**Covered by**: Pylint’s `C0116` (`missing-function-docstring`) when its
+`no-docstring-rgx` is configured as `^$`, so no function or method name is
+exempt. PyCharm also reports the issue through its inspections.
+
+**Status**: rejected as duplicate tooling. This may be revisited if Pylint’s
+coverage changes.
+
 ## Not yet rejected, flagged as likely overlapping
 
 These have not had a guideline doc written, specifically because the

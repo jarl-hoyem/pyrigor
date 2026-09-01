@@ -45,6 +45,10 @@ lint:
 inspect:
     .\scripts\run_pycharm_inspection_docker.ps1
 
+# Run mutation tests in Docker (requires Docker)
+mutmut:
+    .\scripts\run_mutmut_docker.ps1
+
 # Type-check with mypy
 mypy:
     uv run mypy .

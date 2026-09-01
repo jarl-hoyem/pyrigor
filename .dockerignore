@@ -1,0 +1,13 @@
+.venv
+.git
+.pytest_cache
+htmlcov
+__pycache__
+*.egg-info
+.mypy_cache
+.ruff_cache
+.idea
+dist
+build
+.env
+.pyscn

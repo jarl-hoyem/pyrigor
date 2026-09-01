@@ -1,0 +1,58 @@
+[MAIN]
+fail-on=I
+load-plugins=pylint.extensions.magic_value,
+  pylint.extensions.mccabe,
+  pylint.extensions.docparams,
+  pylint.extensions.docstyle,
+  pylint.extensions.bad_builtin,
+  pylint.extensions.broad_try_clause,
+  pylint.extensions.check_elif,
+  pylint.extensions.code_style,
+  pylint.extensions.comparison_placement,
+  pylint.extensions.confusing_elif,
+  pylint.extensions.consider_refactoring_into_while_condition,
+  pylint.extensions.consider_ternary_expression,
+  pylint.extensions.dict_init_mutate,
+  pylint.extensions.dunder,
+  pylint.extensions.eq_without_hash,
+  pylint.extensions.empty_comment,
+  pylint.extensions.for_any_all,
+  pylint.extensions.no_self_use,
+  pylint.extensions.overlapping_exceptions,
+  pylint.extensions.private_import,
+  pylint.extensions.redefined_loop_name,
+  pylint.extensions.redefined_variable_type,
+  pylint.extensions.set_membership,
+  pylint.extensions.typing,
+  pylint.extensions.while_used
+
+[BASIC]
+argument-naming-style=snake_case
+attr-naming-style=snake_case
+bad-names=foo,bar,baz,toto,tutu,tata
+class-attribute-naming-style=any
+class-const-naming-style=UPPER_CASE
+class-naming-style=PascalCase
+const-naming-style=UPPER_CASE
+docstring-min-length=-1
+function-naming-style=snake_case
+good-names=i,j,k,ex,Run,_
+include-naming-hint=no
+inlinevar-naming-style=any
+method-naming-style=snake_case
+module-naming-style=snake_case
+name-group=
+no-docstring-rgx=^$
+property-classes=abc.abstractproperty
+variable-naming-style=snake_case
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+enable=all,bad-inline-option,deprecated-pragma,file-ignored,use-symbolic-message-instead,useless-suppression
+# R6103 conflicts with pyrigor's own rule and adds distracting walrus-expression noise.
+# I0011/I0020 report deliberate, documented suppressions and obscure actionable output.
+disable=consider-using-assignment-expr,
+  locally-disabled,
+  suppressed-message

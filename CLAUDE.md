@@ -265,11 +265,9 @@ pattern verbatim.
 - Google-style docstrings (pydocstyle-checked) on public functions.
 - Write short documentation sentences that do not trigger PyCharm's
   sentence-length inspection. Prefer splitting sentences over using semicolons.
-- Preserve the repository's existing 'crlf' line endings when editing Markdown
-  instruction files. Do not introduce mixed line endings.
-- Preserve 'crlf' line endings when editing tracked files. Run targeted formatting
-  and lint checks before the full pre-commit suite, so it validates an already-clean
-  working tree on its first run.
+- Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
+- Run targeted formatting and lint checks before the full pre-commit suite, so it validates
+  an already-clean working tree on its first run.
 - Use byte-preserving operations for encoding or line-ending conversions.
   Verify the resulting bytes and text before finishing.
 - 100% test coverage (branch included) is enforced on every commit, not aspirational.

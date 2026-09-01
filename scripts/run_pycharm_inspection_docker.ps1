@@ -21,8 +21,8 @@ $ErrorActionPreference = "Stop"
 
 $project = (Resolve-Path "$PSScriptRoot\..").Path
 $inspectionProfile = Join-Path $project ".idea\inspectionProfiles\Project_Default.xml"
-$output = Join-Path (Split-Path $project) "pycharm-inspection-results"
-$log = Join-Path (Split-Path $project) "pycharm-inspection.log"
+$output = Join-Path $project ".pycharm-inspection-results"
+$log = Join-Path $project ".pycharm-inspection.log"
 
 if (-not (Test-Path $inspectionProfile))
 {
@@ -58,7 +58,7 @@ $projectForward = $project -replace '\\', '/'
 $outputForward = $output -replace '\\', '/'
 
 # Generate source directory list dynamically from .py file locations
-$exclusions = @('.venv', 'htmlcov', '.git', '__pycache__', '.pytest_cache', '.egg-info', 'node_modules', '.mypy_cache', '.ruff_cache', 'dist', 'build')
+$exclusions = @('.venv', 'htmlcov', '.git', '__pycache__', '.pytest_cache', '.egg-info', 'node_modules', '.mypy_cache', '.ruff_cache', 'dist', 'build', 'mutants')
 $sourceDirs = @()
 Get-ChildItem -Path $project -Filter "*.py" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
     $dir = Split-Path $_.FullName
@@ -98,6 +98,7 @@ $args = @(
     "run", "--rm",
     "--mount", ("type=bind,source=" + $projectForward + ",target=/project"),
     "--mount", ("type=bind,source=" + $outputForward + ",target=/results"),
+    "--mount", "type=tmpfs,destination=/project/mutants",
     $ImageName,
     "/opt/pycharm/bin/pycharm.sh", "inspect", "/project", ".idea/inspectionProfiles/Project_Default.xml", "/results",
     "-format", "json", "-v2"

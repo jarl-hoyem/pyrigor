@@ -101,13 +101,17 @@ def count_parameters(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> _Parame
 class _FunctionPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
     """A function checking whether a function node violates some rule."""
 
-    def __call__(self, *, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool: ...
+    def __call__(self, *, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        """Return whether the function node violates the rule."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
     """A function checking whether an annotated-assignment node violates some rule."""
 
-    def __call__(self, *, node: ast.AnnAssign) -> bool: ...
+    def __call__(self, *, node: ast.AnnAssign) -> bool:
+        """Return whether the annotated-assignment node violates the rule."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 def find_function_violations(

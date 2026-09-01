@@ -39,5 +39,7 @@ with the IDE's normal lock files.
 
 - `scripts/run_pycharm_inspection.ps1` runs the installed PyCharm executable directly
 - It uses the project inspection profile and full-project scope
-- The latest run completed with 66 findings. Review each category before
-  changing code or inspection settings.
+- The runner masks the generated `mutants/` tree inside the inspection
+  container, so duplicate mutation-test copies do not pollute project-wide
+  duplicate-code results.
+- The latest run completed with zero findings.

@@ -5,16 +5,31 @@ import subprocess  # nosec B404 -- test invokes a fixed local checker script
 import sys
 from pathlib import Path
 
-_CHECKER = Path(__file__).parents[1] / "scripts" / "check_text_hygiene.py"
-
 
 def _run_checker(*, tmp_path: Path, data: bytes) -> list[str]:
     """Run the checker script against temporary content."""
     source = tmp_path / "sample.txt"
     source.write_bytes(data)
+
+    # Try relative path first (normal pytest run)
+    checker_path = Path(__file__).parents[1] / "scripts" / "check_text_hygiene.py"
+
+    # If not found, we're likely in mutants/; find the original project root
+    if not checker_path.exists():
+        # noinspection PyArgumentEqualDefault
+        result = subprocess.run(  # nosec
+            ["git", "rev-parse", "--show-toplevel"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if not result.returncode:
+            project_root = Path(result.stdout.strip())
+            checker_path = project_root / "scripts" / "check_text_hygiene.py"
+
     # noinspection PyArgumentEqualDefault
     result = subprocess.run(  # nosec B603 -- executes the repository's fixed checker script # noqa: S603
-        [sys.executable, str(_CHECKER), str(source)],
+        [sys.executable, str(checker_path), str(source)],
         capture_output=True,
         text=True,
         check=False,

@@ -251,3 +251,6 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+.pycharm-inspection-results/
+.pycharm-inspection.log
+mutants/

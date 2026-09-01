@@ -355,6 +355,21 @@ exactly this problem, not an invented workaround.
 
 ## Development process and tooling
 
+### Do not duplicate rules already covered by existing tools
+
+Pyrigor fills gaps that existing quality tools do not cover. It does not
+implement a second checker for a pattern that an existing tool already
+detects, even when that tool requires an explicit configuration. The covering
+tool should be documented instead, and the proposed pyrigor rule should be
+recorded in `REJECTED.md`.
+
+This applies to missing docstrings on private functions and methods:
+Pylint’s `missing-function-docstring` (`C0116`) detects them when
+`no-docstring-rgx` is configured to exempt no names. PyCharm also reports the
+issue. A dedicated pyrigor rule would therefore duplicate existing tooling.
+Missing docstrings on nested functions remain a separate question because
+Pylint does not report them.
+
 ### Fixer interface: explicit selection, in-place fix, diff preview
 
 The first fixer is exposed through `--fix --select PYR402`, with `--diff`

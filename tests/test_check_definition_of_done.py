@@ -13,8 +13,6 @@ import subprocess  # nosec -- fixed git commands only, no untrusted input
 import sys
 from pathlib import Path
 
-_SCRIPT = Path(__file__).parent.parent / "scripts" / "check_definition_of_done.py"
-
 
 def _run_git(*, args: list[str], cwd: Path) -> None:
     """Run a fixed git command in a throwaway repo, ignoring its output.
@@ -50,8 +48,24 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     Returns:
         The completed process, with captured stdout.
     """
+    # Try relative path first (normal pytest run)
+    script_path = Path(__file__).parent.parent / "scripts" / "check_definition_of_done.py"
+
+    # If not found, we're likely in mutants/; find the original project root
+    if not script_path.exists():
+        # noinspection PyArgumentEqualDefault
+        result = subprocess.run(  # nosec
+            ["git", "rev-parse", "--show-toplevel"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if not result.returncode:
+            project_root = Path(result.stdout.strip())
+            script_path = project_root / "scripts" / "check_definition_of_done.py"
+
     return subprocess.run(  # nosec -- fixed script path, throwaway test repo # noqa: S603
-        [sys.executable, str(_SCRIPT)],
+        [sys.executable, str(script_path)],
         cwd=cwd,
         capture_output=True,
         text=True,

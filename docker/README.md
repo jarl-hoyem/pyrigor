@@ -81,3 +81,7 @@ For manual invocation, see the script source for current PyCharm CLI arguments.
 - Result directory size depends on the project
 - Clean Docker cache: `docker builder prune`
 - Remove unused images: `docker image prune -a`
+
+## Other Docker tools
+
+See [mutmut-README.md](mutmut-README.md) for mutation testing via Docker.

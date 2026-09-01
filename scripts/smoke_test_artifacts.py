@@ -80,7 +80,7 @@ def _run_fixer_smoke(*, executable: Path, artifact: Path, fixture: Path) -> None
         capture_output=True,
         text=True,
     )
-    if fix.returncode != 0 or fixture.read_text(encoding="utf-8") != FIXER_OUTPUT:
+    if fix.returncode or fixture.read_text(encoding="utf-8") != FIXER_OUTPUT:
         raise RuntimeError(f"{artifact.name} fixer failed: {fix.stderr}")
     fixture.write_text(FIXER_INPUT, encoding="utf-8", newline="")
     _run_fixer_diff(executable=executable, artifact=artifact, fixture=fixture)
@@ -95,7 +95,7 @@ def _run_fixer_diff(*, executable: Path, artifact: Path, fixture: Path) -> None:
         capture_output=True,
         text=True,
     )
-    if diff.returncode != 0 or fixture.read_text(encoding="utf-8") != FIXER_INPUT or FIXER_DIFF_LINE not in diff.stdout:
+    if diff.returncode or fixture.read_text(encoding="utf-8") != FIXER_INPUT or FIXER_DIFF_LINE not in diff.stdout:
         raise RuntimeError(f"{artifact.name} fixer diff failed: {diff.stderr}")
 
 

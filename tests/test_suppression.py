@@ -293,6 +293,8 @@ def test_line_above_suppression_works_when_stacked_after_complexipy_ignore() -> 
 def test_bare_other_tool_comment_on_line_above_does_not_suppress_or_warn(capsys: pytest.CaptureFixture[str]) -> None:
     """A line-above comment belonging to another tool alone should not suppress and should not warn either."""
     source = "# nosec\ndef apply_correction(weight, bias):\n    ...\n"
+    # Intentional duplicated fixture for independent suppression regression coverage.
+    # noinspection DuplicatedCode
     violations = [
         Violation(
             line=2,
@@ -309,7 +311,7 @@ def test_bare_other_tool_comment_on_line_above_does_not_suppress_or_warn(capsys:
     captured = capsys.readouterr()
     assert result.kept == violations
     assert not result.suppressed
-    assert captured.err == ""
+    assert not captured.err
 
 
 def test_pyrigor_comment_before_other_tool_comment_still_suppresses_despite_polluted_reason() -> None:
@@ -460,6 +462,8 @@ def test_near_miss_pattern_inside_a_string_literal_does_not_warn(capsys: pytest.
     containing literal "# pyrigor" text, not a real comment.
     """
     source = 'fixture = "# pyrigor 402 missing colon"\ndef apply_correction(weight, bias):\n    ...\n'
+    # Intentional duplicated fixture for independent suppression regression coverage.
+    # noinspection DuplicatedCode
     violations = [
         Violation(
             line=2,
@@ -475,7 +479,7 @@ def test_near_miss_pattern_inside_a_string_literal_does_not_warn(capsys: pytest.
 
     captured = capsys.readouterr()
     assert result.kept == violations
-    assert captured.err == ""
+    assert not captured.err
 
 
 def test_pyrigor_suppression_syntax_inside_a_string_literal_does_not_suppress() -> None:
