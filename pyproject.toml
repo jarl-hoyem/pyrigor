@@ -99,7 +99,6 @@ typeCheckingMode = "strict"
 
 [tool.coverage.run]
 source = ["pyrigor"]
-omit = ["mutants/*"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
