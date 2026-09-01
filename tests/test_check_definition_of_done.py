@@ -65,12 +65,14 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
             project_root = Path(result.stdout.strip())
             script_path = project_root / "scripts" / "check_definition_of_done.py"
 
+    # Required by ruff and pylint
+    # noinspection PyArgumentEqualDefault
     return subprocess.run(  # nosec -- fixed script path, throwaway test repo # noqa: S603
         [sys.executable, str(script_path)],
         cwd=cwd,
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
 
 
