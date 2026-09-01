@@ -99,10 +99,11 @@ typeCheckingMode = "strict"
 
 [tool.coverage.run]
 source = ["pyrigor"]
+omit = ["mutants/*"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
-tests = "pytest tests/ -x -q --override-ini=addopts="
+pytest_add_cli_args = ["--cov-fail-under=0"]
 
 [tool.pytest.ini_options]
 markers = [

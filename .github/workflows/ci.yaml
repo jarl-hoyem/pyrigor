@@ -111,6 +111,21 @@ jobs:
             --mount type=bind,source="$(pwd)",target=/project \
             pyrigor-mutmut run
 
+      - name: Report surviving mutants
+        run: |
+          docker run --rm \
+            --mount type=bind,source="$(pwd)",target=/project \
+            pyrigor-mutmut results
+
+      - name: Enforce mutation score
+        run: |
+          docker run --rm \
+            --mount type=bind,source="$(pwd)",target=/project \
+            pyrigor-mutmut export-cicd-stats
+          docker run --rm \
+            --mount type=bind,source="$(pwd)",target=/project \
+            --entrypoint python pyrigor-mutmut scripts/check_mutation_score.py
+
       - name: Clean up mutants directory
         if: always()
         run: sudo rm -rf mutants/

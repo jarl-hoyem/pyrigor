@@ -25,7 +25,7 @@ Or directly:
 Custom arguments:
 
 ```powershell
-.\scripts\run_mutmut_docker.ps1 -MutmutArgs @("run", "--tests", "tests/checkers/")
+.\scripts\run_mutmut_docker.ps1 -MutmutArgs @("run", "pyrigor.checkers.cli.*")
 ```
 
 ## CI Integration
@@ -35,7 +35,9 @@ Mutation testing runs automatically in GitHub Actions on every push and pull req
 - **Job**: `mutation-test` (blocking)
 - **Trigger**: Push/PR to `main`, manual trigger via `workflow_dispatch`
 - **Environment**: Ubuntu latest (Docker pre-installed)
-- **Behavior**: Fails CI if any mutations survive (strict quality gate)
+- **Behavior**: Fails CI when the mutation score drops below the floor in
+  `scripts/check_mutation_score.py`. Timeouts are excluded from the score
+  because they track the machine load rather than test quality.
 
 See `.github/workflows/ci.yaml` for the workflow definition.
 

@@ -483,6 +483,25 @@ def test_cli_help_documents_fixer_modes(*, capsys: pytest.CaptureFixture[str], m
     assert "--show-fixes" in output
 
 
+def test_cli_help_documents_what_ignore_accepts(
+    *, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CLI help explains the token forms --ignore accepts, not just that the flag exists.
+
+    Asserting only the flag name leaves the help text itself unverified. Deleting
+    --ignore's help= string changes no behavior, and survived mutation testing.
+    """
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    # argparse rewraps help to the terminal width, so compare on collapsed whitespace
+    normalized = " ".join(capsys.readouterr().out.split())
+    assert exc_info.value.code == 0
+    assert "Exclude these rule codes from checking" in normalized
+
+
 def test_run_accepts_repeated_exclude_flags(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

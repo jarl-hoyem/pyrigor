@@ -41,11 +41,28 @@ if ($mutmutExit -ne 0)
     Write-Host "Mutmut exited with code $mutmutExit" -ForegroundColor Yellow
 }
 
+# The same gate CI enforces, so a local run cannot disagree with the pipeline.
+Write-Host "Checking mutation score..."
+$mount = ("type=bind,source=" + $projectForward + ",target=/project")
+
+$prevErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+& docker @("run", "--rm", "--mount", $mount, $ImageName, "export-cicd-stats") | Out-Null
+& docker @("run", "--rm", "--mount", $mount, "--entrypoint", "python", $ImageName, "scripts/check_mutation_score.py")
+$scoreExit = $LASTEXITCODE
+$ErrorActionPreference = $prevErrorAction
+
 Write-Host "Cleaning up mutants directory..."
 $mutantsPath = Join-Path $project "mutants"
 if (Test-Path $mutantsPath)
 {
     Remove-Item -Recurse -Force $mutantsPath
+}
+
+if ($scoreExit -ne 0)
+{
+    Write-Host "Mutation score gate failed." -ForegroundColor Red
+    exit $scoreExit
 }
 
 Write-Host "Mutation testing complete."

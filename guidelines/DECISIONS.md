@@ -488,6 +488,81 @@ new rules have repeatedly caught real bugs in pyrigor’s own
 in-progress source the moment they were built, before any release
 existed. Kept both, deliberately, rather than choosing one.
 
+### Mutation testing runs under tini and disables coverage through mutmut’s own config
+
+Two failures made mutmut unusable in Docker, both caused by
+configuring something mutmut never read.
+
+The tool mutmut 3.7 has no `tests` config key. Its `_load_config()` reads
+`pytest_add_cli_args` and `pytest_add_cli_args_test_selection`. A
+`tests = "pytest ... -c pytest-mutmut.ini"` line is accepted
+silently and discarded, so every attempt to disable pytest-cov
+through it changed nothing. Four rounds of workarounds followed,
+ending in a repository-wide `--cov-fail-under=0`, which switched
+off this project’s own 100% coverage gate for every ordinary test run.
+Fixed by passing `--cov-fail-under=0` through
+`pytest_add_cli_args`, which mutmut appends after the copied
+`pyproject.toml`’s `addopts`, so it wins, leaving the repository’s
+own threshold at 100. The tool pytest-cov stays installed on
+purpose. Uninstalling it makes `--cov=pyrigor` in `addopts` an
+unrecognized argument, pytest exits 4, and mutmut raises
+`BadTestExecutionCommandsException`.
+
+Do not add `pytest_add_cli_args_test_selection`. Setting it to
+`tests/` reported 288 survivors where a correct run reports 3.
+The tool mutmut stores test ids stripped of their `mutants/`
+prefix, and the setting redirects a collection away from the mutated
+tree, so the mutants never activate. Nothing errors. The result
+looks exactly like a real measurement, which is what makes it
+dangerous.
+
+The second failure was `KeyError: <pid>` in
+`read_one_child_exit_status()`, which calls a bare `os.wait()` and
+then indexes `source_file_mutation_data_by_pid[pid]`. As the
+container’s entrypoint, mutmut runs as PID 1, so every orphaned
+process in the container is reparented to it, and this test suite
+spawns real `git` and `python` subprocesses. The tool mutmut then
+reap a pid it never forked and crashes. Running `docker run
+--init` fixes it, but only when every call site remembers the
+flag. Installing tini and making it the entrypoint makes the image
+correct on its own, including for an ad-hoc `docker run`.
+
+### Mutation testing gates on a score floor, not on zero survivors
+
+The command `mutmut run` returns normally after printing its
+summary and never sets an exit code from the results, so a job
+that only runs it cannot fail on survivors. The workflow exports
+stats with `mutmut export-cicd-stats` and runs
+`scripts/check_mutation_score.py`, which fails below a 99% floor.
+
+The floor is 99%, not the tighter 99.5% first proposed. Survivor
+counts across three runs of the same configuration were 3, 2, and
+5. A 99.5% floor tolerates 7, so drift alone could have turned the
+build red with only two survivors of headroom. A 99% floor
+tolerates 15 and still catches real decay. The misconfigured run
+that reported 288 survivors scored 81.62%, far below either floor.
+Tighten this once the run-to-run variance is measured.
+
+A zero-survivor gate was rejected because it is unreachable. The
+mutant rewriting `version('pyrigor')` as `version('PYRIGOR')`
+survives permanently. Distribution name lookup is case-insensitive,
+verified directly, with both spellings returning the same version.
+Only a test that mocks the lookup and asserts the literal argument
+could kill it, and such a test pins the implementation rather than
+the behavior. Two runs of the same configuration also produced
+different survivor sets, so a zero-survivor gate would be flaky as
+well as unreachable.
+
+Timeouts leave the denominator entirely. They track the machine load,
+not test quality. Two appeared in one local run only because other
+containers were competing for the processor.
+
+A recorded baseline of known survivors would catch a single new
+survivor, which a floor cannot. That option stays open once the
+run-to-run variance is understood. A survivor baseline fails
+closed, so it is not the kind of path allowlist this project
+rejects.
+
 ### Pre-commit hooks scope to changed files unless a tool genuinely needs whole-project context
 
 `.pre-commit-config.yaml` mixes two real scoping models across its
