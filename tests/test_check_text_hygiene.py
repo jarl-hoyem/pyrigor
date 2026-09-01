@@ -15,18 +15,13 @@ def _run_checker(*, tmp_path: Path, data: bytes) -> list[str]:
     # Try relative path first (normal pytest run)
     checker_path = Path(__file__).parents[1] / "scripts" / "check_text_hygiene.py"
 
-    # If not found, we're likely in mutants/; find the original project root
+    # If not found, we're likely in mutants/; search parent directories for scripts/
     if not checker_path.exists():
-        # noinspection PyArgumentEqualDefault
-        result = subprocess.run(  # nosec
-            ["git", "rev-parse", "--show-toplevel"],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if not result.returncode:
-            project_root = Path(result.stdout.strip())
-            checker_path = project_root / "scripts" / "check_text_hygiene.py"
+        for parent in Path(__file__).parents[1].parents:
+            candidate = parent / "scripts" / "check_text_hygiene.py"
+            if candidate.exists():
+                checker_path = candidate
+                break
 
     # noinspection PyArgumentEqualDefault
     result = subprocess.run(  # nosec B603 -- executes the repository's fixed checker script # noqa: S603
