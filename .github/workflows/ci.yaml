@@ -96,6 +96,11 @@ jobs:
 
   mutation-test:
     runs-on: ubuntu-latest
+    # Temporary, see #217: mutation testing measures almost nothing on the
+    # runner (82% versus 99.7% locally, same commit), so the gate would block
+    # main on a broken measurement rather than on real test decay. Remove this
+    # once #217 is fixed, so the gate blocks again.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
 
