@@ -52,18 +52,13 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     # Try relative path first (normal pytest run)
     script_path = Path(__file__).parent.parent / "scripts" / "check_definition_of_done.py"
 
-    # If not found, we're likely in mutants/; find the original project root
+    # If not found, we're likely in mutants/; search parent directories for scripts/
     if not script_path.exists():
-        # noinspection PyArgumentEqualDefault
-        result = subprocess.run(  # nosec
-            ["git", "-C", "/project", "rev-parse", "--show-toplevel"],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if not result.returncode:
-            project_root = Path(result.stdout.strip())
-            script_path = project_root / "scripts" / "check_definition_of_done.py"
+        for parent in Path(__file__).parent.parent.parents:
+            candidate = parent / "scripts" / "check_definition_of_done.py"
+            if candidate.exists():
+                script_path = candidate
+                break
 
     # Required by ruff and pylint
     # noinspection PyArgumentEqualDefault
