@@ -102,7 +102,7 @@ source = ["pyrigor"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
-tests = "pytest tests/ -x -q"
+tests = "pytest tests/ -x -q --no-cov"
 
 [tool.pytest.ini_options]
 markers = [
