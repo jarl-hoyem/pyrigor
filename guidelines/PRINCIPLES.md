@@ -111,3 +111,29 @@ These are project-level principles. They guide engineering decisions; they are n
 **Relationship to other principles:** This directly reinforces **Never Let the Generator Be Its Own Oracle**, **Tests Are the Executable Specification**, **Inversion**, and **Trust but Verify**.
 
 **Boundary:** Apply the principle proportionately. Not every trivial edit requires a second human review or an elaborate independent verification process; criticality should determine the strength of the independent check.
+
+## Specification Before Implementation
+
+**Principle:** Define the required behaviour, relevant constraints, and acceptance criteria before implementing a significant change.
+
+**Application to Pyrigor:** Before implementing a significant rule, architectural change, or behavioural change, establish the required behaviour and acceptance criteria first. For rules, this includes the violation, valid counterexamples, exceptions, diagnostic behaviour, and expected results where relevant.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. Pyrigor is developed with AI assistance, so an underspecified task allows an agent to fill gaps with assumptions and produce a technically plausible implementation that solves the wrong problem. This is particularly risky for static-analysis rules, where intended semantics and exceptions matter as much as implementation.
+
+**Evidence:** The principle is strongly supported by requirements engineering, formal methods, contract-based development, and TDD practices. It is better understood as a family of established engineering practices than as a single universally named law.
+
+**Operational test:** Before implementation, define what must be true and how the result will be accepted. The specification should be precise enough that implementation and verification can be evaluated against it independently.
+
+**Important qualification:** Specification does not mean exhaustive up-front design. Keep it proportional to the decision and precise about what matters. If implementation reveals a new requirement, update the specification rather than silently making the implementation the specification.
+
+**AI-assisted development:** Claude Code, Codex, or another agent should receive a clear target and acceptance criteria rather than being asked to infer the desired design from a vague task. The specification remains authoritative over the generated implementation.
+
+**Relationship to other principles:** Reinforces YAGNI by defining actual requirements, Independent Verification by providing an independent basis for judging the implementation, and Tests Are the Executable Specification by providing the source from which tests can be derived.
+
+**Boundary:** Applies to significant changes; trivial edits need not require a formal specification.
