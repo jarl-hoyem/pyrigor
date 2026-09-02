@@ -612,6 +612,82 @@ value()
     assert len(violations) == 2
 
 
+def test_later_assignment_stops_outer_function_resolution() -> None:
+    """A later assignment makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+    value = None
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_loop_target_stops_outer_function_resolution() -> None:
+    """A loop target binds in its enclosing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(items) -> None:
+    for value in items:
+        value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_context_manager_target_stops_outer_function_resolution() -> None:
+    """A context-manager target binds in its enclosing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    with resource() as value:
+        value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_global_declaration_resolves_to_module_function() -> None:
+    """A global declaration resolves a bare call to the module-level function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    global value
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "value"
+
+
+def test_named_expression_target_stops_outer_function_resolution() -> None:
+    """A named-expression target binds in its enclosing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(item) -> None:
+    (value := item)
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
 def test_flags_bare_call_for_pep604_union_return() -> None:
     """A PEP 604 union return (`int | str`) must still have its return value used."""
     source = """
