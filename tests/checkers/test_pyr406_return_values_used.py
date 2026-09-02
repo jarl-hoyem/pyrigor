@@ -548,6 +548,70 @@ compute_total(items)
     assert not violations
 
 
+def test_later_lambda_binding_stops_outer_function_resolution() -> None:
+    """A later local binding makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+    value = lambda: None
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_later_import_binding_stops_outer_function_resolution() -> None:
+    """A later import makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+    from other import value
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_comprehension_target_does_not_shadow_before_or_after_comprehension() -> None:
+    """A comprehension target remains local to its comprehension."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(items) -> None:
+    value()
+    [value for value in items]
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 2
+
+
+def test_class_body_binding_does_not_shadow_calls_before_or_after_class() -> None:
+    """A class-body binding never leaks into the enclosing module scope."""
+    source = """
+def value() -> int:
+    return 1
+
+value()
+
+class Example:
+    value = lambda: None
+
+value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 2
+
+
 def test_flags_bare_call_for_pep604_union_return() -> None:
     """A PEP 604 union return (`int | str`) must still have its return value used."""
     source = """
