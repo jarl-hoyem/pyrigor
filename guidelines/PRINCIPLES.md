@@ -14,25 +14,15 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
+## KISS
 
-**Value:** High. Pyrigor is an evolving codebase and is increasingly being modified with AI assistance. Existing checks, tests, interfaces, compatibility behaviour, and documentation may encode constraints whose purpose is not obvious from the local code. Understanding that purpose before changing them reduces the risk of removing a useful safeguard or reintroducing a previously solved problem.
+**Principle:** Prefer the simplest design that satisfies the actual requirements; treat unnecessary complexity as something that requires justification.
 
-**Evidence:** The principle originates with G. K. Chesterton's 1929 *The Thing*. The underlying idea is that an unexplained existing constraint should not be removed merely because its purpose is not immediately visible. It is also widely applied to legacy software and refactoring.
+**Application to Pyrigor:** Keep the architecture, Rust/Python implementation, CLI, rule model, configuration, documentation, and workflow as simple as the real requirements allow. Simple does not mean simplistic: complexity justified by correctness, security, performance, compatibility, or maintainability is acceptable.
 
-**Important qualification:** Chesterton's Fence is not a command to preserve existing things indefinitely. Understanding the original purpose is a prerequisite to making an informed change, not an argument that the original design remains correct. Once the purpose and current requirements are understood, the fence may be removed or replaced.
+**Scope:** Project development
 
-**Operational test:** Before removing or substantially changing an existing mechanism, answer:
-
-1. What problem was it intended to solve?
-2. Is that problem still relevant?
-3. What other behaviour depends on it?
-4. What evidence shows that removing or changing it is safe?
-5. If the original reason no longer applies, what replaces the protection it provided, if anything?
-
-**AI-assisted development:** This principle is especially important when an AI-generated change describes existing code as redundant, unnecessary, or overly complex. The claim is a hypothesis to verify, not evidence that the mechanism can safely be removed.
-
-**Boundary:** This principle applies to changes to existing Pyrigor behaviour and structure. It does not require researching the historical origin of every line of code before ordinary maintenance or improvement.
+**Status:** Adopted
 
 ## Inversion
 
@@ -44,20 +34,6 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
-
-**Value:** High. Pyrigor is a quality tool: its most damaging failures are often not crashes but confidently producing the wrong result, missing a defect, or making correct code appear incorrect. Inversion directs attention toward exactly these failure modes.
-
-**Evidence:** Inversion is a long-established reasoning technique and is strongly associated with Charlie Munger's use of mental models. It is also closely related to established engineering practices such as failure-mode analysis, negative testing, threat modeling, and root-cause analysis. Those practices provide stronger engineering grounding than the slogan alone.
-
-**Why it fits Pyrigor:** A normal design question is "How do we detect this pattern?" The inverted questions are at least as important: "How could this rule flag correct code?", "How could it miss an actual violation?", and "How could its implementation become unsound as Python evolves?" The same approach applies to the project itself: "How could this architecture make adding the next 100 rules expensive?" or "How could an AI-generated change silently weaken verification?"
-
-**Operational test:** For a significant project decision, identify the important ways the decision could fail before finalizing it. Where practical, turn the important failure modes into tests, invariants, quality gates, or explicit design constraints.
-
-**Important qualification:** Inversion is a reasoning technique, not a requirement to enumerate every imaginable failure. Apply it proportionately to the risk and significance of the decision.
-
-**Boundary:** This principle governs engineering reasoning and verification. It does not mean that every Pyrigor rule should literally be expressed as a negative rule or that every implementation needs exhaustive failure analysis.
-
 ## YAGNI
 
 **Principle:** Do not build functionality, abstraction, or flexibility until a real requirement makes it necessary.
@@ -68,21 +44,25 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
+## Sunk Cost Fallacy
 
-**Value:** High. Pyrigor has a large potential rule space and an evolving Rust/Python architecture. Without YAGNI, it would be easy to build generalized infrastructure for rules or future integrations before the actual requirements are known. That creates complexity and maintenance cost while potentially encoding assumptions that later prove wrong.
+**Principle:** Past, unrecoverable investment should not determine what is best from today forward.
 
-**Evidence:** YAGNI originated in the Extreme Programming (XP) community and was popularized as a named practice in software engineering. Martin Fowler describes it as avoiding code for capabilities that are only presumed to be needed later, including speculative abstractions.
+**Application to Pyrigor:** When reconsidering code, architecture, dependencies, tooling, processes, or project direction, evaluate future cost, risk, and value rather than defending an approach because effort has already been invested. Existing assets should be retained when they have genuine future value, not merely because they are already paid for.
 
-**Important qualification:** YAGNI does not mean "never prepare for change." It distinguishes speculative functionality from work that makes software easier to change, such as refactoring and automated testing. A change that improves malleability without implementing a hypothetical feature is compatible with YAGNI.
+**Scope:** Project development
 
-**Operational test:** Before adding functionality or abstraction primarily for a future need, ask: "What current requirement needs this?" If there is no concrete current requirement, defer it unless the extra capability has an independent present-day value.
+**Status:** Adopted
 
-**AI-assisted development:** Treat AI proposals for "future-proofing," generalized frameworks, extension points, configuration options, or abstractions as proposals requiring justification. The existence of a plausible future use is not sufficient justification.
+## Single Source of Truth
 
-**Relationship to other principles:** YAGNI reinforces KISS by limiting unnecessary complexity. Sunk Cost Fallacy prevents past investment from becoming a reason to continue speculative work. Chesterton's Fence prevents YAGNI from becoming an excuse to remove existing mechanisms without understanding their purpose.
+**Principle:** Each piece of authoritative information should have one authoritative source; derived representations should not become competing authorities.
 
-**Boundary:** YAGNI applies to speculative capability and complexity. It does not prohibit sound foundations, refactoring, testing, security measures, compatibility requirements, or other work that provides current value or makes the system safely changeable.
+**Application to Pyrigor:** Keep guidelines, rule definitions, configuration, specifications, and other authoritative project information in one clearly identified source wherever practical. Generated or duplicated representations must derive from that source rather than silently becoming alternative authorities.
+
+**Scope:** Project development
+
+**Status:** Adopted
 
 ## Independent Verification
 
@@ -94,24 +74,6 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
-
-**Value:** High. AI-assisted development creates a particular risk: an agent can generate code, generate tests for that code, run those tests, and then conclude that the implementation is correct. That can create a closed feedback loop in which the generator effectively becomes its own oracle.
-
-**Meaning:** Independence concerns how the verification was derived and which assumptions it shares with the implementation. Merely running the same test suite twice is not independent verification.
-
-**Why it fits Pyrigor:** Pyrigor is a quality tool, so incorrect results are especially dangerous. An implementation that passes only checks derived from the same assumptions that produced it can still be wrong. Independent verification provides a second line of reasoning rather than another execution of the same reasoning.
-
-**Operational test:** For a critical change, identify at least one verification path whose assumptions, implementation, or evaluator are meaningfully independent of the original implementation. Prefer multiple independent forms of evidence for high-risk changes.
-
-**AI-assisted development:** Claude Code, Codex, or another generator may implement a change and propose tests, but the generated result should not be treated as self-authenticating. Independent review, independently derived tests, or different tools should be used where the risk justifies them.
-
-**Important qualification:** Independence is relative, not binary. Two tools may share the same flawed specification; two agents may reproduce the same mistaken assumption. The goal is to reduce correlated failure, not to demand impossible absolute independence.
-
-**Relationship to other principles:** This directly reinforces **Never Let the Generator Be Its Own Oracle**, **Tests Are the Executable Specification**, **Inversion**, and **Trust but Verify**.
-
-**Boundary:** Apply the principle proportionately. Not every trivial edit requires a second human review or an elaborate independent verification process; criticality should determine the strength of the independent check.
-
 ## Specification Before Implementation
 
 **Principle:** Define the required behaviour, relevant constraints, and acceptance criteria before implementing a significant change.
@@ -121,22 +83,6 @@ These are project-level principles. They guide engineering decisions; they are n
 **Scope:** Project development
 
 **Status:** Adopted
-
-### Analysis
-
-**Value:** High. Pyrigor is developed with AI assistance, so an underspecified task allows an agent to fill gaps with assumptions and produce a technically plausible implementation that solves the wrong problem. This is particularly risky for static-analysis rules, where intended semantics and exceptions matter as much as implementation.
-
-**Evidence:** The principle is strongly supported by requirements engineering, formal methods, contract-based development, and TDD practices. It is better understood as a family of established engineering practices than as a single universally named law.
-
-**Operational test:** Before implementation, define what must be true and how the result will be accepted. The specification should be precise enough that implementation and verification can be evaluated against it independently.
-
-**Important qualification:** Specification does not mean exhaustive up-front design. Keep it proportional to the decision and precise about what matters. If implementation reveals a new requirement, update the specification rather than silently making the implementation the specification.
-
-**AI-assisted development:** Claude Code, Codex, or another agent should receive a clear target and acceptance criteria rather than being asked to infer the desired design from a vague task. The specification remains authoritative over the generated implementation.
-
-**Relationship to other principles:** Reinforces YAGNI by defining actual requirements, Independent Verification by providing an independent basis for judging the implementation, and Tests Are the Executable Specification by providing the source from which tests can be derived.
-
-**Boundary:** Applies to significant changes; trivial edits need not require a formal specification.
 
 ## Never Let the Generator Be Its Own Oracle
 
@@ -148,18 +94,6 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
-
-**Value:** High. AI-assisted development makes it easy for an agent to write the code, write tests based on the same interpretation, run them, and report success. Passing that loop demonstrates consistency with the agent's assumptions, not necessarily correctness against the intended specification.
-
-**Operational test:** For critical changes, identify verification whose assumptions or evaluator are meaningfully independent of the implementation process. Avoid allowing a generator to redefine expected behaviour merely to make its own implementation pass.
-
-**Important qualification:** Generated tests remain useful evidence. The principle limits their authority when the same process generated both implementation and expected behaviour. Independence is relative rather than absolute, and should be proportional to risk.
-
-**Relationship to other principles:** This is a specific application of **Independent Verification** and reinforces **Specification Before Implementation**, **Tests Are the Executable Specification**, and **Inversion**.
-
-**Boundary:** This principle applies most strongly to critical correctness claims. It does not require a separate oracle for every trivial edit.
-
 ## Tests Are the Executable Specification
 
 **Principle:** Tests should express the required observable behaviour of the software in an executable form.
@@ -169,22 +103,6 @@ These are project-level principles. They guide engineering decisions; they are n
 **Scope:** Project development
 
 **Status:** Adopted
-
-### Analysis
-
-**Value:** High. Pyrigor is a static-analysis tool, so correctness depends on precise distinctions between violations, valid code, exceptions, diagnostics, and edge cases. Executable tests make those expectations concrete and continuously checkable.
-
-**Evidence:** The idea is strongly established through test-driven development, acceptance testing, executable specifications, and behaviour-driven development. Tests are particularly valuable when they capture externally observable behaviour rather than implementation details.
-
-**Operational test:** For significant behaviour, write tests that demonstrate the required outcomes, including representative valid and invalid cases and important boundary conditions. When the specification changes, update the tests deliberately rather than allowing implementation changes to redefine the requirement silently.
-
-**Important qualification:** Tests are not automatically a complete specification. They can be incomplete, redundant, or encode the wrong requirement. This principle therefore complements **Specification Before Implementation** and **Never Let the Generator Be Its Own Oracle** rather than replacing them.
-
-**AI-assisted development:** AI-generated tests should be reviewed against the intended specification. Passing generated tests is evidence, not proof, when the generator also produced the implementation and test expectations.
-
-**Relationship to other principles:** Reinforces Independent Verification and Specification Before Implementation. It also provides a concrete mechanism for applying Inversion by turning important failure modes into regression tests.
-
-**Boundary:** This principle concerns observable behaviour and significant requirements. It does not require every implementation detail to have a dedicated test.
 
 ## Measure, Don't Guess
 
@@ -196,18 +114,32 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Status:** Adopted
 
-### Analysis
+## No History Lessons
 
-**Value:** High. Pyrigor is itself a measurement-and-analysis tool, so unsupported assumptions about its behaviour would be particularly inappropriate. Measurement turns claims into testable engineering questions.
+**Principle:** Code and ordinary documentation should describe the current state and, where useful, why it is so—not narrate how it evolved to get there.
 
-**Evidence:** "Measure, don't guess" is a long-established engineering maxim, especially in performance engineering and optimization. The principle is also reflected in established benchmarking and observability practices: establish a baseline, form a hypothesis, make a change, and measure the result.
+**Application to Pyrigor:** Keep durable rationale in documentation when it helps future maintainers understand a current design. Put chronological development history in Git, issues, pull requests, or other historical records rather than cluttering current code and documentation with the story of how the current state was reached.
 
-**Operational test:** Before making a significant measurable claim, establish appropriate baseline evidence. After a change, measure again using a method relevant to the claim. Do not treat intuition, an AI-generated explanation, or an apparently plausible implementation as a substitute for evidence.
+**Scope:** Project development
 
-**Important qualification:** Not everything is meaningfully measurable, and measurement itself has a cost. Use the cheapest reliable evidence appropriate to the decision. Avoid collecting metrics merely because they are available.
+**Status:** Adopted
 
-**AI-assisted development:** Claims such as "faster," "simpler," "removes a bottleneck," or "coverage is sufficient" are claims to verify. AI-generated benchmarks can be useful, but their methodology, baseline, and relevance should be checked independently.
+## Unreasonable Hospitality
 
-**Relationship to other principles:** Reinforces **Inversion**, **Independent Verification**, **YAGNI**, and **Tests Are the Executable Specification**. It is especially relevant when evaluating the Rust implementation for performance and correctness.
+**Principle:** Make the experience for users and contributors exceptionally good, not merely adequate.
 
-**Boundary:** This is a project-level engineering principle. It does not require every Pyrigor rule to perform runtime measurement or every decision to have numerical evidence.
+**Application to Pyrigor:** Treat documentation, error messages, CLI behaviour, onboarding, issue handling, release communication, and contributor experience as products in their own right. Look for opportunities to remove friction and provide useful guidance beyond the minimum required for functionality.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+## Trust but Verify
+
+**Principle:** Trust useful work and claims provisionally, but verify important ones before relying on them.
+
+**Application to Pyrigor:** Treat generated code, test results, benchmarks, documentation claims, and external assertions as evidence rather than unquestionable truth. The strength of verification should be proportional to the consequence of being wrong.
+
+**Scope:** Project development
+
+**Status:** Adopted
