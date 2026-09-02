@@ -750,6 +750,67 @@ def outer(items) -> None:
     assert violations == []
 
 
+def test_plain_dotted_import_stops_outer_function_resolution() -> None:
+    """A plain dotted import binds its first component in the local scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    import value.helper
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_aliased_from_import_does_not_shadow_outer_function() -> None:
+    """An aliased from-import leaves the original name available to the outer scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    from other import value as other_value
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "value"
+
+
+def test_destructuring_loop_target_stops_outer_function_resolution() -> None:
+    """Every name in a loop target binds in its enclosing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(items) -> None:
+    for _, value in items:
+        value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_destructuring_context_target_stops_outer_function_resolution() -> None:
+    """Every name in a context-manager target binds in its enclosing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    with resource() as (_, value):
+        value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
 def test_flags_bare_call_for_pep604_union_return() -> None:
     """A PEP 604 union return (`int | str`) must still have its return value used."""
     source = """
