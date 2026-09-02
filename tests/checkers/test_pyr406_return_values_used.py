@@ -688,6 +688,68 @@ def outer(item) -> None:
     assert violations == []
 
 
+def test_later_nested_function_definition_stops_outer_function_resolution() -> None:
+    """A later nested function definition makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+
+    def value() -> None:
+        return None
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_augmented_assignment_stops_outer_function_resolution() -> None:
+    """An augmented assignment makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+    value += 1
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_delete_target_stops_outer_function_resolution() -> None:
+    """A delete target makes the name local for the whole function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value()
+    del value
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_named_expression_in_comprehension_stops_outer_function_resolution() -> None:
+    """A comprehension named expression binds in its containing function scope."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(items) -> None:
+    [(value := item) for item in items]
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
 def test_flags_bare_call_for_pep604_union_return() -> None:
     """A PEP 604 union return (`int | str`) must still have its return value used."""
     source = """

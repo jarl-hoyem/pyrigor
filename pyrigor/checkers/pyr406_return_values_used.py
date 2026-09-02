@@ -231,8 +231,8 @@ def _import_bindings(*, node: ast.Import | ast.ImportFrom) -> set[str]:
 
 
 def _stored_name(*, node: ast.Name) -> set[str]:
-    """Return a name only when the node stores it."""
-    return {node.id} if isinstance(node.ctx, ast.Store) else set()
+    """Return a name only when the node binds it in its enclosing scope."""
+    return {node.id} if isinstance(node.ctx, (ast.Store, ast.Del)) else set()
 
 
 def _import_alias_name(*, alias: ast.alias, is_plain_import: bool) -> str:
