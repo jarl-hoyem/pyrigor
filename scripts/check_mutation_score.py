@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Final, NamedTuple, cast
 
 STATS_PATH: Final = Path("mutants") / "mutmut-cicd-stats.json"
-MINIMUM_SCORE: Final = 99.0
+MINIMUM_SCORE: Final = 80.0
 
 _PERCENT: Final = 100.0
 _COUNT_KEYS: Final = ("total", "killed", "survived", "timeout")

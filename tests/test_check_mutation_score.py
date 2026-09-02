@@ -9,10 +9,13 @@ matches REVIEW_CHECKLIST.md's preference for testing the real invocation.
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
+import importlib.util
 import json
 import subprocess  # nosec B404 -- test invokes a fixed local checker script
 import sys
+from math import ceil
 from pathlib import Path
+from typing import Final
 
 _SCRIPT_NAME = "check_mutation_score.py"
 _STATS_NAME = "mutmut-cicd-stats.json"
@@ -37,6 +40,34 @@ def _script_path() -> Path:
         if found.exists():
             return found
     return candidate
+
+
+def _floor() -> float:
+    """Read the checker's own MINIMUM_SCORE rather than repeating its value.
+
+    Every fixture below is derived from this. Moving the floor therefore moves
+    the fixtures with it, instead of silently turning boundary cases into
+    meaningless ones.
+
+    Returns:
+        The checker's minimum score.
+
+    Raises:
+        RuntimeError: If the checker cannot be loaded as a module.
+    """
+    spec = importlib.util.spec_from_file_location("check_mutation_score", _script_path())
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {_script_path()}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return float(module.MINIMUM_SCORE)
+
+
+_TOTAL: Final = 1000
+_FLOOR: Final = _floor()
+
+# The smallest killed count that still meets the floor, so _AT_FLOOR - 1 fails.
+_AT_FLOOR: Final = ceil(_FLOOR / 100 * _TOTAL)
 
 
 def _run(*, tmp_path: Path, raw: str | None) -> subprocess.CompletedProcess[str]:
@@ -81,22 +112,24 @@ def _stats(*, total: int, killed: int, survived: int, timeout: int) -> str:
 
 def test_score_above_floor_passes(*, tmp_path: Path) -> None:
     """A score comfortably above the floor should exit zero."""
-    body = _stats(total=1000, killed=995, survived=5, timeout=0)
+    killed = _AT_FLOOR + 50
+    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_SUCCESS
-    assert "99.50%" in result.stdout
+    assert f"{killed / _TOTAL * 100:.2f}%" in result.stdout
 
 
 def test_score_below_floor_fails(*, tmp_path: Path) -> None:
     """A score under the floor should exit non-zero and say so."""
-    body = _stats(total=1000, killed=985, survived=15, timeout=0)
+    killed = _AT_FLOOR - 50
+    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_FAILURE
-    assert "98.50%" in result.stdout
+    assert f"{killed / _TOTAL * 100:.2f}%" in result.stdout
     assert "below the required" in result.stderr
 
 
@@ -105,26 +138,42 @@ def test_score_exactly_at_floor_passes(*, tmp_path: Path) -> None:
 
     Guards the boundary against a fix that flips the comparison to '<='.
     """
-    body = _stats(total=1000, killed=990, survived=10, timeout=0)
+    body = _stats(total=_TOTAL, killed=_AT_FLOOR, survived=_TOTAL - _AT_FLOOR, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_SUCCESS
-    assert "99.00%" in result.stdout
+
+
+def test_score_one_killed_mutant_below_the_floor_fails(*, tmp_path: Path) -> None:
+    """One killed mutant fewer than the floor demands should fail.
+
+    This is the tightest boundary available. Together with the test above it
+    pins the comparison exactly at the floor, at whatever value the floor holds.
+    """
+    killed = _AT_FLOOR - 1
+    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
+
+    result = _run(tmp_path=tmp_path, raw=body)
+
+    assert result.returncode == _EXIT_FAILURE
 
 
 def test_timeouts_are_excluded_from_the_score(*, tmp_path: Path) -> None:
     """Timeouts leave the denominator, so they cannot drag the score under the floor.
 
-    Counting the fifteen timeouts as failures would give 98.50% and fail.
-    Excluding them scores 985 of 985, which passes.
+    Every scored mutant is killed here, so excluding timeouts gives 100%.
+    Counting them instead puts the score just under the floor. Deriving both
+    counts from the floor keeps this discriminating at any floor value.
     """
-    body = _stats(total=1000, killed=985, survived=0, timeout=15)
+    scored = _AT_FLOOR - 1
+    timeout = _TOTAL - scored
+    body = _stats(total=_TOTAL, killed=scored, survived=0, timeout=timeout)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_SUCCESS
-    assert "15 timeout excluded" in result.stdout
+    assert f"{timeout} timeout excluded" in result.stdout
 
 
 def test_missing_stats_file_is_an_error(*, tmp_path: Path) -> None:

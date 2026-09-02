@@ -6,19 +6,19 @@ rather than re-deriving the reasoning from scratch.
 
 ## Testing and release confidence
 
-### Adversarial test matrices and installed-artifact checks are complementary
+### Adversarial test matrices and installed-artefact checks are complementary
 
 The PYR406 torture-test pass found real defects in lexical binding:
 later lambda and import rebinding, comprehension-local targets and
 class-body bindings all produced incorrect results until tested as
 deliberate combinations. The lesson is broader than PYR406: test the
-behavior an adversarial reader would try to break, not only the happy
+behaviour an adversarial reader would try to break, not only the happy
 path or the line that motivated the change.
 
 The same pass also verified the built wheel and source distribution in
 isolated environments. The editable checkout had already passed, but
-that could not prove the release artifacts contained the right modules
-and entry point. The source-level matrices and installed-artifact
+that could not prove the release artefacts contained the right modules
+and entry point. The source-level matrices and installed-artefact
 smoke tests are separate confidence layers. Neither replaces the other.
 
 ## pyrigor architecture and rules
@@ -32,7 +32,7 @@ Rule:
 Always use NamedTuple for any function returning more than one
 value. This removes positional-unpacking ambiguity. The caller
 accesses fields by name (result.dj_dw), not position, so a
-mislabeled variable at the call site can no longer silently receive
+mislabelled variable at the call site can no longer silently receive
 the wrong value.
 
 Use NewType for any same-typed values, whether function arguments or
@@ -59,7 +59,7 @@ A caller can unpack into misleadingly named variables
 (dj_db_temp, dj_dw_temp = ... when the function actually returns
 dj_dw, dj_db), and mypy will not catch it, because the types still
 line up positionally, only the semantics are wrong. This is a silent
-bug that surfaces only when the mislabeled variable is later used in
+bug that surfaces only when the mislabelled variable is later used in
 a way that exposes its true type. For example, calling '.tolist()' on
 an assumed float, a runtime crash, not a caught error.
 
@@ -71,9 +71,9 @@ Combined, these two will catch:
 - Argument-order swaps for differently typed args: plain type
   annotations (no extra tooling needed).
 - Argument-order swaps for same-typed args: NewType.
-- Return-unpacking mislabeling for differently typed return values:
+- Return-unpacking mislabelling for differently typed return values:
   NamedTuple alone.
-- Return-unpacking mislabeling for same-typed return fields:
+- Return-unpacking mislabelling for same-typed return fields:
   NamedTuple and NewType together.
 
 Example:
@@ -162,7 +162,7 @@ return-value classification.
 principle first stated on #66).
 
 Combination semantics, verified against ruff’s own documented
-behavior rather than assumed: `--ignore` removes codes from
+behaviour rather than assumed: `--ignore` removes codes from
 `--select`’s set (or from every rule, if `--select` is omitted).
 Order on the command line never matters. Argparse collects each
 flag’s own value independently of where it sits relative to the
@@ -188,7 +188,7 @@ directly.
 ### CLI exit code 2 covers both a crash and a bad invocation, deliberately not split
 
 When pyrigor's `run()` migrated from hand-rolled `sys.argv` scanning
-to `argparse` (#51), argparse’s own native parse errors (unrecognized
+to `argparse` (#51), argparse’s own native parse errors (unrecognised
 flag, missing required `paths`) landed on exit code 2 — the same code
 already used for two different pre-existing cases: an unexpected
 internal crash (the top-level `except Exception` handler) and a bad
@@ -291,7 +291,7 @@ operational errors. Rule metadata such as severity and fixability has one
 canonical source in `RuleInfo`. Documentation and tests should detect drift
 rather than duplicate the classification independently. Human output remains
 a separate compatibility surface. Source locations expose Python text
-columns (code points), not encoded byte offsets, and Unicode behavior is
+columns (code points), not encoded byte offsets, and Unicode behaviour is
 covered explicitly.
 
 ## Opt-in rule tier: Real, two independent axes, no separate numbering
@@ -325,7 +325,7 @@ from one place"). Opt-in rules get a normal `PYRxxx` number from
 
 Verified this against a real precedent rather than assuming: MISRA C
 itself keeps rule numbers fixed and has a formal Guideline
-Re-categorization Plan (GRP) specifically for moving a rule between
+Re-categorisation Plan (GRP) specifically for moving a rule between
 Mandatory/Required/Advisory without renumbering it — confirming
 number-stable, metadata-changeable is the established pattern for
 exactly this problem, not an invented workaround.
@@ -333,7 +333,7 @@ exactly this problem, not an invented workaround.
 **Two independent metadata axes on `RuleInfo`, not one:**
 
 - **`Tier`: `Default` | `Advisory`** (MISRA naming). Controls real CLI
-  behavior: `Default` rules run without being selected, matching
+  behaviour: `Default` rules run without being selected, matching
   every rule today. `Advisory` rules are excluded from that implicit
   default set — reachable only via explicit `--select=PYRxxx` (or
   symbolic name), never by omitting `--select` (which means "run the
@@ -380,7 +380,7 @@ interfaces users reasonably expect.
 Fixer modes require explicit PYR402 selection. Unlike a general-purpose
 linter that may fix every rule marked safe, pyrigor's PYR402 transformation
 can make existing positional calls fail at runtime. Requiring the rule in
-the command makes that behavior deliberate and auditable. Rejected or
+the command makes that behaviour deliberate and auditable. Rejected or
 unsupported source is reported and left unchanged; the fixer never inserts
 automatic suppressions. Source bytes, UTF-8 BOMs and line endings are
 preserved wherever the source can be decoded as UTF-8.
@@ -443,7 +443,7 @@ has no issue-number references at all.
 
 Chosen: keep the already-consistent bare `#N` form, with an optional
 short parenthetical gloss at the author's own discretion for a
-number a reader is unlikely to recognize on sight. Not a linked
+number a reader is unlikely to recognise on sight. Not a linked
 Markdown title — GitHub already auto-links a bare `#N` inline within
 its own rendering, so a manual `[title](url)` link would be
 a redundant markup for zero real benefit, and would also silently go
@@ -500,21 +500,33 @@ silently and discarded, so every attempt to disable pytest-cov
 through it changed nothing. Four rounds of workarounds followed,
 ending in a repository-wide `--cov-fail-under=0`, which switched
 off this project’s own 100% coverage gate for every ordinary test run.
-Fixed by passing `--cov-fail-under=0` through
-`pytest_add_cli_args`, which mutmut appends after the copied
-`pyproject.toml`’s `addopts`, so it wins, leaving the repository’s
-own threshold at 100. The tool pytest-cov stays installed on
-purpose. Uninstalling it makes `--cov=pyrigor` in `addopts` an
-unrecognized argument, pytest exits 4, and mutmut raises
-`BadTestExecutionCommandsException`.
+Fixed by passing `--no-cov` through `pytest_add_cli_args`, which
+mutmut appends after the copied `pyproject.toml`'s `addopts`, so it
+wins, leaving the repository's own threshold at 100. The tool
+pytest-cov stays installed on purpose. Uninstalling it makes
+`--cov=pyrigor` in `addopts` an unrecognised argument, pytest exits
+4, and mutmut raises `BadTestExecutionCommandsException`.
 
-Do not add `pytest_add_cli_args_test_selection`. Setting it to
-`tests/` reported 288 survivors where a correct run reports 3.
-The tool mutmut stores test ids stripped of their `mutants/`
-prefix, and the setting redirects a collection away from the mutated
-tree, so the mutants never activate. Nothing errors. The result
-looks exactly like a real measurement, which is what makes it
-dangerous.
+Coverage must be off during mutant runs, not merely set below a
+threshold. Every mutant run invokes pytest with `--cov`, and
+coverage writes its data file into the working directory. Under
+mutmut's parallel children those writes collide, pytest exits
+non-zero and mutmut records a kill that the mutation did not
+cause. Such false kills only ever inflate the score, and they
+scale with the number of cores.
+
+Measured on one commit: 6 survivors with coverage enabled, against
+288 with `--no-cov`. A CI runner with fewer cores independently
+reported 275. The proof is a provably equivalent mutant, which
+rewrites `version('pyrigor')` as `version('PYRIGOR')`. Distribution
+name lookup is case-insensitive, so no test can detect it, yet the
+coverage-enabled run reported it killed. Rerunning that one mutant
+alone showed it surviving. Disabling coverage is also 57% faster.
+
+An earlier version of this entry blamed
+`pytest_add_cli_args_test_selection` for the 288 survivors. That
+was wrong. The key was innocent, and 288 was the honest number,
+briefly discarded in favour of a flattering one.
 
 The second failure was `KeyError: <pid>` in
 `read_one_child_exit_status()`, which calls a bare `os.wait()` and
@@ -533,15 +545,14 @@ The command `mutmut run` returns normally after printing its
 summary and never sets an exit code from the results, so a job
 that only runs it cannot fail on survivors. The workflow exports
 stats with `mutmut export-cicd-stats` and runs
-`scripts/check_mutation_score.py`, which fails below a 99% floor.
+`scripts/check_mutation_score.py`, which fails below an 80% floor.
 
-The floor is 99%, not the tighter 99.5% first proposed. Survivor
-counts across three runs of the same configuration were 3, 2, and
-5. A 99.5% floor tolerates 7, so drift alone could have turned the
-build red with only two survivors of headroom. A 99% floor
-tolerates 15 and still catches real decay. The misconfigured run
-that reported 288 survivors scored 81.62%, far below either floor.
-Tighten this once the run-to-run variance is measured.
+The floor is 80% because the honest score is 81.63%, with 288
+surviving mutants. Earlier floors of 99.5% and then 99% were set
+against measurements inflated by the coverage false kills described
+in the entry above. Those runs reported two to six survivors, which was
+never real. Raise this floor as the suite improves, in a step with a
+measured score rather than an assumed one.
 
 A zero-survivor gate was rejected because it is unreachable. The
 mutant rewriting `version('pyrigor')` as `version('PYRIGOR')`
@@ -549,9 +560,9 @@ survives permanently. Distribution name lookup is case-insensitive,
 verified directly, with both spellings returning the same version.
 Only a test that mocks the lookup and asserts the literal argument
 could kill it, and such a test pins the implementation rather than
-the behavior. Two runs of the same configuration also produced
-different survivor sets, so a zero-survivor gate would be flaky as
-well as unreachable.
+the behaviour. This mutant is also the one that exposed the false
+kills, because a coverage-enabled run claimed to have killed
+something no test can detect.
 
 Timeouts leave the denominator entirely. They track the machine load,
 not test quality. Two appeared in one local run only because other
@@ -597,7 +608,7 @@ to only the changed files would make them wrong, not just faster.
 
 `pylint` looks miscategorized, sitting in the "Type/correctness
 checkers, the fastest first" comment block beside three whole-project
-neighbors, but it is correctly changed-files-only — pylint checks one
+neighbours, but it is correctly changed-files-only — pylint checks one
 file at a time, same as ruff. Left as-is, deliberately, not "fixed"
 into whole-project.
 
@@ -624,7 +635,7 @@ content. Every fixture's entry point is invoked externally by the
 pyrigor CLI, never referenced from anywhere else in the corpus, the
 same property already established for pyrigor's own self-check
 exclusion of these files. A real, per-file property confirmed by
-isolated testing, not an artifact of scanning them together. Running
+isolated testing, not an artefact of scanning them together. Running
 radon and xenon against the directory found nothing — trivial
 one-line fixtures do not trip complexity or maintainability
 thresholds, so unlike vulture, no exclusion was needed for either.
@@ -632,9 +643,9 @@ thresholds, so unlike vulture, no exclusion was needed for either.
 `ty`, `mypy`, and `pyright` don't have this problem: confirmed
 empirically (`mypy .` reports checking exactly 44 source files, never
 touching `.venv`), all three have real, built-in smart defaults that
-skip virtual environments and build artifacts without any
+skip virtual environments and build artefacts without any
 configuration. Vulture's own `--help` says plainly it has none: "For
-each directory Vulture analyzes all contained `*.py` files."
+each directory Vulture analyses all contained `*.py` files."
 
 Fixed by pointing all three at the project (`.`) instead of a
 hardcoded allowlist, with an explicit, evidence-based denylist.
@@ -700,7 +711,7 @@ opposite ordering already works correctly, since `re.search` finds
 `# pyrigor:` wherever it appears on the line — this convention costs
 nothing beyond documenting it.
 
-### Suppression scanning uses tokenizing, not raw-line regular expression
+### Suppression scanning uses tokenising, not raw-line regular expression
 
 `_suppressed_tokens()` and the near-miss check both used to search
 each candidate physical line’s raw text via regular expression
@@ -714,10 +725,10 @@ like one inside a string. Found scanning `tests/` for the first
 time: a near-miss warning fired on a test’s own fixture string
 containing literal `# pyrigor` text, not a real comment (#41).
 
-Chosen fix: tokenize the source once per every file with Python’s own
+Chosen fix: tokenise the source once per every file with Python’s own
 `tokenize` module, and build a line-number-to-comment-text mapping
 from genuine `tokenize.COMMENT` tokens only. String and docstring
-content is tokenized as `STRING`, never `COMMENT`, so text that only
+content is tokenised as `STRING`, never `COMMENT`, so text that only
 looks like a suppression comment inside a string can no longer match
 at all. Candidate-line lookup changed from list-indexing raw source
 lines to a dict lookup on this map, which also removes the need for
@@ -728,9 +739,9 @@ result an out-of-range line used to require special-casing for.
 Rejected: keeping the regular expression approach and trying to special-case
 strings within it (for example, stripping string literals from each
 line before searching). Would need to reimplement a real Python
-tokenizer piecemeal to handle multi-line strings, f-strings and
+tokeniser piecemeal to handle multi-line strings, f-strings and
 escaped quotes correctly — strictly more code and later risk than
-just using the tokenizer the standard library already provides for
+just using the tokeniser the standard library already provides for
 exactly this purpose.
 
 ### Suppression syntax drops the colon after "pyrigor" (permanent change)
@@ -776,12 +787,12 @@ arguments.
 Kept running even once PYR203 ships, deliberately, not disabled.
 The same precedent is already established in this project: mypy, pyright
 and ty all run simultaneously despite real overlap in what they
-catch, genuine defense in depth from independent implementations,
+catch, genuine defence in depth from independent implementations,
 not wasted duplication.
 
 ### The tool pylint's check-quote-consistency rejected, real false positives found
 
-Tested empirically against pyrigor's own real source: two "findings,"
+Tested empirically against pyrigor's own real source: two "findings",
 both false positives, single quotes nested inside a double-quoted
 f-string's expression (`f"pyrigor {version('pyrigor')}"`,
 `f"...{', '.join(...)}"`), required on this project's own supported
@@ -797,7 +808,7 @@ Initial testing was flawed, tested only under the setting's own
 default (true, permissive), never actually verified the flipped
 value. Once genuinely set to false: flags every module-level
 function as an "unused variable" unless it is called within its own
-defining file, exactly the wrong behavior for this codebase, which
+defining file, exactly the wrong behaviour for this codebase, which
 is built on small, individually importable, individually testable
 functions (find_violations, walk_once, count_parameters and every
 other checker function). Rejected, not enabled.
@@ -849,14 +860,14 @@ pylint’s own R0801, not just an incidental shared literal (unlike
 the filename-constants decision, which stayed local per script).
 Extracted into scripts/_dev_tooling_shared.py.
 
-The two callers need genuinely different failure behavior, though:
+The two callers need genuinely different failure behaviour, though:
 check_definition_of_done.py explicitly promises "never fails the
 commit" in its own docstring, so a real git failure should not
 crash it (check=False). The file version_sync.py makes no such promise and
 already has a real, intentional failure path (sys.exit(1)), so a
 real git failure surfacing (check=True) is more honest than
 silently continuing with empty data. Rather than hardcode one
-behavior into the shared functions, check is a required keyword
+behaviour into the shared functions, check is a required keyword
 argument, letting each caller express its own actual philosophy.
 
 ### Branch protection on main was verified via a real test pull request
