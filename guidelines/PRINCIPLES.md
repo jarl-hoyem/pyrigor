@@ -57,3 +57,29 @@ These are project-level principles. They guide engineering decisions; they are n
 **Important qualification:** Inversion is a reasoning technique, not a requirement to enumerate every imaginable failure. Apply it proportionately to the risk and significance of the decision.
 
 **Boundary:** This principle governs engineering reasoning and verification. It does not mean that every Pyrigor rule should literally be expressed as a negative rule or that every implementation needs exhaustive failure analysis.
+
+## YAGNI
+
+**Principle:** Do not build functionality, abstraction, or flexibility until a real requirement makes it necessary.
+
+**Application to Pyrigor:** Build the rules, architecture, interfaces, configuration, and tooling that Pyrigor needs now. Do not add speculative generality merely because a future rule, language feature, backend, integration, or user may eventually require it. Invest in keeping the code easy to change instead of implementing hypothetical future requirements.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. Pyrigor has a large potential rule space and an evolving Rust/Python architecture. Without YAGNI, it would be easy to build generalized infrastructure for rules or future integrations before the actual requirements are known. That creates complexity and maintenance cost while potentially encoding assumptions that later prove wrong.
+
+**Evidence:** YAGNI originated in the Extreme Programming (XP) community and was popularized as a named practice in software engineering. Martin Fowler describes it as avoiding code for capabilities that are only presumed to be needed later, including speculative abstractions. citeturn0search0turn0search2
+
+**Important qualification:** YAGNI does not mean "never prepare for change." Fowler explicitly distinguishes speculative functionality from work that makes software easier to change, such as refactoring and automated testing. A change that improves malleability without implementing a hypothetical feature is compatible with YAGNI. citeturn0search0turn0search7
+
+**Operational test:** Before adding functionality or abstraction primarily for a future need, ask: "What current requirement needs this?" If there is no concrete current requirement, defer it unless the extra capability has an independent present-day value.
+
+**AI-assisted development:** Treat AI proposals for "future-proofing," generalized frameworks, extension points, configuration options, or abstractions as proposals requiring justification. The existence of a plausible future use is not sufficient justification.
+
+**Relationship to other principles:** YAGNI reinforces KISS by limiting unnecessary complexity. Sunk Cost Fallacy prevents past investment from becoming a reason to continue speculative work. Chesterton's Fence prevents YAGNI from becoming an excuse to remove existing mechanisms without understanding their purpose.
+
+**Boundary:** YAGNI applies to speculative capability and complexity. It does not prohibit sound foundations, refactoring, testing, security measures, compatibility requirements, or other work that provides current value or makes the system safely changeable.
