@@ -137,3 +137,51 @@ These are project-level principles. They guide engineering decisions; they are n
 **Relationship to other principles:** Reinforces YAGNI by defining actual requirements, Independent Verification by providing an independent basis for judging the implementation, and Tests Are the Executable Specification by providing the source from which tests can be derived.
 
 **Boundary:** Applies to significant changes; trivial edits need not require a formal specification.
+
+## Never Let the Generator Be Its Own Oracle
+
+**Principle:** A system or agent that produces an implementation must not be the sole authority for deciding that the implementation is correct.
+
+**Application to Pyrigor:** Separate generation from authoritative verification where practical. AI agents may generate code and tests, but correctness should be established through a specification, independently derived tests, existing reference behaviour, a different tool or agent, human review, or other independent evidence.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. AI-assisted development makes it easy for an agent to write the code, write tests based on the same interpretation, run them, and report success. Passing that loop demonstrates consistency with the agent's assumptions, not necessarily correctness against the intended specification.
+
+**Operational test:** For critical changes, identify verification whose assumptions or evaluator are meaningfully independent of the implementation process. Avoid allowing a generator to redefine expected behaviour merely to make its own implementation pass.
+
+**Important qualification:** Generated tests remain useful evidence. The principle limits their authority when the same process generated both implementation and expected behaviour. Independence is relative rather than absolute, and should be proportional to risk.
+
+**Relationship to other principles:** This is a specific application of **Independent Verification** and reinforces **Specification Before Implementation**, **Tests Are the Executable Specification**, and **Inversion**.
+
+**Boundary:** This principle applies most strongly to critical correctness claims. It does not require a separate oracle for every trivial edit.
+
+## Tests Are the Executable Specification
+
+**Principle:** Tests should express the required observable behaviour of the software in an executable form.
+
+**Application to Pyrigor:** For significant behaviour, tests should make the intended contract concrete: what must be accepted, what must be rejected, what diagnostics are expected, and what important edge cases must hold. Tests should be readable enough to serve as an executable description of the requirement.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. Pyrigor is a static-analysis tool, so correctness depends on precise distinctions between violations, valid code, exceptions, diagnostics, and edge cases. Executable tests make those expectations concrete and continuously checkable.
+
+**Evidence:** The idea is strongly established through test-driven development, acceptance testing, executable specifications, and behaviour-driven development. Tests are particularly valuable when they capture externally observable behaviour rather than implementation details.
+
+**Operational test:** For significant behaviour, write tests that demonstrate the required outcomes, including representative valid and invalid cases and important boundary conditions. When the specification changes, update the tests deliberately rather than allowing implementation changes to redefine the requirement silently.
+
+**Important qualification:** Tests are not automatically a complete specification. They can be incomplete, redundant, or encode the wrong requirement. This principle therefore complements **Specification Before Implementation** and **Never Let the Generator Be Its Own Oracle** rather than replacing them.
+
+**AI-assisted development:** AI-generated tests should be reviewed against the intended specification. Passing generated tests is evidence, not proof, when the generator also produced the implementation and test expectations.
+
+**Relationship to other principles:** Reinforces Independent Verification and Specification Before Implementation. It also provides a concrete mechanism for applying Inversion by turning important failure modes into regression tests.
+
+**Boundary:** This principle concerns observable behaviour and significant requirements. It does not require every implementation detail to have a dedicated test.
