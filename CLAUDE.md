@@ -265,6 +265,20 @@ pattern verbatim.
 - Google-style docstrings (pydocstyle-checked) on public functions.
 - Write short documentation sentences that do not trigger PyCharm's
   sentence-length inspection. Prefer splitting sentences over using semicolons.
+- Write prose in British English, using `-ise` spelling, so `normalise` and
+  `recognise`. Python identifiers keep their own spelling, such as `normalize`
+  and `serialize`. Do not change code to match prose.
+- Use straight apostrophes and quotation marks. Never use the curly forms
+  (U+2019, U+201C, U+201D). Google's and Microsoft's developer documentation
+  style guides both require this. PyCharm's Grazie inspection suggests the
+  opposite, and that inspection is deliberately switched off.
+- Do not use em dashes (U+2014) or en dashes (U+2013). Split the sentence with
+  a full stop or use a comma or parentheses. For a range, use a hyphen or the
+  word "to."
+- Do not use contractions. Write the expanded form, so "cannot" and "it is."
+- Existing documentation does not yet follow these four rules. Issues #218 to
+  #221 track the cleanup. Write new prose to the rules rather than imitating
+  the surrounding text.
 - Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
 - Run targeted formatting and lint checks before the full pre-commit suite, so it validates
   an already-clean working tree on its first run.
