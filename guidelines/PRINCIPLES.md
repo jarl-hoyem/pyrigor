@@ -72,9 +72,9 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Value:** High. Pyrigor has a large potential rule space and an evolving Rust/Python architecture. Without YAGNI, it would be easy to build generalized infrastructure for rules or future integrations before the actual requirements are known. That creates complexity and maintenance cost while potentially encoding assumptions that later prove wrong.
 
-**Evidence:** YAGNI originated in the Extreme Programming (XP) community and was popularized as a named practice in software engineering. Martin Fowler describes it as avoiding code for capabilities that are only presumed to be needed later, including speculative abstractions. citeturn0search0turn0search2
+**Evidence:** YAGNI originated in the Extreme Programming (XP) community and was popularized as a named practice in software engineering. Martin Fowler describes it as avoiding code for capabilities that are only presumed to be needed later, including speculative abstractions.
 
-**Important qualification:** YAGNI does not mean "never prepare for change." Fowler explicitly distinguishes speculative functionality from work that makes software easier to change, such as refactoring and automated testing. A change that improves malleability without implementing a hypothetical feature is compatible with YAGNI. citeturn0search0turn0search7
+**Important qualification:** YAGNI does not mean "never prepare for change." It distinguishes speculative functionality from work that makes software easier to change, such as refactoring and automated testing. A change that improves malleability without implementing a hypothetical feature is compatible with YAGNI.
 
 **Operational test:** Before adding functionality or abstraction primarily for a future need, ask: "What current requirement needs this?" If there is no concrete current requirement, defer it unless the extra capability has an independent present-day value.
 
@@ -83,3 +83,31 @@ These are project-level principles. They guide engineering decisions; they are n
 **Relationship to other principles:** YAGNI reinforces KISS by limiting unnecessary complexity. Sunk Cost Fallacy prevents past investment from becoming a reason to continue speculative work. Chesterton's Fence prevents YAGNI from becoming an excuse to remove existing mechanisms without understanding their purpose.
 
 **Boundary:** YAGNI applies to speculative capability and complexity. It does not prohibit sound foundations, refactoring, testing, security measures, compatibility requirements, or other work that provides current value or makes the system safely changeable.
+
+## Independent Verification
+
+**Principle:** Do not accept a critical result solely because the process that produced it says it is correct; verify it through an independent source of evidence.
+
+**Application to Pyrigor:** For critical changes, seek verification that is sufficiently independent of the original production process. This can include an independent agent or reviewer, a different analysis tool, independently derived expected results, mutation testing, differential testing, or human review against the specification.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. AI-assisted development creates a particular risk: an agent can generate code, generate tests for that code, run those tests, and then conclude that the implementation is correct. That can create a closed feedback loop in which the generator effectively becomes its own oracle.
+
+**Meaning:** Independence concerns how the verification was derived and which assumptions it shares with the implementation. Merely running the same test suite twice is not independent verification.
+
+**Why it fits Pyrigor:** Pyrigor is a quality tool, so incorrect results are especially dangerous. An implementation that passes only checks derived from the same assumptions that produced it can still be wrong. Independent verification provides a second line of reasoning rather than another execution of the same reasoning.
+
+**Operational test:** For a critical change, identify at least one verification path whose assumptions, implementation, or evaluator are meaningfully independent of the original implementation. Prefer multiple independent forms of evidence for high-risk changes.
+
+**AI-assisted development:** Claude Code, Codex, or another generator may implement a change and propose tests, but the generated result should not be treated as self-authenticating. Independent review, independently derived tests, or different tools should be used where the risk justifies them.
+
+**Important qualification:** Independence is relative, not binary. Two tools may share the same flawed specification; two agents may reproduce the same mistaken assumption. The goal is to reduce correlated failure, not to demand impossible absolute independence.
+
+**Relationship to other principles:** This directly reinforces **Never Let the Generator Be Its Own Oracle**, **Tests Are the Executable Specification**, **Inversion**, and **Trust but Verify**.
+
+**Boundary:** Apply the principle proportionately. Not every trivial edit requires a second human review or an elaborate independent verification process; criticality should determine the strength of the independent check.
