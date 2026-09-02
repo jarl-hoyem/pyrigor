@@ -148,6 +148,13 @@ maintainer's time:
 - Always run `just check` after the final changes and before
   providing a commit message. Do not hand validation back to the maintainer
   unless a hook fails and its failure is reported explicitly.
+- A passing `just check` does not guarantee a passing commit. It validates the
+  working tree, whereas the commit-time hook stashes unstaged changes and
+  validates staged content only. When those differ, the commit runs against
+  something never tested. Always list every file the change needs alongside the
+  commit message, so no file can be left out of the stage. A partial stage that
+  splits a constant from the tests derived from it will fail at commit time
+  while `just check` passes.
 - Prefer public browser access for GitHub reads. Use authenticated CLI access
   only when the browser cannot retrieve required information.
 - When the current GitHub state matters, explicitly refresh issue/PR data before
