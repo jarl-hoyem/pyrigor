@@ -185,3 +185,29 @@ These are project-level principles. They guide engineering decisions; they are n
 **Relationship to other principles:** Reinforces Independent Verification and Specification Before Implementation. It also provides a concrete mechanism for applying Inversion by turning important failure modes into regression tests.
 
 **Boundary:** This principle concerns observable behaviour and significant requirements. It does not require every implementation detail to have a dedicated test.
+
+## Measure, Don't Guess
+
+**Principle:** Base engineering decisions about performance, behaviour, quality, and improvement on relevant evidence and measurements rather than intuition alone.
+
+**Application to Pyrigor:** Use evidence when making claims about performance, false-positive and false-negative rates, test coverage, CI duration, rule usefulness, release quality, and other measurable properties of Pyrigor.
+
+**Scope:** Project development
+
+**Status:** Adopted
+
+### Analysis
+
+**Value:** High. Pyrigor is itself a measurement-and-analysis tool, so unsupported assumptions about its behaviour would be particularly inappropriate. Measurement turns claims into testable engineering questions.
+
+**Evidence:** "Measure, don't guess" is a long-established engineering maxim, especially in performance engineering and optimization. The principle is also reflected in established benchmarking and observability practices: establish a baseline, form a hypothesis, make a change, and measure the result.
+
+**Operational test:** Before making a significant measurable claim, establish appropriate baseline evidence. After a change, measure again using a method relevant to the claim. Do not treat intuition, an AI-generated explanation, or an apparently plausible implementation as a substitute for evidence.
+
+**Important qualification:** Not everything is meaningfully measurable, and measurement itself has a cost. Use the cheapest reliable evidence appropriate to the decision. Avoid collecting metrics merely because they are available.
+
+**AI-assisted development:** Claims such as "faster," "simpler," "removes a bottleneck," or "coverage is sufficient" are claims to verify. AI-generated benchmarks can be useful, but their methodology, baseline, and relevance should be checked independently.
+
+**Relationship to other principles:** Reinforces **Inversion**, **Independent Verification**, **YAGNI**, and **Tests Are the Executable Specification**. It is especially relevant when evaluating the Rust implementation for performance and correctness.
+
+**Boundary:** This is a project-level engineering principle. It does not require every Pyrigor rule to perform runtime measurement or every decision to have numerical evidence.
