@@ -6,10 +6,10 @@ When providing text intended for copying, put it in a fenced code block so the
 user can copy it with one click.
 
 The maintainer commits and pushes changes. The agent must never commit or push.
-Do not begin work on an issue without explicit authorization. When reporting
-validation, say “all tests” rather than emphasizing test counts.
+Do not begin work on an issue without explicit authorisation. When reporting
+validation, say “all tests” rather than emphasising test counts.
 
-Keep AGENTS.md and CLAUDE.md synchronized when changing repository guidance.
+Keep AGENTS.md and CLAUDE.md synchronised when changing repository guidance.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -54,7 +54,7 @@ just check
 ```
 
 `pytest` currently runs as part of this (no `stages:` restriction is active yet — the pytest hook in
-`.pre-commit-config.yaml` has a commented-out `stages: [pre-push]` line, "saved for later," not yet applied).
+`.pre-commit-config.yaml` has a commented-out `stages: [pre-push]` line, "saved for later", not yet applied).
 
 Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright --project=pyproject.toml`,
 `uv run ty check .`, `uv run ruff check` / `ruff format`.
@@ -83,7 +83,7 @@ duplicated per-checker.
 call_statement_nodes, class_nodes)` for every checker to reuse -> each registered checker's `find_violations(*, nodes:
 WalkedNodes)` runs against those pre-walked nodes ->  `suppression.py`'s `filter_suppressed()` splits results into
 kept/suppressed based on same-line
-`# pyrigor CODE # reason` comments -> CLI prints and summarizes.
+`# pyrigor CODE # reason` comments -> CLI prints and summarises.
 
 The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why
 a per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled
@@ -101,7 +101,7 @@ so the message text cannot drift from the rule it is tied to.
 
 **Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE`
 token may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) - the same
-three forms `--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honored.
+three forms `--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honoured.
 
 **Adding a new rule** is a defined, checklist-driven process — follow `guidelines/ADDING_A_RULE.md` step by step
 (numbering bucket in `guidelines/NUMBERING.md`, naming convention in `guidelines/NAMING.md`). Key points that have
@@ -110,14 +110,14 @@ caused real bugs before: guideline-doc filename slug must exactly match the `Rul
 before writing a rule (otherwise it goes in `guidelines/REJECTED.md`, not as a new rule).
 
 For every implementation change, build and run a deliberate test matrix:
-normal behavior, edge and boundary cases, meaningful combinations, and
+normal behaviour, edge and boundary cases, meaningful combinations and
 relevant negative or error paths. Never treat a passing happy-path test,
-static analysis, or a vague request to "add a test" as evidence that the
+static analysis or a vague request to "add a test" as evidence that the
 matrix is complete. See `guidelines/DEFINITION_OF_DONE.md`.
 
 ## Economical agent workflow
 
-Work efficiently with model tokens, tool calls, network access, and the
+Work efficiently with model tokens, tool calls, network access and the
 maintainer's time:
 
 - Read only the issue-relevant code and documentation. Do not produce project
@@ -127,12 +127,12 @@ maintainer's time:
 - Batch a related read-only inspection into a few tool calls.
 - Use the least expensive model tier likely to complete the task correctly:
   - Use an economy/fast model for mechanical edits, documentation
-    synchronization, file reordering, straightforward tests, and known-pattern
+    synchronisation, file reordering, straightforward tests and known-pattern
     fixes.
   - Use a balanced general-purpose model for normal implementation, unfamiliar
-    code paths, moderate debugging, and reviews requiring judgment.
+    code paths, moderate debugging and reviews requiring judgment.
   - Use a frontier model for challenging architecture, subtle semantics,
-    hard-to-reproduce bugs, or security-sensitive review.
+    hard-to-reproduce bugs or security-sensitive review.
 - Before starting a clearly mechanical task, recommend a cheaper model. State
   that only the user can switch the primary session's model. Delegated
   subagents may use a cheaper model when delegation is appropriate. Wait for
@@ -164,11 +164,11 @@ maintainer's time:
 - Do not use subagents for small or sequential tasks.
 - Keep progress updates brief and report only information that affects the
   task or requires a decision.
-- The maintainer handles staging, commits, and pushes. Provide a
+- The maintainer handles staging, commits and pushes. Provide a
   copy-paste-ready commit message after verified file changes.
 - Combine the approved closing comment and issue close into one GitHub action.
 - Before release or issue work, reread this file, `AGENTS.md`, the relevant
-  issue template, and applicable project guidance; do not rely on memory from
+  issue template and applicable project guidance; do not rely on memory from
   another session.
 - Validate commit messages against the repository's actual Commitizen
   configuration before recommending them; use only configured commit types.
@@ -179,7 +179,7 @@ maintainer's time:
 
 Every file change — Edit/Write calls, and any Bash/PowerShell command
 writing to disk (`sed -i`, redirects, `git add`/
-`commit`, or similar) — needs the user's explicit go-ahead in chat first, with the concrete
+`commit` or similar) — needs the user's explicit go-ahead in chat first, with the concrete
 diff or new content shown, not just a plan description. Applies
 regardless of how small or mechanical the change looks. See
 `~/.claude/settings.json`'s `permissions.ask` list for the
@@ -188,7 +188,7 @@ write-shaped Bash/PowerShell command patterns.
 
 Before and after every file edit, preserve bytes outside the intended change.
 Do not rewrite whole files through PowerShell or other text-mode tools. Use
-byte-preserving patch operations, then verify the diff, encoding, line endings,
+byte-preserving patch operations, then verify the diff, encoding, line endings
 and mojibake markers. If byte preservation cannot be guaranteed, stop and ask.
 
 After every file edit, run the relevant pre-commit checks. Fix any findings
@@ -211,7 +211,7 @@ When creating a GitHub issue, always use the repository's issue template.
 Preserve its headings and order. Do not substitute headings such as
 "Acceptance criteria" for the template's "Done when" heading. If the
 template cannot be found, inspect it before drafting the issue. Before
-creation, verify the template headings, labels, milestone availability, and
+creation, verify the template headings, labels, milestone availability and
 required fields.
 
 Blocking relationships between issues uses GitHub's native "blocked
@@ -224,12 +224,12 @@ from before this convention started. Not worth migrating
 retroactively. Use the real feature going forward.
 
 Any GitHub issue action that changes its state — creating,
-editing, commenting on, labeling, or closing an issue — needs the
+editing, commenting on, labelling or closing an issue — needs the
 user's explicit go-ahead first, the same as a file edit. Show what
-will be created, changed, or said before doing it, not just
+will be created, changed or said before doing it, not just
 describe the plan.
 
-Closing an issue always needs a closing comment summarizing what
+Closing an issue always needs a closing comment summarising what
 shipped (the commit, what changed, what it resolves), even when the
 issue was already closed by the time the comment goes up. A bare
 close with no comment loses the "here is what actually happened"
@@ -283,11 +283,16 @@ pattern verbatim.
   a full stop or use a comma or parentheses. For a range, use a hyphen or the
   word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
-- Existing documentation does not yet follow these four rules. Issues #218 to
-  #221 track the cleanup. Write new prose to the rules rather than imitating
-  the surrounding text.
+- Headings use a sentence case. Capitalise the first word, proper nouns and
+  acronyms only, so "Sunk cost fallacy" and "Chesterton's fence", but "KISS"
+  and "YAGNI" are unchanged. Google's and Microsoft's style guides both require
+  this. Title case has no single definition, so it cannot be applied
+  consistently without first choosing between AP, Chicago and APA.
+- Existing documentation does not yet follow these rules. Issues #218 to #221
+  and #233 track the clean-up. Write new prose to the rules rather than
+  imitating the surrounding text.
 - Direct quotations are reproduced as the source wrote them. The rules above
-  govern our own prose, not quoted text, so Knuth's "premature optimization
+  govern our own prose, not quoted text, so Knuth's "premature optimisation
   is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
   spelling. Never silently correct a quotation to house style. Where the
   original would breach a rule, paraphrase instead of quoting.
