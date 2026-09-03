@@ -133,7 +133,8 @@ repos:
     hooks:
       - id: pyrigor
         # Excludes only the fixtures that deliberately contain real,
-        # unsuppressed violations by design (manual-tests/cli/README.md).
+        # unsuppressed violations by design (see each manual-tests
+        # subfolder's own README.md).
         # clean.py/empty.py/suppressed.py stay covered by this
         # self-check like any other source file.
         args:
@@ -143,6 +144,8 @@ repos:
           - manual-tests/cli/unicode.py
           - --exclude
           - manual-tests/cli/nested
+          - --exclude
+          - manual-tests/pycharm/watcher.py
         stages: [ pre-commit ]
   # Tools that need the project's own real dependencies installed to
   # work correctly (resolving imports, checking types against actual
@@ -283,6 +286,7 @@ repos:
           --exclude manual-tests/cli/violations.py
           --exclude manual-tests/cli/unicode.py
           --exclude manual-tests/cli/nested
+          --exclude manual-tests/pycharm/watcher.py
         types: [ python ]
         pass_filenames: false
         stages: [ pre-commit ]
