@@ -9,9 +9,7 @@ The maintainer commits and pushes changes. The agent must never commit or push.
 Do not begin work on an issue without explicit authorisation. When reporting
 validation, say "all tests" rather than emphasising test counts.
 
-Keep AGENTS.md and CLAUDE.md synchronised when changing repository guidance.
-
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This is the shared repository guidance for coding agents.
 
 ## What this is
 
