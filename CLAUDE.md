@@ -7,7 +7,7 @@ user can copy it with one click.
 
 The maintainer commits and pushes changes. The agent must never commit or push.
 Do not begin work on an issue without explicit authorisation. When reporting
-validation, say “all tests” rather than emphasising test counts.
+validation, say "all tests" rather than emphasising test counts.
 
 Keep AGENTS.md and CLAUDE.md synchronised when changing repository guidance.
 
@@ -283,7 +283,7 @@ pattern verbatim.
   a full stop or use a comma or parentheses. For a range, use a hyphen or the
   word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
-- Headings use a sentence case. Capitalise the first word, proper nouns and
+- Headings use the sentence case. Capitalise the first word, proper nouns and
   acronyms only, so "Sunk cost fallacy" and "Chesterton's fence", but "KISS"
   and "YAGNI" are unchanged. Google's and Microsoft's style guides both require
   this. Title case has no single definition, so it cannot be applied
@@ -292,7 +292,7 @@ pattern verbatim.
   and #233 track the clean-up. Write new prose to the rules rather than
   imitating the surrounding text.
 - Direct quotations are reproduced as the source wrote them. The rules above
-  govern our own prose, not quoted text, so Knuth's "premature optimisation
+  govern our own prose, not quoted text, so Knuth's "premature optimization
   is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
   spelling. Never silently correct a quotation to house style. Where the
   original would breach a rule, paraphrase instead of quoting.
