@@ -44,6 +44,9 @@ Self-certified, an honest check, not independently verifiable:
 - [ ] Checked the full label list in GitHub's label picker, not just
   the ones already mentioned above, for anything else that
   applies
+- [ ] The issue has been independently reviewed using
+  `guidelines/ISSUE_REVIEW.md`, and any material disagreement has been
+  resolved
 
 ## Too big or unclear
 

@@ -27,6 +27,11 @@ An issue is ready to be worked on when:
 - Assigned to a Milestone when a relevant one exists
 - Its full comment thread has been read, not just the description —
   scope may have changed or been clarified there after the filing.
+- It has been independently reviewed by a second LLM before work
+  commences. The second LLM reviews the issue against the specification,
+  acceptance criteria, applicable principles and decisions, and potential
+  unintended consequences, without relying on the first LLM's assessment.
+  Any material disagreement has been resolved.
 
 An issue meeting all the above gets the `ready` label. This does
 not require an assignee. Assignment happens when someone
