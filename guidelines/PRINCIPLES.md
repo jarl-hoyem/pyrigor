@@ -100,6 +100,8 @@ These are project-level principles. They guide engineering decisions; they are n
 
 **Application to Pyrigor:** For significant behaviour, tests should make the intended contract concrete: what must be accepted, what must be rejected, what diagnostics are expected, and what important edge cases must hold. Tests should be readable enough to serve as an executable description of the requirement.
 
+**Additional requirement:** The test suite must also protect against regression in test effectiveness. Changes must not reduce the established Mutmut mutation-score floor. The floor is a project-level quality gate, not a per-change target to be optimized by weakening the mutation test suite.
+
 **Scope:** Project development
 
 **Status:** Adopted
