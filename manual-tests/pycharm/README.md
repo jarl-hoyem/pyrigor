@@ -1,6 +1,6 @@
 # Manual PyCharm integration tests
 
-This exercise the File Watcher described in the repository README under
+This exercises the File Watcher described in the repository README under
 "Seeing violations in your editor". Configure it before starting. Every
 check is performed by editing a file and watching the Problems view, so
 none of them can run in CI.
