@@ -17,6 +17,10 @@ is usable for.
   keyword-only argument fixes, with byte-preserving handling for UTF-8
   BOMs and CRLF input.
 
+### Fixed
+
+- Fixed PYR406 resolving deleted local names to outer functions (#226).
+
 ## [0.12.0] 2026-08-28
 
 ### Added
