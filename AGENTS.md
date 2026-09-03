@@ -286,6 +286,11 @@ pattern verbatim.
 - Existing documentation does not yet follow these four rules. Issues #218 to
   #221 track the cleanup. Write new prose to the rules rather than imitating
   the surrounding text.
+- Direct quotations are reproduced as the source wrote them. The rules above
+  govern our own prose, not quoted text, so Knuth's "premature optimization
+  is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
+  spelling. Never silently correct a quotation to house style. Where the
+  original would breach a rule, paraphrase instead of quoting.
 - Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
 - Run targeted formatting and lint checks before the full pre-commit suite, so it validates
   an already-clean working tree on its first run.
