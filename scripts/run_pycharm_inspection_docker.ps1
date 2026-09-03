@@ -57,69 +57,77 @@ Write-Host "Running PyCharm inspection in Docker..."
 $projectForward = $project -replace '\\', '/'
 $outputForward = $output -replace '\\', '/'
 
-# Generate source directory list dynamically from .py file locations
-$exclusions = @('.venv', 'htmlcov', '.git', '__pycache__', '.pytest_cache', '.egg-info', 'node_modules', '.mypy_cache', '.ruff_cache', 'dist', 'build', 'mutants')
-$sourceDirs = @()
-Get-ChildItem -Path $project -Filter "*.py" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-    $dir = Split-Path $_.FullName
-    $excluded = $false
-    foreach ($exclusion in $exclusions)
-    {
-        if ($dir -like "*$exclusion*")
-        {
-            $excluded = $true
-            break
-        }
-    }
-    if (-not $excluded)
-    {
-        $sourceDirs += $dir
-    }
-}
-$sourceDirs = $sourceDirs | Select-Object -Unique | Sort-Object
-
-if ($sourceDirs.Count -eq 0)
+# Mask generated and cached directories with empty tmpfs mounts, then scan the
+# whole project with a single -d. Repeating -d does not accumulate: pycharm.sh
+# inspect keeps only the last one, which is why the previous per-directory
+# approach silently analysed a single directory and reported success (#229).
+#
+# Patterns, not fixed names. The cache directories are variably named
+# (.uv-cache-release, .uv-cache-kpi, .codex-uv-cache, .complexipy_cache), and a
+# hand-maintained list is exactly what drifts, per #215.
+#
+# .venv is deliberately absent: .idea/pyrigor@1.iml already excludes it,
+# confirmed by it contributing no analysed files in a real run.
+$maskPatterns = @('htmlcov', 'dist', 'build', 'mutants', 'node_modules', 'target', '*cache*', '*.egg-info')
+$maskedDirs = @()
+foreach ($pattern in $maskPatterns)
 {
-    Write-Host "Warning: No source directories found. Scanning entire project."
-    $scanDirs = @("/project")
-}
-else
-{
-    $scanDirs = @()
-    foreach ($dir in $sourceDirs)
-    {
-        $dirForward = $dir -replace '\\', '/'
-        $relDir = $dirForward -replace [regex]::Escape($projectForward), '/project'
-        $scanDirs += $relDir
-    }
+    Get-ChildItem -Path $project -Directory -Force -Filter $pattern -ErrorAction SilentlyContinue |
+        ForEach-Object { $maskedDirs += $_.Name }
 }
 
-$args = @(
+# Masked unconditionally rather than by discovery: this directory is deleted
+# above, so nothing would match it here, but Docker recreates it as the bind
+# target and PyCharm then analyses the tool's own output.
+$maskedDirs += (Split-Path $output -Leaf)
+$maskedDirs = $maskedDirs | Select-Object -Unique | Sort-Object
+
+$dockerArgs = @(
     "run", "--rm",
     "--mount", ("type=bind,source=" + $projectForward + ",target=/project"),
-    "--mount", ("type=bind,source=" + $outputForward + ",target=/results"),
-    "--mount", "type=tmpfs,destination=/project/mutants",
+    "--mount", ("type=bind,source=" + $outputForward + ",target=/results")
+)
+foreach ($dir in $maskedDirs)
+{
+    $dockerArgs += "--mount"
+    $dockerArgs += "type=tmpfs,destination=/project/$dir"
+}
+$dockerArgs += @(
     $ImageName,
     "/opt/pycharm/bin/pycharm.sh", "inspect", "/project", ".idea/inspectionProfiles/Project_Default.xml", "/results",
-    "-format", "json", "-v2"
+    "-format", "json", "-v2", "-d", "/project"
 )
 
-# Add discovered directories
-foreach ($dir in $scanDirs)
-{
-    $args += "-d"
-    $args += $dir
-}
+Write-Host "Masked from analysis: $( $maskedDirs -join ', ' )"
+
 $prevErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
-$containerOutput = & docker $args 2>&1
+$containerOutput = & docker $dockerArgs 2>&1 | Out-String
 $inspectionExitCode = $LASTEXITCODE
 $ErrorActionPreference = $prevErrorAction
+
+Set-Content -Path $log -Value $containerOutput -Encoding utf8
 
 if ($inspectionExitCode -ne 0)
 {
     Write-Host $containerOutput
-    throw "PyCharm inspection failed with exit code $inspectionExitCode"
+    throw "PyCharm inspection failed with exit code $inspectionExitCode. See $log"
+}
+
+# Zero findings from a run that analysed almost nothing looks exactly like a
+# clean project. That is how #229 stayed hidden. The floor is derived rather
+# than chosen: the run must at least have seen pyrigor's own source and tests.
+$analysedCount = ([regex]::Matches($containerOutput, '(?m)^Analyzing code in ')).Count
+$ownSources = @(Get-ChildItem -Path (Join-Path $project 'pyrigor'), (Join-Path $project 'tests') `
+        -Filter '*.py' -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notlike '*__pycache__*' })
+if ($ownSources.Count -eq 0)
+{
+    throw "Found no Python files under pyrigor/ or tests/, so the coverage floor cannot be established."
+}
+if ($analysedCount -lt $ownSources.Count)
+{
+    throw "Only $analysedCount files were analysed, fewer than the $( $ownSources.Count ) Python files in pyrigor/ and tests/. The inspection did not cover the project. See $log"
 }
 
 # Parse results
@@ -134,8 +142,10 @@ foreach ($report in $reports)
 }
 
 Write-Host "PyCharm inspection completed."
+Write-Host "Files analysed: $analysedCount"
 Write-Host "Reports: $( $reports.Count )"
 Write-Host "Findings: $total"
 Write-Host "Output: $output"
+Write-Host "Log: $log"
 Write-Host ""
 Write-Host "Host PyCharm IDE was not affected"
