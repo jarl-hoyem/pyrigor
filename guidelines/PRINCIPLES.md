@@ -37,6 +37,9 @@ as the real requirements allow. Simple does not mean simplistic:
 complexity justified by correctness, security, performance,
 compatibility, or maintainability is acceptable.
 
+Occam's Razor, Least Power, and Separation of Concerns are treated as
+applications of KISS rather than separate principles.
+
 ## Inversion
 
 **Principle:** Instead of asking only how to achieve a desired outcome,
@@ -60,6 +63,10 @@ speculative generality merely because a future rule, language feature,
 backend, integration, or user may eventually require it. Invest in
 keeping the code easy to change instead of implementing hypothetical
 future requirements.
+
+Reversibility is useful when deciding whether to build something, but
+YAGNI remains the governing principle: do not build what is not
+currently needed.
 
 ## Sunk Cost Fallacy
 
@@ -103,6 +110,9 @@ of verification to the consequence of being wrong. A release or a
 security-relevant change earns more independent evidence than a
 documentation correction.
 
+“Zero Trust” is treated as an application of independent verification
+rather than a separate principle.
+
 **Enforced by:** `guidelines/ISSUE_REVIEW.md` and the review checkbox
 in the issue template.
 
@@ -116,6 +126,9 @@ architectural change, or behavioural change, establish the required
 behaviour and acceptance criteria first. For rules, this includes the
 violation, valid counterexamples, exceptions, diagnostic behaviour, and
 expected results where relevant.
+
+Design by Contract is treated as a technique for expressing and
+enforcing specifications, not as a separate principle.
 
 **Enforced by:** `guidelines/DEFINITION_OF_READY.md`.
 
@@ -158,6 +171,9 @@ the intended contract concrete: what must be accepted, what must be
 rejected, what diagnostics are expected, and what important edge cases
 must hold. Tests should be readable enough to serve as an executable
 description of the requirement.
+
+Monotonicity is a property to specify and test where applicable, not a
+general principle.
 
 **Additional requirement:** The test suite must also protect against
 regression in test effectiveness. Changes must not reduce the mutation
@@ -213,3 +229,6 @@ behaviour, onboarding, issue handling, release communication, and
 contributor experience as products in their own right. Look for
 opportunities to remove friction and provide useful guidance beyond the
 minimum required for functionality.
+
+Least Surprise is treated as a consideration within hospitality rather
+than a separate principle.
