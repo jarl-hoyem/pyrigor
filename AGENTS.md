@@ -234,6 +234,12 @@ close with no comment loses the "here is what actually happened"
 record a reader would otherwise have to reconstruct from commit
 history alone.
 
+Wait for CI to pass before closing. A fix that is committed is not yet
+a fix that works everywhere, and an issue closed on a red build has to
+be reopened. This is why a commit message references an issue with
+`refs` rather than a closing keyword: the keyword closes it the moment
+the commit lands on the default branch, before any check has run.
+
 GitHub auto-closes an issue the moment a closing keyword (`fix`,
 `fixes`, `closes`, `resolves`, and their variants) sits directly in
 front of `#N` in any commit message that lands on the default
