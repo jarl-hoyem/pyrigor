@@ -4,12 +4,12 @@ from typing import Any
 
 
 def make_pair() -> tuple[int, str]:
-    """Return two values without a NamedTuple."""
+    """Return the two values without a NamedTuple."""
     return 1, "one"
 
 
 def apply_correction(weight: int, bias: int) -> int:
-    """Use positional parameters and return a value."""
+    """Use the positional parameters and return a value."""
     return weight + bias
 
 
@@ -19,7 +19,7 @@ def discard_result() -> int:
 
 
 def run() -> None:
-    """Trigger representative diagnostics."""
+    """Trigger the representative diagnostics."""
     apply_correction(1, 2)
     discard_result()
 

@@ -50,7 +50,7 @@ apply_correction(bias, weight)  # error: expected Weight, got Bias
 
 This is not redundant with [PYR401](PYR401-namedtuple-returns.md).
 `NamedTuple` closes the *return-unpacking* gap — it stops a caller from
-mislabeling fields by position. But if a `NamedTuple`'s fields are
+mislabelling fields by position. But if a `NamedTuple`'s fields are
 still bare same-typed values, two fields can still be constructed in
 the wrong order at the point the `NamedTuple` itself is built, or
 passed to a function expecting them in a different arrangement,
@@ -89,9 +89,9 @@ Combined, [PYR401](./PYR401-namedtuple-returns.md) and PYR201 catch:
 - Argument-order swaps for differently typed args → plain type
   annotations (no extra tooling needed)
 - Argument-order swaps for same-typed args → `NewType`
-- Return-unpacking mislabeling for differently typed return values →
+- Return-unpacking mislabelling for differently typed return values →
   `NamedTuple` alone
-- Return-unpacking mislabeling for same-typed return fields →
+- Return-unpacking mislabelling for same-typed return fields →
   `NamedTuple` + `NewType` together
 
 `NewType` has zero runtime cost — it is an identity function at
