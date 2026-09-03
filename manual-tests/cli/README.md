@@ -58,7 +58,7 @@ uv run pyrigor --exclude manual-tests/cli/violations.py --exclude manual-tests/c
 ```
 
 Expected output excludes both `violations.py` and
-`nested/nested_violations.py`, while still checking the clean, suppressed, and
+`nested/nested_violations.py`, while still checking the clean, suppressed and
 Unicode fixtures. The Unicode fixture produces one diagnostic, so the exit
 code is `1`.
 
@@ -106,7 +106,7 @@ uv run pyrigor manual-tests/cli/clean.py manual-tests/cli/violations.py
 ```
 
 Expected human output reports violations from `violations.py`, confirms that
-two files were checked, and exits with `1`.
+two files were checked and exits with `1`.
 
 ```powershell
 uv run pyrigor --output-format=json manual-tests/cli
@@ -143,6 +143,22 @@ uv run pyrigor --select=PYR402 --ignore=PYR402 manual-tests/cli/violations.py
 
 Expected stderr says that `--select` and `--ignore` leave no rules to
 check. The exit code is `2`.
+
+## PYR402 fixer
+
+```powershell
+powershell -ExecutionPolicy Bypass -File manual-tests/cli/fix-pyr402.ps1
+```
+
+The script creates and removes its own temporary fixtures. It checks the
+`--diff` preview does not write, then checks `--fix --select=PYR402
+--show-fixes` changes and reports each fix. It also covers a rejected
+positional-only signature, an unchanged `*args` signature, missing input
+and missing explicit rule selection.
+
+The fixable fixtures cover UTF-8 without a BOM, UTF-8 with a BOM, LF, CRLF
+and mixed line endings. Each fixture must retain every original byte except
+the inserted keyword-only separator.
 
 ## Invalid and repeated arguments
 

@@ -137,7 +137,9 @@ repos:
         # subfolder's own README.md).
         # clean.py/empty.py/suppressed.py stay covered by this
         # self-check like any other source file.
-        args:
+        # The anchor below is aliased by the WIP self-check hook further
+        # down, so this list is written once.
+        args: &fixture_excludes
           - --exclude
           - manual-tests/cli/violations.py
           - --exclude
@@ -281,12 +283,8 @@ repos:
       - id: pyrigor
         name: pyrigor (WIP self-check, uncommitted code)
         language: system
-        entry: >-
-          uv run --extra dev python -m pyrigor.checkers.cli .
-          --exclude manual-tests/cli/violations.py
-          --exclude manual-tests/cli/unicode.py
-          --exclude manual-tests/cli/nested
-          --exclude manual-tests/pycharm/watcher.py
+        entry: uv run --extra dev python -m pyrigor.checkers.cli .
+        args: *fixture_excludes
         types: [ python ]
         pass_filenames: false
         stages: [ pre-commit ]
