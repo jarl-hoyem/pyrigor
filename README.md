@@ -98,7 +98,7 @@ every other one. Both may be combined — `--ignore` removes codes
 from `--select`'s set (or from every rule, if `--select` is
 omitted). The codes may be given as the full code, the bare number,
 or the symbolic name, the same as suppression comments. An
-unrecognized code exits immediately with an error naming it, as does
+unrecognised code exits immediately with an error naming it, as does
 a `--select`/`--ignore` combination that leaves no rules to check.
 Use `--exclude PATH` to omit a file or directory and everything below it.
 Repeat the option to exclude multiple paths. This exclusion is
@@ -182,6 +182,34 @@ Show it in your own README:
 ```markdown
 [![Checked with pyrigor](https://img.shields.io/badge/checked%20with-pyrigor-blue)](https://github.com/jarl-hoyem/pyrigor)
 ```
+
+### Seeing violations in your editor
+
+The tool pyrigor writes `file:line:column: message`, which most editors parse
+without needing a plugin. Configuring your existing tools beats installing
+another one.
+
+In PyCharm, add a File Watcher under `Settings, Tools, File Watchers`:
+
+| Setting           | Value                                        |
+|-------------------|----------------------------------------------|
+| File type         | Python                                       |
+| Scope             | Project Files                                |
+| Program           | `$ProjectFileDir$/.venv/Scripts/pyrigor.exe` |
+| Arguments         | `$FilePath$`                                 |
+| Working directory | `$ProjectFileDir$`                           |
+| Show console      | Never                                        |
+| Output filters    | `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`     |
+
+On macOS and Linux the program path is `$ProjectFileDir$/.venv/bin/pyrigor`.
+
+Two settings are not straightforward. The `Show console: Never` matters because
+pyrigor exits 1 whenever it finds anything, so any other value opens a
+console on every save. And `Output filters` is not a plain text field, it
+needs the browse button next to it, otherwise the value is silently
+discarded.
+
+Violations then appear in the Problems view, clickable, as you save.
 
 ## What this is
 
