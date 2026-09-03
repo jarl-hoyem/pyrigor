@@ -232,3 +232,37 @@ minimum required for functionality.
 
 Least Surprise is treated as a consideration within hospitality rather
 than a separate principle.
+
+## Determinism
+
+**Principle:** Given the same relevant inputs, configuration, and tool
+version, Pyrigor must produce the same observable result, independent
+of incidental factors such as execution order, filesystem ordering,
+timing, or parallelism.
+
+## Make Illegal States Unrepresentable
+
+**Principle:** Where practical, design types, data structures, and
+interfaces so that invalid states cannot be represented, rather than
+merely detecting them after they exist.
+
+## Fail Fast
+
+**Principle:** Detect invalid inputs, invalid states, and errors at the
+earliest practical point rather than allowing them to propagate.
+
+## Fail Safe
+
+**Principle:** When analysis fails or becomes uncertain, Pyrigor must
+not silently produce a result that falsely represents the code as
+compliant.
+
+## Diagnosability
+
+**Principle:** Failures and unexpected behavior must provide enough
+information to determine what happened and why.
+
+## Traceability
+
+**Principle:** Every important requirement must be traceable to evidence
+demonstrating that it has been satisfied.
