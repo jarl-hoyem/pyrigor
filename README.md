@@ -211,6 +211,21 @@ discarded.
 
 Violations then appear in the Problems view, clickable, as you save.
 
+Other editors read the same lines. In Vim or Neovim, `makeprg=pyrigor\ %` with
+`errorformat=%f:%l:%c:\ %m` fills the quickfix list from `:make`. In Emacs,
+`M-x compile` running `pyrigor .` needs no configuration at all, because
+compilation mode already recognises this format. In Visual Studio Code, a task
+in `.vscode/tasks.json` whose `problemMatcher` pattern is
+`^(.+):(\d+):(\d+): (.+)$` fills the Problems panel, and that file is normally
+committed, so it reaches everyone on the project. Sublime Text takes the same
+expression as a build system's `file_regex`.
+
+The text line is the lowest common denominator. Where an editor can consume
+structured output, `--output-format=json` carries more: a severity per
+violation, the end line and column, the symbolic name, and whether a safe fix
+exists. An integration built on that can show ranges and colour them by
+severity, which the plain line cannot express.
+
 ## What this is
 
 Python's failure modes are often silent: implicit type coercion,
