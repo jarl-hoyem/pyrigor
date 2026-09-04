@@ -21,6 +21,8 @@ The reviewer checks:
 - If the issue revisits an existing approach, consider whether continuing
   it is justified by its future value and cost rather than by investment
   already made.
+- Evidence that could disconfirm the proposed approach has been considered,
+  rather than evaluating only evidence that supports it.
 
 The reviewer must not design or implement the solution.
 
