@@ -27,6 +27,8 @@ The reviewer checks:
   important uncertainty or limitations identified where relevant.
 - Unnecessary friction for users, contributors, reviewers, or adopters has
   been considered and minimized where practical.
+- The proposed approach has been challenged rather than merely confirmed;
+  material alternatives and objections have been considered.
 
 The reviewer must not design or implement the solution.
 
