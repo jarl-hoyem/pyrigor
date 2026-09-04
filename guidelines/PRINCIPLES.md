@@ -266,3 +266,60 @@ information to determine what happened and why.
 
 **Principle:** Every important requirement must be traceable to evidence
 demonstrating that it has been satisfied.
+
+## Goodhart's Law
+
+**Principle:** A measure used as a target must not be mistaken for the
+underlying quality or outcome it is intended to represent.
+
+**Application to Pyrigor:** Use metrics such as test coverage, mutation
+score, performance, downloads, stars, engagement, and other indicators
+as evidence rather than as substitutes for the underlying goal. Do not
+optimize a metric in a way that makes Pyrigor appear better while the
+actual quality, usefulness, or trustworthiness becomes worse.
+
+## Curse of Knowledge
+
+**Principle:** Do not assume that users, contributors, reviewers, or
+audiences share the knowledge that the project team has acquired.
+
+**Application to Pyrigor:** Write documentation, error messages,
+examples, presentations, and the CfP so that they remain understandable
+to their intended audience without requiring the project's internal
+context. Re-check explanations from the perspective of someone who does
+not already know why Pyrigor works the way it does.
+
+## Confirmation Bias
+
+**Principle:** Actively seek and fairly evaluate evidence that could
+disconfirm an existing belief, expectation, or preferred outcome.
+
+**Application to Pyrigor:** When evaluating rules, architecture, claims,
+tooling choices, test results, releases, or market and CfP assumptions,
+look deliberately for evidence against the preferred conclusion. Do not
+select examples, benchmarks, feedback, or research merely because they
+support what the project already believes.
+
+## Overconfidence
+
+**Principle:** Do not treat confidence in a conclusion as evidence of
+its correctness; calibrate confidence to the strength of the evidence.
+
+**Application to Pyrigor:** Be especially cautious when a conclusion is
+produced confidently by an AI agent, maintainer, reviewer, benchmark,
+or other apparently authoritative source. State uncertainty and
+limitations where they matter, and seek stronger evidence when the
+consequences of being wrong are significant.
+
+## Earn Trust Through Evidence
+
+**Principle:** Trust should be earned through transparent,
+independently verifiable evidence rather than authority, confidence,
+popularity, or claims alone.
+
+**Application to Pyrigor:** Support important claims about Pyrigor—its
+correctness, quality, performance, usefulness, and maturity—with
+evidence that others can inspect or reproduce. Be explicit about
+limitations and uncertainty. AI-generated work must be subject to
+independent verification rather than trusted because it was produced
+confidently.
