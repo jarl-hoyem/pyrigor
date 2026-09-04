@@ -15,6 +15,9 @@ The reviewer checks:
 - scope and whether the issue should be split
 - missing requirements or ambiguity
 - potential unintended consequences
+- If the issue changes or removes existing behavior, the reason for that
+  existing behavior has been identified and considered before proposing the
+  change.
 
 The reviewer must not design or implement the solution.
 
