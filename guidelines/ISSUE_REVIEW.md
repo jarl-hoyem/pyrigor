@@ -25,6 +25,8 @@ The reviewer checks:
   rather than evaluating only evidence that supports it.
 - Conclusions and claims are proportionate to the available evidence, with
   important uncertainty or limitations identified where relevant.
+- Unnecessary friction for users, contributors, reviewers, or adopters has
+  been considered and minimized where practical.
 
 The reviewer must not design or implement the solution.
 
