@@ -23,6 +23,8 @@ The reviewer checks:
   already made.
 - Evidence that could disconfirm the proposed approach has been considered,
   rather than evaluating only evidence that supports it.
+- Conclusions and claims are proportionate to the available evidence, with
+  important uncertainty or limitations identified where relevant.
 
 The reviewer must not design or implement the solution.
 
