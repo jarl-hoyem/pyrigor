@@ -71,7 +71,8 @@ currently needed.
 ## Sunk Cost Fallacy
 
 **Principle:** Past, unrecoverable investment should not determine what
-is best from today forward.
+is best from today forward. Re-evaluate decisions based on their future
+value and cost, not on resources already spent.
 
 **Application to Pyrigor:** When reconsidering code, architecture,
 dependencies, tooling, processes, or project direction, evaluate future
@@ -272,16 +273,15 @@ demonstrating that it has been satisfied.
 **Principle:** A measure used as a target must not be mistaken for the
 underlying quality or outcome it is intended to represent.
 
-**Application to Pyrigor:** Use metrics such as test coverage, mutation
-score, performance, downloads, stars, engagement, and other indicators
-as evidence rather than as substitutes for the underlying goal. Do not
-optimize a metric in a way that makes Pyrigor appear better while the
-actual quality, usefulness, or trustworthiness becomes worse.
+**Application to Pyrigor:** Use metrics as evidence rather than as
+substitutes for the underlying goal. Do not optimize a metric in a way
+that makes Pyrigor appear better while actual quality, usefulness, or
+trustworthiness becomes worse.
 
 ## Curse of Knowledge
 
 **Principle:** Do not assume that users, contributors, reviewers, or
-audiences share the knowledge that the project team has acquired.
+audiences share knowledge that the project has acquired.
 
 **Application to Pyrigor:** Write documentation, error messages,
 examples, presentations, and the CfP so that they remain understandable
@@ -295,8 +295,8 @@ not already know why Pyrigor works the way it does.
 disconfirm an existing belief, expectation, or preferred outcome.
 
 **Application to Pyrigor:** When evaluating rules, architecture, claims,
-tooling choices, test results, releases, or market and CfP assumptions,
-look deliberately for evidence against the preferred conclusion. Do not
+tooling choices, test results, releases, or project assumptions,
+deliberately look for evidence against the preferred conclusion. Do not
 select examples, benchmarks, feedback, or research merely because they
 support what the project already believes.
 
@@ -305,15 +305,15 @@ support what the project already believes.
 **Principle:** Do not treat confidence in a conclusion as evidence of
 its correctness; calibrate confidence to the strength of the evidence.
 
-**Application to Pyrigor:** Be especially cautious when a conclusion is
-produced confidently by an AI agent, maintainer, reviewer, benchmark,
-or other apparently authoritative source. State uncertainty and
+**Application to Pyrigor:** Treat confident conclusions from AI agents,
+maintainers, reviewers, benchmarks, or other apparently authoritative
+sources as claims requiring appropriate evidence. State uncertainty and
 limitations where they matter, and seek stronger evidence when the
 consequences of being wrong are significant.
 
 ## Earn Trust Through Evidence
 
-**Principle:** Trust should be earned through transparent,
+**Principle:** Important claims must be supported by transparent,
 independently verifiable evidence rather than authority, confidence,
 popularity, or claims alone.
 
