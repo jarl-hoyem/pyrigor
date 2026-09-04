@@ -18,6 +18,9 @@ The reviewer checks:
 - If the issue changes or removes existing behavior, the reason for that
   existing behavior has been identified and considered before proposing the
   change.
+- If the issue revisits an existing approach, consider whether continuing
+  it is justified by its future value and cost rather than by investment
+  already made.
 
 The reviewer must not design or implement the solution.
 
