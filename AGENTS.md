@@ -157,7 +157,7 @@ Work efficiently with model tokens, tool calls, network access and the maintaine
   should stop with them.
 - The maintainer handles staging, commits and pushes. Provide a copy-paste-ready commit message after verified file
   changes.
-- Combine the approved closing comment and issue close into one GitHub action.
+- Combine the approved closing comment and issue close into one GitHub Action.
 - Before release or issue work, reread this file, `CLAUDE.md`, the relevant issue template and applicable project
   guidance; do not rely on memory from another session.
 - Validate commit messages against the repository's actual Commitizen configuration before recommending them; use only
