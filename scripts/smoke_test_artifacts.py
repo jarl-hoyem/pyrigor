@@ -36,6 +36,11 @@ def _uv_executable() -> str:
     return executable
 
 
+def _pyproject_version() -> str:
+    """Return the project version declared in pyproject.toml."""
+    return cast("str", tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])
+
+
 def _run_artifact(*, executable: Path, artifact: Path, target: str) -> dict[str, object]:
     """Run the installed artifact against one fixture and return JSON output."""
     command = [
@@ -63,11 +68,27 @@ def _artifact_results(*, artifact: Path, environment: Path) -> dict[str, dict[st
     }
     executable_name = "pyrigor.exe" if os.name == WINDOWS_PLATFORM else "pyrigor"
     executable = environment / ("Scripts" if os.name == WINDOWS_PLATFORM else "bin") / executable_name
+    _run_version_smoke(executable=executable, artifact=artifact)
     results = {
         name: _run_artifact(executable=executable, artifact=artifact, target=target) for name, target in targets.items()
     }
     _run_fixer_smoke(executable=executable, artifact=artifact, fixture=environment / "fixer-fixture.py")
     return results
+
+
+def _run_version_smoke(*, executable: Path, artifact: Path) -> None:
+    """Verify the installed entry point reports the packaged version."""
+    expected = f"pyrigor {_pyproject_version()}"
+    # noinspection PyArgumentEqualDefault
+    result = subprocess.run(  # noqa: S603  # nosec B603 - trusted local executable
+        [str(executable), "--version"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    reported = result.stdout.strip()
+    if result.returncode or reported != expected:
+        raise RuntimeError(f"{artifact.name} reported {reported!r}, expected {expected!r}")
 
 
 def _run_fixer_smoke(*, executable: Path, artifact: Path, fixture: Path) -> None:
