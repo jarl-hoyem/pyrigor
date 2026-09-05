@@ -25,6 +25,21 @@ existing behaviour, rules, architecture, documentation, or processes,
 establish why they exist. Preserve the underlying purpose unless there
 is a deliberate reason to change it.
 
+The principle also runs forwards, as a way of finding defects rather
+than only a brake on removing things. Ask why an existing thing is the
+way it is, without intending to change it. When the answer comes back
+"no reason", something is broken. A value stated in two places with
+nothing keeping them in synch, or a flag with no behaviour behind it,
+both look deliberate until someone asks.
+
+Failing to find a reason is different from there being none, and the
+difference is invisible from the inside. Exhaust the search before
+treating "no reason" as a finding: `DECISIONS.md`, the issue tracker,
+the configuration's own comments, and the commit that introduced the
+thing. Asking why something exists while already wanting it gone is not
+this principle, it is looking for permission, and an incomplete search
+will happily supply it.
+
 ## KISS
 
 **Principle:** Prefer the simplest design that satisfies the actual
@@ -155,17 +170,16 @@ have failed and when it is known to have run over the intended input.
 
 **Application to Pyrigor:** Design every check so that "it passed" and
 "it did not run" look different. Report what was covered, not only what
-was found. This project has produced that failure repeatedly, including
-an inspection that analysed one file and declared success (#229). Before
-accepting a check, ask what its output would be if it did nothing at
-all and make that case visible.
+was found. A scan that examines one file and reports success is
+indistinguishable from a clean project. Before accepting a check, ask
+what its output would be if it did nothing at all and make that case
+visible.
 
 Tests are the largest population of checks here, and the criterion is
 the same: a test earns its place by being able to fail. Coverage, a
 descriptive name, and the existence of a test file are not evidence
-that anything is verified. The flag `--show-fixes` shipped doing
-nothing, with a test named after it that passes when the flag is
-omitted (#247).
+that anything is verified. A flag with no behaviour can carry a test
+named after it that passes when the flag is omitted.
 
 **Enforced by:** review, against `guidelines/DEFINITION_OF_DONE.md`.
 The mutation-score gate catches the subset where there is code to
