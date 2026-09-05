@@ -216,6 +216,14 @@ template cannot be found, inspect it before drafting the issue. Before
 creation, verify the template headings, labels, milestone availability and
 required fields.
 
+Tangents get the `nice` label, named after Unix `nice`: the issue yields
+to other work. Apply it when an idea is worth keeping but does not move
+the project forward, which is most of what gets filed while going down a
+rabbit hole. It is neither a rejection nor a priority ranking. It marks
+an issue as one that should not compete with the current phase for
+attention. Typography, tool comparisons and one-off investigations
+belong there by default.
+
 Blocking relationships between issues uses GitHub's native "blocked
 by" feature, not prose "Blocked on #N"/"Blocks #N" text in the issue
 body. Set it via the UI, or the `addBlockedBy` GraphQL mutation -
@@ -291,7 +299,7 @@ pattern verbatim.
   a full stop or use a comma or parentheses. For a range, use a hyphen or the
   word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
-- Headings use the sentence case. Capitalise the first word, proper nouns and
+- Headings use a sentence case. Capitalise the first word, proper nouns and
   acronyms only, so "Sunk cost fallacy" and "Chesterton's fence", but "KISS"
   and "YAGNI" are unchanged. Google's and Microsoft's style guides both require
   this. Title case has no single definition, so it cannot be applied
@@ -304,6 +312,13 @@ pattern verbatim.
   is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
   spelling. Never silently correct a quotation to house style. Where the
   original would breach a rule, paraphrase instead of quoting.
+- A new prose or style rule must be mechanically checkable, and the issue
+  that adds the check is filed at the same time as the rule. A rule no
+  checker can decide is a preference, and preferences generate clean-up
+  work indefinitely with nothing to stop the next one. Heading case is
+  qualified, since a title case is ambiguous and a checker can flag it
+  (#233, #234). Definite articles did not, since nothing can decide
+  whether a noun phrase should be definite.
 - Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
 - Run targeted formatting and lint checks before the full pre-commit suite, so it validates
   an already-clean working tree on its first run.
