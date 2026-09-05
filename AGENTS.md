@@ -166,6 +166,17 @@ maintainer's time:
 - Do not use subagents for small or sequential tasks.
 - Keep progress updates brief and report only information that affects the
   task or requires a decision.
+- Prefer asking why an existing thing is the way it is over proposing to
+  standardise something nobody has complained about. The first is
+  Chesterton's Fence applied forwards: when the answer turns out to be
+  "no reason", a defect has been found. The second produces more backlog.
+  Measured on 2026-09-05: four "why is this like this" questions produced
+  #247, #248, #249 and a correction to #236, while the standardisation
+  proposals from the same session produced five issues, every one later
+  labelled `nice`and no defects. This holds only while an unexamined
+  surface remains. Once the answer is reliably "because it is correct,
+  and here is the reasoning", the questions have stopped paying and the
+  habit should stop with them.
 - The maintainer handles staging, commits and pushes. Provide a
   copy-paste-ready commit message after verified file changes.
 - Combine the approved closing comment and issue close into one GitHub action.
