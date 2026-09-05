@@ -326,8 +326,8 @@ pattern verbatim.
 - A new prose or style rule must be mechanically checkable, and the issue
   that adds the check is filed at the same time as the rule. A rule no
   checker can decide is a preference, and preferences generate clean-up
-  work indefinitely with nothing to stop the next one. Heading case is
-  qualified, since a title case is ambiguous and a checker can flag it
+  work indefinitely with nothing to stop the next one. The heading case did
+  qualify, since a title case is ambiguous and a checker can flag it
   (#233, #234). Definite articles did not, since nothing can decide
   whether a noun phrase should be definite.
 - Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
