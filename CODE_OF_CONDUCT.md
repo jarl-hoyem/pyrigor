@@ -2,8 +2,8 @@
 
 ## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone.
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for
+everyone.
 
 ## Our Standards
 
@@ -22,11 +22,9 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Project maintainers are responsible for clarifying and enforcing standards.
-Instances of abusive behavior may be reported to the maintainers via GitHub issues
-or the contact method listed in the repository.
+Project maintainers are responsible for clarifying and enforcing standards. Instances of abusive behavior may be
+reported to the maintainers via GitHub issues or the contact method listed in the repository.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org),
-version 2.1.
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.

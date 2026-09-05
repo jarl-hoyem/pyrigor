@@ -1,7 +1,7 @@
 # Manual CLI tests
 
-Run these commands from the repository root with `uv run pyrigor`.
-Each command is independent and can be copied directly into PowerShell.
+Run these commands from the repository root with `uv run pyrigor`. Each command is independent and can be copied
+directly into PowerShell.
 
 ## Clean file
 
@@ -23,8 +23,8 @@ The exit code is `0`.
 uv run pyrigor manual-tests/cli/violations.py
 ```
 
-Expected output contains `PYR401`, `PYR402`, and `PYR406`, followed by a
-summary showing four violations. The exit code is `1`.
+Expected output contains `PYR401`, `PYR402`, and `PYR406`, followed by a summary showing four violations. The exit code
+is `1`.
 
 ## JSON diagnostics
 
@@ -32,9 +32,8 @@ summary showing four violations. The exit code is `1`.
 uv run pyrigor --output-format=json manual-tests/cli/violations.py
 ```
 
-Expected stdout is one JSON document containing diagnostics with codes
-`PYR401`, `PYR402`, and `PYR406`. The summary reports four diagnostics.
-The exit code is `1`.
+Expected stdout is one JSON document containing diagnostics with codes `PYR401`, `PYR402`, and `PYR406`. The summary
+reports four diagnostics. The exit code is `1`.
 
 ## Path exclusion
 
@@ -42,25 +41,22 @@ The exit code is `1`.
 uv run pyrigor --exclude manual-tests/cli/violations.py manual-tests/cli
 ```
 
-Expected output does not mention `violations.py`, but still reports the
-diagnostics from `nested/nested_violations.py` and `unicode.py`. The exit code
-is `1`.
+Expected output does not mention `violations.py`, but still reports the diagnostics from `nested/nested_violations.py`
+and `unicode.py`. The exit code is `1`.
 
 ```powershell
 uv run pyrigor --exclude manual-tests/cli/nested manual-tests/cli
 ```
 
-Expected output does not mention `nested_violations.py`, but still reports the
-diagnostics from `violations.py` and `unicode.py`. The exit code is `1`.
+Expected output does not mention `nested_violations.py`, but still reports the diagnostics from `violations.py` and
+`unicode.py`. The exit code is `1`.
 
 ```powershell
 uv run pyrigor --exclude manual-tests/cli/violations.py --exclude manual-tests/cli/nested manual-tests/cli
 ```
 
-Expected output excludes both `violations.py` and
-`nested/nested_violations.py`, while still checking the clean, suppressed and
-Unicode fixtures. The Unicode fixture produces one diagnostic, so the exit
-code is `1`.
+Expected output excludes both `violations.py` and `nested/nested_violations.py`, while still checking the clean,
+suppressed and Unicode fixtures. The Unicode fixture produces one diagnostic, so the exit code is `1`.
 
 ## Suppression
 
@@ -83,15 +79,14 @@ The exit code is `0`.
 uv run pyrigor --select=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected human output contains `PYR402` and does not contain `PYR301` or
-`PYR406`. The exit code is `1`.
+Expected human output contains `PYR402` and does not contain `PYR301` or `PYR406`. The exit code is `1`.
 
 ```powershell
 uv run pyrigor --output-format=json --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected JSON contains `PYR401` and `PYR406`, but not `PYR402`. The summary
-reports three diagnostics, and the exit code is `1`.
+Expected JSON contains `PYR401` and `PYR406`, but not `PYR402`. The summary reports three diagnostics, and the exit code
+is `1`.
 
 ```powershell
 uv run pyrigor --output-format=json --select=PYR401,PYR402 --ignore=PYR402 manual-tests/cli/violations.py
@@ -105,16 +100,14 @@ Expected JSON contains only `PYR401`. The exit code is `1`.
 uv run pyrigor manual-tests/cli/clean.py manual-tests/cli/violations.py
 ```
 
-Expected human output reports violations from `violations.py`, confirms that
-two files were checked and exits with `1`.
+Expected human output reports violations from `violations.py`, confirms that two files were checked and exits with `1`.
 
 ```powershell
 uv run pyrigor --output-format=json manual-tests/cli
 ```
 
-Expected JSON reports diagnostics from `violations.py` and
-`nested/nested_violations.py`, plus the clean and suppressed files. The exit code
-is `1`.
+Expected JSON reports diagnostics from `violations.py` and `nested/nested_violations.py`, plus the clean and suppressed
+files. The exit code is `1`.
 
 ## Unicode locations
 
@@ -122,8 +115,8 @@ is `1`.
 uv run pyrigor --output-format=json manual-tests/cli/unicode.py
 ```
 
-Expected JSON contains a diagnostic whose location uses character columns
-after the non-ASCII text. The exit code is `1`.
+Expected JSON contains a diagnostic whose location uses character columns after the non-ASCII text. The exit code is
+`1`.
 
 ## Parse errors
 
@@ -131,9 +124,8 @@ after the non-ASCII text. The exit code is `1`.
 powershell -ExecutionPolicy Bypass -File manual-tests/cli/parse-error.ps1
 ```
 
-Expected stdout is valid JSON with an empty `diagnostics` array and an
-error whose kind is `parse_error`. A warning is printed to stderr. The
-temporary invalid Python file is removed afterward. The exit code is `0`.
+Expected stdout is valid JSON with an empty `diagnostics` array and an error whose kind is `parse_error`. A warning is
+printed to stderr. The temporary invalid Python file is removed afterward. The exit code is `0`.
 
 ## Empty selection
 
@@ -141,8 +133,7 @@ temporary invalid Python file is removed afterward. The exit code is `0`.
 uv run pyrigor --select=PYR402 --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected stderr says that `--select` and `--ignore` leave no rules to
-check. The exit code is `2`.
+Expected stderr says that `--select` and `--ignore` leave no rules to check. The exit code is `2`.
 
 ## PYR402 fixer
 
@@ -150,15 +141,12 @@ check. The exit code is `2`.
 powershell -ExecutionPolicy Bypass -File manual-tests/cli/fix-pyr402.ps1
 ```
 
-The script creates and removes its own temporary fixtures. It checks the
-`--diff` preview does not write, then checks `--fix --select=PYR402
---show-fixes` changes and reports each fix. It also covers a rejected
-positional-only signature, an unchanged `*args` signature, missing input
-and missing explicit rule selection.
+The script creates and removes its own temporary fixtures. It checks the `--diff` preview does not write, then checks
+`--fix --select=PYR402 --show-fixes` changes and reports each fix. It also covers a rejected positional-only signature,
+an unchanged `*args` signature, missing input and missing explicit rule selection.
 
-The fixable fixtures cover UTF-8 without a BOM, UTF-8 with a BOM, LF, CRLF
-and mixed line endings. Each fixture must retain every original byte except
-the inserted keyword-only separator.
+The fixable fixtures cover UTF-8 without a BOM, UTF-8 with a BOM, LF, CRLF and mixed line endings. Each fixture must
+retain every original byte except the inserted keyword-only separator.
 
 ## Invalid and repeated arguments
 
@@ -166,12 +154,10 @@ the inserted keyword-only separator.
 uv run pyrigor --output-format=xml manual-tests/cli/clean.py
 ```
 
-Expected argparse usage output reports an invalid choice. The exit code
-is `2`.
+Expected argparse usage output reports an invalid choice. The exit code is `2`.
 
 ```powershell
 uv run pyrigor --output-format=json --output-format=human manual-tests/cli/clean.py
 ```
 
-Expected stderr says `--output-format` can only be given once. The exit
-code is `2`.
+Expected stderr says `--output-format` can only be given once. The exit code is `2`.

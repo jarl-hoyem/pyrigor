@@ -2,8 +2,7 @@
 
 Before implementation begins, an issue must be independently reviewed.
 
-The reviewer must not rely on another person's or LLM's assessment of
-the issue.
+The reviewer must not rely on another person's or LLM's assessment of the issue.
 
 The reviewer checks:
 
@@ -15,20 +14,18 @@ The reviewer checks:
 - scope and whether the issue should be split
 - missing requirements or ambiguity
 - potential unintended consequences
-- If the issue changes or removes existing behavior, the reason for that
-  existing behavior has been identified and considered before proposing the
-  change.
-- If the issue revisits an existing approach, consider whether continuing
-  it is justified by its future value and cost rather than by investment
-  already made.
-- Evidence that could disconfirm the proposed approach has been considered,
-  rather than evaluating only evidence that supports it.
-- Conclusions and claims are proportionate to the available evidence, with
-  important uncertainty or limitations identified where relevant.
-- Unnecessary friction for users, contributors, reviewers, or adopters has
-  been considered and minimized where practical.
-- The proposed approach has been challenged rather than merely confirmed;
-  material alternatives and objections have been considered.
+- If the issue changes or removes existing behavior, the reason for that existing behavior has been identified and
+  considered before proposing the change.
+- If the issue revisits an existing approach, consider whether continuing it is justified by its future value and cost
+  rather than by investment already made.
+- Evidence that could disconfirm the proposed approach has been considered, rather than evaluating only evidence that
+  supports it.
+- Conclusions and claims are proportionate to the available evidence, with important uncertainty or limitations
+  identified where relevant.
+- Unnecessary friction for users, contributors, reviewers, or adopters has been considered and minimized where
+  practical.
+- The proposed approach has been challenged rather than merely confirmed; material alternatives and objections have been
+  considered.
 
 The reviewer must not design or implement the solution.
 
@@ -37,8 +34,6 @@ The review outcome is one of:
 - **READY** — no material concerns
 - **NOT READY** — specific concerns must be resolved before work begins
 
-Any material disagreement between the issue author and reviewer must be
-resolved before implementation begins.
+Any material disagreement between the issue author and reviewer must be resolved before implementation begins.
 
-The reviewer must be independent of the person or LLM that will
-implement the work.
+The reviewer must be independent of the person or LLM that will implement the work.

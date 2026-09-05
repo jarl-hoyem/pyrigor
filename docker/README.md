@@ -51,12 +51,8 @@ For manual invocation, see the script source for current PyCharm CLI arguments.
 
 ## Benefits
 
-✓ Zero impact on host PyCharm IDE
-✓ No config corruption
-✓ No lock file conflicts
-✓ Repeatable, isolated environment
-✓ Can run parallel inspections
-✓ No manual recovery needed
+✓ Zero impact on host PyCharm IDE ✓ No config corruption ✓ No lock file conflicts ✓ Repeatable, isolated environment ✓
+Can run parallel inspections ✓ No manual recovery needed
 
 ## Trade-offs
 

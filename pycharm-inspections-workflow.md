@@ -2,8 +2,7 @@
 
 ## Problem
 
-PyCharm's command-line inspector requires the IDE to be closed and can collide
-with the IDE's normal lock files.
+PyCharm's command-line inspector requires the IDE to be closed and can collide with the IDE's normal lock files.
 
 ## Solutions (Ranked)
 
@@ -39,7 +38,6 @@ with the IDE's normal lock files.
 
 - `scripts/run_pycharm_inspection.ps1` runs the installed PyCharm executable directly
 - It uses the project inspection profile and full-project scope
-- The runner masks the generated `mutants/` tree inside the inspection
-  container, so duplicate mutation-test copies do not pollute project-wide
-  duplicate-code results.
+- The runner masks the generated `mutants/` tree inside the inspection container, so duplicate mutation-test copies do
+  not pollute project-wide duplicate-code results.
 - The latest run completed with zero findings.

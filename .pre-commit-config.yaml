@@ -56,6 +56,13 @@ repos:
         entry: uv run python scripts/check_text_hygiene.py
         stages: [ pre-commit ]
         files: "\\.(py|md|toml|ya?ml|json|txt|lock)$"
+      - id: prettier-markdown
+        name: prettier (Markdown)
+        language: node
+        entry: prettier --write --ignore-unknown
+        additional_dependencies: [ "prettier@3.9.6" ]
+        files: "\\.md$"
+        stages: [ pre-commit ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:

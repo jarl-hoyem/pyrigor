@@ -25,8 +25,7 @@ negative/error paths. -->
 
 ## Readiness checklist
 
-Structurally verifiable, not self-certified, apply these as real
-GitHub labels, not text below:
+Structurally verifiable, not self-certified, apply these as real GitHub labels, not text below:
 
 - [ ] A `value:` label is applied
 - [ ] An `effort:` label is applied
@@ -37,21 +36,15 @@ technical debt / refactoring, testing, rule in pyrigor, or tooling. -->
 
 Self-certified, an honest check, not independently verifiable:
 
-- [ ] The "Done when" section above states real, checkable criteria,
-  not just a restated problem
-- [ ] Considered whether this should be split smaller before
-  filing it as one issue
-- [ ] Checked the full label list in GitHub's label picker, not just
-  the ones already mentioned above, for anything else that
-  applies
-- [ ] The issue has been independently reviewed using
-  `guidelines/ISSUE_REVIEW.md`, and any material disagreement has been
-  resolved
+- [ ] The "Done when" section above states real, checkable criteria, not just a restated problem
+- [ ] Considered whether this should be split smaller before filing it as one issue
+- [ ] Checked the full label list in GitHub's label picker, not just the ones already mentioned above, for anything else
+      that applies
+- [ ] The issue has been independently reviewed using `guidelines/ISSUE_REVIEW.md`, and any material disagreement has
+      been resolved
 
 ## Too big or unclear
 
-If this is larger than the largest real effort size (`L`), involves
-a genuine architectural decision, or blocks several other issues,
-stop. File a planning issue instead (see
-`guidelines/DEFINITION_OF_READY.md`'s "Planning issues" section),
+If this is larger than the largest real effort size (`L`), involves a genuine architectural decision, or blocks several
+other issues, stop. File a planning issue instead (see `guidelines/DEFINITION_OF_READY.md`'s "Planning issues" section),
 not this template.

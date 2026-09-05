@@ -2,21 +2,18 @@
 
 ## Response formatting preference
 
-When providing text intended for copying, put it in a fenced code block so the
-user can copy it with one click.
+When providing text intended for copying, put it in a fenced code block so the user can copy it with one click.
 
-The maintainer commits and pushes changes. The agent must never commit or push.
-Do not begin work on an issue without explicit authorisation. When reporting
-validation, say "all tests" rather than emphasising test counts.
+The maintainer commits and pushes changes. The agent must never commit or push. Do not begin work on an issue without
+explicit authorisation. When reporting validation, say "all tests" rather than emphasising test counts.
 
 This is the shared repository guidance for coding agents.
 
 ## What this is
 
-`pyrigor` is a Python coding-discipline guideline collection and CLI linter.
-Guidelines live in `guidelines/PYRxxx-*.md`. A subset is enforced today by
-AST-based checkers under `pyrigor/checkers/`. It targets Python 3.11+ and is
-dogfooded on itself (pyrigor's own source must pass its own checks).
+`pyrigor` is a Python coding-discipline guideline collection and CLI linter. Guidelines live in
+`guidelines/PYRxxx-*.md`. A subset is enforced today by AST-based checkers under `pyrigor/checkers/`. It targets Python
+3.11+ and is dogfooded on itself (pyrigor's own source must pass its own checks).
 
 ## Commands
 
@@ -80,139 +77,111 @@ text (used in violation messages), and a severity (`Severity.ERROR`/`WARNING`/`I
 Protocol's own `DiagnosticSeverity` naming — see `DECISIONS.md`'s "Severity" entry) are declared once, here, not
 duplicated per-checker.
 
-**Pipeline:** `cli.py` (`main`) collects `.py` files -> parses each with `ast.parse` once ->  `checkers/_shared.py`'s
-`walk_once()` walks the tree exactly once, splitting nodes into `WalkedNodes(function_nodes, assign_nodes,
-call_statement_nodes, class_nodes)` for every checker to reuse -> each registered checker's `find_violations(*, nodes:
-WalkedNodes)` runs against those pre-walked nodes ->  `suppression.py`'s `filter_suppressed()` splits results into
-kept/suppressed based on same-line
-`# pyrigor CODE # reason` comments -> CLI prints and summarises.
+**Pipeline:** `cli.py` (`main`) collects `.py` files -> parses each with `ast.parse` once -> `checkers/_shared.py`'s
+`walk_once()` walks the tree exactly once, splitting nodes into
+`WalkedNodes(function_nodes, assign_nodes, call_statement_nodes, class_nodes)` for every checker to reuse -> each
+registered checker's `find_violations(*, nodes: WalkedNodes)` runs against those pre-walked nodes -> `suppression.py`'s
+`filter_suppressed()` splits results into kept/suppressed based on same-line `# pyrigor CODE # reason` comments -> CLI
+prints and summarises.
 
-The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why
-a per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled
-linearly with checker count. Profiling against a large external codebase found `ast.walk` was the dominant cost).
+The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why a
+per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled linearly with
+checker count. Profiling against a large external codebase found `ast.walk` was the dominant cost).
 
-**Checker registration is explicit and manual, on purpose.** `pyrigor/checkers/__init__.py`'s `CHECKERS` tuple
-pairs each `Rule` member with its `find_violations` function by name (
-`RegisteredChecker(rule=..., find_violations=...)`),
-not by shared declaration order — a prior positional-coupling bug (`zip(CHECKERS, Rule)`) motivated this. A checker
-that exists but is not added to `CHECKERS` silently never runs. This has happened before (see
-`guidelines/ADDING_A_RULE.md` step 7).
+**Checker registration is explicit and manual, on purpose.** `pyrigor/checkers/__init__.py`'s `CHECKERS` tuple pairs
+each `Rule` member with its `find_violations` function by name ( `RegisteredChecker(rule=..., find_violations=...)`),
+not by shared declaration order — a prior positional-coupling bug (`zip(CHECKERS, Rule)`) motivated this. A checker that
+exists but is not added to `CHECKERS` silently never runs. This has happened before (see `guidelines/ADDING_A_RULE.md`
+step 7).
 
-**Violations** are built only via `pyrigor.violations.make_violation(node=..., rule=...)`, never constructed by hand,
-so the message text cannot drift from the rule it is tied to.
+**Violations** are built only via `pyrigor.violations.make_violation(node=..., rule=...)`, never constructed by hand, so
+the message text cannot drift from the rule it is tied to.
 
-**Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE`
-token may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) - the same
-three forms `--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honoured.
+**Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE` token
+may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) - the same three forms
+`--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honoured.
 
 **Adding a new rule** is a defined, checklist-driven process — follow `guidelines/ADDING_A_RULE.md` step by step
 (numbering bucket in `guidelines/NUMBERING.md`, naming convention in `guidelines/NAMING.md`). Key points that have
-caused real bugs before: guideline-doc filename slug must exactly match the `Rule` enum's `symbolic_name`
-(enforced by `tests/test_rules_docs_sync.py`). Check first whether ruff/pylint/mypy-strict already cover the pattern
-before writing a rule (otherwise it goes in `guidelines/REJECTED.md`, not as a new rule).
+caused real bugs before: guideline-doc filename slug must exactly match the `Rule` enum's `symbolic_name` (enforced by
+`tests/test_rules_docs_sync.py`). Check first whether ruff/pylint/mypy-strict already cover the pattern before writing a
+rule (otherwise it goes in `guidelines/REJECTED.md`, not as a new rule).
 
-For every implementation change, build and run a deliberate test matrix:
-normal behaviour, edge and boundary cases, meaningful combinations and
-relevant negative or error paths. Never treat a passing happy-path test,
-static analysis or a vague request to "add a test" as evidence that the
-matrix is complete. See `guidelines/DEFINITION_OF_DONE.md`.
+For every implementation change, build and run a deliberate test matrix: normal behaviour, edge and boundary cases,
+meaningful combinations and relevant negative or error paths. Never treat a passing happy-path test, static analysis or
+a vague request to "add a test" as evidence that the matrix is complete. See `guidelines/DEFINITION_OF_DONE.md`.
 
 ## Economical agent workflow
 
-Work efficiently with model tokens, tool calls, network access and the
-maintainer's time:
+Work efficiently with model tokens, tool calls, network access and the maintainer's time:
 
-- Read only the issue-relevant code and documentation. Do not produce project
-  overviews for the maintainer unless explicitly requested.
-- Reuse context already gathered in the conversation. Do not refetch or
-  restate it without a concrete reason.
+- Read only the issue-relevant code and documentation. Do not produce project overviews for the maintainer unless
+  explicitly requested.
+- Reuse context already gathered in the conversation. Do not refetch or restate it without a concrete reason.
 - Batch a related read-only inspection into a few tool calls.
 - Use the least expensive model tier likely to complete the task correctly:
-  - Use an economy/fast model for mechanical edits, documentation
-    synchronisation, file reordering, straightforward tests and known-pattern
-    fixes.
-  - Use a balanced general-purpose model for normal implementation, unfamiliar
-    code paths, moderate debugging and reviews requiring judgment.
-  - Use a frontier model for challenging architecture, subtle semantics,
-    hard-to-reproduce bugs or security-sensitive review.
-- Before starting a clearly mechanical task, recommend a cheaper model. State
-  that only the user can switch the primary session's model. Delegated
-  subagents may use a cheaper model when delegation is appropriate. Wait for
-  the user's choice before proceeding.
-- Increase model capability or reasoning effort only when task complexity or
-  observed failure warrants it. Reserve the most expensive reasoning modes for
-  work where their quality gain justifies the additional cost.
-- Prepare one cohesive, exact diff for the approval instead of requesting a series
-  of small edits.
-- Use targeted validation proportional to the change. Do not duplicate the
-  full pre-commit suite when the maintainer's commit workflow runs it,
-  unless targeted checks reveal risk or the maintainer requests it.
-- Always run `just check` after the final changes and before
-  providing a commit message. Do not hand validation back to the maintainer
-  unless a hook fails and its failure is reported explicitly.
-- A passing `just check` does not guarantee a passing commit. It validates the
-  working tree, whereas the commit-time hook stashes unstaged changes and
-  validates staged content only. When those differ, the commit runs against
-  something never tested. Always list every file the change needs alongside the
-  commit message, so no file can be left out of the stage. A partial stage that
-  splits a constant from the tests derived from it will fail at commit time
-  while `just check` passes.
-- Prefer public browser access for GitHub reads. Use authenticated CLI access
-  only when the browser cannot retrieve required information.
-- When the current GitHub state matters, explicitly refresh issue/PR data before
-  answering. Do not rely on cached issue context. Confirm the repository state
-  locally with `git status` and `git log -1`. If remote state matters, run
+  - Use an economy/fast model for mechanical edits, documentation synchronisation, file reordering, straightforward
+    tests and known-pattern fixes.
+  - Use a balanced general-purpose model for normal implementation, unfamiliar code paths, moderate debugging and
+    reviews requiring judgment.
+  - Use a frontier model for challenging architecture, subtle semantics, hard-to-reproduce bugs or security-sensitive
+    review.
+- Before starting a clearly mechanical task, recommend a cheaper model. State that only the user can switch the primary
+  session's model. Delegated subagents may use a cheaper model when delegation is appropriate. Wait for the user's
+  choice before proceeding.
+- Increase model capability or reasoning effort only when task complexity or observed failure warrants it. Reserve the
+  most expensive reasoning modes for work where their quality gain justifies the additional cost.
+- Prepare one cohesive, exact diff for the approval instead of requesting a series of small edits.
+- Use targeted validation proportional to the change. Do not duplicate the full pre-commit suite when the maintainer's
+  commit workflow runs it, unless targeted checks reveal risk or the maintainer requests it.
+- Always run `just check` after the final changes and before providing a commit message. Do not hand validation back to
+  the maintainer unless a hook fails and its failure is reported explicitly.
+- A passing `just check` does not guarantee a passing commit. It validates the working tree, whereas the commit-time
+  hook stashes unstaged changes and validates staged content only. When those differ, the commit runs against something
+  never tested. Always list every file the change needs alongside the commit message, so no file can be left out of the
+  stage. A partial stage that splits a constant from the tests derived from it will fail at commit time while
+  `just check` passes.
+- Prefer public browser access for GitHub reads. Use authenticated CLI access only when the browser cannot retrieve
+  required information.
+- When the current GitHub state matters, explicitly refresh issue/PR data before answering. Do not rely on cached issue
+  context. Confirm the repository state locally with `git status` and `git log -1`. If remote state matters, run
   `git fetch origin` first.
 - Do not use subagents for small or sequential tasks.
-- Keep progress updates brief and report only information that affects the
-  task or requires a decision.
-- Prefer asking why an existing thing is the way it is over proposing to
-  standardise something nobody has complained about. The first is
-  Chesterton's Fence applied forwards: when the answer turns out to be
-  "no reason", a defect has been found. The second produces more backlog.
-  Measured on 2026-09-05: four "why is this like this" questions produced
-  #247, #248, #249 and a correction to #236, while the standardisation
-  proposals from the same session produced five issues, every one later
-  labelled `nice`and no defects. This holds only while an unexamined
-  surface remains. Once the answer is reliably "because it is correct,
-  and here is the reasoning", the questions have stopped paying and the
-  habit should stop with them.
-- The maintainer handles staging, commits and pushes. Provide a
-  copy-paste-ready commit message after verified file changes.
+- Keep progress updates brief and report only information that affects the task or requires a decision.
+- Prefer asking why an existing thing is the way it is over proposing to standardise something nobody has complained
+  about. The first is Chesterton's Fence applied forwards: when the answer turns out to be "no reason", a defect has
+  been found. The second produces more backlog. Measured on 2026-09-05: four "why is this like this" questions produced
+  #247, #248, #249 and a correction to #236, while the standardisation proposals from the same session produced five
+  issues, every one later labelled `nice`and no defects. This holds only while an unexamined surface remains. Once the
+  answer is reliably "because it is correct, and here is the reasoning", the questions have stopped paying and the habit
+  should stop with them.
+- The maintainer handles staging, commits and pushes. Provide a copy-paste-ready commit message after verified file
+  changes.
 - Combine the approved closing comment and issue close into one GitHub action.
-- Before release or issue work, reread this file, `CLAUDE.md`, the relevant
-  issue template and applicable project guidance; do not rely on memory from
-  another session.
-- Validate commit messages against the repository's actual Commitizen
-  configuration before recommending them; use only configured commit types.
-- Treat `.pyscn/` reports as temporary output: remove them after inspection;
-  do not commit or add them to `.gitignore`.
+- Before release or issue work, reread this file, `CLAUDE.md`, the relevant issue template and applicable project
+  guidance; do not rely on memory from another session.
+- Validate commit messages against the repository's actual Commitizen configuration before recommending them; use only
+  configured commit types.
+- Treat `.pyscn/` reports as temporary output: remove them after inspection; do not commit or add them to `.gitignore`.
 
 ## Approval before file changes
 
-Every file change — Edit/Write calls, and any Bash/PowerShell command
-writing to disk (`sed -i`, redirects, `git add`/
-`commit` or similar) — needs the user's explicit go-ahead in chat first, with the concrete
-diff or new content shown, not just a plan description. Applies
-regardless of how small or mechanical the change looks. See
-`~/.Codex/settings.json`'s `permissions.ask` list for the
-harness-enforced subset of this — Edit/Write always, plus specific
-write-shaped Bash/PowerShell command patterns.
+Every file change — Edit/Write calls, and any Bash/PowerShell command writing to disk (`sed -i`, redirects, `git add`/
+`commit` or similar) — needs the user's explicit go-ahead in chat first, with the concrete diff or new content shown,
+not just a plan description. Applies regardless of how small or mechanical the change looks. See
+`~/.Codex/settings.json`'s `permissions.ask` list for the harness-enforced subset of this — Edit/Write always, plus
+specific write-shaped Bash/PowerShell command patterns.
 
-Before and after every file edit, preserve bytes outside the intended change.
-Do not rewrite whole files through PowerShell or other text-mode tools. Use
-byte-preserving patch operations, then verify the diff, encoding, line endings
+Before and after every file edit, preserve bytes outside the intended change. Do not rewrite whole files through
+PowerShell or other text-mode tools. Use byte-preserving patch operations, then verify the diff, encoding, line endings
 and mojibake markers. If byte preservation cannot be guaranteed, stop and ask.
 
-After every file edit, run the relevant pre-commit checks. Fix any findings
-before presenting the result.
+After every file edit, run the relevant pre-commit checks. Fix any findings before presenting the result.
 
-A suppression comment (`# pyrigor CODE # reason`, `# pylint: disable=`,
-`# type: ignore`, `# noqa`, or any equivalent) needs its own explicit
-go-ahead, separate from the approval of the surrounding diff. Before adding
-one, state what the tool is flagging, why fixing it directly is not the
-better answer here, and the reason text the suppression will carry. Wait
-for a clear yes before adding it.
+A suppression comment (`# pyrigor CODE # reason`, `# pylint: disable=`, `# type: ignore`, `# noqa`, or any equivalent)
+needs its own explicit go-ahead, separate from the approval of the surrounding diff. Before adding one, state what the
+tool is flagging, why fixing it directly is not the better answer here, and the reason text the suppression will carry.
+Wait for a clear yes before adding it.
 
 Do not add `Co-Authored-By:` trailers to commit messages.
 
@@ -220,123 +189,101 @@ Do not add `Co-Authored-By:` trailers to commit messages.
 
 New work items go to GitHub Issues.
 
-When creating a GitHub issue, always use the repository's issue template.
-Preserve its headings and order. Do not substitute headings such as
-"Acceptance criteria" for the template's "Done when" heading. If the
-template cannot be found, inspect it before drafting the issue. Before
-creation, verify the template headings, labels, milestone availability and
-required fields.
+When creating a GitHub issue, always use the repository's issue template. Preserve its headings and order. Do not
+substitute headings such as "Acceptance criteria" for the template's "Done when" heading. If the template cannot be
+found, inspect it before drafting the issue. Before creation, verify the template headings, labels, milestone
+availability and required fields.
 
-Tangents get the `nice` label, named after Unix `nice`: the issue yields
-to other work. Apply it when an idea is worth keeping but does not move
-the project forward, which is most of what gets filed while going down a
-rabbit hole. It is neither a rejection nor a priority ranking. It marks
-an issue as one that should not compete with the current phase for
-attention. Typography, tool comparisons and one-off investigations
-belong there by default.
+Tangents get the `nice` label, named after Unix `nice`: the issue yields to other work. Apply it when an idea is worth
+keeping but does not move the project forward, which is most of what gets filed while going down a rabbit hole. It is
+neither a rejection nor a priority ranking. It marks an issue as one that should not compete with the current phase for
+attention. Typography, tool comparisons and one-off investigations belong there by default.
 
-Blocking relationships between issues uses GitHub's native "blocked
-by" feature, not prose "Blocked on #N"/"Blocks #N" text in the issue
-body. Set it via the UI, or the `addBlockedBy` GraphQL mutation -
-`gh issue`/`gh api` REST have no direct subcommand for it as of this
-writing. It is a real, bidirectional, filterable relationship, not
-just a citation. Older issues (#66/#67) still use the prose form
-from before this convention started. Not worth migrating
-retroactively. Use the real feature going forward.
+Blocking relationships between issues uses GitHub's native "blocked by" feature, not prose "Blocked on #N"/"Blocks #N"
+text in the issue body. It is a real, bidirectional, filterable relationship, not just a citation.
 
-Any GitHub issue action that changes its state — creating,
-editing, commenting on, labelling or closing an issue — needs the
-user's explicit go-ahead first, the same as a file edit. Show what
-will be created, changed or said before doing it, not just
-describe the plan.
+Set it through the UI, the `addBlockedBy` GraphQL mutation or the REST issue-dependencies endpoints, which do now exist:
 
-Closing an issue always needs a closing comment summarising what
-shipped (the commit, what changed, what it resolves), even when the
-issue was already closed by the time the comment goes up. A bare
-close with no comment loses the "here is what actually happened"
-record a reader would otherwise have to reconstruct from commit
-history alone.
+```bash
+gh api "repos/OWNER/REPO/issues/62/dependencies/blocked_by"
+echo '{"issue_id":5203849349}' | gh api --method POST "repos/OWNER/REPO/issues/62/dependencies/blocked_by" --input -
+gh api --method DELETE "repos/OWNER/REPO/issues/62/dependencies/blocked_by/5203849349"
+```
 
-Wait for CI to pass before closing. A fix that is committed is not yet
-a fix that works everywhere, and an issue closed on a red build has to
-be reopened. This is why a commit message references an issue with
-`refs` rather than a closing keyword: the keyword closes it the moment
-the commit lands on the default branch, before any check has run.
+The number in the path is the blocked issue. The `issue_id` body field and the delete path both take the blocking
+issue's numeric `id`, which is not the number, so read the id off that issue first. Pass the body as raw JSON through
+`--input`. The `-F issue_id=...` form sends the value as a string and the API rejects it with a 422. Both directions
+were confirmed for real on 2026-09-05, adding #61 to #62's blocker list and removing it again.
 
-GitHub auto-closes an issue the moment a closing keyword (`fix`,
-`fixes`, `closes`, `resolves`, and their variants) sits directly in
-front of `#N` in any commit message that lands on the default
-branch — no PR, no review, no repo setting to turn it off. This
-bypasses the go-ahead-and-closing-comment rule above entirely,
-silently: issue #10 was auto-closed this way by a commit titled
-"fix: #10 repeated --only= errors, #12 ..., #20 ..., #30 ...", with
-no closing comment, and it only came to light when asked why the
-issue was already closed. A commit message should reference an
-issue neutrally (`refs #10`, `part of #10`), not with a closing
-keyword, unless closing it immediately as part of that same commit
-is genuinely the intent — a closing keyword in a commit message
-*is* the close action, not just a citation, and needs the same
-go-ahead as calling `gh issue close` directly.
+Older issues (#66/#67) still use the prose form from before this convention started. Not worth migrating retroactively.
+Use the real feature going forward.
 
-GitHub's scanner has no concept of quotation or descriptive context
-either—it matches the literal text, full stop. Issue #11 was
-auto-closed by a commit whose message *quoted* a wrong changelog
-line ("v0.8.0's own CHANGELOG.md entry said, 'Closes #11,' but #11
-was still open") specifically to explain why that line was wrong.
-The quoted phrase alone was enough to trigger the same auto-close it
-was describing as ineffective, with no closing comment, same as
-#10. Quoting someone else's bad closing-keyword text, even to
-correct it, needs the same care as writing one directly. Rephrase
-the quoted reference (for example, "an entry claiming to close #11") or add
-a zero-width break, rather than reproducing the exact keyword-then-#N
-pattern verbatim.
+Any GitHub issue action that changes its state — creating, editing, commenting on, labelling or closing an issue — needs
+the user's explicit go-ahead first, the same as a file edit. Show what will be created, changed or said before doing it,
+not just describe the plan.
+
+Closing an issue always needs a closing comment summarising what shipped (the commit, what changed, what it resolves),
+even when the issue was already closed by the time the comment goes up. A bare close with no comment loses the "here is
+what actually happened" record a reader would otherwise have to reconstruct from commit history alone.
+
+Wait for CI to pass before closing. A fix that is committed is not yet a fix that works everywhere, and an issue closed
+on a red build has to be reopened. This is why a commit message references an issue with `refs` rather than a closing
+keyword: the keyword closes it the moment the commit lands on the default branch, before any check has run.
+
+GitHub auto-closes an issue the moment a closing keyword (`fix`, `fixes`, `closes`, `resolves`, and their variants) sits
+directly in front of `#N` in any commit message that lands on the default branch — no PR, no review, no repo setting to
+turn it off. This bypasses the go-ahead-and-closing-comment rule above entirely, silently: issue #10 was auto-closed
+this way by a commit titled "fix: #10 repeated --only= errors, #12 ..., #20 ..., #30 ...", with no closing comment, and
+it only came to light when asked why the issue was already closed. A commit message should reference an issue neutrally
+(`refs #10`, `part of #10`), not with a closing keyword, unless closing it immediately as part of that same commit is
+genuinely the intent — a closing keyword in a commit message _is_ the close action, not just a citation, and needs the
+same go-ahead as calling `gh issue close` directly.
+
+GitHub's scanner has no concept of quotation or descriptive context either—it matches the literal text, full stop. Issue
+#11 was auto-closed by a commit whose message _quoted_ a wrong changelog line ("v0.8.0's own CHANGELOG.md entry said,
+'Closes #11,' but #11 was still open") specifically to explain why that line was wrong. The quoted phrase alone was
+enough to trigger the same auto-close it was describing as ineffective, with no closing comment, same as #10. Quoting
+someone else's bad closing-keyword text, even to correct it, needs the same care as writing one directly. Rephrase the
+quoted reference (for example, "an entry claiming to close #11") or add a zero-width break, rather than reproducing the
+exact keyword-then-#N pattern verbatim.
 
 ## Project-wide conventions
 
 - All checker/CLI functions use keyword-only arguments (`*,`) - pyrigor enforces this on itself (PYR402/PYR403).
-- Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) - see `guidelines/DECISIONS.md`
-  for why `NamedTuple` and `NewType` close different gaps.
+- Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) - see `guidelines/DECISIONS.md` for
+  why `NamedTuple` and `NewType` close different gaps.
 - Google-style docstrings (pydocstyle-checked) on public functions.
-- Write short documentation sentences that do not trigger PyCharm's
-  sentence-length inspection. Prefer splitting sentences over using semicolons.
-- Write prose in British English, using `-ise` spelling, so `normalise` and
-  `recognise`. Python identifiers keep their own spelling, such as `normalize`
-  and `serialize`. Do not change code to match prose.
-- Use straight apostrophes and quotation marks. Never use the curly forms
-  (U+2019, U+201C, U+201D). Google's and Microsoft's developer documentation
-  style guides both require this. PyCharm's Grazie inspection suggests the
-  opposite, and that inspection is deliberately switched off.
-- Do not use em dashes (U+2014) or en dashes (U+2013). Split the sentence with
-  a full stop or use a comma or parentheses. For a range, use a hyphen or the
-  word "to."
+- Write short documentation sentences that do not trigger PyCharm's sentence-length inspection. Prefer splitting
+  sentences over using semicolons.
+- Write prose in British English, using `-ise` spelling, so `normalise` and `recognise`. Python identifiers keep their
+  own spelling, such as `normalize` and `serialize`. Do not change code to match prose.
+- Use straight apostrophes and quotation marks. Never use the curly forms (U+2019, U+201C, U+201D). Google's and
+  Microsoft's developer documentation style guides both require this. PyCharm's Grazie inspection suggests the opposite,
+  and that inspection is deliberately switched off.
+- Do not use em dashes (U+2014) or en dashes (U+2013). Split the sentence with a full stop or use a comma or
+  parentheses. For a range, use a hyphen or the word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
-- Headings use a sentence case. Capitalise the first word, proper nouns and
-  acronyms only, so "Sunk cost fallacy" and "Chesterton's fence", but "KISS"
-  and "YAGNI" are unchanged. Google's and Microsoft's style guides both require
-  this. Title case has no single definition, so it cannot be applied
-  consistently without first choosing between AP, Chicago and APA.
-- Existing documentation does not yet follow these rules. Issues #218 to #221
-  and #233 track the clean-up. Write new prose to the rules rather than
-  imitating the surrounding text.
-- Direct quotations are reproduced as the source wrote them. The rules above
-  govern our own prose, not quoted text, so Knuth's "premature optimization
-  is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
-  spelling. Never silently correct a quotation to house style. Where the
-  original would breach a rule, paraphrase instead of quoting.
-- A new prose or style rule must be mechanically checkable, and the issue
-  that adds the check is filed at the same time as the rule. A rule no
-  checker can decide is a preference, and preferences generate clean-up
-  work indefinitely with nothing to stop the next one. The heading case did
-  qualify, since a title case is ambiguous and a checker can flag it
-  (#233, #234). Definite articles did not, since nothing can decide
-  whether a noun phrase should be definite.
+- Headings use a sentence case. Capitalise the first word, proper nouns and acronyms only, so "Sunk cost fallacy" and
+  "Chesterton's fence", but "KISS" and "YAGNI" are unchanged. Google's and Microsoft's style guides both require this.
+  Title case has no single definition, so it cannot be applied consistently without first choosing between AP, Chicago
+  and APA.
+- Existing documentation does not yet follow these rules. Issues #218 to #221 and #233 track the clean-up. Write new
+  prose to the rules rather than imitating the surrounding text.
+- Direct quotations are reproduced as the source wrote them. The rules above govern our own prose, not quoted text, so
+  Knuth's "premature optimization is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American spelling.
+  Never silently correct a quotation to house style. Where the original would breach a rule, paraphrase instead of
+  quoting.
+- A new prose or style rule must be mechanically checkable, and the issue that adds the check is filed at the same time
+  as the rule. A rule no checker can decide is a preference, and preferences generate clean-up work indefinitely with
+  nothing to stop the next one. The heading case did qualify, since a title case is ambiguous and a checker can flag it
+  (#233, #234). Definite articles did not, since nothing can decide whether a noun phrase should be definite.
 - Use LF line endings for all files (enforced via `.gitattributes`). Do not introduce mixed line endings.
-- Run targeted formatting and lint checks before the full pre-commit suite, so it validates
-  an already-clean working tree on its first run.
-- Use byte-preserving operations for encoding or line-ending conversions.
-  Verify the resulting bytes and text before finishing.
+- Run targeted formatting and lint checks before the full pre-commit suite, so it validates an already-clean working
+  tree on its first run.
+- Use byte-preserving operations for encoding or line-ending conversions. Verify the resulting bytes and text before
+  finishing.
 - 100% test coverage (branch included) is enforced on every commit, not aspirational.
-- Before declaring any feature/fix done, apply `guidelines/DEFINITION_OF_DONE.md` and
-  `guidelines/REVIEW_CHECKLIST.md`  - both are living checklists earned by real defects that previously slipped
-  through (for example, an untested edge case in `--only`'s lenient-form parsing), not generic boilerplate.
-- Design/architecture *why*, not just *what*, belongs in `guidelines/DECISIONS.md`.
+- Before declaring any feature/fix done, apply `guidelines/DEFINITION_OF_DONE.md` and `guidelines/REVIEW_CHECKLIST.md` -
+  both are living checklists earned by real defects that previously slipped through (for example, an untested edge case
+  in `--only`'s lenient-form parsing), not generic boilerplate.
+- Design/architecture _why_, not just _what_, belongs in `guidelines/DECISIONS.md`.

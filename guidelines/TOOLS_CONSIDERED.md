@@ -1,13 +1,11 @@
 # Tools considered
 
-A running registry, so a tool already evaluated, does not get
-re-evaluated from scratch. Adopted tools are already visible in
-`.pre-commit-config.yaml` itself, this document exists for
-everything rejected or deferred, where the reasoning would otherwise
-be lost inside a closed issue's comment thread.
+A running registry, so a tool already evaluated, does not get re-evaluated from scratch. Adopted tools are already
+visible in `.pre-commit-config.yaml` itself, this document exists for everything rejected or deferred, where the
+reasoning would otherwise be lost inside a closed issue's comment thread.
 
 | Tool                                         | Category         | Verdict                                                      | Reason                                                                                                                                                                                                                               | Reconsider when                                                                |
-|----------------------------------------------|------------------|--------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| -------------------------------------------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | pysa                                         | Security         | Rejected                                                     | Requires Pyre infrastructure, real setup complexity                                                                                                                                                                                  | —                                                                              |
 | SonarQube                                    | Security         | Rejected                                                     | Hosted/enterprise platform, too heavy for this project's size                                                                                                                                                                        | —                                                                              |
 | trivy                                        | Security         | Rejected                                                     | Container/dependency scanner, pyrigor ships no container                                                                                                                                                                             | —                                                                              |

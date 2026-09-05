@@ -10,6 +10,7 @@ config:
   MD024:
     siblings_only: true
 ignores:
+  - ".github/ISSUE_TEMPLATE/*.md"
   - ".venv/**"
   - "htmlcov/**"
   - "*.egg-info/**"

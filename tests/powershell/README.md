@@ -6,10 +6,10 @@ The PowerShell script `scripts/run_pycharm_inspection_docker.ps1` should be test
 
 **Script runs successfully:**
 
-   ```powershell
-   cd C:\Users\jarl\smallgig\pyrigor
-   .\scripts\run_pycharm_inspection_docker.ps1
-   ```
+```powershell
+cd C:\Users\jarl\smallgig\pyrigor
+.\scripts\run_pycharm_inspection_docker.ps1
+```
 
 **Verify output:**
 
@@ -27,8 +27,8 @@ The PowerShell script `scripts/run_pycharm_inspection_docker.ps1` should be test
 
 ## Automated Testing
 
-Full Pester test suite is complex due to Docker mocking requirements. Manual
-testing is enough for validating the script's core functionality.
+Full Pester test suite is complex due to Docker mocking requirements. Manual testing is enough for validating the
+script's core functionality.
 
 ## Future Work
 

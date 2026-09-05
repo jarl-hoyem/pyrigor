@@ -1,12 +1,9 @@
 # Architecture
 
-`DECISIONS.md` explains individual design decisions and their
-reasoning. The `ADDING_A_RULE.md` covers the process for adding one new
-rule. Individual `guidelines/PYRxxx-*.md` files document one rule's
-own scope. Nothing shows how the system fits together at a
-glance — that is what this document is for. It covers the: *what it
-looks like overall*, pointing to `DECISIONS.md` for the: *why*
-behind specific choices rather than duplicating that reasoning here.
+`DECISIONS.md` explains individual design decisions and their reasoning. The `ADDING_A_RULE.md` covers the process for
+adding one new rule. Individual `guidelines/PYRxxx-*.md` files document one rule's own scope. Nothing shows how the
+system fits together at a glance — that is what this document is for. It covers the: _what it looks like overall_,
+pointing to `DECISIONS.md` for the: _why_ behind specific choices rather than duplicating that reasoning here.
 
 ## Pipeline
 
@@ -26,9 +23,8 @@ CLI entry (run())
   -> print summary
 ```
 
-See `DECISIONS.md`'s "Shared AST walk instead of per-checker
-walking" entry for why this is a single shared walk rather than each
-checker independently walking the tree.
+See `DECISIONS.md`'s "Shared AST walk instead of per-checker walking" entry for why this is a single shared walk rather
+than each checker independently walking the tree.
 
 ## Module dependency graph
 
@@ -60,20 +56,15 @@ checkers/cli.py           (top of the graph: imports checkers,
                            violations -- nothing imports from it)
 ```
 
-The individual `pyrXXX` checker modules never importing each other
-is deliberate, not incidental. A new checker is wired in by adding
-one line to `CHECKERS` (see `ADDING_A_RULE.md`), not by any checker
-knowing about another. This is also why `checkers/__init__.py`'s
-`CHECKERS` tuple pairs each `Rule` member with its checker function
-explicitly by name, rather than relying on declaration order — see
-`DECISIONS.md` and `CLAUDE.md` for the positional-coupling bug that
-motivated it.
+The individual `pyrXXX` checker modules never importing each other is deliberate, not incidental. A new checker is wired
+in by adding one line to `CHECKERS` (see `ADDING_A_RULE.md`), not by any checker knowing about another. This is also why
+`checkers/__init__.py`'s `CHECKERS` tuple pairs each `Rule` member with its checker function explicitly by name, rather
+than relying on declaration order — see `DECISIONS.md` and `CLAUDE.md` for the positional-coupling bug that motivated
+it.
 
 ## Where the "why" lives
 
-This document covers what the system looks like overall. For the
-reasoning behind a specific structural choice (the shared walk,
-explicit checker registration, tokenizing-based suppression
-scanning, and more), see `DECISIONS.md`. For the process of adding a
-new rule, see `ADDING_A_RULE.md`. For one rule's own scope and
-rationale, see its own `guidelines/PYRxxx-*.md` doc.
+This document covers what the system looks like overall. For the reasoning behind a specific structural choice (the
+shared walk, explicit checker registration, tokenizing-based suppression scanning, and more), see `DECISIONS.md`. For
+the process of adding a new rule, see `ADDING_A_RULE.md`. For one rule's own scope and rationale, see its own
+`guidelines/PYRxxx-*.md` doc.
