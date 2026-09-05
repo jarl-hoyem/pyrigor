@@ -37,6 +37,9 @@ as the real requirements allow. Simple does not mean simplistic:
 complexity justified by correctness, security, performance,
 compatibility, or maintainability is acceptable.
 
+Occam's Razor, Least Power, and Separation of Concerns are treated as
+applications of KISS rather than separate principles.
+
 ## Inversion
 
 **Principle:** Instead of asking only how to achieve a desired outcome,
@@ -61,10 +64,15 @@ backend, integration, or user may eventually require it. Invest in
 keeping the code easy to change instead of implementing hypothetical
 future requirements.
 
+Reversibility is useful when deciding whether to build something, but
+YAGNI remains the governing principle: do not build what is not
+currently needed.
+
 ## Sunk Cost Fallacy
 
 **Principle:** Past, unrecoverable investment should not determine what
-is best from today forward.
+is best from today forward. Re-evaluate decisions based on their future
+value and cost, not on resources already spent.
 
 **Application to Pyrigor:** When reconsidering code, architecture,
 dependencies, tooling, processes, or project direction, evaluate future
@@ -103,6 +111,9 @@ of verification to the consequence of being wrong. A release or a
 security-relevant change earns more independent evidence than a
 documentation correction.
 
+“Zero Trust” is treated as an application of independent verification
+rather than a separate principle.
+
 **Enforced by:** `guidelines/ISSUE_REVIEW.md` and the review checkbox
 in the issue template.
 
@@ -116,6 +127,9 @@ architectural change, or behavioural change, establish the required
 behaviour and acceptance criteria first. For rules, this includes the
 violation, valid counterexamples, exceptions, diagnostic behaviour, and
 expected results where relevant.
+
+Design by Contract is treated as a technique for expressing and
+enforcing specifications, not as a separate principle.
 
 **Enforced by:** `guidelines/DEFINITION_OF_READY.md`.
 
@@ -158,6 +172,9 @@ the intended contract concrete: what must be accepted, what must be
 rejected, what diagnostics are expected, and what important edge cases
 must hold. Tests should be readable enough to serve as an executable
 description of the requirement.
+
+Monotonicity is a property to specify and test where applicable, not a
+general principle.
 
 **Additional requirement:** The test suite must also protect against
 regression in test effectiveness. Changes must not reduce the mutation
@@ -213,3 +230,96 @@ behaviour, onboarding, issue handling, release communication, and
 contributor experience as products in their own right. Look for
 opportunities to remove friction and provide useful guidance beyond the
 minimum required for functionality.
+
+Least Surprise is treated as a consideration within hospitality rather
+than a separate principle.
+
+## Determinism
+
+**Principle:** Given the same relevant inputs, configuration, and tool
+version, Pyrigor must produce the same observable result, independent
+of incidental factors such as execution order, filesystem ordering,
+timing, or parallelism.
+
+## Make Illegal States Unrepresentable
+
+**Principle:** Where practical, design types, data structures, and
+interfaces so that invalid states cannot be represented, rather than
+merely detecting them after they exist.
+
+## Fail Fast
+
+**Principle:** Detect invalid inputs, invalid states, and errors at the
+earliest practical point rather than allowing them to propagate.
+
+## Fail Safe
+
+**Principle:** When analysis fails or becomes uncertain, Pyrigor must
+not silently produce a result that falsely represents the code as
+compliant.
+
+## Diagnosability
+
+**Principle:** Failures and unexpected behavior must provide enough
+information to determine what happened and why.
+
+## Traceability
+
+**Principle:** Every important requirement must be traceable to evidence
+demonstrating that it has been satisfied.
+
+## Goodhart's Law
+
+**Principle:** A measure used as a target must not be mistaken for the
+underlying quality or outcome it is intended to represent.
+
+**Application to Pyrigor:** Use metrics as evidence rather than as
+substitutes for the underlying goal. Do not optimize a metric in a way
+that makes Pyrigor appear better while actual quality, usefulness, or
+trustworthiness becomes worse.
+
+## Curse of Knowledge
+
+**Principle:** Do not assume that users, contributors, reviewers, or
+audiences share knowledge that the project has acquired.
+
+**Application to Pyrigor:** Write documentation, error messages,
+examples, presentations, and the CfP so that they remain understandable
+to their intended audience without requiring the project's internal
+context. Re-check explanations from the perspective of someone who does
+not already know why Pyrigor works the way it does.
+
+## Confirmation Bias
+
+**Principle:** Actively seek and fairly evaluate evidence that could
+disconfirm an existing belief, expectation, or preferred outcome.
+
+**Application to Pyrigor:** When evaluating rules, architecture, claims,
+tooling choices, test results, releases, or project assumptions,
+deliberately look for evidence against the preferred conclusion. Do not
+select examples, benchmarks, feedback, or research merely because they
+support what the project already believes.
+
+## Overconfidence
+
+**Principle:** Do not treat confidence in a conclusion as evidence of
+its correctness; calibrate confidence to the strength of the evidence.
+
+**Application to Pyrigor:** Treat confident conclusions from AI agents,
+maintainers, reviewers, benchmarks, or other apparently authoritative
+sources as claims requiring appropriate evidence. State uncertainty and
+limitations where they matter, and seek stronger evidence when the
+consequences of being wrong are significant.
+
+## Earn Trust Through Evidence
+
+**Principle:** Important claims must be supported by transparent,
+independently verifiable evidence rather than authority, confidence,
+popularity, or claims alone.
+
+**Application to Pyrigor:** Support important claims about Pyrigor—its
+correctness, quality, performance, usefulness, and maturity—with
+evidence that others can inspect or reproduce. Be explicit about
+limitations and uncertainty. AI-generated work must be subject to
+independent verification rather than trusted because it was produced
+confidently.
