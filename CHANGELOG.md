@@ -11,6 +11,8 @@ is usable for.
 
 ## [Unreleased]
 
+## [0.13.0] 2026-09-05
+
 ### Added
 
 - Added explicit `--fix` and `--diff` CLI modes for safe PYR402
