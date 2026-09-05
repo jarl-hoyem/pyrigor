@@ -484,19 +484,50 @@ Two things rule out automating it, and both are temporary.
 A full run analyses 132 files in roughly two minutes. That is too slow for pre-commit, where the rest of the suite runs
 in seconds and the cost is paid on every commit.
 
-Gating at pre-push or in CI would need the backlog at zero first, and it stands at 4155 findings. Almost none of these
-are defects. Three settings decisions account for nearly all of it (#236): PyCharm's Markdown formatter against the
-project's hand-wrapping, a dictionary that does not know the word Pyrigor and Grazie configured for American English
-while the house style is deliberately British. A gate turned on now would fail on every commit for reasons nobody
-intends to fix, and would be switched off again within a day.
+Gating at pre-push or in CI would need the backlog at zero first, and it stood at 4155 findings when this was written.
+Almost none of these are defects. Three settings decisions account for nearly all of it (#236): the Markdown formatting
+disagreement, a dictionary that does not know the word Pyrigor and Grazie configured for American English while the
+house style is deliberately British. A gate turned on then would have failed on every commit for reasons nobody intended
+to fix, and would have been switched off again within a day.
+
+The Markdown half has since been settled. Prettier owns Markdown formatting, and the entry above assigns the inspection
+categories their owners, disabling `IncorrectFormatting` and the table check. Since `IncorrectFormatting` alone
+accounted for 3795 of those findings, the backlog needs re-measuring before anyone judges whether gating is realistic.
+Nobody has re-run the inspection since Prettier landed.
 
 So it runs on request, or when an agent thinks to run it, plus once per release as a step in `DEFINITION_OF_DONE.md`'s
 checklist. Outside that release step it is deliberately weak and should be read as a known gap rather than a design. It
 has already failed once: a `PRINCIPLES.md` edit on 2026-09-05 was reported as verified on the strength of `just check`,
 which does not include the inspection, and the inspection ran only when the maintainer asked for it.
 
-Revisit once #236 has settled the three categories. The remaining count is then small enough that gating becomes a real
-option rather than a theoretical one.
+Revisit once #236 has re-measured the backlog under the settled categories. The remaining count is then small enough
+that gating becomes a real option rather than a theoretical one.
+
+### PyCharm inspection categories are triaged by ownership
+
+Issue #236 exposed a large backlog after the inspection runner began analysing the whole project. The findings are not
+all questions for the same tool, so each category has an explicit owner:
+
+- `IncorrectFormatting` is disabled. Markdown formatting is owned by Prettier and Python formatting by `ruff format`, so
+  PyCharm does not get a third opinion. This setting was first justified by the project's deliberate hand-wrapping,
+  which Prettier has since replaced. The setting outlived its original reason.
+- Markdown table formatting is disabled, for the same ownership reason. It needs its own setting, because disabling
+  `IncorrectFormatting` does not silence it. The disagreement is one row: Prettier writes a delimiter row with padding
+  spaces, as `| --- | --- |`, while PyCharm fills the cell with dashes, as `|-----|-----|`. Both are valid
+  GitHub-flavoured Markdown, both align the pipes identically and neither changes how the table renders. Left enabled,
+  it flags every table in the repository.
+- `GrazieInspection` is disabled. Its article suggestions have produced ungrammatical edits, and its language defaults
+  conflict with the project's British English prose standard.
+- `SpellCheckingInspection` remains enabled. Project vocabulary is added to the local dictionary. Unknown words that are
+  not project terms remain useful findings.
+- `PyTypeHints` remains enabled and its findings are triaged individually. A repeated disagreement with mypy, pyright
+  and ty is not by itself a reason to suppress the category.
+- Other categories remain enabled unless their findings are separately reviewed and a reason to change ownership is
+  recorded.
+
+These settings reduce noise without narrowing the inspected file set or turning off the type-hint signal that may reveal
+real defects. The profile and dictionary are currently gitignored, so this decision is also recorded here as the durable
+project-level rationale. Sharing the settings with other contributors remains the separate concern tracked by #220.
 
 ### Pyrigor’s suppression comment must come last when stacked with another tool’s
 
@@ -541,10 +572,10 @@ tokeniser the standard library already provides for exactly this purpose.
 
 `# pyrigor: CODE # reason`'s colon collides with ruff's `ERA001` (commented-out-code) when the suppression comment sits
 on its own line (the line-above form): `ERA001` only inspects standalone comments, and its actual detection mechanism is
-an attempt to parse the comment text as real Python (`parse_module(line).is_ok()`). `pyrigor: 402` parses successfully
-as a bare variable annotation statement (`name: value`), so `ERA001` flags it as commented-out code. Confirmed directly
-against a real, installed ruff 0.16.3, not just inferred: `# pyrigor: 402 # reason` on its own line is flagged. Whereas
-`# pyrigor 402 # reason` (space instead of colon) is not.
+an attempt to parse the comment text as real Python (`parse_module(line).is_ok()`). The `pyrigor: 402` parses
+successfully as a bare variable annotation statement (`name: value`), so `ERA001` flags it as commented-out code.
+Confirmed directly against a real, installed ruff 0.16.3, not just inferred: `# pyrigor: 402 # reason` on its own line
+is flagged. Whereas `# pyrigor 402 # reason` (space instead of colon) is not.
 
 Considered: requesting pyrigor’s own comment prefix be added to ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`,
 `# nosec`, `# type: ignore`, and others already use to avoid exactly this collision. Rejected — not contacting ruff’s
@@ -699,3 +730,29 @@ demanded it. See #7.
 
 Real, ongoing cost: `tach.toml` needs updating whenever a new `pyrXXX` checker is added, or the new file silently falls
 outside `tach check`'s tracking — `ADDING_A_RULE.md`'s own checklist gained a step for this.
+
+### Prettier adopted as the Markdown formatter, and what it does not cover
+
+Markdown formatting was previously discipline. Wrapping was done by hand, which meant it could be noticed but not
+checked. This file's own stopping rule says a prose or style rule must be mechanically checkable, or it is only a
+preference, and wrapping was the clearest case of a rule nothing could decide.
+
+Configuration, in `.prettierrc.json`: `proseWrap: "always"`, `printWidth: 120`, `endOfLine: "lf"`, applied to `.md`
+only, through a pre-commit hook pinned at `prettier@3.9.6`.
+
+Each value earns its place. The default, `proseWrap: "preserve"`, leaves existing wrapping untouched and therefore
+enforces nothing, so `"always"` is what makes the rule mechanical rather than advisory. Width 120 is not a new number:
+markdownlint's MD013 and ruff's line-length already use it, so one figure now governs prose, Markdown structure and
+Python alike. LF matches `.gitattributes`.
+
+The real cost is not hypothetical. The `guidelines/RULES.md` is generated by `scripts/generate_rule_table.py`, and the
+generator had to be changed to emit Prettier-compatible output. Without that, the generator and the formatter rewrite
+each other's work on every commit. This is the same fight recorded above between `black`, `ruff format` and `isort`,
+arriving in a new place: a code generator against a formatter, rather than two formatters. Any future generator that
+writes Markdown inherits the same constraint.
+
+What Prettier does not do is worth stating, because a formatter invites the assumption that prose is now handled. It
+reflows text. It does not touch apostrophes (#218), em and en dashes (#219), spelling or contractions (#221) or heading
+case (#233). Those four remain open work, and #234 tracks the checks for the two of them that nothing enforces yet.
+
+The same configuration was copied to the `spikes` repository, so both repositories format Markdown identically.
