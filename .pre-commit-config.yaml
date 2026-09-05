@@ -203,7 +203,7 @@ repos:
         language: system
         entry: uv run --extra dev pylint
         types: [python]
-        # Changed-files-only, unlike its neighbors above
+        # Changed-files-only, unlike its neighbours above
         # — pylint checks one file at a time. Its findings never
         # depend on another file. See DECISIONS.md.
         stages: [pre-commit]

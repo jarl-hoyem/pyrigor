@@ -11,7 +11,7 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 
 ## Questions
 
-1. **Is every behavior explicitly claimed for this feature backed by its own test, checked individually, not inferred
+1. **Is every behaviour explicitly claimed for this feature backed by its own test, checked individually, not inferred
    from the suite passing overall?** ← rule: `DEFINITION_OF_DONE.md`, Correctness _Earned by:_ `--only` was scoped as
    "same lenient forms as suppression comments" and shipped with tests for code-form and symbolic-name-form only.
    Whitespace tolerance, something suppression comments already had a dedicated test for, was never checked. Caught by
@@ -44,7 +44,7 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 6. **For a CLI/user-facing interface change, was the test coverage deliberately expanded beyond what a draft or
    static-only analysis proposed as enough, and actually run against the real code before trusting it?** ← rule:
    `DEFINITION_OF_DONE.md`, Correctness ("What would a deliberately adversarial reader try to break, given the actual
-   code, not the intended behavior? Try that.") _Earned by:_ #51’s argparse migration draft, produced by static
+   code, not the intended behaviour? Try that.") _Earned by:_ #51’s argparse migration draft, produced by static
    reasoning alone (never executed against real code, by design), suggested two new tests as adequate. It asserted all
    12 existing tests would pass unchanged — both true, but insufficient. Applying the change for real and running an
    expanded, more thorough test set (prompted by "this is direct UI and has to work flawlessly," not by the draft’s own
@@ -59,11 +59,11 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
    `DEFINITION_OF_DONE.md`, Correctness _Earned by:_ #47's original investigation used
    `--disable=all --enable=<5 messages>` to isolate a handful of pylint messages. `--disable=all` disables the
    underlying checks themselves, not just their display, so every local `# pylint: disable=` comment for an
-   already-globally disabled check trivially showed as `useless-suppression`, an artifact of the test, not a genuine
+   already-globally disabled check trivially showed as `useless-suppression`, an artefact of the test, not a genuine
    finding. 19 "stale suppressions" were reported this way, none of them were real. Caught only by running the actual,
    full config directly and finding just two genuine results, a real, significant difference from the original count.
 
-8. **For every implementation change, was a deliberate test matrix run covering normal behavior, edge and boundary
+8. **For every implementation change, was a deliberate test matrix run covering normal behaviour, edge and boundary
    cases, meaningful combinations, and relevant negative or error paths?** ← rule: `DEFINITION_OF_DONE.md`, Correctness
    _Earned by:_ #179's initial JSON tests covered selected values but omitted important combinations and negative paths.
    Expanding the tests exposed a real implementation bug. A passing happy-path test and a request to "add more tests"
@@ -71,9 +71,9 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 
 9. **For a release-sensitive or packaging change, was the installed wheel and source distribution exercised through the
    real user-facing entry point, independently of the editable checkout?** ← rule: `DEFINITION_OF_DONE.md`, Release
-   artifacts are tested as installed artifacts _Earned by:_ the source-level suite passed while confidence in the
+   artefacts are tested as installed artefacts _Earned by:_ the source-level suite passed while confidence in the
    release path still required separate wheel and source-distribution installation checks. Editable-source tests cannot
-   expose an incomplete manifest, missing entry point, or artifact-only runtime discrepancy.
+   expose an incomplete manifest, missing entry point, or artefact-only runtime discrepancy.
 
 10. **For a rule, was shadowing relevance declared as none, partial, or full, with every applicable shadowing class
     tested or the exclusion justified?** ← rule: `DEFINITION_OF_DONE.md`, Correctness _Earned by:_ the PYR406
@@ -86,7 +86,7 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line
   guard, --only’s two known gaps). Found: PYR401 and PYR403 both lacked an async-function test (added, both passed,
   confirming existing code was already correct). Suppression’s defensive out-of-range guard had never been tested
-  (added, confirmed correct). --only’s unknown-code behavior was genuinely undefined (fixed separately, not just
+  (added, confirmed correct). --only’s unknown-code behaviour was genuinely undefined (fixed separately, not just
   tested). No new checklist question earned: this was question 1 doing its job on prior work, not a new failure mode.
 
 ## Adding a question

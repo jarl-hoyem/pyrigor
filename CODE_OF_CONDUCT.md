@@ -7,14 +7,14 @@ everyone.
 
 ## Our Standards
 
-Examples of behavior that contributes to a positive environment:
+Examples of behaviour that contributes to a positive environment:
 
 - Demonstrating empathy and kindness
 - Being respectful of differing opinions
 - Giving and gracefully accepting constructive feedback
 - Focusing on what is best for the community
 
-Examples of unacceptable behavior:
+Examples of unacceptable behaviour:
 
 - Harassment, trolling, or insulting comments
 - Public or private harassment
@@ -22,7 +22,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Project maintainers are responsible for clarifying and enforcing standards. Instances of abusive behavior may be
+Project maintainers are responsible for clarifying and enforcing standards. Instances of abusive behaviour may be
 reported to the maintainers via GitHub issues or the contact method listed in the repository.
 
 ## Attribution

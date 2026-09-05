@@ -35,5 +35,5 @@ issue tracking" section: all work goes through GitHub Issues.
 
 If an issue is unclear, larger than the largest effort size (`L`, there is no bigger size, see `CONTRIBUTING.md`'s
 sizing section), involves a real architectural decision, or blocks multiple other issues, it is not ready as-is. Create
-a planning issue instead: a smaller, sized issue whose entire scope is analyzing the problem and splitting it into real,
+a planning issue instead: a smaller, sized issue whose entire scope is analysing the problem and splitting it into real,
 linked, individually ready issues. The planning issue is done once those real issues exist and are themselves ready.

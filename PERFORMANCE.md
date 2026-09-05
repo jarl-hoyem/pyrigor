@@ -18,8 +18,8 @@ section below is current, five checkers, one `ast.walk` per file.
 | Home Assistant core     | 18,187 | 59,086     | 90.21s         | ~202      |
 
 \* Two runs, same environment, showed meaningful variance (15.89 s – 20.49 s) — attributed to OS-level file-system
-caching between runs, not a real change in pyrigor’s own behavior. Timing numbers here should be read as rough orders of
-magnitude, not precise benchmarks.
+caching between runs, not a real change in pyrigor’s own behaviour. Timing numbers here should be read as rough orders
+of magnitude, not precise benchmarks.
 
 ## Per-rule breakdown
 
@@ -31,7 +31,7 @@ Both large-codebase runs show the same lopsided pattern:
 PYR402 (keyword-only arguments) dominates by two orders of magnitude over PYR401 (NamedTuple returns) in both real,
 unrelated codebases — consistent enough across two very different projects to suggest this ratio reflects something
 structural about how Python code is typically written (most functions take multiple parameters. Few functions return
-multi-value tuples), not an artifact of either codebase.
+multi-value tuples), not an artefact of either codebase.
 
 ## Shared AST walk (current)
 

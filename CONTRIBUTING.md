@@ -8,7 +8,7 @@ Contributions are welcome! Participation is governed by the [Code of Conduct](./
 - Provide a clear description and reproduction steps (for bugs).
 - Label the issue (type) if you can.
 
-New issues should be assigned to a Milestone at creation time, when a relevant one exists, not left for a later cleanup
+New issues should be assigned to a Milestone at creation time, when a relevant one exists, not left for a later clean-up
 pass. Milestones exist to make real thematic clusters (see the repo's own Milestones list) visible and browsable, an
 issue sitting unassigned when a real match exists defeats that purpose immediately.
 
@@ -26,7 +26,7 @@ An `XL`-sized issue is a sign the work has not been broken down enough yet, not 
 ## Labels
 
 Beyond `value:`/`effort:` (see sizing above) and a type label, check every issue against the full label set before
-finalizing, not just the three required minimums.
+finalising, not just the three required minimums.
 
 GitHub’s own label picker is the source of truth. Every label carries a description there, shown at the point where you
 apply it, so this file does not repeat the list. A copy here only drifts, as it already had.

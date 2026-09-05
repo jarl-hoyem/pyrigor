@@ -65,6 +65,6 @@ it.
 ## Where the "why" lives
 
 This document covers what the system looks like overall. For the reasoning behind a specific structural choice (the
-shared walk, explicit checker registration, tokenizing-based suppression scanning, and more), see `DECISIONS.md`. For
+shared walk, explicit checker registration, tokenising-based suppression scanning, and more), see `DECISIONS.md`. For
 the process of adding a new rule, see `ADDING_A_RULE.md`. For one rule's own scope and rationale, see its own
 `guidelines/PYRxxx-*.md` doc.

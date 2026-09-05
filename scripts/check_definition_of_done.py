@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 # pylint: disable=import-private-name,wrong-import-position
+# noinspection PyPep8Inspection
 from _dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 _CHANGELOG_MD = "CHANGELOG.md"

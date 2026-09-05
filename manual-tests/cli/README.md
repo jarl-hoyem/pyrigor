@@ -67,8 +67,10 @@ uv run pyrigor --output-format=json manual-tests/cli/suppressed.py
 Expected JSON has an empty `diagnostics` array and a summary containing:
 
 ```json
-"suppressed": 1,
-"suppressed_by_rule": {"PYR402": 1}
+{
+  "suppressed": 1,
+  "suppressed_by_rule": { "PYR402": 1 }
+}
 ```
 
 The exit code is `0`.

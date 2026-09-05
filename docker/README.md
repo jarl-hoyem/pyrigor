@@ -42,7 +42,7 @@ Or directly:
 
 The script automatically:
 
-- Discovers all source directories (excluding .venv, build artifacts, etc.)
+- Discovers all source directories (excluding .venv, build artefacts, etc.)
 - Mounts the project and output directories
 - Runs PyCharm inspection with optimal settings
 - Parses and reports findings

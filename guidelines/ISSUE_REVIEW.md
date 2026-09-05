@@ -14,7 +14,7 @@ The reviewer checks:
 - scope and whether the issue should be split
 - missing requirements or ambiguity
 - potential unintended consequences
-- If the issue changes or removes existing behavior, the reason for that existing behavior has been identified and
+- If the issue changes or removes existing behaviour, the reason for that existing behaviour has been identified and
   considered before proposing the change.
 - If the issue revisits an existing approach, consider whether continuing it is justified by its future value and cost
   rather than by investment already made.
@@ -22,7 +22,7 @@ The reviewer checks:
   supports it.
 - Conclusions and claims are proportionate to the available evidence, with important uncertainty or limitations
   identified where relevant.
-- Unnecessary friction for users, contributors, reviewers, or adopters has been considered and minimized where
+- Unnecessary friction for users, contributors, reviewers, or adopters has been considered and minimised where
   practical.
 - The proposed approach has been challenged rather than merely confirmed; material alternatives and objections have been
   considered.

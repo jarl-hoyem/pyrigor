@@ -17,6 +17,6 @@ Automatic fixes and fix edits are out of scope for v1.
 The summary counts all candidate files passed to the checker, kept diagnostics, and suppressed diagnostics. The
 `suppressed_by_rule` is keyed by full rule code.
 
-Consumers must select behavior by `schema_version` and may ignore unknown future fields. Removing a required field,
+Consumers must select behaviour by `schema_version` and may ignore unknown future fields. Removing a required field,
 changing a field's type or meaning, or changing an enum value requires a new schema version. The v1 schema is otherwise
 closed so producers can detect accidental field drift.
