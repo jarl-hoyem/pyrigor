@@ -17,7 +17,7 @@ codebase and record the violation count, broken down per rule.
 Compared to 'release-over-release,' a rule whose count jumps
 without a matching rule change is a signal worth investigating —
 either the rule got broader than intended, or the corpus itself
-changed underneath it (see "Pin refreshes," below).
+changed underneath it (see "Pin refreshes", below).
 
 **Corpus:** [home-assistant/core](https://github.com/home-assistant/core),
 pinned to a fixed commit so release-over-release deltas are
@@ -63,11 +63,18 @@ Record the per-rule breakdown from the summary output below.
 | 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
 | 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
 | 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
-| 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | -13/-13 vs 0.11.0         |
+| 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/-13 vs 0.11.0           |
+| 0.13.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/0 vs 0.12.0             |
 
 The 13-violation decrease is entirely from PYR406 (`176` → `163`) after
 improved lexical-scope and binding resolution. All other tracked rule counts
 were unchanged, and the corpus pin was unchanged.
+
+0.13.0 reproduces 0.12.0 exactly, including every per-rule count. The
+scan was run rather than copied: 18,187 files in 120.49 s against the
+same pin. The PYR406 deleted-local-binding fix (#226) shipped in this
+release does change detection, but the pattern it corrects does not
+occur in home-assistant/core, so no count moved.
 
 **Per-rule breakdown:**
 
@@ -78,6 +85,7 @@ were unchanged, and the corpus pin was unchanged.
 | 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
 | 0.11.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
 | 0.12.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
+| 0.13.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
@@ -87,7 +95,7 @@ only), so a rescan would reproduce 0.7.4's row unchanged.
 the identical corpus pin and no detection-logic changes since, is
 most likely a minor extraction-method difference (a GitHub archive
 tarball this time, versus a `git clone` originally), not a real
-corpus or rule-behavior change.
+corpus or rule-behaviour change.
 
 ### Pin refreshes
 
@@ -167,3 +175,4 @@ comment ratio (`comments / sloc`) below.
 | 0.10.0  | 13    | 1811 | 736  | 778  | 23       | 539   | 54          | 440   | 3.0%          | -0.7 pp         |
 | 0.11.0  | 13    | 1855 | 747  | 812  | 23       | 543   | 56          | 444   | 2.8%          | -0.2 pp         |
 | 0.12.0  | 15    | 2200 | 978  | 1034 | 23       | 559   | 88          | 519   | 2.2%          | -0.6 pp         |
+| 0.13.0  | 15    | 2354 | 1094 | 1138 | 28       | 559   | 107         | 550   | 2.5%          | +0.3 pp         |
