@@ -16,6 +16,10 @@ is usable for.
 - Added explicit `--fix` and `--diff` CLI modes for safe PYR402
   keyword-only argument fixes, with byte-preserving handling for UTF-8
   BOMs and CRLF input.
+- Documented how to surface diagnostics in an editor without a plugin,
+  covering PyCharm File Watchers, Vim and Neovim, Emacs, Visual Studio
+  Code and Sublime Text, since pyrigor already writes the generic
+  `file:line:column: message` format.
 
 ### Fixed
 
@@ -29,19 +33,19 @@ is usable for.
   dictionaries), and PYR209 (sentinel builtins instead of hand-rolled
   `object()` sentinels), with all three registered in the generated rule
   table (#191, #192, #193).
-- Added adversarial testing across CLI behavior, checker semantics,
-  suppression handling, and error paths (#183).
+- Added adversarial testing across CLI behaviour, checker semantics,
+  suppression handling and error paths (#183).
 
 ### Fixed
 
 - Hardened PYR406 return-value analysis across lexical bindings, imports,
-  redefinitions, classes, comprehensions, and nested scopes.
+  redefinitions, classes, comprehensions and nested scopes.
 - Fixed PyCharm inspection tooling to preserve settings and validate its
   configurable inspection path.
 
 ### Changed
 
-- Expanded CI and pre-commit quality checks, developer tooling, and release
+- Expanded CI and pre-commit quality checks, developer tooling and release
   verification support.
 
 ## [0.11.0] 2026-08-26
@@ -57,7 +61,7 @@ is usable for.
 
 - `--output-format=json` emits schema-validated v1 JSON diagnostics for
   the editor and tooling integrations, including source locations, rule metadata,
-  suppression summaries, and structured read/parse errors (#179).
+  suppression summaries and structured read/parse errors (#179).
 
 ## [0.9.0] 2026-08-23
 
@@ -65,12 +69,12 @@ is usable for.
 
 - CLI argument parsing (`--version`/`-V`, `--select`, paths) now uses
   the standard library's `argparse` instead of hand-rolled `sys.argv`
-  scanning (#51). Real behavior improvements: `--select PYR401`
+  scanning (#51). Real behaviour improvements: `--select PYR401`
   (space-separated) now works, previously only `--select=PYR401` was
-  recognized. An unrecognized flag is now an error immediately instead of
+  recognised. An unrecognised flag is now an error immediately instead of
   being silently treated as a path. Also `--help` is now available.
 - `--only` renamed to `--select`, matching ruff's naming convention
-  (#68). Same behavior, no deprecated naming — pyrigor has no users
+  (#68). Same behaviour, no deprecated naming — pyrigor has no users
   yet.
 
 ### Added
@@ -131,7 +135,7 @@ is usable for.
   to exactly match `# pyrigor: CODE # reason` syntax could silently
   suppress a real violation on that line, since regular expression over raw text
   cannot distinguish a genuine comment from text that merely looks
-  like one inside a string. Suppression matching now tokenizes the
+  like one inside a string. Suppression matching now tokenises the
   source and only considers genuine comment tokens. Closes #41.
 
 ## [0.7.3] 2026-08-18
@@ -161,8 +165,8 @@ is usable for.
 ### Fixed
 
 - PYR406 silently missed a PEP 604 union return type (`int | str`,
-  `int | None`). `_annotation_name()` did not recognize the `X | Y`
-  syntax, treating it the same as an unrecognized annotation shape
+  `int | None`). `_annotation_name()` did not recognise the `X | Y`
+  syntax, treating it the same as an unrecognised annotation shape
   — indistinguishable from `-> None` to the checker, so the
   function’s discarded return value was never flagged. Now
   detected and protected like any other non-`None` return type.
@@ -192,7 +196,7 @@ is usable for.
   `assert` for correctness checks, since Python's `-O` flag strips
   every `assert` from compiled bytecode entirely.
 - `--only=CODE,CODE` CLI flag to restrict checking to specific
-  rules. Accepts full code, bare number, or symbolic name.
+  rules. Accepts full code, bare number or symbolic name.
 - `scripts/check_dod.py`, a warn-only pre-commit hook. Prints a note
   (never fails the commit) if the `pyproject.toml`'s version changed
   without a matching `CHANGELOG.md` entry, or if
@@ -218,7 +222,7 @@ is usable for.
 - Per-rule breakdown and per-file breakdown print order: both were
   still printing before the per-file list on a second pass, only the
   total line had actually been fixed the first time.
-- `--only` with an unrecognized rule code now errors immediately
+- `--only` with an unrecognised rule code now errors immediately
   (exit code 2) instead of silently running zero checkers.
 
 ## [0.5.0] 2026-08-14
@@ -227,7 +231,7 @@ is usable for.
 
 - PYR301 (NamedTuple values) is now enforced, a fifth rule. Covers
   a bare multi-value tuple annotation on a plain variable, dataclass
-  field, or attribute assignment, complementing PYR401 (returns) and
+  field or attribute assignment, complementing PYR401 (returns) and
   PYR405 (parameters).
 - Per-file violation breakdown in the summary, alongside the
   existing per-rule breakdown.
@@ -257,7 +261,7 @@ is usable for.
 
 - `BACKLOG.md`'s item #5 removed a stray "this session" reference,
   meaningless outside a live coding session.
-- Summary print order: per-file breakdown, per-rule breakdown, and
+- Summary print order: per-file breakdown, per-rule breakdown and
   the total line now print in that order, all three surviving
   scrolling off the screen on a large run. Found in two passes against
   Home Assistant core (18,187 files): the first fix only moved the
@@ -286,7 +290,7 @@ is usable for.
   `pass_filenames: false` and always checks the whole `pyrigor/`
   directory, matching every other whole-project tool already
   configured that way, instead of receiving batched, per-commit
-  filenames from pre-commit’s default behavior.
+  filenames from pre-commit’s default behaviour.
 
 ### Fixed
 

@@ -33,6 +33,10 @@ Run the linter itself:
 uv run pyrigor path/to/file.py [path/to/dir ...]
 uv run pyrigor --select=PYR401,PYR402 path/   # restrict to specific rules (code, bare number, or symbolic name)
 uv run pyrigor --ignore=PYR406 path/          # exclude specific rules instead; combines with --select
+uv run pyrigor --exclude=manual-tests path/   # omit paths, repeatable, applied by pyrigor itself
+uv run pyrigor --output-format=json path/     # stable v1 diagnostic schema for editors and tooling
+uv run pyrigor --diff --select=PYR402 path/   # preview the safe PYR402 fix without writing
+uv run pyrigor --fix --select=PYR402 path/    # apply it, reporting each changed file
 uv run pyrigor --version
 ```
 
