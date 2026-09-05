@@ -688,6 +688,35 @@ works the way an external adopter would use it, which it still does
 correctly one version behind. Revisit only if a real consumer is
 ever confused by the lag in practice, not preemptively.
 
+### PyCharm inspections stay a manual step rather than a gate
+
+Two things rule out automating it, and both are temporary.
+
+A full run analyses 132 files in roughly two minutes. That is too slow
+for pre-commit, where the rest of the suite runs in seconds and the cost
+is paid on every commit.
+
+Gating at pre-push or in CI would need the backlog at zero first, and it
+stands at 4155 findings. Almost none of these are defects. Three settings
+decisions account for nearly all of it (#236): PyCharm's Markdown
+formatter against the project's hand-wrapping, a dictionary that does
+not know the word Pyrigor and Grazie configured for American English
+while the house style is deliberately British. A gate turned on now
+would fail on every commit for reasons nobody intends to fix, and would
+be switched off again within a day.
+
+So it runs on request, or when an agent thinks to run it, plus once per
+release as a step in `DEFINITION_OF_DONE.md`'s checklist. Outside that
+release step it is deliberately weak and should be read as a known gap
+rather than a design. It has already failed once: a `PRINCIPLES.md` edit
+on 2026-09-05 was reported as verified on the strength of `just check`,
+which does not include the inspection, and the inspection ran only when
+the maintainer asked for it.
+
+Revisit once #236 has settled the three categories. The remaining count
+is then small enough that gating becomes a real option rather than a
+theoretical one.
+
 ### Pyrigor’s suppression comment must come last when stacked with another tool’s
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`)

@@ -17,7 +17,7 @@ correctness for what was actually tested.
 
 For every implementation change, deliberately build and run a test
 matrix before declaring it done. The matrix must cover normal
-behavior, edge and boundary cases, meaningful combinations of options
+behaviour, edge and boundary cases, meaningful combinations of options
 or inputs, and relevant negative or error paths. If a category does
 not apply, record that judgment rather than silently omitting it.
 This is mandatory even when the initial request only says to
@@ -35,7 +35,7 @@ match bindings, sequential redefinitions, lambdas, and classes.
 This applies with extra force when a feature is scoped as "behaves
 like an existing feature." In that case, the existing feature’s own
 test file is the checklist. Read it. Confirm an equivalent test
-exists for each tested behavior in the new feature too,
+exists for each tested behaviour in the new feature too,
 before calling the new feature done.
 
 "Tested" means more than the happy path, and the one case explicitly
@@ -51,7 +51,7 @@ of logic, ask:
 - What is the error path, and is it tested deliberately, not just
   assumed to work because the happy path does?
 - What would a deliberately adversarial reader try to break, given
-  the actual code, not the intended behavior? Try that.
+  the actual code, not the intended behaviour? Try that.
 
 This is the same discipline `ADDING_A_RULE.md` already applies to
 checkers specifically (self/cls, async, positional-only, single
@@ -80,7 +80,7 @@ Not a call for a formal requirements document before every feature.
 Not a call for process weight the maintainer has repeatedly and
 deliberately rejected elsewhere in this project (see CONTRIBUTING.md
 and the Sprint-cadence removal in its own history). This is a check
-performed silently, before saying "done," not a document to produce
+performed silently, before saying "done", not a document to produce
 for review.
 
 ## Precedent
@@ -90,7 +90,7 @@ category of work (checkers): a written checklist of required test
 cases (self/cls, async, positional-only, ...), read at the
 start of building any rule, regardless of whether the same mistake
 was already made once before. This file is the same pattern, applied
-to features and CLI behavior, not just checkers, because
+to features and CLI behaviour, not just checkers, because
 the same category of gaps has now shown up twice in that domain
 (`--version`'s coverage, `--only`'s leniency).
 
@@ -116,18 +116,18 @@ knowledge only):
   new test for this change. Already standard practice here
   (`just check`), stated explicitly, so it is not
   skipped under time pressure.
-- **Release artifacts are tested as installed artifacts.** Before a
+- **Release artefacts are tested as installed artefacts.** Before a
   release, build both the wheel and source distribution, install each
   in an isolated environment, and exercise the real CLI. Verify the
   entry point, clean output, diagnostics, JSON output, suppression,
   and operational errors. Source-checkout tests cannot prove that the
-  package manifest, entry point, or artifact contents are correct.
+  package manifest, entry point, or artefact contents are correct.
 - **Bug fixes get a reproducing test first.** Write the test that
   captures the reported bug before writing the fix, not after —
   confirms the fix actually addresses what was reported, not just a
   symptom near it, and locks in the regression.
 - **Backward compatibility.** If this change alters any documented
-  public behavior (a return type, a CLI flag’s shape, a rule’s
+  public behaviour (a return type, a CLI flag’s shape, a rule’s
   scope), the version bump and `CHANGELOG.md` entry reflect that,
 - not as a smaller change than it actually is.
 - **Issue traceability.** If this work closes an existing GitHub
@@ -159,7 +159,7 @@ knowledge only):
   becomes a real, dated version heading, as happened with #11.
 - Guideline docs, rule descriptions, and issue text describe the current,
   correct state, not the history of how they got that way. No
-  "earlier version allowed...", no "this was fixed tonight," no
+  "earlier version allowed...", no "this was fixed tonight", no
   narration of this project’s own past states or evolution. This is not
   a ban on citing real, external sources. Citing McConnell,
   OSSF, a style guide, or another real project’s own config is a
@@ -185,9 +185,16 @@ knowledge only):
    deliberate architectural patterns (checker `find_violations`
    wrappers, `_shared.py`'s helper functions), file an issue for
    anything genuinely new.
-6. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
+6. **Run the PyCharm inspection** (`just inspect`), and check that the
+   release's own changes drew no new findings outside the three known
+   settings categories tracked in #236. Delete
+   `.pycharm-inspection-results/` and `.pycharm-inspection.log`
+   afterwards. This is the only scheduled moment the inspection runs,
+   since it is too slow for pre-commit and its backlog is too large to
+   gate on. See `DECISIONS.md`.
+7. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag
    and title) with real release notes.
 
 Dev-tooling-only changes (a new pre-commit hook, a CI workflow fix,
-internal refactors with no user-visible behavior change) do not need
+internal refactors with no user-visible behaviour change) do not need
 a `CHANGELOG.md` entry. Only user-facing changes do.
