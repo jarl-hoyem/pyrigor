@@ -37,7 +37,7 @@ as the real requirements allow. Simple does not mean simplistic:
 complexity justified by correctness, security, performance,
 compatibility, or maintainability is acceptable.
 
-Occam's Razor, Least Power, and Separation of Concerns are treated as
+Occam's Razor, The Least Power, and Separation of Concerns are treated as
 applications of KISS rather than separate principles.
 
 ## Inversion
@@ -111,7 +111,7 @@ of verification to the consequence of being wrong. A release or a
 security-relevant change earns more independent evidence than a
 documentation correction.
 
-“Zero Trust” is treated as an application of independent verification
+"Zero Trust" is treated as an application of independent verification
 rather than a separate principle.
 
 **Enforced by:** `guidelines/ISSUE_REVIEW.md` and the review checkbox
@@ -231,7 +231,7 @@ contributor experience as products in their own right. Look for
 opportunities to remove friction and provide useful guidance beyond the
 minimum required for functionality.
 
-Least Surprise is treated as a consideration within hospitality rather
+The least Surprise is treated as a consideration within hospitality rather
 than a separate principle.
 
 ## Determinism
@@ -260,7 +260,7 @@ compliant.
 
 ## Diagnosability
 
-**Principle:** Failures and unexpected behavior must provide enough
+**Principle:** Failures and unexpected behaviour must provide enough
 information to determine what happened and why.
 
 ## Traceability
@@ -274,7 +274,7 @@ demonstrating that it has been satisfied.
 underlying quality or outcome it is intended to represent.
 
 **Application to Pyrigor:** Use metrics as evidence rather than as
-substitutes for the underlying goal. Do not optimize a metric in a way
+substitutes for the underlying goal. Do not optimise a metric in a way
 that makes Pyrigor appear better while actual quality, usefulness, or
 trustworthiness becomes worse.
 
