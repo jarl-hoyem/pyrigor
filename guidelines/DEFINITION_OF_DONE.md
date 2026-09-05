@@ -129,7 +129,7 @@ knowledge only):
 - **Backward compatibility.** If this change alters any documented
   public behaviour (a return type, a CLI flag’s shape, a rule’s
   scope), the version bump and `CHANGELOG.md` entry reflect that,
-- not as a smaller change than it actually is.
+  not as a smaller change than it actually is.
 - **Issue traceability.** If this work closes an existing GitHub
   Issue, close it (see the close-at-changelog-entry-time rule
   below). Do not leave it sitting open as if the work were still
