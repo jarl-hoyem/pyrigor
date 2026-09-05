@@ -492,8 +492,8 @@ to fix, and would have been switched off again within a day.
 
 The Markdown half has since been settled. Prettier owns Markdown formatting, and the entry above assigns the inspection
 categories their owners, disabling `IncorrectFormatting` and the table check. Since `IncorrectFormatting` alone
-accounted for 3795 of those findings, the backlog needs re-measuring before anyone judges whether gating is realistic.
-Nobody has re-run the inspection since Prettier landed.
+accounted for thousands of those findings, the backlog needs re-measuring before anyone judges whether gating is
+realistic. Nobody has re-run the inspection since Prettier landed.
 
 So it runs on request, or when an agent thinks to run it, plus once per release as a step in `DEFINITION_OF_DONE.md`'s
 checklist. Outside that release step it is deliberately weak and should be read as a known gap rather than a design. It
@@ -503,31 +503,19 @@ which does not include the inspection, and the inspection ran only when the main
 Revisit once #236 has re-measured the backlog under the settled categories. The remaining count is then small enough
 that gating becomes a real option rather than a theoretical one.
 
-### PyCharm inspection categories are triaged by ownership
+### PyCharm inspection findings are worked to zero, not switched off
 
-Issue #236 exposed a large backlog after the inspection runner began analysing the whole project. The findings are not
-all questions for the same tool, so each category has an explicit owner:
+Issue #236 exposed a large backlog after the inspection runner began analysing the whole project. Every inspection stays
+enabled while its findings are understood. No category is switched off merely because its current backlog is noisy. The
+Docker runner has its own British-English Grazie configuration and Python 3.11 SDK, so its results now match the
+repository's declared language and type-syntax baseline without copying personal IDE settings. The issue tracks the
+remaining, tickable cleanup work.
 
-- `IncorrectFormatting` is disabled. Markdown formatting is owned by Prettier and Python formatting by `ruff format`, so
-  PyCharm does not get a third opinion. This setting was first justified by the project's deliberate hand-wrapping,
-  which Prettier has since replaced. The setting outlived its original reason.
-- Markdown table formatting is disabled, for the same ownership reason. It needs its own setting, because disabling
-  `IncorrectFormatting` does not silence it. The disagreement is one row: Prettier writes a delimiter row with padding
-  spaces, as `| --- | --- |`, while PyCharm fills the cell with dashes, as `|-----|-----|`. Both are valid
-  GitHub-flavoured Markdown, both align the pipes identically and neither changes how the table renders. Left enabled,
-  it flags every table in the repository.
-- `GrazieInspection` is disabled. Its article suggestions have produced ungrammatical edits, and its language defaults
-  conflict with the project's British English prose standard.
-- `SpellCheckingInspection` remains enabled. Project vocabulary is added to the local dictionary. Unknown words that are
-  not project terms remain useful findings.
-- `PyTypeHints` remains enabled and its findings are triaged individually. A repeated disagreement with mypy, pyright
-  and ty is not by itself a reason to suppress the category.
-- Other categories remain enabled unless their findings are separately reviewed and a reason to change ownership is
-  recorded.
-
-These settings reduce noise without narrowing the inspected file set or turning off the type-hint signal that may reveal
-real defects. The profile and dictionary are currently gitignored, so this decision is also recorded here as the durable
-project-level rationale. Sharing the settings with other contributors remains the separate concern tracked by #220.
+Fixing the runner's own configuration is what removed findings, rather than narrowing the inspected file set or muting a
+category. Giving it a Python SDK took `PyTypeHintsInspection` from 89 findings to zero, and every one of those was an
+artefact of parsing without an SDK rather than a real defect. The project profile and dictionary remain gitignored, so
+this rationale is recorded here rather than only in one machine's IDE. Sharing the settings with other contributors is
+the separate concern tracked by #220.
 
 ### Pyrigor’s suppression comment must come last when stacked with another tool’s
 
