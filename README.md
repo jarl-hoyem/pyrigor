@@ -35,6 +35,11 @@ languages.
 - Checks an 18,187-file real-world codebase in under a minute
 - Drop-in pre-commit integration, or run standalone
 
+> **Pyrigor complements Python's tooling ecosystem; it does not try to replace it.**
+> If an established tool such as Pylint, Ruff, or a type checker already
+> provides an adequate check, pyrigor should not duplicate that rule.
+> Pyrigor focuses on gaps where it can add distinct value.
+
 ## Table of Contents
 
 - [The problem, in one example](#the-problem-in-one-example)
@@ -99,7 +104,7 @@ from `--select`'s set (or from every rule, if `--select` is
 omitted). The codes may be given as the full code, the bare number,
 or the symbolic name, the same as suppression comments. An
 unrecognised code exits immediately with an error naming it, as does
-a `--select`/`--ignore` combination that leaves no rules to check.
+ a `--select`/`--ignore` combination that leaves no rules to check.
 Use `--exclude PATH` to omit a file or directory and everything below it.
 Repeat the option to exclude multiple paths. This exclusion is
 applied by pyrigor itself, independently of any pre-commit file filter.
