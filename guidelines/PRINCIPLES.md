@@ -160,7 +160,17 @@ an inspection that analysed one file and declared success (#229). Before
 accepting a check, ask what its output would be if it did nothing at
 all and make that case visible.
 
+Tests are the largest population of checks here, and the criterion is
+the same: a test earns its place by being able to fail. Coverage, a
+descriptive name, and the existence of a test file are not evidence
+that anything is verified. The flag `--show-fixes` shipped doing
+nothing, with a test named after it that passes when the flag is
+omitted (#247).
+
 **Enforced by:** review, against `guidelines/DEFINITION_OF_DONE.md`.
+The mutation-score gate catches the subset where there is code to
+mutate. It cannot catch a test written for behaviour that does not
+exist because there is nothing to mutate.
 
 ## Tests Are the Executable Specification
 
