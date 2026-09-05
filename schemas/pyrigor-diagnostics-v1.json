@@ -4,18 +4,11 @@
   "title": "pyrigor diagnostics v1",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "diagnostics",
-    "errors",
-    "summary"
-  ],
+  "required": ["schema_version", "diagnostics", "errors", "summary"],
   "properties": {
     "schema_version": {
       "type": "integer",
-      "enum": [
-        1
-      ]
+      "enum": [1]
     },
     "diagnostics": {
       "type": "array",
@@ -37,10 +30,7 @@
     "position": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "line",
-        "column"
-      ],
+      "required": ["line", "column"],
       "properties": {
         "line": {
           "type": "integer",
@@ -55,16 +45,7 @@
     "diagnostic": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "file",
-        "location",
-        "code",
-        "name",
-        "message",
-        "context",
-        "severity",
-        "fixability"
-      ],
+      "required": ["file", "location", "code", "name", "message", "context", "severity", "fixability"],
       "properties": {
         "file": {
           "type": "string"
@@ -72,10 +53,7 @@
         "location": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "start",
-            "end"
-          ],
+          "required": ["start", "end"],
           "properties": {
             "start": {
               "$ref": "#/$defs/position"
@@ -98,17 +76,10 @@
         "context": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "kind",
-            "name"
-          ],
+          "required": ["kind", "name"],
           "properties": {
             "kind": {
-              "enum": [
-                "Function",
-                "Variable",
-                "Call"
-              ]
+              "enum": ["Function", "Variable", "Call"]
             },
             "name": {
               "type": "string"
@@ -116,38 +87,23 @@
           }
         },
         "severity": {
-          "enum": [
-            "error",
-            "warning",
-            "info"
-          ]
+          "enum": ["error", "warning", "info"]
         },
         "fixability": {
-          "enum": [
-            "safe_fix",
-            "suggestion",
-            "guidance"
-          ]
+          "enum": ["safe_fix", "suggestion", "guidance"]
         }
       }
     },
     "error": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "file",
-        "kind",
-        "message"
-      ],
+      "required": ["file", "kind", "message"],
       "properties": {
         "file": {
           "type": "string"
         },
         "kind": {
-          "enum": [
-            "read_error",
-            "parse_error"
-          ]
+          "enum": ["read_error", "parse_error"]
         },
         "message": {
           "type": "string"
@@ -157,12 +113,7 @@
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "files_checked",
-        "diagnostics",
-        "suppressed",
-        "suppressed_by_rule"
-      ],
+      "required": ["files_checked", "diagnostics", "suppressed", "suppressed_by_rule"],
       "properties": {
         "files_checked": {
           "type": "integer",

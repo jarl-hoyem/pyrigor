@@ -1,7 +1,7 @@
 name: Update pre-commit hooks
 on:
   schedule:
-    - cron: "0 6 1 * *"  # First of each month, 06:00 in London.
+    - cron: "0 6 1 * *" # First of each month, 06:00 in London.
   workflow_dispatch:
 
 jobs:

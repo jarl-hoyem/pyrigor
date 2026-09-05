@@ -1,6 +1,6 @@
 #file: noinspection YAMLSchemaValidation
 # Keeping repository quality high.
-default_install_hook_types: [ pre-commit, commit-msg ]
+default_install_hook_types: [pre-commit, commit-msg]
 repos:
   # The version-sync runs first, deliberately split out of the larger
   # local block below: if a version bump forces an immediate
@@ -15,84 +15,84 @@ repos:
         entry: uv run --extra dev python scripts/version_sync.py
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       # Auto-fixers first: everything after validates their
       # already-fixed output, not a stale version.
-      - id: fix-byte-order-marker  # Removes UTF-8 byte order marker.
-        stages: [ pre-commit ]
+      - id: fix-byte-order-marker # Removes UTF-8 byte order marker.
+        stages: [pre-commit]
       - id: trailing-whitespace
-        stages: [ pre-commit ]
-      - id: end-of-file-fixer  # Makes sure files end in a newline and only a newline.
-        stages: [ pre-commit ]
+        stages: [pre-commit]
+      - id: end-of-file-fixer # Makes sure files end in a newline and only a newline.
+        stages: [pre-commit]
       - id: mixed-line-ending
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # Fast, basic file hygiene checks.
       - id: check-toml
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: check-yaml
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: check-json
-        stages: [ pre-commit ]
-      - id: check-ast  # Check whether files parse as valid python.
-        stages: [ pre-commit ]
-      - id: debug-statements  # Check for debugger imports and breakpoint() in python files.
-        stages: [ pre-commit ]
+        stages: [pre-commit]
+      - id: check-ast # Check whether files parse as valid python.
+        stages: [pre-commit]
+      - id: debug-statements # Check for debugger imports and breakpoint() in python files.
+        stages: [pre-commit]
       - id: detect-private-key
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: check-shebang-scripts-are-executable
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: check-added-large-files
-        stages: [ pre-commit ]
-      - id: check-case-conflict  # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
-        stages: [ pre-commit ]
+        stages: [pre-commit]
+      - id: check-case-conflict # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: text-hygiene
         name: reject control characters and mojibake
         language: system
         entry: uv run python scripts/check_text_hygiene.py
-        stages: [ pre-commit ]
+        stages: [pre-commit]
         files: "\\.(py|md|toml|ya?ml|json|txt|lock)$"
-      - id: prettier-markdown
-        name: prettier (Markdown)
+      - id: prettier
+        name: prettier (Markdown, YAML, JSON)
         language: node
         entry: prettier --write --ignore-unknown
-        additional_dependencies: [ "prettier@3.9.6" ]
-        files: "\\.md$"
-        stages: [ pre-commit ]
+        additional_dependencies: ["prettier@3.9.6"]
+        files: "\\.(md|ya?ml|json)$"
+        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:
       - id: ruff
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: ruff-format
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   # Security.
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
       - id: actionlint
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
       - id: bandit
-        args: [ "-c", "pyproject.toml" ]
-        additional_dependencies: [ "bandit[toml]" ]
-        stages: [ pre-commit ]
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+        stages: [pre-commit]
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.18.0
     hooks:
       - id: commitizen
-        stages: [ commit-msg ]
+        stages: [commit-msg]
   # Complexity/quality.
   - repo: https://github.com/jendrikseipp/vulture
     rev: v2.16
@@ -106,19 +106,19 @@ repos:
         # entry point is invoked externally by the pyrigor CLI, never
         # referenced in-corpus, so vulture flags it as unused by
         # design. See DECISIONS.md.
-        args: [ ".", "--exclude", "manual-tests,.venv,htmlcov,pyrigor.egg-info" ]
+        args: [".", "--exclude", "manual-tests,.venv,htmlcov,pyrigor.egg-info"]
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
     hooks:
       - id: codespell
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   - repo: https://github.com/rohaquinlop/complexipy-pre-commit
     rev: v7.0.1
     hooks:
@@ -129,8 +129,8 @@ repos:
         # inline via `# complexipy: ignore`). If a new function
         # exceeds this, prefer a refactoring, or a scoped, justified
         # inline ignore statement over raising this number globally.
-        args: [ "--max-complexity-allowed", "6", "--failed" ]
-        stages: [ pre-commit ]
+        args: ["--max-complexity-allowed", "6", "--failed"]
+        stages: [pre-commit]
   # Project-specific.
   - repo: https://github.com/jarl-hoyem/pyrigor
     # The published self-hosted hook intentionally lags until the next release
@@ -155,7 +155,7 @@ repos:
           - manual-tests/cli/nested
           - --exclude
           - manual-tests/pycharm/watcher.py
-        stages: [ pre-commit ]
+        stages: [pre-commit]
   # Tools that need the project's own real dependencies installed to
   # work correctly (resolving imports, checking types against actual
   # third-party packages) run here. They run via the project's own uv-managed
@@ -181,7 +181,7 @@ repos:
           - check
           - .
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: mypy
         name: mypy
         language: system
@@ -189,7 +189,7 @@ repos:
         args:
           - .
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: pyright
         name: pyright
         language: system
@@ -197,33 +197,33 @@ repos:
         args:
           - --project=pyproject.toml
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: pylint
         name: pylint
         language: system
         entry: uv run --extra dev pylint
-        types: [ python ]
+        types: [python]
         # Changed-files-only, unlike its neighbors above
         # — pylint checks one file at a time. Its findings never
         # depend on another file. See DECISIONS.md.
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # More complexity/quality, fastest first.
       - id: radon-maintainability
         name: radon maintainability
         entry: radon mi
         language: python
-        types: [ python ]
-        args: [ "--min", "A", ".", "--ignore", ".venv,htmlcov,*.egg-info" ]
-        additional_dependencies: [ "radon==6.0.1" ]
+        types: [python]
+        args: ["--min", "A", ".", "--ignore", ".venv,htmlcov,*.egg-info"]
+        additional_dependencies: ["radon==6.0.1"]
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: xenon-shared
         name: xenon (relaxed to B, for files with a documented exception)
         language: python
         entry: xenon
         pass_filenames: false
-        types: [ python ]
-        additional_dependencies: [ "xenon==0.9.3" ]
+        types: [python]
+        additional_dependencies: ["xenon==0.9.3"]
         # Each file listed here needs its own DECISIONS.md-documented
         # reason, the same way _shared.py's walk_once does
         # (single-pass node classification is the point — the same
@@ -238,14 +238,14 @@ repos:
           - pyrigor/checkers/_shared.py
           # Add a new file's own path here, and its matching
           # `*filename.py` glob to the strict hook's --exclude above.
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: xenon
         name: xenon
         language: python
         entry: xenon
         pass_filenames: false
-        types: [ python ]
-        additional_dependencies: [ "xenon==0.9.3" ]
+        types: [python]
+        additional_dependencies: ["xenon==0.9.3"]
         # Files relaxed to level B below are excluded here, one glob
         # per comma-separated entry. Adding a new relaxed file means
         # extending this list and xenon-shared's own path list below
@@ -257,44 +257,44 @@ repos:
           - --exclude=*_shared.py
           - --ignore=.venv,htmlcov,*.egg-info
           - .
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: tach
         name: tach (module-boundary enforcement)
         entry: tach check
         language: python
-        additional_dependencies: [ "tach==0.35.0" ]
+        additional_dependencies: ["tach==0.35.0"]
         files: (\.py$|tach\.toml$)
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # Project-specific.
       - id: uv-lock-check
         name: uv lock check
         language: python
         entry: uv lock --check
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: dod-check
         name: DoD - warn on likely missed doc/changelog updates
         language: system
         entry: uv run --extra dev python scripts/check_definition_of_done.py
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: generate-rule-table
         name: regenerate guidelines/RULES.md from the real guideline docs
         language: system
         entry: uv run --extra dev python scripts/generate_rule_table.py
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       - id: pyrigor
         name: pyrigor (WIP self-check, uncommitted code)
         language: system
         entry: uv run --extra dev python -m pyrigor.checkers.cli .
         args: *fixture_excludes
-        types: [ python ]
+        types: [python]
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # Fast local dependency audit runs before the slower test suite.
       - id: pip-audit
         name: pip-audit (fast, local environment)
@@ -302,7 +302,7 @@ repos:
         entry: uv run --extra dev --with pip-audit pip-audit --local
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # Tests.
       - id: pytest
         name: pytest
@@ -311,7 +311,7 @@ repos:
         language: system
         entry: uv run --extra dev pytest
         pass_filenames: false
-        stages: [ pre-commit ]
+        stages: [pre-commit]
       # Precise locked dependency audit is pre-push/CI only and intentionally slow.
       - id: pip-audit-locked
         name: pip-audit (precise, exact uv.lock versions, pre-push/CI only)
@@ -319,4 +319,4 @@ repos:
         entry: uv run --with pip-audit python scripts/run_pip_audit.py
         pass_filenames: false
         always_run: true
-        stages: [ pre-push ]
+        stages: [pre-push]
