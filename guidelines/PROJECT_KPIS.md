@@ -52,19 +52,20 @@ Fetch or clone the checkout only when establishing it or deliberately
 refreshing the corpus pin. Record any deliberate refresh in the
 **Pin refreshes** section below.
 
-Record the per-rule breakdown from the summary output below.
+Record the per-rule breakdown from the summary output below. Both
+tables are newest first, so a new release is prepended, not appended.
 
 ### History
 
 | Release | Corpus pin                       | Files | Total violations | Delta vs. prior           |
 |---------|----------------------------------|-------|------------------|---------------------------|
-| 0.7.4   | home-assistant/core @ `ac63da9`  | 18221 | 90921            | _(first row)_             |
-| 0.8.0   | _(skipped, see note below)_      |       |                  |                           |
-| 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
-| 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
-| 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
-| 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/-13 vs 0.11.0           |
 | 0.13.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/0 vs 0.12.0             |
+| 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/-13 vs 0.11.0           |
+| 0.11.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | 0/0 vs 0.10.0             |
+| 0.10.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90501            | -36/-426 vs 0.9.0         |
+| 0.9.0   | home-assistant/core @ `ac63da9`  | 18223 | 90927            | +2/+6 vs 0.7.4 (see note) |
+| 0.8.0   | _(skipped, see note below)_      |       |                  |                           |
+| 0.7.4   | home-assistant/core @ `ac63da9`  | 18221 | 90921            | _(baseline)_              |
 
 The 13-violation decrease is entirely from PYR406 (`176` → `163`) after
 improved lexical-scope and binding resolution. All other tracked rule counts
@@ -80,12 +81,12 @@ occur in home-assistant/core, so no count moved.
 
 | Release | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
 |---------|--------|--------|--------|--------|--------|--------|
-| 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
-| 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
-| 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
-| 0.11.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
-| 0.12.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 | 0.13.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
+| 0.12.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
+| 0.11.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
+| 0.10.0  | 55     | 579    | 58485  | 30786  | 420    | 176    |
+| 0.9.0   | 55     | 585    | 58821  | 30865  | 425    | 176    |
+| 0.7.4   | 55     | 585    | 58819  | 30861  | 425    | 176    |
 
 0.8.0 was skipped deliberately: neither #11 nor #46 changes what
 pyrigor detects (label text and suppression-comment recognition
@@ -163,16 +164,17 @@ uv run radon raw --json pyrigor/ > /tmp/kpi-raw.json
 ```
 
 Record the aggregate totals (summed across files) and the derived
-comment ratio (`comments / sloc`) below.
+comment ratio (`comments / sloc`) below. The table is the newest first, so
+a new release is prepended, not appended.
 
 ### History
 
 | Release | Files | LOC  | LLOC | SLOC | Comments | Multi | Single-line | Blank | Comment ratio | Delta vs. prior |
 |---------|-------|------|------|------|----------|-------|-------------|-------|---------------|-----------------|
-| 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(first row)_   |
-| 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
-| 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
-| 0.10.0  | 13    | 1811 | 736  | 778  | 23       | 539   | 54          | 440   | 3.0%          | -0.7 pp         |
-| 0.11.0  | 13    | 1855 | 747  | 812  | 23       | 543   | 56          | 444   | 2.8%          | -0.2 pp         |
-| 0.12.0  | 15    | 2200 | 978  | 1034 | 23       | 559   | 88          | 519   | 2.2%          | -0.6 pp         |
 | 0.13.0  | 15    | 2354 | 1094 | 1138 | 28       | 559   | 107         | 550   | 2.5%          | +0.3 pp         |
+| 0.12.0  | 15    | 2200 | 978  | 1034 | 23       | 559   | 88          | 519   | 2.2%          | -0.6 pp         |
+| 0.11.0  | 13    | 1855 | 747  | 812  | 23       | 543   | 56          | 444   | 2.8%          | -0.2 pp         |
+| 0.10.0  | 13    | 1811 | 736  | 778  | 23       | 539   | 54          | 440   | 3.0%          | -0.7 pp         |
+| 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
+| 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
+| 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(baseline)_    |
