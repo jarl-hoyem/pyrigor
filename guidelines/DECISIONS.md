@@ -481,8 +481,8 @@ version behind. Revisit only if a real consumer is ever confused by the lag in p
 
 Two things rule out automating it, and both are temporary.
 
-A full run analyses 132 files in roughly two minutes. That is too slow for pre-commit, where the rest of the suite runs
-in seconds and the cost is paid on every commit.
+A full run takes minutes rather than seconds. That is too slow for pre-commit, where the rest of the suite runs in
+seconds and the cost is paid on every commit.
 
 Gating at pre-push or in CI would need the backlog at zero first, and it stood at 4155 findings when this was written.
 Almost none of these are defects. Three settings decisions account for nearly all of it (#236): the Markdown formatting
