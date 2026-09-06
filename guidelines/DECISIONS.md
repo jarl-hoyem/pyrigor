@@ -490,10 +490,11 @@ disagreement, a dictionary that does not know the word Pyrigor and Grazie config
 house style is deliberately British. A gate turned on then would have failed on every commit for reasons nobody intended
 to fix, and would have been switched off again within a day.
 
-The Markdown half has since been settled. Prettier owns Markdown formatting, and the entry above assigns the inspection
-categories their owners, disabling `IncorrectFormatting` and the table check. Since `IncorrectFormatting` alone
-accounted for thousands of those findings, the backlog needs re-measuring before anyone judges whether gating is
-realistic. Nobody has re-run the inspection since Prettier landed.
+The Markdown half has since been settled by ownership, not by switching anything off. Prettier owns Markdown, YAML and
+JSON formatting, and every inspection category remains enabled. Measured on 2026-09-06, `IncorrectFormatting` stands at
+193, with every finding in a file Prettier owns and none outside them. Setting PyCharm's Prettier integration to
+automatic resolution takes that to zero without moving any other category, which is recorded on #236 along with what
+blocks adopting it.
 
 So it runs on request, or when an agent thinks to run it, plus once per release as a step in `DEFINITION_OF_DONE.md`'s
 checklist. Outside that release step it is deliberately weak and should be read as a known gap rather than a design. It
@@ -509,7 +510,7 @@ Issue #236 exposed a large backlog after the inspection runner began analysing t
 enabled while its findings are understood. No category is switched off merely because its current backlog is noisy. The
 Docker runner has its own British-English Grazie configuration and Python 3.11 SDK, so its results now match the
 repository's declared language and type-syntax baseline without copying personal IDE settings. The issue tracks the
-remaining, tickable cleanup work.
+remaining, tickable clean-up work.
 
 Fixing the runner's own configuration is what removed findings, rather than narrowing the inspected file set or muting a
 category. Giving it a Python SDK took `PyTypeHintsInspection` from 89 findings to zero, and every one of those was an
