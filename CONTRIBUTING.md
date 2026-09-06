@@ -50,11 +50,14 @@ Development uses [uv](https://docs.astral.sh/uv/).
 ```bash
 git clone https://github.com/jarl-hoyem/pyrigor.git
 cd pyrigor
-uv sync --extra dev
-pre-commit install
+just setup
 ```
 
-`pre-commit install` sets up both the pre-commit and commit-msg hooks in one step (configured via
+`just setup` installs the Python dependencies, the git hooks and Prettier. Prettier is a Node package, needed because no
+Python formatter covers Markdown, YAML and JSON. It is what formats those files at commit, and what the IDE defers to,
+so both agree. Node and npm therefore have to be available.
+
+The hook installation covers both the pre-commit and commit-msg hooks in one step (configured via
 `default_install_hook_types` in `.pre-commit-config.yaml`).
 
 A `dod-check` pre-commit hook prints warn-only notes (never blocks a commit) if a version bump or checker change looks

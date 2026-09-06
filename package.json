@@ -1,0 +1,7 @@
+{
+  "name": "pyrigor-tooling",
+  "private": true,
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}

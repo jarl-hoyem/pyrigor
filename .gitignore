@@ -192,6 +192,9 @@ cython_debug/
 !.idea/dictionaries/
 .idea/dictionaries/*
 !.idea/dictionaries/project.xml
+# The Prettier configuration is deliberately shared: it is what makes the
+# IDE defer formatting to Prettier, the same way the pre-commit hook does.
+!.idea/prettier.xml
 
 # Abstra
 #   Abstra is an AI-powered process automation framework.
@@ -259,3 +262,6 @@ Temporary Items
 .pycharm-inspection-results/
 .pycharm-inspection.log
 mutants/
+
+# Prettier is installed by `just setup`; only the pin is committed.
+node_modules/

@@ -63,6 +63,13 @@ repos:
         additional_dependencies: ["prettier@3.9.6"]
         files: "\\.(md|ya?ml|json)$"
         stages: [pre-commit]
+      - id: prettier-pin-sync
+        name: Prettier is pinned to one version in both files
+        language: system
+        entry: uv run python scripts/check_prettier_pin.py
+        files: (\.pre-commit-config\.yaml$|package\.json$)
+        pass_filenames: false
+        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:

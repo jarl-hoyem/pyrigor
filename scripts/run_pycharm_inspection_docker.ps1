@@ -68,7 +68,7 @@ $outputForward = $output -replace '\\', '/'
 #
 # .venv is deliberately absent: .idea/pyrigor@1.iml already excludes it,
 # confirmed by it contributing no analysed files in a real run.
-$maskPatterns = @('htmlcov', 'dist', 'build', 'mutants', 'node_modules', 'target', '*cache*', '*.egg-info')
+$maskPatterns = @('htmlcov', 'dist', 'build', 'mutants', 'target', '*cache*', '*.egg-info')
 $maskedDirs = @()
 foreach ($pattern in $maskPatterns)
 {
