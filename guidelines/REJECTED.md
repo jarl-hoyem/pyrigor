@@ -14,7 +14,7 @@ Would have mandated `None` defaults over mutable ones (`def f(items: list = []):
 before this overlap was found.
 
 **Covered by**: ruff's `B006` (flake8-bugbear, mutable-argument-default) and pylint's `W0102` (dangerous-default-value).
-Both already run in pyrigor’s own pre-commit stack and in any project following pyrigor’s own `CONTRIBUTING.md` tooling
+Both already run in pyrigor's own pre-commit stack and in any project following pyrigor's own `CONTRIBUTING.md` tooling
 recommendations.
 
 **Status**: guideline doc kept for now (`guidelines/rejected/PYREJECT101-immutable-defaults.md`) as documentation of the
@@ -57,7 +57,7 @@ reasoning visible alongside the confirmed rejection above.
 
 - **No wildcard imports** — covered by the ruff's `F403`/`F405` and pylint's `W0401`.
 - **Required return type annotations** — covered by mypy's `--disallow-untyped-defs` (part of `--strict`, already
-  assumed as pyrigor’s baseline per PYR401’s own "Detection scope" section) and ruff's `ANN` rule family, if enabled.
+  assumed as pyrigor's baseline per PYR401’s own "Detection scope" section) and ruff's `ANN` rule family, if enabled.
 - **Timezone-aware datetime construction** — covered by ruff's `DTZ` rule family (flake8-datetimez), if enabled.
 - **Mandate `StrEnum` over plain `Enum` when a state crosses a string-typed boundary** — considered alongside PYR202’s
   own `Literal`/`StrEnum` discussion. Picking plain `Enum` where `StrEnum` would help fails early (`TypeError` on

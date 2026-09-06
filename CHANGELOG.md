@@ -190,7 +190,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 - `find_violations_by_predicate` split into `find_function_violations` and `find_assign_violations`, one dispatcher per
   node shape, rather than one generic dispatcher over a three-way union (a single generic version hit real `Protocol`
   contravariance problems).
-- `is_bare_multi_value_tuple` now exempts `tuple[X, ...]`, the unbounded homogeneous form, found via pyrigor’s own
+- `is_bare_multi_value_tuple` now exempts `tuple[X, ...]`, the unbounded homogeneous form, found via pyrigor's own
   `CHECKERS` tuple immediately triggering a false positive once PYR301 went live against its own source.
 - PYR203 rewritten to a strict, mechanical rule (any number other than `0`, `1`, or `-1` must be a `Final` constant),
   following Steve McConnell’s actual _Code Complete_ formulation, replacing an earlier, softer "self-explanatory"
@@ -248,7 +248,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
   the two. `run()` now catches unexpected exceptions and exits with code 2, reserving 1 for "ran fine, found
   violations." Found via the new stdlib CI smoke test, which was failing on real violations rather than an actual crash.
 - The CI smoke test steps' `if [ $? -eq 2 ]` check never actually ran: GitHub Actions fails a `run:` step immediately on
-  any non-zero exit code by default, so the step already failed on pyrigor’s own exit code 1 (violations found) before
+  any non-zero exit code by default, so the step already failed on pyrigor's own exit code 1 (violations found) before
   the shell ever reached the check. Both `ci.yml` and `publish.yaml`'s smoke test steps now use `set +e` around the
   pyrigor call, capture `$?` immediately into a variable, then re-enable `set -e` before checking it.
 

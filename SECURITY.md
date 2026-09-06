@@ -17,7 +17,7 @@ Only the latest tagged release is supported. The `main` branch is a work in prog
 
 ### In scope
 
-- Incorrect or unsafe behaviour in pyrigor’s checkers (false negatives that miss a documented rule, false positives that
+- Incorrect or unsafe behaviour in pyrigor's checkers (false negatives that miss a documented rule, false positives that
   flag correct code)
 - Any code path where running pyrigor against untrusted source files could execute arbitrary code (relevant once the
   AST-based checker/pylint plugin stages exist)

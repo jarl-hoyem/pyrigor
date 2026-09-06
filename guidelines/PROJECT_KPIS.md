@@ -16,7 +16,7 @@ refreshes", below).
 
 **Corpus:** [home-assistant/core](https://github.com/home-assistant/core), pinned to a fixed commit so
 release-over-release deltas are comparable. The pin is deliberately not bumped on every release — only on a deliberate,
-noted refresh — otherwise a count change could come from home-assistant’s own code changing instead of pyrigor’s.
+noted refresh — otherwise a count change could come from home-assistant’s own code changing instead of pyrigor's.
 
 **Persistent local checkout:** `C:\Users\jarl\smallgig\core`. Reuse this checkout; it is already populated and should
 not be cloned again. The release KPI command therefore is:
@@ -91,7 +91,7 @@ added new code" for "pyrigor got noisier."
 
 ## Code-quality statistics (% comments, % blank) per release
 
-**What:** run `radon raw` against pyrigor’s own source and record its line-count fields — `loc` (Lines of Code, every
+**What:** run `radon raw` against pyrigor's own source and record its line-count fields — `loc` (Lines of Code, every
 physical line), `lloc` (Logical Lines of Code, one count per logical statement, insensitive to line-wrapping or
 formatting choices), `sloc` (Source Lines of Code, physical lines that are neither blank nor a comment-only line),
 comments, multi-line string lines, single-line comment-or-docstring lines, blank — plus a derived comment ratio. Note:
@@ -105,8 +105,8 @@ blank lines, reformatting, or wrapped long lines the way `loc` and `sloc` are. W
 — `lloc` growing while comments do not keep pace is the real erosion signal this table exists to catch, distinct from
 `loc`/`sloc` movement caused by pure reformatting.
 
-**Comparing against another project:** that guidance is for pyrigor’s own releases, measured with the same tool —
-comparing pyrigor’s size to a different project (a README claim, a GitHub language-stats page) is a different question.
+**Comparing against another project:** that guidance is for pyrigor's own releases, measured with the same tool —
+comparing pyrigor's size to a different project (a README claim, a GitHub language-stats page) is a different question.
 The `sloc` is the conventional choice there: it is what most external tools report by default (`cloc`, GitHub’s own
 stats) and what classic cost-estimation models like COCOMO are built on, so it is the only one of the three likely to be
 measuring the same thing as whatever number the other project published. The `lloc` is formatting-insensitive and
@@ -114,8 +114,8 @@ arguably the more honest size measure, but almost nothing outside Python tooling
 projects are measured with the same tool. Plain `loc` is the weakest choice either way, most sensitive to superficial
 style (blank-line density, comment volume) rather than real size.
 
-**Corpus:** pyrigor’s own source (`pyrigor/`) — no pinning question here, unlike the metric above, since there is
-nothing to hold constant except pyrigor’s own code across releases, which is the entire point.
+**Corpus:** pyrigor's own source (`pyrigor/`) — no pinning question here, unlike the metric above, since there is
+nothing to hold constant except pyrigor's own code across releases, which is the entire point.
 
 **When:** once per release, as part of the release checklist in `DEFINITION_OF_DONE.md`, alongside the metric above.
 

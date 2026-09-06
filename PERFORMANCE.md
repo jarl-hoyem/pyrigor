@@ -1,7 +1,7 @@
 # Performance
 
-Real-world timing data from running `pyrigor` against codebases of increasing size, gathered while validating pyrigor’s
-suitability for large-scale use. All runs used pyrigor’s local, unreleased source (via `uv run` from within the pyrigor
+Real-world timing data from running `pyrigor` against codebases of increasing size, gathered while validating pyrigor's
+suitability for large-scale use. All runs used pyrigor's local, unreleased source (via `uv run` from within the pyrigor
 project itself), on a Windows machine, Python 3.14.
 
 The results below reflect two distinct architectural states. The original table (Results section) predates PYR301 and
@@ -18,7 +18,7 @@ section below is current, five checkers, one `ast.walk` per file.
 | Home Assistant core     | 18,187 | 59,086     | 90.21s         | ~202      |
 
 \* Two runs, same environment, showed meaningful variance (15.89 s – 20.49 s) — attributed to OS-level file-system
-caching between runs, not a real change in pyrigor’s own behaviour. Timing numbers here should be read as rough orders
+caching between runs, not a real change in pyrigor's own behaviour. Timing numbers here should be read as rough orders
 of magnitude, not precise benchmarks.
 
 ## Per-rule breakdown
@@ -57,7 +57,7 @@ additional checker now only costs its own predicate evaluation over already-coll
 ## Findings
 
 - **Home Assistant (larger, more files) ran faster per-file than the CPython stdlib** (~202 files/sec versus ~90–115
-  files/sec) — evidence that pyrigor’s cost scales with actual code complexity per the file, not file count alone. The
+  files/sec) — evidence that pyrigor's cost scales with actual code complexity per the file, not file count alone. The
   stdlib includes some huge, complex modules (`typing.py`, `re/_parser.py`). Home Assistant’s codebase is many smaller,
   more uniform integration files.
   - **No crashes across either large run**, including real edge cases the smaller ML-repo test did not surface: a UTF-8

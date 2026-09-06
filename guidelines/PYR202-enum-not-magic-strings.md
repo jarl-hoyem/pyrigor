@@ -91,7 +91,7 @@ cares about most.
 
 Where the state also needs to interoperate with string-based boundaries — serialized to JSON, written to a log, compared
 against a raw value from outside the program — a plain `Enum` is not the best fit. `enum.StrEnum`, standard library
-since Python 3.11 (pyrigor’s own floor version) is the better default there. It keeps every runtime guarantee above
+since Python 3.11 (pyrigor's own floor version) is the better default there. It keeps every runtime guarantee above
 while also behaving as a real string at the boundary, removing the `.value` unwrapping a plain `Enum` would otherwise
 require. Reserve a plain `Enum` for state that is purely internal and never serialized.
 

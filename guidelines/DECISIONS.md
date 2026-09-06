@@ -142,7 +142,7 @@ Decided not to split them. Reasoning: the ambiguity predates this migration — 
 invocation" was already the convention before argparse was introduced, so widening it to argparse’s own errors is
 consistent, not a new compromise. Splitting would need either a custom `ArgumentParser` subclass overriding `error()`,
 or wrapping `parse_args()` in `try/except SystemExit` to remap its code — real added surface area for a distinction no
-test, issue or actual consumer of pyrigor’s exit code has needed yet. If a concrete need for the distinction shows up
+test, issue or actual consumer of pyrigor's exit code has needed yet. If a concrete need for the distinction shows up
 later (for example, a CI wrapper that retries on exit 2 assuming it is transient, when a bad invocation is not). That is
 the evidence to revisit this, not a preference alone.
 
@@ -342,8 +342,8 @@ for, no shell-specific quoting or syntax involved.
 A single self-check, running only the current local/uncommitted code, would never actually prove the _released,
 installable_ package works the way an external adopting project would use it, real packaging or manifest issues (like
 `.pre-commit-hooks.yaml` being missing from a given release, found and fixed this session) would go undetected. A single
-self-check running only the pinned, released version would lose the opposite, real, proven value: pyrigor’s own new
-rules have repeatedly caught real bugs in pyrigor’s own in-progress source the moment they were built, before any
+self-check running only the pinned, released version would lose the opposite, real, proven value: pyrigor's own new
+rules have repeatedly caught real bugs in pyrigor's own in-progress source the moment they were built, before any
 release existed. Kept both, deliberately, rather than choosing one.
 
 ### Mutation testing runs under tini and disables coverage through mutmut’s own config
@@ -518,11 +518,11 @@ artefact of parsing without an SDK rather than a real defect. The project profil
 this rationale is recorded here rather than only in one machine's IDE. Sharing the settings with other contributors is
 the separate concern tracked by #220.
 
-### Pyrigor’s suppression comment must come last when stacked with another tool’s
+### Pyrigor's suppression comment must come last when stacked with another tool’s
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`) captures everything after
 `# pyrigor:` to the end of the line as the reason. Stacking another tool’s suppression comment (`# nosec`,
-`# complexipy: ignore`) after pyrigor’s own gets silently absorbed into that reason text, since `body.partition("#")`
+`# complexipy: ignore`) after pyrigor's own gets silently absorbed into that reason text, since `body.partition("#")`
 only splits once.
 
 Considered fixing the parser instead, truncating the reason at the next `#` regardless of what follows. Rejected — this
@@ -530,7 +530,7 @@ would break a legitimate case: a reason referencing a GitHub issue number, for e
 Truncating trades away real information to guard against a risk that, checked directly, has no current observable
 effect. The function `filter_suppressed()` never reads a reason’s content, only checks whether it is None.
 
-Chosen instead: a house convention, not a code change. Pyrigor’s own suppression comment goes last when stacked with
+Chosen instead: a house convention, not a code change. Pyrigor's own suppression comment goes last when stacked with
 another tool’s (`# nosec  # pyrigor: PYR402 # reason`, not the reverse). The opposite ordering already works correctly,
 since `re.search` finds `# pyrigor:` wherever it appears on the line — this convention costs nothing beyond documenting
 it.
@@ -566,7 +566,7 @@ successfully as a bare variable annotation statement (`name: value`), so `ERA001
 Confirmed directly against a real, installed ruff 0.16.3, not just inferred: `# pyrigor: 402 # reason` on its own line
 is flagged. Whereas `# pyrigor 402 # reason` (space instead of colon) is not.
 
-Considered: requesting pyrigor’s own comment prefix be added to ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`,
+Considered: requesting pyrigor's own comment prefix be added to ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`,
 `# nosec`, `# type: ignore`, and others already use to avoid exactly this collision. Rejected — not contacting ruff’s
 maintainers to request inclusion, so this is not a path being pursued.
 
@@ -579,7 +579,7 @@ so it prints the existing near-miss warning rather than suppressing nothing. Clo
 
 ## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
 
-Enabled in pyrigor’s own pyproject.toml. Default valid-magic-values (0, -1, 1, "", `"__main__"`) match PYR203’s own
+Enabled in pyrigor's own pyproject.toml. Default valid-magic-values (0, -1, 1, "", `"__main__"`) match PYR203’s own
 chosen exemption list (0, 1, -1) independently. Real corroboration of the boundary is reasonable, not an accident.
 Narrower scope than PYR203, though, only fires on comparisons (if x == 3), not arithmetic or function arguments.
 
@@ -603,14 +603,14 @@ called within its own defining file, exactly the wrong behaviour for this codeba
 individually importable, individually testable functions (find_violations, walk_once, count_parameters and every other
 checker function). Rejected, not enabled.
 
-## The tool pyrigor’s own suppression works anywhere in a wrapped statement’s span, deliberately
+## The tool pyrigor's own suppression works anywhere in a wrapped statement’s span, deliberately
 
 Confirmed the contrast directly tonight: suppressing ruff’s S607/S603 findings on wrapped `subprocess.run(...)` calls
 required getting the `# noqa` onto the _exact_ physical line ruff’s own diagnostic pointed to, sometimes the opening
 line, sometimes the arguments line, easy to get wrong (happened twice in one session). Same friction hit earlier with
 the tool bandit’s own `# nosec`, same-line only, no tolerance at all.
 
-The tool pyrigor’s own suppression mechanism, by design, does not have this fragility. A `# pyrigor CODE # reason`
+The tool pyrigor's own suppression mechanism, by design, does not have this fragility. A `# pyrigor CODE # reason`
 comment works on the line above the violation, or on any line within the violation’s own `end_line` span, not just one
 exact physical line. Confirmed by, `test_suppression_comment_on_middle_line_of_multiline_statement_suppresses`. And
 confirmed by `test_suppression_comment_on_closing_line_of_multiline_statement_suppresses`.
