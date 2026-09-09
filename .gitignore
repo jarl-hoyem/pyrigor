@@ -195,6 +195,10 @@ cython_debug/
 # The Prettier configuration is deliberately shared: it is what makes the
 # IDE defer formatting to Prettier, the same way the pre-commit hook does.
 !.idea/prettier.xml
+# The Ruff LSP-tools configuration is deliberately shared: it is what makes
+# the IDE defer Python formatting and inspections to ruff, the project's
+# actual formatter, instead of PyCharm's own opinion or Black.
+!.idea/pyLspTools.xml
 
 # Abstra
 #   Abstra is an AI-powered process automation framework.
