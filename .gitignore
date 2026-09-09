@@ -261,6 +261,11 @@ Temporary Items
 .apdisk
 .pycharm-inspection-results/
 .pycharm-inspection.log
+.descriptions.xml
+SpellCheckingInspection.xml
+IncorrectFormatting.xml
+PyPep8Inspection.xml
+MarkdownIncorrectTableFormatting.xml
 mutants/
 
 # Prettier is installed by `just setup`; only the pin is committed.
