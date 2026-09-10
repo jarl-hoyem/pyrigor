@@ -477,47 +477,6 @@ scheduled workflow is a real, ongoing maintenance surface for a cosmetic gap. Th
 confirming the released package works the way an external adopter would use it, which it still does correctly one
 version behind. Revisit only if a real consumer is ever confused by the lag in practice, not preemptively.
 
-### PyCharm inspections stay a manual step rather than a gate
-
-Two things rule out automating it, and both are temporary.
-
-A full run takes minutes rather than seconds. That is too slow for pre-commit, where the rest of the suite runs in
-seconds and the cost is paid on every commit.
-
-Gating at pre-push or in CI would need the backlog at zero first, and it stood at 4155 findings when this was written.
-Almost none of these are defects. Three settings decisions account for nearly all of it (#236): the Markdown formatting
-disagreement, a dictionary that does not know the word Pyrigor and Grazie configured for American English while the
-house style is deliberately British. A gate turned on then would have failed on every commit for reasons nobody intended
-to fix, and would have been switched off again within a day.
-
-The Markdown half has since been settled by ownership, not by switching anything off. Prettier owns Markdown, YAML and
-JSON formatting, and every inspection category remains enabled. Measured on 2026-09-06, `IncorrectFormatting` stands at
-193, with every finding in a file Prettier owns and none outside them. Setting PyCharm's Prettier integration to
-automatic resolution takes that to zero without moving any other category, which is recorded on #236 along with what
-blocks adopting it.
-
-So it runs on request, or when an agent thinks to run it, plus once per release as a step in `DEFINITION_OF_DONE.md`'s
-checklist. Outside that release step it is deliberately weak and should be read as a known gap rather than a design. It
-has already failed once: a `PRINCIPLES.md` edit on 2026-09-05 was reported as verified on the strength of `just check`,
-which does not include the inspection, and the inspection ran only when the maintainer asked for it.
-
-Revisit once #236 has re-measured the backlog under the settled categories. The remaining count is then small enough
-that gating becomes a real option rather than a theoretical one.
-
-### PyCharm inspection findings are worked to zero, not switched off
-
-Issue #236 exposed a large backlog after the inspection runner began analysing the whole project. Every inspection stays
-enabled while its findings are understood. No category is switched off merely because its current backlog is noisy. The
-Docker runner has its own British-English Grazie configuration and Python 3.11 SDK, so its results now match the
-repository's declared language and type-syntax baseline without copying personal IDE settings. The issue tracks the
-remaining, tickable clean-up work.
-
-Fixing the runner's own configuration is what removed findings, rather than narrowing the inspected file set or muting a
-category. Giving it a Python SDK took `PyTypeHintsInspection` from 89 findings to zero, and every one of those was an
-artefact of parsing without an SDK rather than a real defect. The project profile and dictionary remain gitignored, so
-this rationale is recorded here rather than only in one machine's IDE. Sharing the settings with other contributors is
-the separate concern tracked by #220.
-
 ### Pyrigor's suppression comment must come last when stacked with another tool’s
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`) captures everything after
