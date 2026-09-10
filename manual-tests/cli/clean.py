@@ -1,5 +1,6 @@
 """A clean file for manual CLI tests."""
 
+
 # pylint: disable=duplicate-code  # Minimal standalone fixture intentionally mirrors test inputs.
 
 
