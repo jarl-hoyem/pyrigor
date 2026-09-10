@@ -622,7 +622,7 @@ likely appreciate knowing this up front.
 ## The tool ruff’s select = ["ALL"] adopted, with a real, evidence-based ignore list
 
 Considered simply picking a curated set of categories versus enabling everything and reviewing what comes back. Chose
-"ALL" plus a deliberate ignore list, following Pickomino’s own real precedent (confirmed directly from its
+"ALL" plus a deliberate ignore list, following Pickomino's own real precedent (confirmed directly from its
 pyproject.toml), rather than guessing at categories in the abstract. Every ignored rule has a real, specific reason
 (D203/D213/D413 conflict with the chosen docstring convention, COM812 conflicts with the formatter, EM101/EM102/TRY003
 reflect this project’s own no-custom-exception-hierarchy style, CPY001 has no adopted copyright convention). Verified

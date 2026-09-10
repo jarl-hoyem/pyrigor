@@ -23,8 +23,8 @@ remember to mark a function before it is protected.
 
 Calling a function purely for a side effect, and calling a function to compute something you then discard, looks
 identical at the call site, a bare expression statement. The difference is entirely in intent, and intent is exactly
-what is easy to get wrong. A function call meant to capture a result, `total = compute_total(items)`, with the
-assignment dropped, still runs without error, of any kind. The computed value is thrown away silently, and whatever
+what is straightforward to get wrong. A function call meant to capture a result, `total = compute_total(items)`, with
+the assignment dropped, still runs without error, of any kind. The computed value is thrown away silently, and whatever
 depended on it downstream either uses a stale or default value or fails much later, far from the actual mistake.
 
 ```python
@@ -37,7 +37,7 @@ def handle_request(data: RawInput) -> None:
 ```
 
 This is precisely the class of bug MITRE’s CWE-252 (Unchecked Return Value), and the equivalent SEI CERT rules for Java
-(EXP00-J) and C (EXP12-C) describe. It is exactly what OSSF’s Secure Coding Guide for Python, pyscg-0036 ("Check Return
+(EXP00-J) and C (EXP12-C) describe. It is exactly what OSSF's Secure Coding Guide for Python, pyscg-0036 ("Check Return
 Values"), addresses directly for Python specifically. This rule enforces that guidance mechanically rather than relying
 on a reviewer noticing a missing assignment by eye.
 
@@ -89,7 +89,7 @@ noise entirely, rather than trying to detect every legitimate exception automati
 ## When this does not apply
 
 - A genuinely legitimate discard, a builder method returning `self` for optional chaining that is not being chained
-  here, or a deliberate `dict.pop(key, None)`-style cleanup where the removed value is intentionally irrelevant. Use a
+  here, or a deliberate `dict.pop(key, None)`-style clean-up where the removed value is intentionally irrelevant. Use a
   suppression comment for these, `# pyrigor 406 # deliberately discarding the removed value`, rather than expecting the
   rule to infer the exception automatically.
 - Any call into code outside the project being checked. This rule never inspects or assumes anything about an external
@@ -104,7 +104,7 @@ computed." This case is covered by PYR407 instead, a separate rule.
 
 ## Related
 
-- [PYR407](./PYR407-generator-results-used.md) — the specialized generator-result case, where discarding the result
+- [PYR407](./PYR407-generator-results-used.md) — the specialised generator-result case, where discarding the result
   prevents the generator body from running at all.
 
 ## Enforced by

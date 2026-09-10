@@ -61,7 +61,7 @@ it. It is the wrong choice for anything that actually matters: Python's `-O` fla
 the compiled bytecode entirely, and `-OO` goes further. A precondition check written as `assert` is not a weaker version
 of the check, it is no check at all in an optimized build, silently.
 
-This is a real, known Python gap, not a hypothetical one (see [OSSF’s Secure Coding Guide for Python,
+This is a real, known Python gap, not a hypothetical one (see [OSSF's Secure Coding Guide for Python,
 pyscg-0037][ossf-pyscg-0037]). `raise` with an explicit exception has no such gap, it runs identically regardless of
 optimization flags.
 
