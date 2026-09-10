@@ -489,7 +489,7 @@ def test_cli_help_documents_what_ignore_accepts(
     """CLI help explains the token forms --ignore accepts, not just that the flag exists.
 
     Asserting only the flag name leaves the help text itself unverified. Deleting
-    --ignore's help= string changes no behavior, and survived mutation testing.
+    --ignore's help= string changed no behaviour, and survived mutation testing.
     """
     monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
 
@@ -1068,7 +1068,7 @@ def test_run_select_flag_errors_on_unknown_code(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--select with an unrecognized code should error immediately, not silently run zero checkers."""
+    """--select with an unrecognised code should error immediately, not silently run zero checkers."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR999", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
@@ -1141,7 +1141,7 @@ def test_run_select_flag_errors_on_repeated_flag_before_processing_files(
 
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_run_unrecognized_flag_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A genuine unrecognized flag (a typo) should error immediately, not be silently treated as a path."""
+    """A genuine unrecognised flag (a typo) should error immediately, not be silently treated as a path."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--onl=PYR401", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
@@ -1293,7 +1293,7 @@ def test_run_ignore_flag_errors_on_unknown_code(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--ignore with an unrecognized code should error immediately, using --ignore in the message."""
+    """--ignore with an unrecognised code should error immediately, using --ignore in the message."""
     monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR999", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
