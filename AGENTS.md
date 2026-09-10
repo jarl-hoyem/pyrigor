@@ -258,8 +258,8 @@ exact keyword-then-#N pattern verbatim.
 - Write prose in British English, using `-ise` spelling, so `normalise` and `recognise`. Python identifiers keep their
   own spelling, such as `normalize` and `serialize`. Do not change code to match prose.
 - Use straight apostrophes and quotation marks. Never use the curly forms (U+2019, U+201C, U+201D). Google's and
-  Microsoft's developer documentation style guides both require this. PyCharm's Grazie inspection suggests the opposite,
-  and that inspection is deliberately switched off.
+  Microsoft's developer documentation style guides both require this. PyCharm's Grazie inspection suggests the opposite.
+  It stays enabled, so reject that suggestion rather than accepting it.
 - Do not use em dashes (U+2014) or en dashes (U+2013). Split the sentence with a full stop or use a comma or
   parentheses. For a range, use a hyphen or the word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
