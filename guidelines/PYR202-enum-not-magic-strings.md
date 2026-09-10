@@ -24,10 +24,10 @@ status = ConvergenceStatus.CONVERGED
 
 ## Rationale
 
-A bare string used as a state marker has no protection against typos. The `"convergd"` is a different string from
-`"converged"`, and nothing — not Python itself, not mypy — flags the difference. The mistake is silent: the comparison
-`status == "converged"` evaluates to `False` forever, and the program continues running with the wrong branch taken,
-with no exception, no warning, nothing to indicate anything went wrong at all.
+A bare string used as a state marker has no protection against typos. The misspelling `"convergd"` is a different string
+from `"converged"`, and nothing — not Python itself, not mypy — flags the difference. The mistake is silent: the
+comparison `status == "converged"` evaluates to `False` forever, and the program continues running with the wrong branch
+taken, with no exception, no warning, nothing to indicate anything went wrong at all.
 
 ```python
 status = "convergd"  # typo
@@ -56,7 +56,7 @@ from a value in another, either. An `Enum` closes both gaps at once — the same
 two same-typed values, applied here to a value standing in for one of several unrelated named states.
 
 **The same failure is more common at boundaries than inside a program’s own logic.** A value arriving from JSON, a CSV
-file, a form field, a database row, or an environment variable, stringly typed by construction — `"42"`, `"true"`,
+file, a form field, a database row, or an environment variable is stringly typed by construction — `"42"`, `"true"`,
 `"converged"` — regardless of what it conceptually represents. If that value is used as-is, without converting it into
 the type it actually represents at the point it enters the program, every one of its bugs (a mistyped status string, a
 `"0"`/`"1"` standing in for a boolean, a numeric ID compared against a string) is deferred to wherever the value is

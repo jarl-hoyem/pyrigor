@@ -23,8 +23,8 @@ remember to mark a function before it is protected.
 
 Calling a function purely for a side effect, and calling a function to compute something you then discard, looks
 identical at the call site, a bare expression statement. The difference is entirely in intent, and intent is exactly
-what is straightforward to get wrong. A function call meant to capture a result, `total = compute_total(items)`, with
-the assignment dropped, still runs without error, of any kind. The computed value is thrown away silently, and whatever
+what goes wrong unnoticed. A function call meant to capture a result, `total = compute_total(items)`, with the
+assignment dropped, still runs without error, of any kind. The computed value is thrown away silently, and whatever
 depended on it downstream either uses a stale or default value or fails much later, far from the actual mistake.
 
 ```python
