@@ -13,7 +13,7 @@ from typing import NamedTuple
 
 PRE_COMMIT_CONFIG = Path(".pre-commit-config.yaml")
 PACKAGE_JSON = Path("package.json")
-_HOOK_PIN = re.compile(r"prettier@(?P<version>\d+\.\d+\.\d+)")
+_HOOK_PIN = re.compile(r"prettier@(?P<version>\d+[.]\d+[.]\d+)")
 
 
 class PrettierPins(NamedTuple):
