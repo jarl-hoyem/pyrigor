@@ -17,9 +17,9 @@ section below is current, five checkers, one `ast.walk` per file.
 | CPython stdlib (`Lib/`) | 1,844  | 8,634      | 15.89s–20.49s* | ~90–115   |
 | Home Assistant core     | 18,187 | 59,086     | 90.21s         | ~202      |
 
-\* Two runs, same environment, showed meaningful variance (15.89 s – 20.49 s) — attributed to OS-level file-system
-caching between runs, not a real change in pyrigor's own behaviour. Timing numbers here should be read as rough orders
-of magnitude, not precise benchmarks.
+\* Two runs in the same environment showed meaningful variance (15.89 s to 20.49 s). The likely cause is OS-level
+file-system caching between runs, not a real change in pyrigor's own behaviour. Treat these timings as rough
+indications, not precise benchmarks.
 
 ## Per-rule breakdown
 
@@ -28,10 +28,9 @@ Both large-codebase runs show the same lopsided pattern:
 - CPython stdlib: PYR401: 43, PYR402: 8,591
 - Home Assistant core: PYR401: 601, PYR402: 58,485
 
-PYR402 (keyword-only arguments) dominates by two orders of magnitude over PYR401 (NamedTuple returns) in both real,
-unrelated codebases — consistent enough across two very different projects to suggest this ratio reflects something
-structural about how Python code is typically written (most functions take multiple parameters. Few functions return
-multi-value tuples), not an artefact of either codebase.
+PYR402 (keyword-only arguments) outnumbers PYR401 (NamedTuple returns) by a factor of roughly 100 to 200 in both
+codebases. Two unrelated projects showing the same lopsided ratio suggest it reflects how people typically write Python,
+not an artefact of either codebase. Most functions take several parameters, and few return multi-value tuples.
 
 ## Shared AST walk (current)
 
@@ -51,23 +50,23 @@ confirming the refactor changed only performance, not correctness. The speedup e
 profiling data (five checkers reduced to one shared walk), likely because the earlier estimate did not fully account for
 the internal cost of `iter_child_nodes` and `iter_fields`, both called proportionally to walk count.
 
-This confirms the "Checker-count scaling" prediction below: the benefit compounds as more checkers are added, since each
-additional checker now only costs its own predicate evaluation over already-collected nodes, not another full tree walk.
+This confirms the "Checker-count scaling" prediction below. The benefit compounds with each new checker, since each one
+now costs only its own predicate evaluation over already-collected nodes, not another full tree walk.
 
 ## Findings
 
 - **Home Assistant (larger, more files) ran faster per-file than the CPython stdlib** (~202 files/sec versus ~90–115
-  files/sec) — evidence that pyrigor's cost scales with actual code complexity per the file, not file count alone. The
+  files/sec) — evidence that pyrigor's cost scales with actual code complexity per file, not file count alone. The
   stdlib includes some huge, complex modules (`typing.py`, `re/_parser.py`). Home Assistant’s codebase is many smaller,
   more uniform integration files.
-  - **No crashes across either large run**, including real edge cases the smaller ML-repo test did not surface: a UTF-8
-    Byte Order Mark, (BOM) crash, an unrelated non-UTF-8 file crash, and scanning into a differently named venv folder —
-    all found and fixed before these runs (see CHANGELOG/release notes for v0.2.2 – v0.2.3).
+- **No crashes across either large run**, including real edge cases the smaller ML-repo test did not surface: a UTF-8
+  Byte Order Mark (BOM) crash, an unrelated non-UTF-8 file crash, and scanning into a differently named venv folder —
+  all found and fixed before these runs (see CHANGELOG/release notes for v0.2.2 – v0.2.3).
 - **Checker-count scaling**: architecturally, checkers previously each called `ast.parse()` independently — a real,
-  avoidable cost that would scale linearly with checker count. Fixed by sharing a single parse per the file across all
+  avoidable cost that would scale linearly with checker count. Fixed by sharing a single parse per file across all
   registered checkers (see commit history). A controlled before/after comparison on this specific change showed ~15%
-  improvement on the stdlib run with only two checkers. The larger, compounding benefit is expected as more checkers are
-  added, since each additional one now only costs its own tree-walk rather than another full parse.
+  improvement on the stdlib run with only two checkers. The larger, compounding benefit should grow with each new
+  checker, since each one now costs only its own tree walk rather than another full parse.
 
 ## Not yet tested
 

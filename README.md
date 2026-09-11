@@ -250,8 +250,8 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.
 
 ## Feedback
 
-Evaluating pyrigor for your own project? Open an [issue](https://github.com/jarl-hoyem/pyrigor/issues) and tell me about
-your use case — I use real adoption signals to drive priorities.
+Evaluating pyrigor for your own project? Open an [issue](https://github.com/jarl-hoyem/pyrigor/issues) and tell the team
+about your use case — the maintainers want to use real adoption signals to drive priorities.
 
 ## Acknowledgements
 
