@@ -15,10 +15,10 @@ price = Decimal("1.1")
 ## Rationale
 
 `Decimal(1.1)` does not construct the value `1.1`. It constructs the exact binary floating-point representation of
-`1.1`, which is not `1.1` at all: `Decimal('1.100000000000000088817841970012523233890533447265625')`. `Decimal("1.1")`
-gives the exact, intended decimal value. This silently defeats the entire reason `Decimal` was reached for, usually
-money or another value where exact decimal precision genuinely matters. The tools mypy and ruff both pass this cleanly.
-It is fully type-correct and syntactically fine.
+`1.1`, which is not `1.1` at all: `Decimal('1.100000000000000088817841970012523233890533447265625')`. The
+`Decimal("1. 1")` gives the exact, intended decimal value. This silently defeats the entire reason `Decimal` was reached
+for, usually money or another value where exact decimal precision genuinely matters. The tools mypy and ruff both pass
+this cleanly. It is fully type-correct and syntactically fine.
 
 ## Fix classification
 

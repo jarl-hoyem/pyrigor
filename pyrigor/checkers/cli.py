@@ -350,7 +350,7 @@ def _print_summary(
         elapsed: Elapsed time in seconds.
         violations: Every violation found across all files.
         violations_by_file: Each checked file's own violations.
-        suppressed: Every violation suppressed across all files.
+        suppressed: The suppressed violations from every file.
     """
     if violations:
         _print_file_breakdown(violations_by_file=violations_by_file)
@@ -815,7 +815,7 @@ def _validate_fix_selection(
 
 
 def _validate_show_fixes(*, fix: bool, show_fixes: bool) -> None:
-    """Require --fix when --show-fixes is requested."""
+    """Require --fix when the --show-fixes flag is requested."""
     if show_fixes and not fix:
         print("pyrigor: --show-fixes requires --fix", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)

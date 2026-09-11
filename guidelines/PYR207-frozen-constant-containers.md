@@ -69,8 +69,8 @@ concern is.
 **Maturity:** `Preview`
 
 **Reasoning:** `frozendict` does not exist before Python 3.15 (PEP 814), but pyrigor supports Python 3.11 and later.
-Enforcement must wait until pyrigor gains per-rule version gating (see #194/#195). `frozenset` half of this rule has no
-such blocker — already available on 3.11+ — so enforcement may land in two phases, one gated and one not, a decision
+Enforcement must wait until pyrigor gains per-rule version gating (see #194/#195). The `frozenset` half of this rule has
+no such blocker — already available on 3.11+ — so enforcement may land in two phases, one gated and one not, a decision
 left for implementation time.
 
 ## When this does not apply
