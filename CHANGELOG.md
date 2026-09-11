@@ -245,7 +245,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Fixed
 
 - `main()` returned exit code 1 for both "violations found" and any genuine crash, so nothing could reliably distinguish
-  the two. `run()` now catches unexpected exceptions and exits with code 2, reserving 1 for "ran fine, found
+  the two. The `run()` now catches unexpected exceptions and exits with code 2, reserving 1 for "ran fine, found
   violations." Found via the new stdlib CI smoke test, which was failing on real violations rather than an actual crash.
 - The CI smoke test steps' `if [ $? -eq 2 ]` check never actually ran: GitHub Actions fails a `run:` step immediately on
   any non-zero exit code by default, so the step already failed on pyrigor's own exit code 1 (violations found) before
