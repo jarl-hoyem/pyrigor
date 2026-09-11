@@ -34,7 +34,8 @@ function Test-Fix
     [IO.File]::WriteAllBytes($Path, $Original)
     $diff = Invoke-Pyrigor @("--diff", "--select=PYR402", $Path)
     Assert-Equal $diff.ExitCode 0 "$Name diff exit status"
-    Assert-Equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes($Path))) ([Convert]::ToBase64String($Original)) "$Name diff preserves the file"
+    $afterDiff = [Convert]::ToBase64String([IO.File]::ReadAllBytes($Path))
+    Assert-Equal $afterDiff ([Convert]::ToBase64String($Original)) "$Name diff preserves the file"
 
     $fix = Invoke-Pyrigor @("--fix", "--show-fixes", "--select=PYR402", $Path)
     Assert-Equal $fix.ExitCode 0 "$Name fix exit status"
@@ -46,7 +47,8 @@ function Test-Fix
     $expected = [Text.Encoding]::UTF8.GetBytes(
         ([Text.Encoding]::UTF8.GetString($Original)).Replace("def apply(left, right)", "def apply(*, left, right)")
     )
-    Assert-Equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes($Path))) ([Convert]::ToBase64String($expected)) "$Name preserves its original bytes"
+    $afterFix = [Convert]::ToBase64String([IO.File]::ReadAllBytes($Path))
+    Assert-Equal $afterFix ([Convert]::ToBase64String($expected)) "$Name preserves its original bytes"
 }
 
 $temporaryDirectory = Join-Path ([IO.Path]::GetTempPath()) "pyrigor-fix-pyr402-$PID"
@@ -60,7 +62,8 @@ try
     Test-Fix -Path $normal -Original $normalSource -Name "LF"
 
     $bom = Join-Path $temporaryDirectory "bom.py"
-    $bomSource = [Text.Encoding]::UTF8.GetPreamble() + [Text.Encoding]::UTF8.GetBytes("def apply(left, right):`n    ...`n")
+    $bomSource = [Text.Encoding]::UTF8.GetPreamble() +
+        [Text.Encoding]::UTF8.GetBytes("def apply(left, right):`n    ...`n")
     Test-Fix -Path $bom -Original $bomSource -Name "UTF-8 BOM"
 
     $crlf = Join-Path $temporaryDirectory "crlf.py"

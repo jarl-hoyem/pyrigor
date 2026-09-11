@@ -127,7 +127,8 @@ if ($ownSources.Count -eq 0)
 }
 if ($analysedCount -lt $ownSources.Count)
 {
-    throw "Only $analysedCount files were analysed, fewer than the $( $ownSources.Count ) Python files in pyrigor/ and tests/. The inspection did not cover the project. See $log"
+    throw ("Only $analysedCount files were analysed, fewer than the $( $ownSources.Count ) Python files in " +
+        "pyrigor/ and tests/. The inspection did not cover the project. See $log")
 }
 
 # Parse results

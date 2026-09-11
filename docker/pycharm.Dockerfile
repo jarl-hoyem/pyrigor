@@ -16,7 +16,8 @@ RUN mkdir -p /opt/pycharm && \
     rm -rf /tmp/pycharm*
 
 ENV PATH="/opt/pycharm/bin:$PATH"
-ENV JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -Didea.config.path=/opt/pycharm-config -Didea.system.path=/tmp/pycharm-system"
+ENV JAVA_TOOL_OPTIONS="-Djava.awt.headless=true \
+-Didea.config.path=/opt/pycharm-config -Didea.system.path=/tmp/pycharm-system"
 
 # Keep the isolated inspection runner aligned with the repository's British
 # English prose, without copying personal IDE settings or disabling any rules.
