@@ -5,7 +5,7 @@ when a piece of work is ready to start.
 
 An issue is ready to be worked on when:
 
-- It has both a `value:` and an `effort:` label. Both axes matter, not effort alone. Prioritization depends on the
+- It has both a `value:` and an `effort:` label. Both axes matter, not effort alone. Prioritisation depends on the
   relationship between them.
 - It has a type label (`bug`, `enhancement`, `documentation`, `technical debt / refactoring`, `testing`,
   `rule in pyrigor`, or `tooling`).
@@ -19,7 +19,7 @@ An issue is ready to be worked on when:
 - Assigned to a Milestone when a relevant one exists
 - Its full comment thread has been read, not just the description — scope may have changed or been clarified there after
   the filing.
-- It has been independently reviewed before work commences according to `guidelines/ISSUE_REVIEW.md`. Any material
+- It has been independently reviewed before work begins according to `guidelines/ISSUE_REVIEW.md`. Any material
   disagreement has been resolved.
 
 An issue meeting all the above gets the `ready` label. This does not require an assignee. Assignment happens when

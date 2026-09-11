@@ -42,7 +42,7 @@ second = add_item(item="b")
 ```
 
 This is not a hypothetical edge case. It reproduces every time a function with a mutable default is called more than
-once without explicitly overriding that parameter, and the resulting bug is distant from its cause: the broken behavior
+once without explicitly overriding that parameter, and the resulting bug is distant from its cause: the broken behaviour
 shows up at the second call site, or later, while the actual mistake is the function definition itself, which can be far
 away and long since forgotten about.
 

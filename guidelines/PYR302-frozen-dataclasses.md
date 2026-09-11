@@ -40,9 +40,9 @@ config.learning_rate = 0.5
 ```
 
 This is the same class of problem [PYR401](./PYR401-namedtuple-returns.md) and [PYR301](./PYR301-namedtuple-values.md)
-address for tuples, applied to `dataclass` instead. Structured data that is meant to represent a single, fixed snapshot
-of the state should not be silently mutable. Because every place that reads it has to additionally reason about every
-other place that might have changed it, rather than being able to trust the value once constructed.
+address for tuples, applied to `dataclass` instead. Structured data meant to represent a single, fixed snapshot of the
+state should not be silently mutable. Because every place that reads it has to additionally reason about every other
+place that might have changed it, rather than being able to trust the value once constructed.
 
 `frozen=True` makes any attempted mutation a runtime `FrozenInstanceError`, immediately, at the point the mutation is
 attempted, rather than a silent write that only surfaces as a bug somewhere else later.

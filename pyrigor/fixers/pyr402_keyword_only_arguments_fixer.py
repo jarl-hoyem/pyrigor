@@ -1,5 +1,5 @@
 """Opt-in fixer for PYR402 keyword-only arguments."""
-# pylint: disable=duplicate-code  # The fixer mirrors test cases to preserve exact source behavior.
+# pylint: disable=duplicate-code  # The fixer mirrors test cases to preserve exact source behaviour.
 
 import ast
 from enum import Enum

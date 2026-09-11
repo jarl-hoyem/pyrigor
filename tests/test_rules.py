@@ -13,7 +13,7 @@ def test_pyr402_rule_has_correct_code_and_name() -> None:
 
 
 def test_pyr402_rule_has_warning_severity() -> None:
-    """Rule PYR402 (a defense-in-depth, mypy/pyright-backed rule) should be WARNING severity."""
+    """Rule PYR402 (a defence-in-depth, mypy/pyright-backed rule) should be WARNING severity."""
     assert Rule.PYR402.severity == Severity.WARNING
 
 

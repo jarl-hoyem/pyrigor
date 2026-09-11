@@ -159,7 +159,7 @@ class Foo:
 """
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
-    # Documenting current (incorrect but accepted) behavior: this SHOULD be
+    # Documenting current (incorrect but accepted) behaviour: this SHOULD be
     # flagged (self isn't special here — it is a plain, badly named param),
     # but isn't, because the checker doesn't inspect decorators or class
     # context before applying the self/cls exemption.

@@ -37,7 +37,7 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
    the person asked "did we miss anything" directly, not because the review process caught it on its own.
 5. **Does every CHANGELOG.md entry claiming to close an issue actually have that issue closed on GitHub, checked
    directly, not assumed from the changelog text alone?** ← rule: `DEFINITION_OF_DONE.md`, Additional checks _Earned
-   by:_ v0.8.0’s own CHANGELOG.md entry said, "Closes #11," but #11 was still open on GitHub when checked. Writing
+   by:_ v0.8.0’s own CHANGELOG.md entry said, "Closes #11", but #11 was still open on GitHub when checked. Writing
    "Closes #N" in a changelog’s own prose does not close anything automatically, unlike a commit message or PR
    description, that is a separate, manual step, and it had been skipped.
 

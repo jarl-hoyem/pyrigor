@@ -28,7 +28,7 @@ formality, and directly informs whether/how an eventual `suggest()` implementati
 **Kind:** `safe_fix` | `suggestion` | `guidance`
 
 - **`safe_fix`** — the transformation is mechanically, unconditionally correct. Any consequence of the change at a call
-  site is immediate and loud (a type-checker error, not a silent behavior change), not something the fix itself could
+  site is immediate and loud (a type-checker error, not a silent behaviour change), not something the fix itself could
   get wrong. Example: PYR402/PYR403 inserting `*,` — mechanical, and any resulting caller breakage is caught immediately
   by mypy/pyright, not hidden.
 - **`suggestion`** — the tool has a strong, plausible recommendation but cannot guarantee it is the _correct_ one. A
@@ -54,7 +54,7 @@ Uses the Language Server Protocol's own `DiagnosticSeverity` naming, not an inve
 - **`error`** — the pattern this rule catches is a real, confirmed correctness or security bug class, often severe or
   hard to detect. Example: PYR503 (Zip Slip, an actual vulnerability class), PYR303 (silently skipped elements — real
   data loss).
-- **`warning`** — real defense-in-depth against a swap/misuse risk, but narrower blast radius or partially caught by
+- **`warning`** — real defence-in-depth against a swap/misuse risk, but narrower blast radius or partially caught by
   other means (mypy, tests). Example: PYR402/PYR403 (keyword-only — any caller consequence is already caught by
   mypy/pyright).
 - **`info`** — readability/maintainability, not a silent-wrong-output risk. Example: PYR203/PYR205 (magic

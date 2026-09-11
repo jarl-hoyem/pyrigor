@@ -25,7 +25,7 @@ It is fully type-correct and syntactically fine.
 **Kind:** `safe_fix`
 
 **Reasoning:** Replacing `Decimal(1.1)` with `Decimal("1.1")` is mechanically safe and directly corrects the actual,
-virtually always intended behavior, an exact decimal value. No design judgment is required.
+virtually always intended behaviour, an exact decimal value. No design judgment is required.
 
 ## Severity
 

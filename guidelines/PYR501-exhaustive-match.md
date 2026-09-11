@@ -85,7 +85,7 @@ classification.
 
 - The value being matched is genuinely open-ended, not drawn from a closed, enumerable set (an arbitrary string, an
   unbounded numeric range), where there is no fixed set of cases to be exhaustive over.
-- A deliberate default behavior is the correct response to any unmatched case, and that default is not to "silently do
+- A deliberate default behaviour is the correct response to any unmatched case, and that default is not to "silently do
   nothing." A `case _:` branch containing real fallback logic, rather than `assert_never`, is a legitimate design
   choice, just a different one than this rule addresses.
 

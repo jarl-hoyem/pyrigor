@@ -54,7 +54,7 @@ call site that's already obvious from context (a well-named single variable pass
 be small.
 
 This asymmetry is exactly why PYR403 is a separate, opt-in rule rather than folded into PYR402 itself: applying it
-universally risks flagging code a competent reader would immediately recognize as safe (a private, single-argument
+universally risks flagging code a competent reader would immediately recognise as safe (a private, single-argument
 helper called from one obvious call site), and rules that fire on obviously safe code erode trust in a linter faster
 than almost anything else. A team that values the self-documentation benefit enough to pay that cost everywhere can
 adopt PYR403 explicitly. A team that does not value it can adopt PYR402 alone without missing out on genuine swap
@@ -71,7 +71,7 @@ caller consequence is immediate and loud via mypy/pyright, not silent. Per #105'
 
 **Level:** `warning`
 
-**Reasoning:** Same reasoning as [PYR402](./PYR402-keyword-only-arguments.md): defense-in-depth Any positional-caller
+**Reasoning:** Same reasoning as [PYR402](./PYR402-keyword-only-arguments.md): defence-in-depth Any positional-caller
 consequence is already caught by mypy/pyright.
 
 ## When this does not apply

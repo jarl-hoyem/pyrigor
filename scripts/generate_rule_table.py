@@ -110,7 +110,7 @@ def _render_row(*, row: RuleRow, id_width: int, title_width: int, enforced_width
 
 
 def _render_table(*, rows: list[RuleRow]) -> str:
-    """Render the collected rows as a column-aligned GitHub-flavored Markdown table.
+    """Render the collected rows as a column-aligned GitHub-flavoured Markdown table.
 
     Args:
         rows: Already-sorted rule rows.

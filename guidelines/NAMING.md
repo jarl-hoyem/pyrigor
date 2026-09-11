@@ -36,7 +36,7 @@ existing — "NamedTuple for X" reads as an obvious pattern once one member of t
 ## Why mandate-naming, not just short-naming
 
 This is not purely a style choice — it reflects what pyrigor actually is meant to do. Every guideline written so far
-pairs "here is what is wrong" with "here is specifically what to do instead," including a worked `# Good` example.
+pairs "here is what is wrong" with "here is specifically what to do instead", including a worked `# Good` example.
 Pyrigor is a prescriptive tool: it does not just flag risky patterns and leave the fix to the reader, it commits to one
 specific, verified answer. Mandate-based naming is honest about that — the name says what the tool actually tells you to
 do.

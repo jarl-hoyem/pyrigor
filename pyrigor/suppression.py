@@ -1,13 +1,13 @@
 """Suppression-comment mechanism for pyrigor's checkers.
 
-Recognizes `# pyrigor CODE[, CODE...]` comments on the same line as a
+Recognises `# pyrigor CODE[, CODE...]` comments on the same line as a
 violation, on the line directly above it, or anywhere within a
 multi-line statement's own span. CODE may be a rule's full code
 ("PYR402"), its numeric shorthand ("402"), or its symbolic name
 ("keyword-only-arguments"). Whitespace after "pyrigor" and around
 commas is tolerated. Only text inside a genuine comment token counts
 — text that merely looks like a suppression comment inside a string
-or docstring is never recognized.
+or docstring is never recognised.
 
 No colon after "pyrigor" — permanent, not transitional. See
 guidelines/DECISIONS.md for why.
@@ -52,7 +52,7 @@ def _comments_by_line(*, source: str) -> dict[int, str]:
 
     Returns:
         A line-number-to-comment-text mapping, built from real
-        tokenizing.COMMENT tokens only — never text that merely looks
+        tokenising.COMMENT tokens only — never text that merely looks
         like a comment inside a string or docstring.
     """
     tokens = tokenize.generate_tokens(StringIO(source).readline)

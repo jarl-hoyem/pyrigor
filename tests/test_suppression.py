@@ -534,14 +534,14 @@ def test_real_suppression_comment_still_works_despite_a_similar_looking_string_e
 
 
 def test_filter_suppressed_with_no_violations_does_not_tokenize_unparsable_source() -> None:
-    """An empty violations list should short-circuit before ever tokenizing the source.
+    """An empty violations list should short-circuit before ever tokenising the source.
 
     Guards the precondition 'filter_suppressed' relies on: violations
     are only ever non-empty for a source that already parsed
-    successfully via ast.parse, so tokenizing is safe to skip
+    successfully via ast.parse, so tokenising is safe to skip
     entirely when there is nothing to check — including for
     a genuinely unparsable source, which would otherwise crash
-    tokenizing.
+    tokenising.
     """
     source = "def broken(:\n    pass\n"
 

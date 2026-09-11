@@ -30,13 +30,13 @@ result == 0.3
 ```
 
 A direct equality check against a float is therefore not checking "are these the same value." It is checking "did this
-exact sequence of arithmetic operations happen to produce a "bit-identical" result," which is a much narrower and less
+exact sequence of arithmetic operations happen to produce a "bit-identical" result", which is a much narrower and less
 useful question. Usually not the question the code actually meant to ask. The most common real consequence is a
 convergence or termination check that never fires, or fires inconsistently depending on unrelated changes elsewhere in a
 calculation. Because the values being compared are "close enough" by any reasonable standard but not bit-identical.
 
 `math.isclose` (or an equivalent explicit tolerance) makes the actual intent, "these are the same within an acceptable
-margin," the thing that is actually checked, rather than relying on exact bitwise equality that floating-point
+margin", the thing that is actually checked, rather than relying on exact bitwise equality that floating-point
 arithmetic cannot reliably guarantee.
 
 ## Fix classification

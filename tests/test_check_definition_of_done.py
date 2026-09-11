@@ -26,7 +26,7 @@ def _run_git(*, args: list[str], cwd: Path) -> None:
 
 
 def _init_repo(*, path: Path) -> None:
-    """Initialize a throwaway git repo with a committed pyproject.toml and CHANGELOG.md.
+    """Initialise a throwaway git repo with a committed pyproject.toml and CHANGELOG.md.
 
     Args:
         path: Where to create the repo.

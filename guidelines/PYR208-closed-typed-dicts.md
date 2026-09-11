@@ -36,7 +36,7 @@ payload: UserPayload = {"name": "Ada", "emial": "ada@example.com", "role": "admi
 ```
 
 This is exactly the class of bug pyrigor exists to catch: a structurally unsound contract a type checker cannot see,
-because the type system's own default behavior is the gap, not a missing check layered on top of it. The `closed=True`
+because the type system's own default behaviour is the gap, not a missing check layered on top of it. The `closed=True`
 makes the schema exhaustive — any key not declared becomes a real type error, the typo included.
 
 ## Fix classification
@@ -63,7 +63,7 @@ radius than a confirmed, already-triggered bug class.
 
 **Tier:** `Default`
 
-**Reasoning:** Closes a real, silent gap in `TypedDict`'s own default behavior — consistent with pyrigor's core
+**Reasoning:** Closes a real, silent gap in `TypedDict`'s own default behaviour — consistent with pyrigor's core
 silent-bug mission, not an opinionated preference.
 
 **Maturity:** `Preview`
@@ -74,7 +74,7 @@ wait until pyrigor gains a real per-rule version-gating mechanism (see #194/#195
 
 ## When this does not apply
 
-- A `TypedDict` deliberately modeling external or dynamic data — a third-party API response, a schema still evolving, a
+- A `TypedDict` deliberately modelling external or dynamic data — a third-party API response, a schema still evolving, a
   case where openness is the correct, intended design, not an oversight. Use a suppression comment,
   `# pyrigor 208 # reason`, to record that this is a deliberate choice, not silently exempt it.
 - A `TypedDict` defined outside the codebase pyrigor is checking is never in scope, matching PYR406's own established

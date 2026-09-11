@@ -7,7 +7,7 @@ a matching size between two arguments, a value within a range must state that as
 check at the top of the function body. Raising a clear exception if violated, rather than leaving it implicit.
 
 Use `raise`, not `assert`. Python's `-O` and `-OO` flags strip every `assert` statement from compiled bytecode entirely,
-so a precondition that matters is silently gone in an optimized build.
+so a precondition that matters is silently gone in an optimised build.
 
 ```python
 # Bad
@@ -54,16 +54,16 @@ assumption into something that runs at the exact point it matters. With a messag
 a violation is caught immediately, at its true source, rather than discovered later somewhere else entirely.
 
 This is design-by-contract in miniature: state what a function requires of its inputs as a real, enforced precondition,
-rather than trusting every caller to already know and honor an assumption that was never written anywhere.
+rather than trusting every caller to already know and honour an assumption that was never written anywhere.
 
 **Why `raise`, not `assert`?** `assert` is the natural tool for this, and earlier drafts of this guideline recommended
 it. It is the wrong choice for anything that actually matters: Python's `-O` flag removes every `assert` statement from
 the compiled bytecode entirely, and `-OO` goes further. A precondition check written as `assert` is not a weaker version
-of the check, it is no check at all in an optimized build, silently.
+of the check, it is no check at all in an optimised build, silently.
 
 This is a real, known Python gap, not a hypothetical one (see [OSSF's Secure Coding Guide for Python,
 pyscg-0037][ossf-pyscg-0037]). `raise` with an explicit exception has no such gap, it runs identically regardless of
-optimization flags.
+optimisation flags.
 
 [ossf-pyscg-0037]:
   https://github.com/ossf/wg-best-practices-os-developers/tree/main/docs/Secure-Coding-Guide-for-Python/08_coding_standards/pyscg-0037
@@ -92,7 +92,7 @@ surface some other way too. See `DECISIONS.md`'s "Severity" entry for the full p
 - A hot path where the check’s runtime cost has been measured to matter, and the precondition is instead enforced once,
   further upstream, at the point the value is first constructed or received.
 - A genuinely internal, debug-only invariant, never reachable from untrusted input, where being silently skipped in an
-  optimized build is an acceptable, deliberate trade-off. `assert` is the correct tool for exactly this narrower case,
+  optimised build is an acceptable, deliberate trade-off. `assert` is the correct tool for exactly this narrower case,
   not for anything this rule is actually about.
 - Checks that would trivially always pass given the type annotations already present, adding no real informational value
   over the annotation itself.

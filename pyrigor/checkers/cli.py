@@ -350,7 +350,7 @@ def _print_summary(
         elapsed: Elapsed time in seconds.
         violations: Every violation found across all files.
         violations_by_file: Each checked file's own violations.
-        suppressed: Every violation that was suppressed across all files.
+        suppressed: Every violation suppressed across all files.
     """
     if violations:
         _print_file_breakdown(violations_by_file=violations_by_file)
@@ -665,7 +665,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Build the console-script's argument parser.
 
     Returns:
-        A parser recognizing --version/-V, --select, --ignore, --output-format, and paths.
+        A parser recognising --version/-V, --select, --ignore, --output-format, and paths.
     """
     parser = _PyrigorArgumentParser(prog="pyrigor", allow_abbrev=False)
     parser.add_argument(

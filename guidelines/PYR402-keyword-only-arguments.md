@@ -40,7 +40,7 @@ is _contingent_ on, plus one PYR201 cannot address at all:
 
 **1. Mypy has to actually run, and has to see the chain.** `NewType` protection is static-only. If a value is unwrapped
 for arithmetic and not rewrapped, passed through a `dict`, returned from an untyped or `Any`-leaking function, or
-reaches this call from any code path mypy does not fully analyze, the distinction is lost. The swap becomes invisible
+reaches this call from any code path mypy does not fully analyse, the distinction is lost. The swap becomes invisible
 again — with no warning protection has degraded. Keyword-only arguments raise a `TypeError` at the language level,
 independent of whether mypy ran, and independent of whether type distinction survived intact up to this point.
 
@@ -61,7 +61,7 @@ is closer to design-by-contract than relying on a type-checker run to surface th
 
 None of this makes [PYR201](PYR201-newtype-same-typed-values.md) redundant — `NewType` still gives mypy the chance to
 catch a bare, unwrapped value landing in the wrong slot, which keyword-only calling alone does not. A keyword call with
-the _wrong keyword name_ used by mistake is still a real, if less common, way to swap values. PYR402 is defense in
+the _wrong keyword name_ used by mistake is still a real, if less common, way to swap values. PYR402 is defence in
 depth: a language-level guarantee that holds even when the static-analysis guarantee’s preconditions are not met.
 
 Combined with [PYR401](PYR401-namedtuple-returns.md) and [PYR201](PYR201-newtype-same-typed-values.md), this closes the
@@ -71,15 +71,15 @@ remaining gaps in the full picture:
   against signature reordering and against mypy not running.
 - Argument-order swaps for same-typed args → `NewType` (PYR201) catches it _when_ type distinction survives to the call
   site. PYR402 adds the same robustness on top.
-- Return-unpacking mislabeling for differently typed return values → `NamedTuple` (PYR401)
-- Return-unpacking mislabeling for same-typed return fields → `NamedTuple` + `NewType` (PYR401 + PYR201)
+- Return-unpacking mislabelling for differently typed return values → `NamedTuple` (PYR401)
+- Return-unpacking mislabelling for same-typed return fields → `NamedTuple` + `NewType` (PYR401 + PYR201)
 
 ## Fix classification
 
 **Kind:** `safe_fix`
 
 **Reasoning:** Mechanical and correct. Any caller consequence is immediate and loud, via mypy/pyright flagging a
-positional argument against a keyword-only parameter as a hard type error, not a silent behavior change. Per #105's own
+positional argument against a keyword-only parameter as a hard type error, not a silent behaviour change. Per #105's own
 adopted classification.
 
 ## Severity

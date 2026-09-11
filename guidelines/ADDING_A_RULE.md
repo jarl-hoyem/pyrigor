@@ -54,7 +54,7 @@ Select `severity` and `fixability` deliberately from the guideline's `Severity` 
 considered complete.
 
 A planned guideline may declare severity and fixability before its `RuleInfo` entry exists. Once the rule is
-implemented, add the matching `RuleInfo` entry and make the synchronization test pass.
+implemented, add the matching `RuleInfo` entry and make the synchronisation test pass.
 
 ## 5. If the rule is enforced, write the checker
 
@@ -82,7 +82,7 @@ cases, since past checkers have hit real bugs in every one of them:
 - Any parameter- or return-shape edge case specific to the rule (positional-only markers, `*args`/`**kwargs`,
   single-element tuples, ...).
 
-Also declare the rule's shadowing relevance before finalizing its tests:
+Also declare the rule's shadowing relevance before finalising its tests:
 
 ```text
 Shadowing relevance: none / partial / full
@@ -131,4 +131,4 @@ ever split into separate hooks again, add a new hook entry here.
 
 ## 11. Run the full suite
 
-`just check`. All checks are green, 100 percent coverage, before committing.
+`just check`. All checks are green, 100 per cent coverage, before committing.
