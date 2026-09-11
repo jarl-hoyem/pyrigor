@@ -7,7 +7,8 @@ from typing import cast
 import jsonschema
 import pytest
 
-# pylint: disable=redefined-outer-name  # Pytest injects the schema fixture into each test.
+# Pytest injects the schema fixture into each test.
+# pylint: disable=redefined-outer-name
 # noinspection PyProtectedMember
 from pyrigor.checkers.cli import main  # pyright: ignore[reportPrivateUsage]
 
