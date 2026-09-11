@@ -131,7 +131,7 @@ def test_json_output_reports_read_error(
 
 
 def test_json_schema_rejects_non_rule_suppression_keys(*, schema: dict[str, object]) -> None:
-    """The published schema restricts the suppression summary keys to PYR codes."""
+    """The published schema restricts the keys of the suppression summary to PYR codes."""
     with pytest.raises(jsonschema.ValidationError):
         _assert_valid_schema(
             document={

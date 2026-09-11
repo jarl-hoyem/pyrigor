@@ -38,9 +38,9 @@ apply_correction(bias_value, weight_value)
 So PYR402 is not closing a static-type blind spot PYR201 leaves open — it is addressing three things PYR201’s protection
 is _contingent_ on, plus one PYR201 cannot address at all:
 
-**1. Mypy has to actually run, and has to see the chain.** `NewType` protection is static-only. If a value is unwrapped
-for arithmetic and not rewrapped, passed through a `dict`, returned from an untyped or `Any`-leaking function, or
-reaches this call from any code path mypy does not fully analyse, the distinction is lost. The swap becomes invisible
+**1. Mypy has to actually run, and has to see the chain.** The `NewType` protection is static-only. If a value is
+unwrapped for arithmetic and not rewrapped, passed through a `dict`, returned from an untyped or `Any`-leaking function,
+or reaches this call from any code path mypy does not fully analyse, the distinction is lost. The swap becomes invisible
 again — with no warning protection has degraded. Keyword-only arguments raise a `TypeError` at the language level,
 independent of whether mypy ran, and independent of whether type distinction survived intact up to this point.
 

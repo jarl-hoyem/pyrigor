@@ -3,7 +3,7 @@
 Reads the JSON that `mutmut export-cicd-stats` writes and fails when the
 mutation score falls below the required floor.
 
-Timeouts are left out of the score. They track machine load rather than test
+Timeouts are left out of the score. They track the machine load rather than test
 quality, so counting them would make the gate flaky. Every other unkilled
 mutant counts against the score.
 """
@@ -37,7 +37,7 @@ def _load_stats(*, path: Path) -> dict[str, object]:
         path: The exported stats file.
 
     Returns:
-        The stats mapping.
+        The statistics mapping.
 
     Raises:
         SystemExit: If the file cannot be read or does not hold a JSON object.
@@ -61,10 +61,10 @@ def _load_stats(*, path: Path) -> dict[str, object]:
 
 
 def _count(*, stats: dict[str, object], key: str, path: Path) -> int:
-    """Read one integer count out of the stats mapping.
+    """Read one integer count out of the statistics mapping.
 
     Args:
-        stats: The stats mapping.
+        stats: The statistics mapping.
         key: The count to read.
         path: The file the stats came from, for error messages.
 
@@ -84,7 +84,7 @@ def _mutation_score(*, stats: dict[str, object], path: Path) -> MutationScore:
     """Derive the mutation score, excluding timeouts from the denominator.
 
     Args:
-        stats: The stats mapping.
+        stats: The statistics mapping.
         path: The file the stats came from, for error messages.
 
     Returns:

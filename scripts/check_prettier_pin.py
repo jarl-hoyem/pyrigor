@@ -31,7 +31,7 @@ def read_pins(*, config_text: str, package_text: str) -> PrettierPins:
         package_text: Contents of package.json.
 
     Returns:
-        The two pinned versions, each None when its file does not name one.
+        The two pinned versions. Each is None when its file does not name one.
     """
     match = _HOOK_PIN.search(config_text)
     package = json.loads(package_text).get("devDependencies", {}).get("prettier")
