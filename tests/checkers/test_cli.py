@@ -489,7 +489,7 @@ def test_cli_help_documents_what_ignore_accepts(
     """CLI help explains the token forms --ignore accepts, not just that the flag exists.
 
     Asserting only the flag name leaves the help text itself unverified. Deleting
-    --ignore's help= string changed no behaviour, and survived mutation testing.
+    the help= string of --ignore changed no behaviour, and survived mutation testing.
     """
     monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
 

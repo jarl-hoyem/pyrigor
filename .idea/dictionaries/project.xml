@@ -11,19 +11,37 @@
       <w>Pickomino's</w>
       <w>Pyrigor</w>
       <w>actionlint</w>
+      <w>binop</w>
+      <w>booleaness</w>
+      <w>buildx</w>
+      <w>classmethod</w>
       <w>datetimez</w>
+      <w>docparams</w>
+      <w>docstyle</w>
+      <w>elts</w>
+      <w>fffd</w>
       <w>gitignored</w>
+      <w>gitleaks</w>
       <w>hoyem</w>
+      <w>htmlcov</w>
+      <w>inlinevar</w>
       <w>kestar</w>
       <w>markdownlint</w>
+      <w>mred</w>
+      <w>nonascii</w>
+      <w>nosec</w>
       <w>ossf</w>
       <w>ossf's</w>
       <w>pylint's</w>
       <w>pyrigor's</w>
       <w>pyscg</w>
       <w>pyscn's</w>
+      <w>pythonutf</w>
       <w>rxxx</w>
       <w>smallgig</w>
+      <w>subscripted</w>
+      <w>taiki</w>
+      <w>ufeff</w>
     </words>
   </dictionary>
 </component>
