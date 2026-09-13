@@ -41,7 +41,7 @@ def _json_document(*, result: subprocess.CompletedProcess[str]) -> dict[str, obj
     assert isinstance(document, dict)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
     # Pyright reports the return type as partially unknown without it. PyCharm has no unknown type.
-    # noinspection PyUnnecessaryCast
+    # noinspection PyUnnecessaryCast,GrazieInspection
     return cast("dict[str, object]", document)  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
 
 
@@ -66,6 +66,7 @@ def test_installed_cli_reports_json_diagnostic(*, tmp_path: Path) -> None:
     document = _json_document(result=result)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
     value = document["diagnostics"]
+    # noinspection GrazieInspection
     diagnostics = cast("list[dict[str, object]]", value)  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
     assert result.returncode == 1
     assert document["schema_version"] == 1
@@ -84,6 +85,7 @@ def test_installed_cli_reports_suppressed_diagnostic(*, tmp_path: Path) -> None:
 
     document = _json_document(result=result)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
+    # noinspection GrazieInspection
     summary = cast("dict[str, object]", document["summary"])  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
     assert result.returncode == _SUCCESS_EXIT_CODE
     assert document["diagnostics"] == []
@@ -100,6 +102,7 @@ def test_installed_cli_reports_parse_error(*, tmp_path: Path) -> None:
 
     document = _json_document(result=result)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
+    # noinspection GrazieInspection
     errors = cast("list[dict[str, object]]", document["errors"])  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
     assert result.returncode == _SUCCESS_EXIT_CODE
     assert [error["kind"] for error in errors] == ["parse_error"]

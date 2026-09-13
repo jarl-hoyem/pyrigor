@@ -71,8 +71,8 @@ silent regression, unusable API, broken release, or misleading result.
 **Principle:** Do not build functionality, abstraction, or flexibility until a real requirement makes it necessary.
 
 **Application to Pyrigor:** Build the rules, architecture, interfaces, configuration, and tooling that Pyrigor needs
-now. Do not add speculative generality merely because a future rule, language feature, backend, integration, or user may
-eventually require it. Invest in keeping the code easy to change instead of implementing hypothetical future
+currently. Do not add speculative generality merely because a future rule, language feature, backend, integration, or
+user may eventually require it. Invest in keeping the code easy to change instead of implementing hypothetical future
 requirements.
 
 Reversibility is useful when deciding whether to build something, but YAGNI remains the governing principle: do not
