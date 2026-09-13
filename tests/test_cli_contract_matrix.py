@@ -40,6 +40,8 @@ def _json_document(*, result: subprocess.CompletedProcess[str]) -> dict[str, obj
     document = json.loads(result.stdout)
     assert isinstance(document, dict)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
+    # Pyright reports the return type as partially unknown without it. PyCharm has no unknown type.
+    # noinspection PyUnnecessaryCast
     return cast("dict[str, object]", document)  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
 
 

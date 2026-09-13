@@ -57,6 +57,8 @@ def _load_stats(*, path: Path) -> dict[str, object]:
         raise SystemExit(f"{path}: expected a JSON object, found {type(loaded).__name__}")
 
     # A JSON object's keys are strings by definition, so the cast holds after the isinstance check.
+    # Pyright reports the return type as partially unknown without it. PyCharm has no unknown type.
+    # noinspection PyUnnecessaryCast
     return cast("dict[str, object]", loaded)
 
 

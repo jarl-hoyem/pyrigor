@@ -22,7 +22,7 @@ reason to change it.
 
 The principle also runs forwards, as a way of finding defects rather than only a brake on removing things. Ask why an
 existing thing is the way it is, without intending to change it. When the answer comes back "no reason", something is
-broken. A value stated in two places with nothing keeping them in synch, or a flag with no behaviour behind it, both
+broken. A value stated in two places with nothing keeping them in synch, or a flag with no behaviour behind it. Both
 look deliberate until someone asks.
 
 Failing to find a reason is different from there being none, and the difference is invisible from the inside. Exhaust
@@ -44,17 +44,18 @@ principles.
 
 ## Human Comprehension
 
-**Principle:** Code should be structured so that a programmer can understand its important behavior without
-having to reconstruct unnecessary complexity.
+**Principle:** Code should be structured so that a programmer can understand its important behaviour without having to
+reconstruct unnecessary complexity.
 
-**Application to Pyrigor:** Prefer structures that make intent, important distinctions, and control flow
-apparent. Avoid unnecessary machinery that increases the amount a programmer must keep in mind.
+**Application to Pyrigor:** Prefer structures that make intent, important distinctions, and control flow clear. Avoid
+unnecessary machinery that increases the amount a programmer must keep in mind.
 
 **References:**
-- Paul Graham, [*Programming Bottom-Up*](https://www.paulgraham.com/progbot.html)
-- Paul Graham, [*Five Questions about Language Design*](https://www.paulgraham.com/langdes.html)
-- Paul Graham, [*Holding a Program in One's Head*](https://www.paulgraham.com/head.html)
-- Paul Graham, [*Hackers & Painters*](https://www.paulgraham.com/hp.html)
+
+- Paul Graham, [_Programming Bottom-Up_](https://www.paulgraham.com/progbot.html)
+- Paul Graham, [_Five Questions about Language Design_](https://www.paulgraham.com/langdes.html)
+- Paul Graham, [_Holding a Program in One's Head_](https://www.paulgraham.com/head.html)
+- Paul Graham, [_Hackers & Painters_](https://www.paulgraham.com/hp.html)
 
 ## Inversion
 
@@ -81,7 +82,8 @@ build what is not currently needed.
 
 **Principle:** Prefer durable correctness over immediate convenience.
 
-**Application to Pyrigor:** When a shortcut creates ambiguity, technical debt, or weakens rigor, prefer the solution that produces a more durable result—even when it requires more effort now.
+**Application to Pyrigor:** When a shortcut creates ambiguity, technical debt, or weakens rigour, prefer the solution
+that produces a more durable result—even when it requires more effort now.
 
 Informally: delayed gratification.
 

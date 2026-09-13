@@ -260,6 +260,8 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     """
     source_result = _read_source(path=path)
     if source_result.source is None:
+        # mypy, pyright and ty all reject this without the cast. PyCharm drops the None from the union.
+        # noinspection PyUnnecessaryCast
         error = cast("CheckError", source_result.error)
         return FileCheckResult(
             kept=KeptViolations([]),
@@ -919,7 +921,7 @@ def _parse_run_options(*, args: argparse.Namespace) -> _RunOptions:
     _validate_flag_tokens(flag_name="--select", tokens=select)
     _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
     _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
-    output_format = cast("OutputFormat", args.output_format[0] if args.output_format else "human")
+    output_format: OutputFormat = args.output_format[0] if args.output_format else "human"
     _validate_fix_selection(
         fix=args.fix, diff=args.diff, show_fixes=args.show_fixes, select=select, output_format=output_format
     )
@@ -928,7 +930,7 @@ def _parse_run_options(*, args: argparse.Namespace) -> _RunOptions:
         select=select,
         ignore=ignore,
         excludes=_parse_exclude_flags(values=args.exclude),
-        output_format=cast("OutputFormat", args.output_format[0] if args.output_format else "human"),
+        output_format=output_format,
         fix=args.fix,
         diff=args.diff,
     )

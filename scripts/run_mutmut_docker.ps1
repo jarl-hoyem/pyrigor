@@ -48,7 +48,9 @@ $mount = ("type=bind,source=" + $projectForward + ",target=/project")
 $prevErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 & docker @("run", "--rm", "--mount", $mount, $ImageName, "export-cicd-stats") | Out-Null
-& docker @("run", "--rm", "--mount", $mount, "--entrypoint", "python", $ImageName, "scripts/check_mutation_score.py")
+& docker @(
+    "run", "--rm", "--mount", $mount, "--entrypoint", "python", $ImageName, "scripts/check_mutation_score.py"
+)
 $scoreExit = $LASTEXITCODE
 $ErrorActionPreference = $prevErrorAction
 
