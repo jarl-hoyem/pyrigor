@@ -4,7 +4,8 @@ Runs the script itself as a subprocess against a throwaway stats file, rather
 than importing its internals. The scripts/ directory is not a package, and this
 matches REVIEW_CHECKLIST.md's preference for testing the real invocation.
 """
-# pylint: disable=duplicate-code  # Independent subprocess setup is deliberate in this test module.
+# Independent subprocess setup is deliberate in this test module.
+# pylint: disable=duplicate-code
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
@@ -75,7 +76,7 @@ def _run(*, tmp_path: Path, raw: str | None) -> subprocess.CompletedProcess[str]
 
     Args:
         tmp_path: The working directory to run inside.
-        raw: The stats file's contents, or None to leave the file absent.
+        raw: The content of the 'stats' file, or None to leave the file absent.
 
     Returns:
         The completed process, with captured output.
@@ -96,7 +97,7 @@ def _run(*, tmp_path: Path, raw: str | None) -> subprocess.CompletedProcess[str]
 
 
 def _stats(*, total: int, killed: int, survived: int, timeout: int) -> str:
-    """Build a stats file body.
+    """Build a 'stats' file body.
 
     Args:
         total: Every mutant generated.
@@ -148,7 +149,7 @@ def test_score_exactly_at_floor_passes(*, tmp_path: Path) -> None:
 def test_score_one_killed_mutant_below_the_floor_fails(*, tmp_path: Path) -> None:
     """One killed mutant fewer than the floor demands should fail.
 
-    This is the tightest boundary available. Together with the test above it
+    This is the tightest boundary available. Together with the test above, it
     pins the comparison exactly at the floor, at whatever value the floor holds.
     """
     killed = _AT_FLOOR - 1
@@ -195,7 +196,7 @@ def test_no_mutants_generated_is_an_error(*, tmp_path: Path) -> None:
 
 
 def test_every_mutant_timing_out_is_an_error(*, tmp_path: Path) -> None:
-    """If timeouts consume the whole run there is nothing left to score."""
+    """If timeouts consume the whole run, there is nothing left to score."""
     body = _stats(total=5, killed=0, survived=0, timeout=5)
 
     result = _run(tmp_path=tmp_path, raw=body)
@@ -221,7 +222,7 @@ def test_json_that_is_not_an_object_is_an_error(*, tmp_path: Path) -> None:
 
 
 def test_missing_count_key_is_an_error(*, tmp_path: Path) -> None:
-    """A stats file missing a count mutmut normally writes should fail loudly."""
+    """A 'stats' file missing a count mutmut normally writes should fail loudly."""
     result = _run(tmp_path=tmp_path, raw=json.dumps({"total": 10, "killed": 10, "survived": 0}))
 
     assert result.returncode != _EXIT_SUCCESS

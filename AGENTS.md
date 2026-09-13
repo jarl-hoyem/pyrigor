@@ -269,10 +269,10 @@ exact keyword-then-#N pattern verbatim.
   and APA.
 - Existing documentation does not yet follow these rules. Issues #218 to #221 and #233 track the clean-up. Write new
   prose to the rules rather than imitating the surrounding text.
-- Direct quotations are reproduced as the source wrote them. The rules above govern our own prose, not quoted text, so
-  Knuth's "premature optimization is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American spelling.
-  Never silently correct a quotation to house style. Where the original would breach a rule, paraphrase instead of
-  quoting.
+- Direct quotations are reproduced as the source wrote them. The rules above govern this project's prose, not quoted
+  text, so Knuth's "premature optimization is the root of all evil" in `guidelines/PRINCIPLES.md` keeps its American
+  spelling. Never silently correct a quotation to house style. Where the original would breach a rule, paraphrase
+  instead of quoting.
 - A new prose or style rule must be mechanically checkable, and the issue that adds the check is filed at the same time
   as the rule. A rule no checker can decide is a preference, and preferences generate clean-up work indefinitely with
   nothing to stop the next one. The heading case did qualify, since a title case is ambiguous and a checker can flag it

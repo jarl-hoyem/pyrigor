@@ -486,10 +486,10 @@ def test_cli_help_documents_fixer_modes(*, capsys: pytest.CaptureFixture[str], m
 def test_cli_help_documents_what_ignore_accepts(
     *, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """CLI help explains the token forms --ignore accepts, not just that the flag exists.
+    """CLI help explains the token forms the --ignore flag accepts, not just that the flag exists.
 
     Asserting only the flag name leaves the help text itself unverified. Deleting
-    the help= string of --ignore changed no behaviour, and survived mutation testing.
+    the help= string of --ignore changed no behaviour and survived mutation testing.
     """
     monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
 
@@ -558,7 +558,7 @@ def test_run_exclude_tolerates_whitespace_after_comma(
 def test_run_exclude_combines_repeated_flags_with_comma_separated(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """run() should flatten repeated --exclude flags that also contain commas."""
+    """run() should flatten repeatedly --exclude flags that also contain commas."""
     first = tmp_path / "first.py"
     second = tmp_path / "second.py"
     third = tmp_path / "third.py"

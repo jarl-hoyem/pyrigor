@@ -12,10 +12,10 @@ def _run_checker(*, tmp_path: Path, data: bytes) -> list[str]:
     source = tmp_path / "sample.txt"
     source.write_bytes(data)
 
-    # Try relative path first (normal pytest run)
+    # Try the relative path first, which is the normal pytest run.
     checker_path = Path(__file__).parents[1] / "scripts" / "check_text_hygiene.py"
 
-    # If not found, we're likely in mutants/; search parent directories for scripts/
+    # If it is not found, the run is probably inside mutants/. Search parent directories for scripts/.
     if not checker_path.exists():
         for parent in Path(__file__).parents[1].parents:
             candidate = parent / "scripts" / "check_text_hygiene.py"

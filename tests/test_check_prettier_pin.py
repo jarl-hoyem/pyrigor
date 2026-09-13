@@ -26,7 +26,7 @@ class CheckerResult(NamedTuple):
 
 
 def _checker_path() -> Path:
-    """Return the checker script, whether run from the repository or a mutants copy."""
+    """Return the checker script, whether run from the repository or a copy under mutants/."""
     checker = Path(__file__).parents[1] / "scripts" / "check_prettier_pin.py"
     if checker.exists():
         return checker
@@ -86,7 +86,7 @@ def test_package_pin_absent_fails(*, tmp_path: Path) -> None:
 
 
 def test_neither_file_names_prettier_passes(*, tmp_path: Path) -> None:
-    """With no pin anywhere there is nothing that can drift."""
+    """With no pin anywhere, there is nothing that can drift."""
     result = _run_checker(tmp_path=tmp_path, hook_version=None, package_version=None)
 
     assert not result.exit_code
