@@ -63,6 +63,14 @@ requirements.
 Reversibility is useful when deciding whether to build something, but YAGNI remains the governing principle: do not
 build what is not currently needed.
 
+## Durable Correctness
+
+**Principle:** Prefer durable correctness over immediate convenience.
+
+**Application to Pyrigor:** When a shortcut creates ambiguity, technical debt, or weakens rigor, prefer the solution that produces a more durable result—even when it requires more effort now.
+
+Informally: delayed gratification.
+
 ## Sunk Cost Fallacy
 
 **Principle:** Past, unrecoverable investment should not determine what is best from today forward. Re-evaluate
