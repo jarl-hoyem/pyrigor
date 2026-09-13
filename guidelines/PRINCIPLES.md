@@ -42,6 +42,20 @@ correctness, security, performance, compatibility, or maintainability is accepta
 Occam's Razor, The Least Power, and Separation of Concerns are treated as applications of KISS rather than separate
 principles.
 
+## Human Comprehension
+
+**Principle:** Code should be structured so that a programmer can understand its important behavior without
+having to reconstruct unnecessary complexity.
+
+**Application to Pyrigor:** Prefer structures that make intent, important distinctions, and control flow
+apparent. Avoid unnecessary machinery that increases the amount a programmer must keep in mind.
+
+**References:**
+- Paul Graham, [*Programming Bottom-Up*](https://www.paulgraham.com/progbot.html)
+- Paul Graham, [*Five Questions about Language Design*](https://www.paulgraham.com/langdes.html)
+- Paul Graham, [*Holding a Program in One's Head*](https://www.paulgraham.com/head.html)
+- Paul Graham, [*Hackers & Painters*](https://www.paulgraham.com/hp.html)
+
 ## Inversion
 
 **Principle:** Instead of asking only how to achieve a desired outcome, ask what would cause the outcome to fail, and
