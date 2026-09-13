@@ -5,7 +5,8 @@ rather than importing its internals — scripts/ is not a package, and this
 matches REVIEW_CHECKLIST.md's own preference for testing the actual, real
 invocation over a convenient proxy for it.
 """
-# pylint: disable=duplicate-code  # Independent subprocess setup is deliberate in this test module.
+# Independent subprocess setup is deliberate in this test module.
+# pylint: disable=duplicate-code
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
@@ -49,10 +50,10 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
     Returns:
         The completed process, with captured stdout.
     """
-    # Try relative path first (normal pytest run)
+    # Try the relative path first (normal pytest run)
     script_path = Path(__file__).parent.parent / "scripts" / "check_definition_of_done.py"
 
-    # If not found, we're likely in mutants/; search parent directories for scripts/
+    # If not found, it is likely in mutants/; search parent directories for scripts/
     if not script_path.exists():
         for parent in Path(__file__).parent.parent.parents:
             candidate = parent / "scripts" / "check_definition_of_done.py"
@@ -104,7 +105,7 @@ def test_no_warning_when_version_bump_has_changelog_entry(tmp_path: Path) -> Non
 
 # pyrigor 403 # pytest fixture injection, not a real violation
 def test_no_warning_when_pyproject_unchanged(tmp_path: Path) -> None:
-    """No staged pyproject.toml change at all should not print the reminder."""
+    """No staged pyproject.toml change at all. Should not print the reminder."""
     _init_repo(path=tmp_path)
     (tmp_path / "README.md").write_text("hello\n")
     _run_git(args=["add", "README.md"], cwd=tmp_path)
