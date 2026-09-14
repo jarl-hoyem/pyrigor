@@ -162,7 +162,7 @@ def test_suppression_comment_on_line_above_suppresses() -> None:
 
 
 def test_same_line_match_suppresses_even_when_line_above_has_different_code() -> None:
-    """A matching same-line suppression should still suppress even when the line above has a different code."""
+    """The matching same-line suppression should still suppress even when the line above has a different code."""
     source = (
         "# pyrigor 403 # wrong rule, should be ignored\n"
         "def apply_correction(weight, bias):  # pyrigor 402 # correct rule, same line\n"
@@ -248,7 +248,7 @@ def test_line_above_without_reason_does_not_suppress(capsys: pytest.CaptureFixtu
 
 
 def test_same_line_suppression_works_when_stacked_after_nosec() -> None:
-    """Pyrigor's own same-line suppression still works when another tool's comment precedes it."""
+    """The pyrigor same-line suppression still works when another tool's comment precedes it."""
     source = "def apply_correction(weight, bias):  # nosec  # pyrigor 402 # positional swap risk\n    ...\n"
     violations = [
         Violation(
@@ -268,7 +268,7 @@ def test_same_line_suppression_works_when_stacked_after_nosec() -> None:
 
 
 def test_line_above_suppression_works_when_stacked_after_complexipy_ignore() -> None:
-    """Pyrigor's own line-above suppression still works when another tool's comment precedes it on that line."""
+    """The pyrigor line-above suppression still works when another tool's comment precedes it on that line."""
     source = (
         "# complexipy: ignore  # pyrigor 402 # positional swap risk\ndef apply_correction(weight, bias):\n    ...\n"
     )
@@ -315,7 +315,7 @@ def test_bare_other_tool_comment_on_line_above_does_not_suppress_or_warn(capsys:
 
 
 def test_pyrigor_comment_before_other_tool_comment_still_suppresses_despite_polluted_reason() -> None:
-    """Pyrigor's comment before another tool has still suppresses, despite a polluted reason (a known limitation)."""
+    """A pyrigor comment before another tool's still suppresses, despite a polluted reason (a known limitation)."""
     source = "def apply_correction(weight, bias):  # pyrigor 402 # positional swap risk  # nosec\n    ...\n"
     violations = [
         Violation(

@@ -43,10 +43,10 @@ such as `archive.extractall(...)` are therefore ignored.
 For `tarfile`, `filter="data"` is recognised as safe.
 
 For `zipfile`, an explicit path-validation pattern may be recognised when the validation is directly visible in the same
-function. PyRigor does not attempt to prove arbitrary helper functions or external validation code safe.
+function. Beyond that, pyrigor does not attempt to prove arbitrary helper functions or external validation code safe.
 
 The checker does not attempt to determine whether an archive is trustworthy. Trusted archives may therefore still
-produce a finding and can use the normal PyRigor suppression mechanism.
+produce a finding and can use the normal pyrigor suppression mechanism.
 
 The checker does not flag `extract()`, custom extraction functions, or unknown objects calling `extractall()`.
 
