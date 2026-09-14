@@ -54,12 +54,12 @@ jobs:
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit' || '' }}
         run: just check
 
-      - name: Run quality checks (pre-push stage)
+      - name: "Run quality checks (manual stage: pip-audit-locked)"
         env:
           # The locked audit uses the same pip-audit stack and is likewise
           # incompatible with the Python 3.15 prerelease environment.
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit-locked' || '' }}
-        run: just check pre-push
+        run: just check manual
   stdlib-smoke-test:
     runs-on: ubuntu-latest
     steps:

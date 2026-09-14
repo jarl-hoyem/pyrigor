@@ -319,11 +319,13 @@ repos:
         entry: uv run --extra dev pytest
         pass_filenames: false
         stages: [pre-commit]
-      # Precise locked dependency audit is pre-push/CI only and intentionally slow.
+      # Precise locked dependency audit is CI only and intentionally slow. It no
+      # longer runs on local `git push`; the `pre-push` stage itself stays
+      # available for future local hooks (see #235).
       - id: pip-audit-locked
-        name: pip-audit (precise, exact uv.lock versions, pre-push/CI only)
+        name: pip-audit (precise, exact uv.lock versions, CI only)
         language: system
         entry: uv run --with pip-audit python scripts/run_pip_audit.py
         pass_filenames: false
         always_run: true
-        stages: [pre-push]
+        stages: [manual]
