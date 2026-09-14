@@ -10,11 +10,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-# pylint: disable=import-private-name,wrong-import-position
+# pylint: disable=wrong-import-position
 # noinspection PyPep8Inspection
 # The noqa:E402 is unused for ruff but needed for PyCharm's PyPep8Inspection
 # (JetBrains PY-51934), so RUF100 is suppressed on this line only.
-from _dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files  # noqa: E402, RUF100
+from dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files  # noqa: E402, RUF100
 
 _CHANGELOG_MD = "CHANGELOG.md"
 _RULES_PY = "pyrigor/rules.py"

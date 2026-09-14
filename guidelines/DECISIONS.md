@@ -593,7 +593,7 @@ rather than trusting the ignore list's own reasoning without checking real outpu
 The file check_definition_of_done.py and version_sync.py both needed the identical git-diff-inspection logic
 (staged_files, pyproject_version_changed), found as genuine duplicate code by pylint's own R0801, not just an incidental
 shared literal (unlike the filename-constants decision, which stayed local per script). Extracted into
-scripts/_dev_tooling_shared.py.
+scripts/dev_tooling_shared.py.
 
 The two callers need genuinely different failure behaviour, though: check_definition_of_done.py explicitly promises
 "never fails the commit" in its own docstring, so a real git failure should not crash it (check=False). The file
@@ -704,3 +704,33 @@ reflows text. It does not touch apostrophes (#218), em and en dashes (#219), spe
 case (#233). Those four remain open work, and #234 tracks the checks for the two of them that nothing enforces yet.
 
 The same configuration was copied to the `spikes` repository, so both repositories format Markdown identically.
+
+### Whole-project tool exclusions have one canonical set, and drift fails a hook
+
+Six tools scan the whole project rather than the files pre-commit passes them: mypy, ty, pyright, radon, xenon and
+vulture. Each carried its own list of generated and vendored directories to skip. The lists had drifted apart. A
+leftover `mutants/` directory from mutation testing showed the cost. `mypy .` and `radon mi .` both reported files from
+inside it, reproduced before this change. See #215.
+
+The canonical set is `.venv`, `dist`, `htmlcov`, `*.egg-info`, `mutants` and `__pycache__`. Every entry is already in
+`.gitignore`.
+
+Two tools read `.gitignore` themselves. The ty checker does so by default, confirmed by reproduction, so its hook is
+unchanged. The mypy hook now passes `--exclude-gitignore`. A new gitignored directory needs no edit for either tool.
+
+The other four cannot read `.gitignore`. The pyright list lives in `[tool.pyright]` in `pyproject.toml`. The radon,
+xenon and vulture lists are arguments in `.pre-commit-config.yaml`. Neither file can import a shared value, so each
+keeps a literal copy in its own syntax. The script `scripts/check_tool_exclusions.py` defines the set once. Its
+pre-commit hook fails when any copy misses an entry, or when the mypy hook loses `--exclude-gitignore`.
+
+The check is a script that its test runs as a subprocess, not a constant imported into a test. The copy of the project
+under `mutants/` has no `scripts/` directory, so a test importing from `scripts/` would break mutation testing when
+tests are collected. Importing the module under a second name would also make mypy see one file twice.
+
+Constants used by more than one script live in `scripts/dev_tooling_shared.py`. Constants used by one script stay in
+that script. The module lost its leading underscore in the same change. Nothing depended on the underscore, and removing
+it deleted two `import-private-name` suppressions instead of adding three more.
+
+Two accidental exclusions surfaced on the way. The strict xenon hook excluded `*_shared.py` to relax
+`pyrigor/checkers/_shared.py`. That glob also hid `scripts/_dev_tooling_shared.py` and `tests/checkers/test_shared.py`
+from both xenon hooks. It now names the one intended path.

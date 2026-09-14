@@ -11,7 +11,8 @@ import re
 from pathlib import Path
 from typing import NamedTuple
 
-PRE_COMMIT_CONFIG = Path(".pre-commit-config.yaml")
+from dev_tooling_shared import PRE_COMMIT_CONFIG
+
 PACKAGE_JSON = Path("package.json")
 _HOOK_PIN = re.compile(r"prettier@(?P<version>\d+[.]\d+[.]\d+)")
 
@@ -41,7 +42,7 @@ def read_pins(*, config_text: str, package_text: str) -> PrettierPins:
 def main() -> int:
     """Compare the two pins and report any disagreement."""
     pins = read_pins(
-        config_text=PRE_COMMIT_CONFIG.read_text(encoding="utf-8"),
+        config_text=Path(PRE_COMMIT_CONFIG).read_text(encoding="utf-8"),
         package_text=PACKAGE_JSON.read_text(encoding="utf-8"),
     )
     if pins.hook == pins.package:

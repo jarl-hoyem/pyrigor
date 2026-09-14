@@ -11,8 +11,7 @@ the release commit itself.
 import subprocess  # nosec -- fixed, local tooling commands only
 import sys
 
-# pylint: disable=import-private-name
-from _dev_tooling_shared import PYPROJECT_TOML, pyproject_version_changed, staged_files
+from dev_tooling_shared import PRE_COMMIT_CONFIG, PYPROJECT_TOML, pyproject_version_changed, staged_files
 
 
 def main() -> None:
@@ -20,19 +19,19 @@ def main() -> None:
     if PYPROJECT_TOML not in staged_files(check=True) or not pyproject_version_changed(check=True):
         sys.exit(0)
 
-    print("pyproject.toml version changed: running pre-commit autoupdate and uv lock.")
+    print(f"{PYPROJECT_TOML} version changed: running pre-commit autoupdate and uv lock.")
     subprocess.run(["pre-commit", "autoupdate"], check=True)  # nosec # noqa: S607
     subprocess.run(["uv", "lock"], check=True)  # nosec # noqa: S607
 
     # noinspection PyArgumentEqualDefault
-    result = subprocess.run(  # nosec
-        ["git", "diff", "--name-only", "--", ".pre-commit-config.yaml", "uv.lock"],  # noqa: S607
+    result = subprocess.run(  # nosec  # noqa: S603 -- arguments are fixed module constants, no untrusted input
+        ["git", "diff", "--name-only", "--", PRE_COMMIT_CONFIG, "uv.lock"],  # noqa: S607
         capture_output=True,
         text=True,
         check=False,
     )
     if result.stdout.strip():
-        print("Done. Re-stage any changed files (.pre-commit-config.yaml, uv.lock) and commit again.")
+        print(f"Done. Re-stage any changed files ({PRE_COMMIT_CONFIG}, uv.lock) and commit again.")
         sys.exit(1)
 
 

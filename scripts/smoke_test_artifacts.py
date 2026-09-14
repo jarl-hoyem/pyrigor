@@ -9,6 +9,7 @@ import tomllib
 from pathlib import Path
 from typing import NamedTuple, cast
 
+from dev_tooling_shared import PYPROJECT_TOML
 from jsonschema import validate
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -38,7 +39,7 @@ def _uv_executable() -> str:
 
 def _pyproject_version() -> str:
     """Return the project version declared in pyproject.toml."""
-    return cast("str", tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])
+    return cast("str", tomllib.loads((ROOT / PYPROJECT_TOML).read_text(encoding="utf-8"))["project"]["version"])
 
 
 def _run_artefact(*, executable: Path, artefact: Path, target: str) -> dict[str, object]:
@@ -141,7 +142,7 @@ def _build_artefacts() -> ArtifactPair:
     if DIST.exists():
         shutil.rmtree(DIST)
     subprocess.run([_uv_executable(), "build"], cwd=ROOT, check=True)  # noqa: S603  # nosec B603
-    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    version = _pyproject_version()
     artefacts = sorted(DIST.glob(f"pyrigor-{version}*.whl")) + sorted(DIST.glob(f"pyrigor-{version}*.tar.gz"))
     if len(artefacts) != EXPECTED_ARTIFACT_COUNT:
         raise RuntimeError(f"Expected one wheel and one source distribution, found: {artefacts}")

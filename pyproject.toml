@@ -93,6 +93,8 @@ exclude = [
   "dist",
   "htmlcov",
   "**/__pycache__",
+  "**/*.egg-info",
+  "mutants",
 ]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"

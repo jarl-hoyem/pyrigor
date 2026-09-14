@@ -3,6 +3,7 @@
 import subprocess  # nosec -- fixed git commands only, no untrusted input
 
 PYPROJECT_TOML = "pyproject.toml"
+PRE_COMMIT_CONFIG = ".pre-commit-config.yaml"
 
 
 def staged_files(*, check: bool) -> list[str]:
