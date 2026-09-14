@@ -16,37 +16,86 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+  - repo: local
     hooks:
       # Auto-fixers first: everything after validates their
       # already-fixed output, not a stale version.
       - id: fix-byte-order-marker # Removes UTF-8 byte order marker.
+        name: fix utf-8 byte order marker
+        entry: uv run --extra dev fix-byte-order-marker
+        language: system
+        types: [text]
         stages: [pre-commit]
       - id: trailing-whitespace
+        name: trim trailing whitespace
+        entry: uv run --extra dev trailing-whitespace-fixer
+        language: system
+        types: [text]
         stages: [pre-commit]
       - id: end-of-file-fixer # Makes sure files end in a newline and only a newline.
+        name: fix end of files
+        entry: uv run --extra dev end-of-file-fixer
+        language: system
+        types: [text]
         stages: [pre-commit]
       - id: mixed-line-ending
+        name: mixed line ending
+        entry: uv run --extra dev mixed-line-ending
+        language: system
+        types: [text]
         stages: [pre-commit]
       # Fast, basic file hygiene checks.
       - id: check-toml
+        name: check toml
+        entry: uv run --extra dev check-toml
+        language: system
+        types: [toml]
         stages: [pre-commit]
       - id: check-yaml
+        name: check yaml
+        entry: uv run --extra dev check-yaml
+        language: system
+        types: [yaml]
         stages: [pre-commit]
       - id: check-json
+        name: check json
+        entry: uv run --extra dev check-json
+        language: system
+        types: [json]
         stages: [pre-commit]
       - id: check-ast # Check whether files parse as valid python.
+        name: check python ast
+        entry: uv run --extra dev check-ast
+        language: system
+        types: [python]
         stages: [pre-commit]
       - id: debug-statements # Check for debugger imports and breakpoint() in python files.
+        name: debug statements (python)
+        entry: uv run --extra dev debug-statement-hook
+        language: system
+        types: [python]
         stages: [pre-commit]
       - id: detect-private-key
+        name: detect private key
+        entry: uv run --extra dev detect-private-key
+        language: system
+        types: [text]
         stages: [pre-commit]
       - id: check-shebang-scripts-are-executable
+        name: check that scripts with shebangs are executable
+        entry: uv run --extra dev check-shebang-scripts-are-executable
+        language: system
+        types: [text]
         stages: [pre-commit]
       - id: check-added-large-files
+        name: check for added large files
+        entry: uv run --extra dev check-added-large-files
+        language: system
         stages: [pre-commit]
       - id: check-case-conflict # Check filenames for conflicts in case-insensitive filesystem: macOS HFS+, Windows FAT
+        name: check for case conflicts
+        entry: uv run --extra dev check-case-conflict
+        language: system
         stages: [pre-commit]
   - repo: local
     hooks:
@@ -70,12 +119,21 @@ repos:
         files: (\.pre-commit-config\.yaml$|package\.json$)
         pass_filenames: false
         stages: [pre-commit]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6
+  - repo: local
     hooks:
-      - id: ruff
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --extra dev ruff check --force-exclude
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
         stages: [pre-commit]
       - id: ruff-format
+        name: ruff format
+        entry: uv run --extra dev ruff format --force-exclude
+        language: system
+        types_or: [python, pyi, jupyter, markdown]
+        require_serial: true
         stages: [pre-commit]
   # Security.
   - repo: https://github.com/gitleaks/gitleaks
@@ -88,23 +146,27 @@ repos:
     hooks:
       - id: actionlint
         stages: [pre-commit]
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.4
+  - repo: local
     hooks:
       - id: bandit
+        name: bandit
+        entry: uv run --extra dev bandit
+        language: system
         args: ["-c", "pyproject.toml"]
-        additional_dependencies: ["bandit[toml]"]
+        types: [python]
+        require_serial: true
         stages: [pre-commit]
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.18.0
-    hooks:
       - id: commitizen
+        name: commitizen check
+        entry: uv run --extra dev cz check
+        language: system
+        args: [--allow-abort, --commit-msg-file]
         stages: [commit-msg]
   # Complexity/quality.
-  - repo: https://github.com/jendrikseipp/vulture
-    rev: v2.16
+  - repo: local
     hooks:
       - id: vulture
+        name: vulture
         # Default confidence (60) kept deliberately: two real runs
         # produced zero false positives at this threshold, no evidence
         # raising it would help.
@@ -113,31 +175,38 @@ repos:
         # entry point is invoked externally by the pyrigor CLI, never
         # referenced in-corpus, so vulture flags it as unused by
         # design. See DECISIONS.md.
-        entry: python scripts/run_on_git_python_files.py vulture
+        entry: uv run --extra dev python scripts/run_on_git_python_files.py vulture
+        language: system
         args: ["--exclude", "manual-tests"]
+        types: [python]
         pass_filenames: false
+        require_serial: true
         stages: [pre-commit]
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.3
-    hooks:
       - id: codespell
+        name: codespell
+        entry: uv run --extra dev codespell
+        language: system
+        types: [text]
         stages: [pre-commit]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
         stages: [pre-commit]
-  - repo: https://github.com/rohaquinlop/complexipy-pre-commit
-    rev: v7.0.1
+  - repo: local
     hooks:
       - id: complexipy
-        entry: python scripts/run_complexipy.py
+        name: complexipy
+        entry: uv run --extra dev python scripts/run_complexipy.py
+        language: system
         # 6 reflects this project's own real, measured maximum
         # complexity ('walk_once', the single hardest case, exempted
         # inline via `# complexipy: ignore`). If a new function
         # exceeds this, prefer a refactoring, or a scoped, justified
         # inline ignore statement over raising this number globally.
         args: ["--max-complexity-allowed", "6", "--failed"]
+        types_or: [python, pyi, jupyter]
+        require_serial: true
         stages: [pre-commit]
   # Project-specific.
   - repo: https://github.com/jarl-hoyem/pyrigor
@@ -164,13 +233,9 @@ repos:
           - --exclude
           - manual-tests/pycharm/watcher.py
         stages: [pre-commit]
-  # Tools that need the project's own real dependencies installed to
-  # work correctly (resolving imports, checking types against actual
-  # third-party packages) run here. They run via the project's own uv-managed
-  # dev environment, rather than an isolated pre-commit environment
-  # with no access to pyrigor's own dependencies. Their real version
-  # lives in pyproject.toml's dev extras, a single source of truth, not
-  # a separate rev: pin the way every tool above this point uses.
+  # Every Python tool runs from the uv dev environment, so its version
+  # lives only in pyproject.toml and uv.lock. Only tools that are not
+  # Python packages keep a rev: pin, plus pyrigor's own published hook.
   # Most of the hooks below force a whole-project scan (`pass filenames:
   # false`, usually through scripts/run_on_git_python_files.py) because each needs
   # cross-file or whole-program context to be correct — see
@@ -224,22 +289,20 @@ repos:
         # scripts/check_maintainability.py fails on any rank below A. Each
         # --allow entry is a module waiting to be split under #268. The check
         # fails once an entry is no longer needed.
-        entry: python scripts/run_on_git_python_files.py python scripts/check_maintainability.py
-        language: python
+        entry: uv run --extra dev python scripts/run_on_git_python_files.py python scripts/check_maintainability.py
+        language: system
         types: [python]
         args:
           - --allow=tests/checkers/test_cli.py
           - --allow=tests/checkers/test_pyr406_return_values_used.py
-        additional_dependencies: ["radon==6.0.1"]
         pass_filenames: false
         stages: [pre-commit]
       - id: xenon-shared
         name: xenon (relaxed to B, for files with a documented exception)
-        language: python
-        entry: xenon
+        language: system
+        entry: uv run --extra dev xenon
         pass_filenames: false
         types: [python]
-        additional_dependencies: ["xenon==0.9.3"]
         # Each file listed here needs its own DECISIONS.md-documented
         # reason, the same way _shared.py's walk_once does
         # (single-pass node classification is the point — the same
@@ -257,11 +320,10 @@ repos:
         stages: [pre-commit]
       - id: xenon
         name: xenon
-        language: python
-        entry: python scripts/run_on_git_python_files.py xenon
+        language: system
+        entry: uv run --extra dev python scripts/run_on_git_python_files.py xenon
         pass_filenames: false
         types: [python]
-        additional_dependencies: ["xenon==0.9.3"]
         # Files relaxed to level B below are excluded here, one glob
         # per comma-separated entry. Adding a new relaxed file means
         # extending this list and xenon-shared's own path list below
@@ -274,9 +336,8 @@ repos:
         stages: [pre-commit]
       - id: tach
         name: tach (module-boundary enforcement)
-        entry: tach check
-        language: python
-        additional_dependencies: ["tach==0.35.0"]
+        entry: uv run --extra dev tach check
+        language: system
         files: (\.py$|tach\.toml$)
         pass_filenames: false
         stages: [pre-commit]
@@ -313,7 +374,7 @@ repos:
       - id: pip-audit
         name: pip-audit (fast, local environment)
         language: system
-        entry: uv run --extra dev --with pip-audit pip-audit --local
+        entry: uv run --extra dev pip-audit --local
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
@@ -332,7 +393,7 @@ repos:
       - id: pip-audit-locked
         name: pip-audit (precise, exact uv.lock versions, CI only)
         language: system
-        entry: uv run --with pip-audit python scripts/run_pip_audit.py
+        entry: uv run --extra dev python scripts/run_pip_audit.py
         pass_filenames: false
         always_run: true
         stages: [manual]

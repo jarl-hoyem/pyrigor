@@ -93,7 +93,7 @@ release, not the release commit itself.
 
 ## Code Style
 
-- `ruff` (lint) and `ruff-format` (formatting) — no `black`
+- `ruff-check` (lint) and `ruff-format` (formatting), no `black`
 - `pylint`, `mypy`, `pyright`, and `ty` (strict mode, all three type checkers)
 - Google-style docstrings (`pydocstyle`)
 - Type hints required

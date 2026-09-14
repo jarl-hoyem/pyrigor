@@ -40,6 +40,15 @@ dev = [
   "radon==6.0.1",
   "mutmut>=3.4.0",
   "pylint>=4.0.8",
+  "pre-commit-hooks>=6.0.0",
+  "bandit[toml]>=1.9.4",
+  "commitizen>=4.18.0",
+  "vulture>=2.16",
+  "codespell>=2.4.3",
+  "complexipy>=7.0.1",
+  "xenon>=0.9.3",
+  "tach>=0.35.0",
+  "pip-audit>=2.10.1",
 ]
 
 [tool.setuptools.packages.find]

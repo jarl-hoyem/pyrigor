@@ -759,3 +759,36 @@ stub or suppressions.
 The two test modules are listed with `--allow`, the same kind of documented exception as the file `xenon-shared`
 relaxes. An entry fails once its module ranks A or is no longer checked, so an exception cannot outlive its split. Both
 are tracked by #268, which is blocked by #225.
+
+### Python tool versions live in pyproject.toml, and pre-commit only runs the tools
+
+The ruff version was stated twice, as a dev-extras floor and as the hook's `rev:` pin, and the two had drifted before.
+The same problem existed elsewhere. Radon was pinned in the dev extras and again in its hook's
+`additional_dependencies`. Xenon and tach were pinned only in `additional_dependencies`. The pip-audit hooks used
+`uv run --with pip-audit`, so pip-audit was pinned nowhere and took the newest release on every run. See #248.
+
+Issue #248 recommended removing ruff from the dev extras and keeping the `rev:` pin. Before following it, the IDEs were
+checked for a dependency on the dev-extras ruff. PyCharm 2025.2 has no native ruff integration. The Docker inspection
+runner's PyCharm has one, which is why `.idea/pyLspTools.xml` exists, but its container never installs the project's
+dependencies. Nothing relied on the dev-extras ruff.
+
+That option would still have split tool versions across two files. Moving every Python tool into the dev extras puts
+each version in one place: a floor in `pyproject.toml` and an exact pin in `uv.lock`. A local hook's entry names the
+tool but carries no version. Only tools that are not Python packages keep a `rev:` pin: gitleaks, actionlint and
+markdownlint-cli2. Prettier keeps its `additional_dependencies` pin, which `prettier-pin-sync` guards. The published
+pyrigor hook also keeps its pin because it deliberately tests the released hook.
+
+The move was checked before it was made. All eleven tools resolve together with the existing dev extras for Python 3.11
+and later. Wheels exist for every tool on Python 3.11 to 3.14 on Linux, Windows and macOS. The 3.15 prerelease builds
+`pyyaml` from source everywhere, and `complexipy` on Windows and macOS, which CI already did inside the hook
+environments.
+
+The costs were accepted knowingly. Each converted hook repeats its upstream name, file types, arguments and whether it
+runs serially. Pre-commit's isolated environments are gone, so a dependency conflict between tools now surfaces in
+`uv lock`. The lock grew from 52 to 97 packages. The `pre-commit autoupdate` workflow no longer updates these tools, so
+Dependabot's `uv` ecosystem now proposes monthly updates for every dev extra.
+
+The floors first resolved to newer commitizen, tach and complexipy releases, including complexipy 8, a major version.
+The lock was set back to the previously pinned versions, so the move changed no behaviour. Those upgrades arrive as
+separate Dependabot pull requests. The same 41 hooks run with the same results before and after, apart from the hook id
+`ruff` becoming `ruff-check`, and a deliberate violation still fails each converted hook.
