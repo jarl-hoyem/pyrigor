@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install Prettier from package-lock.json
+        run: npm ci
+
       - name: Install just
         uses: taiki-e/install-action@just
 

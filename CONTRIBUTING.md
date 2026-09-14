@@ -55,7 +55,8 @@ just setup
 
 `just setup` installs the Python dependencies, the git hooks and Prettier. Prettier is a Node package, needed because no
 Python formatter covers Markdown, YAML and JSON. It is what formats those files at commit, and what the IDE defers to,
-so both agree. Node and npm therefore have to be available.
+so both agree. Its version lives only in `package.json` and `package-lock.json`. Node and npm therefore have to be
+available.
 
 The hook installation covers both the pre-commit and commit-msg hooks in one step (configured via
 `default_install_hook_types` in `.pre-commit-config.yaml`).
