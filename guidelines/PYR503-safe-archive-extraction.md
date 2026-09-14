@@ -22,6 +22,39 @@ writes it there directly, escaping the intended output directory entirely, a rea
 ("Zip Slip") that has affected many real, production projects. The code type-checks and runs cleanly. Nothing about it
 looks wrong until a malicious archive is actually extracted.
 
+## Detection scope
+
+PYR503 detects direct `extractall()` calls on recognized `tarfile` and
+`zipfile` objects.
+
+Recognized forms include:
+
+- `import tarfile`
+- `import tarfile as tf`
+- `from tarfile import TarFile`
+- `import zipfile`
+- `import zipfile as zf`
+- `from zipfile import ZipFile`
+
+Straightforward import aliases may be recognized.
+
+The checker does not perform general type inference, interprocedural analysis,
+or data-flow analysis. Unknown objects such as `archive.extractall(...)` are
+therefore ignored.
+
+For `tarfile`, `filter="data"` is recognized as safe.
+
+For `zipfile`, an explicit path-validation pattern may be recognized when the
+validation is directly visible in the same function. PyRigor does not attempt
+to prove arbitrary helper functions or external validation code safe.
+
+The checker does not attempt to determine whether an archive is trustworthy.
+Trusted archives may therefore still produce a finding and can use the normal
+PyRigor suppression mechanism.
+
+The checker does not flag `extract()`, custom extraction functions, or
+unknown objects calling `extractall()`.
+
 ## Fix classification
 
 **Kind:** `suggestion`
