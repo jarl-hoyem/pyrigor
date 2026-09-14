@@ -14,6 +14,7 @@ permissions:
 jobs:
   release-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - name: Install uv
@@ -27,6 +28,7 @@ jobs:
           path: dist/
   large-repo-smoke-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs:
       - release-build
     steps:
@@ -46,6 +48,7 @@ jobs:
           if [ "$exit_code" -eq 2 ]; then exit 1; fi
   pypi-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - release-build
       - large-repo-smoke-test
