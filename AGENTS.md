@@ -12,7 +12,7 @@ This is the shared repository guidance for coding agents.
 ## What this is
 
 `pyrigor` is a Python coding-discipline guideline collection and CLI linter. Guidelines live in
-guidelines/PYRxxx-*.md`. A subset is enforced today by AST-based checkers under `pyrigor/checkers/`. It targets Python
+`guidelines/PYRxxx-*.md`. A subset is enforced today by AST-based checkers under `pyrigor/checkers/`. It targets Python
 3.11+ and is dogfooded on itself (pyrigor's own source must pass its own checks).
 
 ## Commands
