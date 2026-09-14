@@ -86,16 +86,9 @@ ignore-words-list = "astroid"
 [tool.mypy]
 python_version = "3.11"
 strict = true
+exclude_gitignore = true
 
 [tool.pyright]
-exclude = [
-  ".venv",
-  "dist",
-  "htmlcov",
-  "**/__pycache__",
-  "**/*.egg-info",
-  "mutants",
-]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 

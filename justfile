@@ -64,7 +64,7 @@ mypy:
 
 # Type-check with pyright
 pyright:
-    uv run pyright --project=pyproject.toml
+    uv run python scripts/run_on_git_python_files.py pyright --project=pyproject.toml
 
 # Type-check with ty
 ty:

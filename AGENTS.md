@@ -55,8 +55,9 @@ just check
 `pytest` currently runs as part of this (no `stages:` restriction is active yet — the pytest hook in
 `.pre-commit-config.yaml` has a commented-out `stages: [pre-push]` line, "saved for later", not yet applied).
 
-Individual tools, if needed outside pre-commit: `uv run mypy .`, `uv run pyright --project=pyproject.toml`,
-`uv run ty check .`, `uv run ruff check` / `ruff format`.
+Individual tools, if needed outside pre-commit: `uv run mypy .`,
+`uv run python scripts/run_on_git_python_files.py pyright --project=pyproject.toml`, `uv run ty check .`,
+`uv run ruff check` / `ruff format`.
 
 Alternatively, use `just` — a simpler task runner — for copy-paste-runnable recipes:
 

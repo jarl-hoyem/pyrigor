@@ -70,13 +70,6 @@ repos:
         files: (\.pre-commit-config\.yaml$|package\.json$)
         pass_filenames: false
         stages: [pre-commit]
-      - id: tool-exclusions-sync
-        name: whole-project tools exclude every generated directory
-        language: system
-        entry: uv run python scripts/check_tool_exclusions.py
-        files: (\.pre-commit-config\.yaml$|pyproject\.toml$)
-        pass_filenames: false
-        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.6
     hooks:
@@ -115,12 +108,13 @@ repos:
         # Default confidence (60) kept deliberately: two real runs
         # produced zero false positives at this threshold, no evidence
         # raising it would help.
-        # Scans the entire project (`.`), not a hardcoded directory
-        # list. The manual-tests directory is deliberately excluded: every fixture's
+        # Scans every Python file git does not ignore, through
+        # scripts/run_on_git_python_files.py. The manual-tests directory is deliberately excluded: every fixture's
         # entry point is invoked externally by the pyrigor CLI, never
         # referenced in-corpus, so vulture flags it as unused by
         # design. See DECISIONS.md.
-        args: [".", "--exclude", "manual-tests,.venv,dist,htmlcov,pyrigor.egg-info,mutants,__pycache__"]
+        entry: python scripts/run_on_git_python_files.py vulture
+        args: ["--exclude", "manual-tests"]
         pass_filenames: false
         stages: [pre-commit]
   - repo: https://github.com/codespell-project/codespell
@@ -178,7 +172,7 @@ repos:
   # lives in pyproject.toml's dev extras, a single source of truth, not
   # a separate rev: pin the way every tool above this point uses.
   # Most of the hooks below force a whole-project scan (`pass filenames:
-  # false`, usually with the fixed directory args) because each needs
+  # false`, usually through scripts/run_on_git_python_files.py) because each needs
   # cross-file or whole-program context to be correct — see
   # DECISIONS.md's "Pre-commit hooks scope to changed files unless a
   # tool genuinely needs whole-project context" for the full policy
@@ -187,8 +181,8 @@ repos:
   - repo: local
     hooks:
       # Type/correctness checkers, fastest first.
-      # ty already respects .gitignore by default (confirmed by reproducing
-      # the #215 mutants/ scenario), so it needs no exclude flag.
+      # The ty checker respects .gitignore by default, and mypy reads
+      # exclude_gitignore from pyproject.toml, so neither needs the wrapper.
       - id: ty
         name: ty
         language: system
@@ -204,13 +198,12 @@ repos:
         entry: uv run --extra dev mypy
         args:
           - .
-          - --exclude-gitignore
         pass_filenames: false
         stages: [pre-commit]
       - id: pyright
         name: pyright
         language: system
-        entry: uv run --extra dev pyright
+        entry: uv run --extra dev python scripts/run_on_git_python_files.py pyright
         args:
           - --project=pyproject.toml
         pass_filenames: false
@@ -227,10 +220,10 @@ repos:
       # More complexity/quality, fastest first.
       - id: radon-maintainability
         name: radon maintainability
-        entry: radon mi
+        entry: python scripts/run_on_git_python_files.py radon mi
         language: python
         types: [python]
-        args: ["--min", "A", ".", "--ignore", ".venv,dist,htmlcov,*.egg-info,mutants,__pycache__"]
+        args: ["--min", "A"]
         additional_dependencies: ["radon==6.0.1"]
         pass_filenames: false
         stages: [pre-commit]
@@ -259,7 +252,7 @@ repos:
       - id: xenon
         name: xenon
         language: python
-        entry: xenon
+        entry: python scripts/run_on_git_python_files.py xenon
         pass_filenames: false
         types: [python]
         additional_dependencies: ["xenon==0.9.3"]
@@ -272,8 +265,6 @@ repos:
           - --max-modules=A
           - --max-average=A
           - --exclude=*pyrigor/checkers/_shared.py
-          - --ignore=.venv,dist,htmlcov,*.egg-info,mutants,__pycache__
-          - .
         stages: [pre-commit]
       - id: tach
         name: tach (module-boundary enforcement)

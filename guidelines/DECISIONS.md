@@ -705,32 +705,35 @@ case (#233). Those four remain open work, and #234 tracks the checks for the two
 
 The same configuration was copied to the `spikes` repository, so both repositories format Markdown identically.
 
-### Whole-project tool exclusions have one canonical set, and drift fails a hook
+### Whole-project tools take their exclusions from `.gitignore`
 
 Six tools scan the whole project rather than the files pre-commit passes them: mypy, ty, pyright, radon, xenon and
 vulture. Each carried its own list of generated and vendored directories to skip. The lists had drifted apart. A
-leftover `mutants/` directory from mutation testing showed the cost. `mypy .` and `radon mi .` both reported files from
+leftover `mutants/` directory from mutation testing showed the cost. Both `mypy .` and `radon mi .` reported files from
 inside it, reproduced before this change. See #215.
 
-The canonical set is `.venv`, `dist`, `htmlcov`, `*.egg-info`, `mutants` and `__pycache__`. Every entry is already in
-`.gitignore`.
+The `.gitignore` file already names every generated and vendored directory, so it is the single source of truth. The ty
+checker respects it by default. The mypy checker reads `exclude_gitignore = true` from `pyproject.toml`, so the hook and
+`just mypy` share one setting. The tools radon, xenon, vulture and pyright cannot read `.gitignore`. Their hooks run
+through `scripts/run_on_git_python_files.py`, which passes them the Python files listed by
+`git ls-files --cached --others --exclude-standard`. No tool keeps its own list of generated directories. A new
+generated directory needs only a `.gitignore` entry, and a new source directory is checked as soon as it exists, tracked
+or not.
 
-Two tools read `.gitignore` themselves. The ty checker does so by default, confirmed by reproduction, so its hook is
-unchanged. The mypy hook now passes `--exclude-gitignore`. A new gitignored directory needs no edit for either tool.
+The pre-commit framework could not supply this on its own. On a normal commit it passes only staged files to a hook, and
+its top-level `exclude:` filters only the filenames it passes. Hooks that need whole-project results, such as vulture's
+unused-code detection and xenon's averages, run with `pass_filenames: false`, so neither mechanism reaches them.
 
-The other four cannot read `.gitignore`. The pyright list lives in `[tool.pyright]` in `pyproject.toml`. The radon,
-xenon and vulture lists are arguments in `.pre-commit-config.yaml`. Neither file can import a shared value, so each
-keeps a literal copy in its own syntax. The script `scripts/check_tool_exclusions.py` defines the set once. Its
-pre-commit hook fails when any copy misses an entry, or when the mypy hook loses `--exclude-gitignore`.
+The first version kept a literal list per tool and added a check that failed when the lists drifted apart. That made
+drift loud but kept four copies. The wrapper replaced it within the same issue.
 
-The check is a script that its test runs as a subprocess, not a constant imported into a test. The copy of the project
-under `mutants/` has no `scripts/` directory, so a test importing from `scripts/` would break mutation testing when
-tests are collected. Importing the module under a second name would also make mypy see one file twice.
+Two deliberate exclusions remain because they are design choices rather than generated directories. The vulture hook
+excludes `manual-tests`. The strict xenon hook excludes `pyrigor/checkers/_shared.py`, which `xenon-shared` checks at a
+relaxed grade. That glob used to be `*_shared.py`, which also hid `scripts/_dev_tooling_shared.py` and
+`tests/checkers/test_shared.py` from both xenon hooks. It now names the one intended path.
+
+A manual pyright run ignores `.gitignore` unless it goes through the wrapper, as `just pyright` and `AGENTS.md` now do.
 
 Constants used by more than one script live in `scripts/dev_tooling_shared.py`. Constants used by one script stay in
-that script. The module lost its leading underscore in the same change. Nothing depended on the underscore, and removing
-it deleted two `import-private-name` suppressions instead of adding three more.
-
-Two accidental exclusions surfaced on the way. The strict xenon hook excluded `*_shared.py` to relax
-`pyrigor/checkers/_shared.py`. That glob also hid `scripts/_dev_tooling_shared.py` and `tests/checkers/test_shared.py`
-from both xenon hooks. It now names the one intended path.
+that script. The module lost its leading underscore within the same issue. Nothing depended on the underscore, and
+removing it deleted two `import-private-name` suppressions instead of adding three more.
