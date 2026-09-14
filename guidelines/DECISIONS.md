@@ -687,7 +687,8 @@ checked. This file's own stopping rule says a prose or style rule must be mechan
 preference, and wrapping was the clearest case of a rule nothing could decide.
 
 Configuration, in `.prettierrc.json`: `proseWrap: "always"`, `printWidth: 120`, `endOfLine: "lf"`, applied to `.md`
-only, through a pre-commit hook pinned at `prettier@3.9.6`.
+only, through a pre-commit hook. Its version lives in `package.json` and `package-lock.json`, as recorded in "Prettier
+runs from the locked package, with one pin".
 
 Each value earns its place. The default, `proseWrap: "preserve"`, leaves existing wrapping untouched and therefore
 enforces nothing, so `"always"` is what makes the rule mechanical rather than advisory. Width 120 is not a new number:
@@ -735,9 +736,10 @@ relaxed grade. That glob used to be `*_shared.py`, which also hid `scripts/_dev_
 
 A manual pyright run ignores `.gitignore` unless it goes through the wrapper, as `just pyright` and `AGENTS.md` now do.
 
-Constants used by more than one script live in `scripts/dev_tooling_shared.py`. Constants used by one script stay in
-that script. The module lost its leading underscore within the same issue. Nothing depended on the underscore, and
-removing it deleted two `import-private-name` suppressions instead of adding three more.
+Facts about the repository, such as its well-known filenames, and logic several scripts need live in
+`scripts/dev_tooling_shared.py`. Data only meaningful to one script stays in that script. The module lost its leading
+underscore within the same issue. Nothing depended on the underscore, and removing it deleted two `import-private-name`
+suppressions instead of adding three more.
 
 ### Radon's maintainability index is enforced by a script
 
@@ -775,8 +777,8 @@ dependencies. Nothing relied on the dev-extras ruff.
 That option would still have split tool versions across two files. Moving every Python tool into the dev extras puts
 each version in one place: a floor in `pyproject.toml` and an exact pin in `uv.lock`. A local hook's entry names the
 tool but carries no version. Only tools that are not Python packages keep a `rev:` pin: gitleaks, actionlint and
-markdownlint-cli2. Prettier keeps its `additional_dependencies` pin, which `prettier-pin-sync` guards. The published
-pyrigor hook also keeps its pin because it deliberately tests the released hook.
+markdownlint-cli2. Prettier, a Node package, is pinned in `package.json` and `package-lock.json`. The published pyrigor
+hook also keeps its pin because it deliberately tests the released hook.
 
 The move was checked before it was made. All eleven tools resolve together with the existing dev extras for Python 3.11
 and later. Wheels exist for every tool on Python 3.11 to 3.14 on Linux, Windows and macOS. The 3.15 prerelease builds
@@ -792,3 +794,28 @@ The floors first resolved to newer commitizen, tach and complexipy releases, inc
 The lock was set back to the previously pinned versions, so the move changed no behaviour. Those upgrades arrive as
 separate Dependabot pull requests. The same 41 hooks run with the same results before and after, apart from the hook id
 `ruff` becoming `ruff-check`, and a deliberate violation still fails each converted hook.
+
+### Prettier runs from the locked package, with one pin
+
+Prettier's version was stated twice. The first place was `package.json` and `package-lock.json`, which PyCharm's
+format-on-save uses. The second was the hook's `additional_dependencies`, which let CI run the hook without installing
+Node. A script, its test and the `prettier-pin-sync` hook existed only to keep the two equal. Nothing updated Prettier
+either, because `pre-commit autoupdate` ignores `additional_dependencies` and Dependabot did not watch npm.
+
+The hook now runs `node node_modules/prettier/bin/prettier.cjs` from the locked package, so the lock is the only pin.
+The check, its test and its hook are gone. CI's build job runs `npm ci`, `just setup` runs `npm ci` instead of
+`npm install` and Dependabot's `npm` ecosystem proposes Prettier updates. This follows the rule already chosen for the
+Python tools: a version lives in the tool's own manifest and lock, and pre-commit only runs the tool.
+
+The entry calls the package's binary directly rather than through `npx`. A first version used `npx --no -- prettier`,
+which fell back to globally installed Prettier when `node_modules` was missing. The hook then passed with whatever
+version happened to be installed globally, which would silently undo the single pin. The direct path fails with
+`Cannot find module` instead.
+
+The cost is that CI needs Node, which GitHub's hosted runners already provide, and a fresh clone needs `just setup`
+before committing. Contributors already needed Node for the IDE, so only CI gained a step.
+
+Removing the check left `version_sync.py` as the only script using `PRE_COMMIT_CONFIG`. The earlier rule kept a constant
+shared only while several scripts used it. So the constant would have moved back into that script after moving out the
+day before. The rule now asks what a constant is rather than how many scripts use it: facts about the repository stay
+shared, and data only meaningful to one script stays local.
