@@ -17,8 +17,7 @@ is not lost but also is not rebuilt or re-debated later.
 
 ## 0.5. Check for a predictable human failure
 
-Prefer rules that prevent a predictable human mistake rather than merely
-enforcing an abstract preference.
+Prefer rules that prevent a predictable human mistake rather than merely enforcing an abstract preference.
 
 A strong candidate should identify:
 
@@ -29,11 +28,9 @@ A strong candidate should identify:
 
 Informally:
 
-> human limitation → predictable mistake → detectable pattern → automatic
-> prevention
+> human limitation → predictable mistake → detectable pattern → automatic prevention
 
-This is a rule-selection criterion, not a requirement that every rule have a
-behavioural-science explanation.
+This is a rule-selection criterion, not a requirement that every rule have a behavioural-science explanation.
 
 ## 1. Pick a number
 
