@@ -819,3 +819,32 @@ Removing the check left `version_sync.py` as the only script using `PRE_COMMIT_C
 shared only while several scripts used it. So the constant would have moved back into that script after moving out the
 day before. The rule now asks what a constant is rather than how many scripts use it: facts about the repository stay
 shared, and data only meaningful to one script stays local.
+
+### The tach pytest plugin is disabled, and every CI job has a time limit
+
+Moving tach into the dev extras (#248) loaded its pytest plugin, `tach.pytest_plugin`, into every pytest run. The plugin
+registers itself through a `pytest11` entry point, so installing tach is enough to activate it. Whenever a `tach.toml`
+exists, it runs git commands and builds a Rust handler during pytest startup, even without `--tach`. Before the move,
+tach lived only in its isolated pre-commit environment, where pytest never saw it.
+
+Under mutmut, every mutant then timed out. The CI mutation-test job normally takes about two minutes, but it hung until
+cancelled, on every commit from the move onwards. Reproducing the step with the CI image showed the cause directly. Run
+as CI runs it, all 205 mutants reached before a 10-minute limit had timed out. With `PYTEST_ADDOPTS=-p no:tach`, all
+1,594 mutants completed in 221 seconds. The most likely mechanism is mutmut forking its worker processes after the
+plugin's Rust code has started threads, but that was not proven, and the fix does not depend on it.
+
+The project never uses tach's test selection, so the plugin only added git calls to every run. It is disabled with
+`-p no:tach` in pytest's `addopts` in `pyproject.toml`, which covers mutmut, the pytest hook `just test` and CI in one
+place. Removing that option brings the hang back.
+
+This is a concrete cost of the shared dev environment. A package installed there can change pytest's behaviour through
+its entry points, which the isolated pre-commit environments used to prevent. When adding a dev extra, check the plugins
+listed by `pytest --version --version`.
+
+The hang did more damage than a failed job would have, because the job had no time limit. GitHub's default is six hours,
+so each stuck run held a runner, and newer runs queued behind them until 35 runs were cancelled by hand. Every job in
+every workflow now sets `timeout-minutes`. Each limit is at least five times the longest run observed, and never under
+10 minutes, so an ordinary slow day does not fail a healthy run. Three jobs get more room: the build matrix gets 35
+minutes, because a cold Python 3.15 build compiles `complexipy` from source on Windows and macOS. The large-repository
+smoke test gets 20 because it clones Home Assistant over the network. The mutation test gets 15. A limit that proves too
+tight costs a rerun, while no limit cost hours of blocked CI.
