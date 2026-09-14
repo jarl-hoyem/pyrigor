@@ -8,7 +8,7 @@ set shell := ["powershell.exe", "-NoLogo", "-Command"]
 setup:
     uv sync --extra dev
     uv run pre-commit install
-    npm install
+    npm ci
 
 # Run pyrigor on a file or directory
 pyrigor path="pyrigor":
