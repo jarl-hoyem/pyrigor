@@ -1,9 +1,9 @@
 # Rejected rules
 
 Rules that were considered and not built — either because an existing tool already covers the pattern, or because the
-pattern cannot be checked without an unacceptable false-positive rate. Pyrigor exists to fill gaps other tools miss, not
-to re-implement checks they already do well (see [`ADDING_A_RULE.md`](./ADDING_A_RULE.md), step 0). This document is the
-audit trail, so a rejected idea does not get silently rebuilt or re-debated from scratch later.
+pattern cannot be checked without an unacceptable false-positive rate. The tool pyrigor exists to fill gaps other tools
+miss, not to re-implement checks they already do well (see [`ADDING_A_RULE.md`](./ADDING_A_RULE.md), step 0). This
+document is the audit trail, so a rejected idea does not get silently rebuilt or re-debated from scratch later.
 
 Entries here are not permanent. If a project stops using the covering tool, or the covering tool's check turns out to
 have a real gap of its own, a rejected rule can be revisited. Note why revisiting if that happens.

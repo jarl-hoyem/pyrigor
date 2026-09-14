@@ -253,9 +253,9 @@ an invented workaround.
 
 ### Do not duplicate rules already covered by existing tools
 
-Pyrigor fills gaps that existing quality tools do not cover. It does not implement a second checker for a pattern that
-an existing tool already detects, even when that tool requires an explicit configuration. The covering tool should be
-documented instead, and the proposed pyrigor rule should be recorded in `REJECTED.md`.
+The tool pyrigor fills gaps that existing quality tools do not cover. It does not implement a second checker for a
+pattern that an existing tool already detects, even when that tool requires an explicit configuration. The covering tool
+should be documented instead, and the proposed pyrigor rule should be recorded in `REJECTED.md`.
 
 This applies to missing docstrings on private functions and methods: Pylint's `missing-function-docstring` (`C0116`)
 detects them when `no-docstring-rgx` is configured to exempt no names. PyCharm also reports the issue. A dedicated
@@ -478,7 +478,7 @@ scheduled workflow is a real, ongoing maintenance surface for a cosmetic gap. Th
 confirming the released package works the way an external adopter would use it, which it still does correctly one
 version behind. Revisit only if a real consumer is ever confused by the lag in practice, not preemptively.
 
-### Pyrigor's suppression comment must come last when stacked with another tool's
+### The pyrigor suppression comment must come last when stacked with another tool's
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`) captures everything after
 `# pyrigor:` to the end of the line as the reason. Stacking another tool's suppression comment (`# nosec`,
@@ -490,7 +490,7 @@ would break a legitimate case: a reason referencing a GitHub issue number, for e
 Truncating trades away real information to guard against a risk that, checked directly, has no current observable
 effect. The function `filter_suppressed()` never reads a reason's content, only checks whether it is None.
 
-Chosen instead: a house convention, not a code change. Pyrigor's own suppression comment goes last when stacked with
+Chosen instead: a house convention, not a code change. The pyrigor suppression comment goes last when stacked with
 another tool's (`# nosec  # pyrigor: PYR402 # reason`, not the reverse). The opposite ordering already works correctly,
 since `re.search` finds `# pyrigor:` wherever it appears on the line — this convention costs nothing beyond documenting
 it.

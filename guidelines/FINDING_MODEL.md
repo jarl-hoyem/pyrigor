@@ -2,10 +2,10 @@
 
 ## Purpose
 
-PyRigor findings use a structured diagnostic model designed for machine consumers, editors, and human-readable
+Findings in pyrigor use a structured diagnostic model designed for machine consumers, editors, and human-readable
 renderers.
 
-The model adopts established diagnostic vocabulary from Ruff and rustc where that vocabulary fits PyRigor. The finding
+The model adopts established diagnostic vocabulary from Ruff and rustc where that vocabulary fits pyrigor. The finding
 is semantic data. Rendering is a separate concern.
 
 ## Why this model
@@ -20,14 +20,14 @@ terminology wherever possible.
 ### Reuse established vocabulary
 
 Ruff and rustc already expose diagnostics to editors, automation, and humans. Reusing their canonical names reduces
-translation between PyRigor and the surrounding Python tooling ecosystem and makes the model easier for consumers to
+translation between pyrigor and the surrounding Python tooling ecosystem and makes the model easier for consumers to
 understand.
 
-This is why PyRigor uses names such as `code`, `message`, `spans`, `is_primary`, `label`, and `applicability` rather
-than inventing PyRigor-specific synonyms.
+This is why pyrigor uses names such as `code`, `message`, `spans`, `is_primary`, `label`, and `applicability` rather
+than inventing pyrigor-specific synonyms.
 
 The goal is not to copy either format wholesale. Their models contain concepts specific to their implementations.
-PyRigor adopts vocabulary and structure where it has a clear fit and deliberately rejects concepts that do not.
+Instead, pyrigor adopts vocabulary and structure where it has a clear fit and deliberately rejects concepts that do not.
 
 ### Structured spans instead of one location
 
@@ -76,7 +76,7 @@ supporting locations or explain why the main diagnostic exists.
 The `children` structure provides this relationship without forcing unrelated information into the main message or span.
 Rust's current diagnostic model demonstrates this pattern.
 
-PyRigor deliberately does not make children recursively nested at this stage. The current use case needs attached
+At this stage, pyrigor deliberately does not make children recursively nested. The current use case needs attached
 explanatory diagnostics, not an arbitrarily deep diagnostic tree.
 
 ### Fixes are structured actions
@@ -88,7 +88,7 @@ Therefore, a fix has an `applicability`, a `message`, and one or more `edits`. E
 replacement content.
 
 The `applicability` field deliberately uses Ruff's terminology and practical three-level semantics (`safe`, `unsafe`,
-`display`). This is more useful for PyRigor than copying rustc's four internal applicability values because PyRigor's
+`display`). This is more useful for pyrigor than copying rustc's four internal applicability values because pyrigor's
 fix model is aimed at the same practical distinction: which fixes apply automatically, which require explicit opt-in,
 and which are only presented as suggestions.
 
@@ -108,19 +108,19 @@ diagnostic from `RuleInfo`.
 Some Ruff and rustc fields exist because of their particular implementations rather than because diagnostics universally
 need them.
 
-The `expansion` field is useful for Rust macro expansion but has no concrete PyRigor equivalent today. The `noqa_row`
+The `expansion` field is useful for Rust macro expansion but has no concrete pyrigor equivalent today. The `noqa_row`
 field is Ruff-specific suppression metadata rather than part of the semantic finding. Neither belongs in the canonical
 model.
 
-Suppression remains a separate concern. PyRigor may later expose suppression locations to editors, but that does not
-make suppression location part of the finding itself.
+Suppression remains a separate concern. A later version of pyrigor may expose suppression locations to editors, but that
+does not make suppression location part of the finding itself.
 
 ### Preserve notebook compatibility without committing to notebook support
 
 A `cell` field is retained as an optional span property because notebook diagnostics can identify a cell in addition to
 a file. Keeping the field costs little and avoids unnecessarily constraining the model.
 
-Its presence does not commit PyRigor to implementing notebook analysis. It simply keeps the target diagnostic model
+Its presence does not commit pyrigor to implementing notebook analysis. It simply keeps the target diagnostic model
 compatible with that potential consumer context.
 
 ## Canonical model
@@ -175,7 +175,7 @@ Each edit identifies a `span` and replacement `content`.
 
 ## Vocabulary decisions
 
-Where Ruff and rustc provide established terminology, PyRigor reuses it rather than inventing project-specific synonyms.
+Where Ruff and rustc provide established terminology, pyrigor reuses it rather than inventing project-specific synonyms.
 
 In particular:
 
@@ -193,7 +193,7 @@ The following rustc/Ruff fields are not part of the canonical finding model:
 
 - `rendered`: rendering is a consumer concern.
 - `text`: source text is available from the referenced source.
-- `expansion`: no current PyRigor equivalent justifies it.
+- `expansion`: no current pyrigor equivalent justifies it.
 - `noqa_row`: suppression metadata is separate from the semantic finding.
 
 The `byte_start` and `byte_end` fields are retained because exact source ranges are useful for editor integration and
@@ -201,10 +201,10 @@ precise fixes.
 
 ## Future capabilities
 
-PyRigor may expose suppression locations to editors so that tools can navigate to, create, or modify suppressions.
-Suppression location is therefore a future diagnostic capability, not part of the core finding.
+A later version of pyrigor may expose suppression locations to editors so that tools can navigate to, create, or modify
+suppressions. Suppression location is therefore a future diagnostic capability, not part of the core finding.
 
-Notebook support is compatible with this model. Retaining the optional `cell` field does not commit PyRigor to
+Notebook support is compatible with this model. Retaining the optional `cell` field does not commit pyrigor to
 implementing notebook analysis.
 
 ## Separation from migration
