@@ -57,8 +57,8 @@ The appearance and disappearance prove both that the watcher ran and that the su
 In `watcher.py`, delete the colon ending a `def` line and save. Undo afterwards.
 
 Expected: pyrigor contributes no problem for the file, and no console appears. It writes a parse-error warning to stderr
-and exits 0, and the watcher surfaces neither. PyCharm reports the syntax error itself, which is the correct source for
-it. A half-written file is the normal state during editing, so this path runs constantly in real use.
+and exits 0, and the watcher surfaces neither. PyCharm reports the syntax error itself, and it is the correct source for
+that error. A half-written file is the normal state during editing, so this path runs constantly in real use.
 
 ## Severity is not conveyed, by design
 
