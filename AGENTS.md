@@ -131,7 +131,7 @@ Work efficiently with model tokens, tool calls, network access and the maintaine
   session's model. Delegated subagents may use a cheaper model when delegation is appropriate. Wait for the user's
   choice before proceeding.
 - Increase model capability or reasoning effort only when task complexity or observed failure warrants it. Reserve the
-  most expensive reasoning modes for work where their quality gain justifies it.
+  most expensive reasoning modes for work where their quality gain justifies the cost.
 - Prepare one cohesive, exact diff for the approval instead of requesting a series of small edits.
 - Use targeted validation proportional to the change. Do not duplicate the full pre-commit suite when the maintainer's
   commit workflow runs it, unless targeted checks reveal risk or the maintainer requests it.
