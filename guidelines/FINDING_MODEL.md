@@ -1,4 +1,4 @@
-# Finding Model
+# Finding model
 
 ## Purpose
 
@@ -6,7 +6,7 @@ PyRigor findings use a structured diagnostic model designed for machine consumer
 renderers.
 
 The model adopts established diagnostic vocabulary from Ruff and rustc where that vocabulary fits PyRigor. The finding
-is semantic data; rendering is a separate concern.
+is semantic data. Rendering is a separate concern.
 
 ## Why this model
 
@@ -31,12 +31,12 @@ PyRigor adopts vocabulary and structure where it has a clear fit and deliberatel
 
 ### Structured spans instead of one location
 
-A finding is not necessarily about one source position. Some diagnostics naturally relate several locations: a
+A finding is not necessarily about one source position. Some diagnostics naturally involve several locations: a
 declaration and its use, two values that should not be confused, or a source location plus the place where a consequence
 occurs.
 
-A `spans` collection therefore provides a durable model for both simple and multi-location findings. `is_primary`
-identifies the focal location without imposing a single-span representation.
+A `spans` collection therefore provides a durable model for both simple and multi-location findings. The `is_primary`
+field identifies the focal location without imposing a single-span representation.
 
 This also gives editors and other consumers precise source ranges without requiring them to reconstruct the diagnostic
 from a checker-specific context model.
@@ -44,10 +44,10 @@ from a checker-specific context model.
 ### Keep exact byte ranges
 
 Line and column information is necessary for human diagnostics, but exact byte offsets provide a stronger machine-level
-source range. They are useful for editor integration and precise edits, and avoid making every consumer reconstruct
-offsets from line/column information.
+source range. They are useful for editor integration and precise edits. They also save every consumer from
+reconstructing offsets from line and column information.
 
-Therefore `byte_start` and `byte_end` are part of the target model even though the current AST-based implementation
+Therefore, `byte_start` and `byte_end` are part of the target model even though the current AST-based implementation
 naturally works with line and column positions.
 
 ### Separate semantic data from rendering
@@ -65,7 +65,7 @@ For the same reason, `rendered` is deliberately excluded.
 The source text is already available to consumers from the referenced source file and range. Copying source excerpts
 into every finding creates duplicated data that can become stale and increases the size of the semantic model.
 
-Therefore `text` is deliberately excluded from the core model. A particular output format may enrich diagnostics with
+Therefore, `text` is deliberately excluded from the core model. A particular output format may enrich diagnostics with
 source excerpts when appropriate.
 
 ### Children are explanatory diagnostics
@@ -84,13 +84,13 @@ explanatory diagnostics, not an arbitrarily deep diagnostic tree.
 A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed, and
 which source ranges it changes.
 
-Therefore a fix has an `applicability`, a `message`, and one or more `edits`. Each edit identifies a span and
+Therefore, a fix has an `applicability`, a `message`, and one or more `edits`. Each edit identifies a span and
 replacement content.
 
-`applicability` deliberately uses Ruff's terminology and practical three-level semantics (`safe`, `unsafe`, `display`).
-This is more useful for PyRigor than copying rustc's four internal applicability values because PyRigor's fix model is
-aimed at the same practical distinction: what may be applied automatically, what requires explicit opt-in, and what
-should only be presented as a suggestion.
+The `applicability` field deliberately uses Ruff's terminology and practical three-level semantics (`safe`, `unsafe`,
+`display`). This is more useful for PyRigor than copying rustc's four internal applicability values because PyRigor's
+fix model is aimed at the same practical distinction: which fixes apply automatically, which require explicit opt-in,
+and which are only presented as suggestions.
 
 ### Keep rule metadata separate from the finding
 
@@ -108,8 +108,9 @@ diagnostic from `RuleInfo`.
 Some Ruff and rustc fields exist because of their particular implementations rather than because diagnostics universally
 need them.
 
-`expansion` is useful for Rust macro expansion but has no concrete PyRigor equivalent today. `noqa_row` is Ruff-specific
-suppression metadata rather than part of the semantic finding. Neither belongs in the canonical model.
+The `expansion` field is useful for Rust macro expansion but has no concrete PyRigor equivalent today. The `noqa_row`
+field is Ruff-specific suppression metadata rather than part of the semantic finding. Neither belongs in the canonical
+model.
 
 Suppression remains a separate concern. PyRigor may later expose suppression locations to editors, but that does not
 make suppression location part of the finding itself.
@@ -149,7 +150,7 @@ Each span consists of:
 - `is_primary`
 - `label`
 
-Multiple spans are supported. `is_primary` identifies the focal span.
+Multiple spans are supported. The `is_primary` field identifies the focal span.
 
 ### Child diagnostic
 
@@ -190,13 +191,13 @@ In particular:
 
 The following rustc/Ruff fields are not part of the canonical finding model:
 
-- `rendered` — rendering is a consumer concern.
-- `text` — source text is available from the referenced source.
-- `expansion` — no current PyRigor equivalent justifies it.
-- `noqa_row` — suppression metadata is separate from the semantic finding.
+- `rendered`: rendering is a consumer concern.
+- `text`: source text is available from the referenced source.
+- `expansion`: no current PyRigor equivalent justifies it.
+- `noqa_row`: suppression metadata is separate from the semantic finding.
 
-`byte_start` and `byte_end` are retained because exact source ranges are useful for editor integration and precise
-fixes.
+The `byte_start` and `byte_end` fields are retained because exact source ranges are useful for editor integration and
+precise fixes.
 
 ## Future capabilities
 
@@ -208,7 +209,7 @@ implementing notebook analysis.
 
 ## Separation from migration
 
-This document defines the target finding model only.
+This document defines only the target model for findings.
 
 It does not prescribe how the existing `Violation` model is migrated, whether compatibility is maintained, or how
 existing consumers are changed.
