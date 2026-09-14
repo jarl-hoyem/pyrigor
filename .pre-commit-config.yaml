@@ -107,17 +107,9 @@ repos:
         files: "\\.(py|md|toml|ya?ml|json|txt|lock)$"
       - id: prettier
         name: prettier (Markdown, YAML, JSON)
-        language: node
-        entry: prettier --write --ignore-unknown
-        additional_dependencies: ["prettier@3.9.6"]
-        files: "\\.(md|ya?ml|json)$"
-        stages: [pre-commit]
-      - id: prettier-pin-sync
-        name: Prettier is pinned to one version in both files
         language: system
-        entry: uv run python scripts/check_prettier_pin.py
-        files: (\.pre-commit-config\.yaml$|package\.json$)
-        pass_filenames: false
+        entry: node node_modules/prettier/bin/prettier.cjs --write --ignore-unknown
+        files: "\\.(md|ya?ml|json)$"
         stages: [pre-commit]
   - repo: local
     hooks:
@@ -287,7 +279,7 @@ repos:
         name: radon maintainability
         # The radon tool never fails on the maintainability index, so
         # scripts/check_maintainability.py fails on any rank below A. Each
-        # --allow entry is a module waiting to be split under #268. The check
+        # '--allow' entry is a module waiting to be split under #268. The check
         # fails once an entry is no longer needed.
         entry: uv run --extra dev python scripts/run_on_git_python_files.py python scripts/check_maintainability.py
         language: system
