@@ -58,7 +58,7 @@ the abstract now for a single instance.
 
 **Maturity:** `Preview`
 
-**Reasoning:** Pyrigor's first rule in a genuinely new category (performance, not correctness). Worth some real-world
+**Reasoning:** The first pyrigor rule in a genuinely new category (performance, not correctness). Worth some real-world
 evidence before calling it `Stable`.
 
 ## When this does not apply

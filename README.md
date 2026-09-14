@@ -31,9 +31,9 @@ set for Python, inspired by safety-critical coding guidelines from other languag
 - Checks an 18,187-file real-world codebase in under a minute
 - Drop-in pre-commit integration, or run standalone
 
-> **Pyrigor complements Python's tooling ecosystem; it does not try to replace it.** If an established tool such as
-> Pylint, Ruff, or a type checker already provides an adequate check, pyrigor will not duplicate that rule. Pyrigor
-> focuses on gaps where it can add distinct value.
+> **The tool pyrigor complements Python's tooling ecosystem. It does not try to replace it.** If an established tool
+> such as Pylint, Ruff, or a type checker already provides an adequate check, pyrigor will not duplicate that rule.
+> Instead, pyrigor focuses on gaps where it can add distinct value.
 
 ## Table of Contents
 
@@ -124,8 +124,8 @@ ignored, and a warning is printed. Suppressed violations are counted per rule in
 not silently discarded.
 
 When stacking with another tool's own suppression comment on the same line (`# nosec`, `# complexipy: ignore`, ...), put
-pyrigor's own comment last — `# nosec  # pyrigor PYR402 # reason`. Pyrigor's own comment must come after any other
-tool's comment, since its reason captures to the end of the line.
+pyrigor's own comment last — `# nosec  # pyrigor PYR402 # reason`. The pyrigor comment must come after any other tool's
+comment, since its reason captures to the end of the line.
 
 A suppression comment may also go on the line directly above the violation, or anywhere within a multi-line statement's
 own span — useful when a long, descriptive name plus the mandatory reason would not fit on the violating line itself:
@@ -137,7 +137,7 @@ def apply_correction_for_the_pytest_fixture_injection_case(weight, bias): ...
 
 The same-line still works exactly as before — these are additional locations, not a replacement. This flexibility is a
 deliberate design advantage over tools like ruff or bandit, which require the suppression comment to sit on the exact
-physical line of the violation, making it easy to place incorrectly on wrapped statements. Pyrigor's suppression works
+physical line of the violation, making it easy to place incorrectly on wrapped statements. The pyrigor suppression works
 anywhere within the violation's span, so placement matters less.
 
 ## Adding pyrigor to your own project

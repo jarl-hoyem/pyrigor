@@ -75,12 +75,12 @@ noise entirely, rather than trying to detect every legitimate exception automati
   `<name>` is defined directly on the same class as the method making the call. A closure nested inside that method
   still counts, since its own `self` is the same instance. A nested class defined inside the method does not, since its
   own `self` refers to its own instance instead.
-- **A subclass calling an inherited method through `self` is not detected.** Pyrigor never resolves a class hierarchy,
-  only a class's own directly defined methods. A `cls.<name>()` call is not detected either, out of scope for this
-  narrower pass.
-- **Any attribute call through something other than `self`** (`obj.compute_total()`) is never matched. Pyrigor cannot
-  reliably determine which class or object an arbitrary attribute belongs to — it has no type inference and processes
-  one file at a time.
+- **A subclass calling an inherited method through `self` is not detected.** The checker never resolves a class
+  hierarchy, only a class's own directly defined methods. A `cls.<name>()` call is not detected either, out of scope for
+  this narrower pass.
+- **Any attribute call through something other than `self`** (`obj.compute_total()`) is never matched. The checker
+  cannot reliably determine which class or object an arbitrary attribute belongs to — it has no type inference and
+  processes one file at a time.
 - **A `lambda` expression** is excluded entirely, structurally rather than as a deliberate carve-out. It has no `.name`
   for the checker's name-matching mechanism to key on — only whatever variable it is assigned to carries a name.
   Python's grammar also gives a `lambda` no `->` return-annotation slot at all, so even a named `lambda` could never

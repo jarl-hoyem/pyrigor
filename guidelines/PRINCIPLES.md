@@ -1,8 +1,8 @@
 # Principles
 
-Enduring principles adopted for developing and maintaining Pyrigor.
+Enduring principles adopted for developing and maintaining pyrigor.
 
-These are project-level principles. They guide engineering decisions. They are not, by themselves, Pyrigor rules for
+These are project-level principles. They guide engineering decisions. They are not, by themselves, pyrigor rules for
 user code.
 
 Every principle below is adopted and applies to project development. A principle that is proposed rather than adopted,
@@ -16,7 +16,7 @@ collide on almost every polish decision. Resolve a genuine conflict deliberately
 
 **Principle:** Understand why an existing mechanism exists before removing or substantially changing it.
 
-**Application to Pyrigor:** Before removing or substantially changing existing behaviour, rules, architecture,
+**Application to pyrigor:** Before removing or substantially changing existing behaviour, rules, architecture,
 documentation, or processes, establish why they exist. Preserve the underlying purpose unless there is a deliberate
 reason to change it.
 
@@ -35,7 +35,7 @@ this principle, it is looking for permission, and an incomplete search will happ
 **Principle:** Prefer the simplest design that satisfies the actual requirements. Treat unnecessary complexity as
 something that requires justification.
 
-**Application to Pyrigor:** Keep the architecture, the implementation, CLI, rule model, configuration, documentation,
+**Application to pyrigor:** Keep the architecture, the implementation, CLI, rule model, configuration, documentation,
 and workflow as simple as the real requirements allow. Simple does not mean simplistic: complexity justified by
 correctness, security, performance, compatibility, or maintainability is acceptable.
 
@@ -47,7 +47,7 @@ principles.
 **Principle:** Code should be structured so that a programmer can understand its important behaviour without having to
 reconstruct unnecessary complexity.
 
-**Application to Pyrigor:** Prefer structures that make intent, important distinctions, and control flow clear. Avoid
+**Application to pyrigor:** Prefer structures that make intent, important distinctions, and control flow clear. Avoid
 unnecessary machinery that increases the amount a programmer must keep in mind.
 
 **References:**
@@ -62,7 +62,7 @@ unnecessary machinery that increases the amount a programmer must keep in mind.
 **Principle:** Instead of asking only how to achieve a desired outcome, ask what would cause the outcome to fail, and
 design to prevent those failure modes.
 
-**Application to Pyrigor:** Use failure-oriented thinking when designing rules, architecture, tests, workflows, and
+**Application to pyrigor:** Use failure-oriented thinking when designing rules, architecture, tests, workflows, and
 release processes. Before accepting a design, explicitly ask how it could produce a false positive, false negative,
 silent regression, unusable API, broken release, or misleading result.
 
@@ -70,7 +70,7 @@ silent regression, unusable API, broken release, or misleading result.
 
 **Principle:** Do not build functionality, abstraction, or flexibility until a real requirement makes it necessary.
 
-**Application to Pyrigor:** Build the rules, architecture, interfaces, configuration, and tooling that Pyrigor needs
+**Application to pyrigor:** Build the rules, architecture, interfaces, configuration, and tooling that pyrigor needs
 currently. Do not add speculative generality merely because a future rule, language feature, backend, integration, or
 user may eventually require it. Invest in keeping the code easy to change instead of implementing hypothetical future
 requirements.
@@ -82,7 +82,7 @@ build what is not currently needed.
 
 **Principle:** Prefer durable correctness over immediate convenience.
 
-**Application to Pyrigor:** When a shortcut creates ambiguity, technical debt, or weakens rigour, prefer the solution
+**Application to pyrigor:** When a shortcut creates ambiguity, technical debt, or weakens rigour, prefer the solution
 that produces a more durable result—even when it requires more effort now.
 
 Informally: delayed gratification.
@@ -92,7 +92,7 @@ Informally: delayed gratification.
 **Principle:** Past, unrecoverable investment should not determine what is best from today forward. Re-evaluate
 decisions based on their future value and cost, not on resources already spent.
 
-**Application to Pyrigor:** When reconsidering code, architecture, dependencies, tooling, processes, or project
+**Application to pyrigor:** When reconsidering code, architecture, dependencies, tooling, processes, or project
 direction, evaluate future cost, risk, and value rather than defending an approach because effort has already been
 invested. Existing assets should be retained when they have genuine future value, not merely because they are already
 paid for.
@@ -102,7 +102,7 @@ paid for.
 **Principle:** Each piece of authoritative information should have one authoritative source. Derived representations
 should not become competing authorities.
 
-**Application to Pyrigor:** Keep guidelines, rule definitions, configuration, specifications, and other authoritative
+**Application to pyrigor:** Keep guidelines, rule definitions, configuration, specifications, and other authoritative
 project information in one clearly identified source wherever practical. Generated or duplicated representations must
 derive from that source rather than silently becoming alternative authorities.
 
@@ -114,7 +114,7 @@ derive from that source rather than silently becoming alternative authorities.
 **Principle:** Do not accept a critical result solely because the process that produced it says it is correct. Verify it
 through an independent source of evidence.
 
-**Application to Pyrigor:** For critical changes, seek verification that is independent enough of the original
+**Application to pyrigor:** For critical changes, seek verification that is independent enough of the original
 production process. This can include an independent agent or reviewer, a different analysis tool, independently derived
 expected results, mutation testing, differential testing, or human review against the specification. Scale the strength
 of verification to the consequence of being wrong. A release or a security-relevant change earns more independent
@@ -129,7 +129,7 @@ evidence than a documentation correction.
 **Principle:** Define the required behaviour, relevant constraints, and acceptance criteria before implementing a
 significant change.
 
-**Application to Pyrigor:** Before implementing a significant rule, architectural change, or behavioural change,
+**Application to pyrigor:** Before implementing a significant rule, architectural change, or behavioural change,
 establish the required behaviour and acceptance criteria first. For rules, this includes the violation, valid
 counterexamples, exceptions, diagnostic behaviour, and expected results where relevant.
 
@@ -142,7 +142,7 @@ Design by Contract is treated as a technique for expressing and enforcing specif
 **Principle:** A system or agent that produces an implementation must not be the sole authority for deciding that the
 implementation is correct.
 
-**Application to Pyrigor:** Separate generation from authoritative verification where practical. AI agents may generate
+**Application to pyrigor:** Separate generation from authoritative verification where practical. AI agents may generate
 code and tests, but correctness should be established through a specification, independently derived tests, existing
 reference behaviour, a different tool or agent, human review, or other independent evidence. This constrains who may
 judge correctness. Independent Verification constrains what counts as evidence. A change can satisfy one and fail the
@@ -153,7 +153,7 @@ other.
 **Principle:** A passing result is evidence only when the check could have failed and when it is known to have run over
 the intended input.
 
-**Application to Pyrigor:** Design every check so that "it passed" and "it did not run" look different. Report what was
+**Application to pyrigor:** Design every check so that "it passed" and "it did not run" look different. Report what was
 covered, not only what was found. A scan that examines one file and reports success is indistinguishable from a clean
 project. Before accepting a check, ask what its output would be if it did nothing at all and make that case visible.
 
@@ -169,7 +169,7 @@ mutate.
 
 **Principle:** Tests should express the required observable behaviour of the software in an executable form.
 
-**Application to Pyrigor:** For significant behaviour, tests should make the intended contract concrete: what must be
+**Application to pyrigor:** For significant behaviour, tests should make the intended contract concrete: what must be
 accepted, what must be rejected, what diagnostics are expected, and what important edge cases must hold. Tests should be
 readable enough to serve as an executable description of the requirement.
 
@@ -187,8 +187,8 @@ weakening the mutation test suite.
 **Principle:** Base engineering decisions about performance, behaviour, quality, and improvement on relevant evidence
 and measurements rather than intuition alone.
 
-**Application to Pyrigor:** Use evidence when making claims about performance, false-positive and false-negative rates,
-test coverage, CI duration, rule usefulness, release quality, and other measurable properties of Pyrigor.
+**Application to pyrigor:** Use evidence when making claims about performance, false-positive and false-negative rates,
+test coverage, CI duration, rule usefulness, release quality, and other measurable properties of pyrigor.
 
 Knuth put the older form of this in 1974: "premature optimization is the root of all evil." The line is usually quoted
 without the condition attached to it, which is that the caution covers the small efficiencies making up most of a
@@ -201,7 +201,7 @@ the work was worth doing. See `guidelines/DECISIONS.md` and `PERFORMANCE.md`.
 **Principle:** Code and ordinary documentation should describe the current state and, where useful, why it is so. They
 should not narrate how it evolved to get there.
 
-**Application to Pyrigor:** Keep durable rationale in documentation when it helps future maintainers understand a
+**Application to pyrigor:** Keep durable rationale in documentation when it helps future maintainers understand a
 current design. Put chronological development history in Git, issues, and pull requests, rather than cluttering current
 code and documentation with the story of how the current state was reached. Durable design rationale belongs in
 `guidelines/DECISIONS.md`, which is a deliberate exception to this principle rather than a violation of it.
@@ -210,7 +210,7 @@ code and documentation with the story of how the current state was reached. Dura
 
 **Principle:** Make the experience for users and contributors wonderful, not merely adequate.
 
-**Application to Pyrigor:** Treat documentation, error messages, CLI behaviour, onboarding, issue handling, release
+**Application to pyrigor:** Treat documentation, error messages, CLI behaviour, onboarding, issue handling, release
 communication, and contributor experience as products in their own right. Look for opportunities to remove friction and
 provide useful guidance beyond the minimum required for functionality.
 
@@ -218,7 +218,7 @@ The least Surprise is treated as a consideration within hospitality rather than 
 
 ## Determinism
 
-**Principle:** Given the same relevant inputs, configuration, and tool version, Pyrigor must produce the same observable
+**Principle:** Given the same relevant inputs, configuration, and tool version, pyrigor must produce the same observable
 result, independent of incidental factors such as execution order, filesystem ordering, timing, or parallelism.
 
 ## Make Illegal States Unrepresentable
@@ -233,7 +233,7 @@ them to propagate.
 
 ## Fail Safe
 
-**Principle:** When analysis fails or becomes uncertain, Pyrigor must not silently produce a result that falsely
+**Principle:** When analysis fails or becomes uncertain, pyrigor must not silently produce a result that falsely
 represents the code as compliant.
 
 ## Diagnosability
@@ -249,24 +249,24 @@ represents the code as compliant.
 **Principle:** A measure used as a target must not be mistaken for the underlying quality or outcome it is intended to
 represent.
 
-**Application to Pyrigor:** Use metrics as evidence rather than as substitutes for the underlying goal. Do not optimise
-a metric in a way that makes Pyrigor appear better while actual quality, usefulness, or trustworthiness becomes worse.
+**Application to pyrigor:** Use metrics as evidence rather than as substitutes for the underlying goal. Do not optimise
+a metric in a way that makes pyrigor appear better while actual quality, usefulness, or trustworthiness becomes worse.
 
 ## Curse of Knowledge
 
 **Principle:** Do not assume that users, contributors, reviewers, or audiences share knowledge that the project has
 acquired.
 
-**Application to Pyrigor:** Write documentation, error messages, examples, presentations, and the CfP so that they
+**Application to pyrigor:** Write documentation, error messages, examples, presentations, and the CfP so that they
 remain understandable to their intended audience without requiring the project's internal context. Re-check explanations
-from the perspective of someone who does not already know why Pyrigor works the way it does.
+from the perspective of someone who does not already know why pyrigor works the way it does.
 
 ## Confirmation Bias
 
 **Principle:** Actively seek and fairly evaluate evidence that could disconfirm an existing belief, expectation, or
 preferred outcome.
 
-**Application to Pyrigor:** When evaluating rules, architecture, claims, tooling choices, test results, releases, or
+**Application to pyrigor:** When evaluating rules, architecture, claims, tooling choices, test results, releases, or
 project assumptions, deliberately look for evidence against the preferred conclusion. Do not select examples,
 benchmarks, feedback, or research merely because they support what the project already believes.
 
@@ -275,7 +275,7 @@ benchmarks, feedback, or research merely because they support what the project a
 **Principle:** Do not treat confidence in a conclusion as evidence of its correctness; calibrate confidence to the
 strength of the evidence.
 
-**Application to Pyrigor:** Treat confident conclusions from AI agents, maintainers, reviewers, benchmarks, or other
+**Application to pyrigor:** Treat confident conclusions from AI agents, maintainers, reviewers, benchmarks, or other
 apparently authoritative sources as claims requiring appropriate evidence. State uncertainty and limitations where they
 matter, and seek stronger evidence when the consequences of being wrong are significant.
 
@@ -284,6 +284,6 @@ matter, and seek stronger evidence when the consequences of being wrong are sign
 **Principle:** Important claims must be supported by transparent, independently verifiable evidence rather than
 authority, confidence, popularity, or claims alone.
 
-**Application to Pyrigor:** Support important claims about Pyrigor—its correctness, quality, performance, usefulness,
+**Application to pyrigor:** Support important claims about pyrigor—its correctness, quality, performance, usefulness,
 and maturity—with evidence that others can inspect or reproduce. Be explicit about limitations and uncertainty.
 AI-generated work must be subject to independent verification rather than trusted because it was produced confidently.
