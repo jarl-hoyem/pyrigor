@@ -24,10 +24,9 @@ looks wrong until a malicious archive is actually extracted.
 
 ## Detection scope
 
-PYR503 detects direct `extractall()` calls on recognized `tarfile` and
-`zipfile` objects.
+PYR503 detects direct `extractall()` calls on recognized `tarfile` and `zipfile` objects.
 
-Recognized forms include:
+Recognised forms include:
 
 - `import tarfile`
 - `import tarfile as tf`
@@ -36,24 +35,20 @@ Recognized forms include:
 - `import zipfile as zf`
 - `from zipfile import ZipFile`
 
-Straightforward import aliases may be recognized.
+Straightforward import aliases may be recognised.
 
-The checker does not perform general type inference, interprocedural analysis,
-or data-flow analysis. Unknown objects such as `archive.extractall(...)` are
-therefore ignored.
+The checker does not perform general type inference, interprocedural analysis, or data-flow analysis. Unknown objects
+such as `archive.extractall(...)` are therefore ignored.
 
-For `tarfile`, `filter="data"` is recognized as safe.
+For `tarfile`, `filter="data"` is recognised as safe.
 
-For `zipfile`, an explicit path-validation pattern may be recognized when the
-validation is directly visible in the same function. PyRigor does not attempt
-to prove arbitrary helper functions or external validation code safe.
+For `zipfile`, an explicit path-validation pattern may be recognised when the validation is directly visible in the same
+function. PyRigor does not attempt to prove arbitrary helper functions or external validation code safe.
 
-The checker does not attempt to determine whether an archive is trustworthy.
-Trusted archives may therefore still produce a finding and can use the normal
-PyRigor suppression mechanism.
+The checker does not attempt to determine whether an archive is trustworthy. Trusted archives may therefore still
+produce a finding and can use the normal PyRigor suppression mechanism.
 
-The checker does not flag `extract()`, custom extraction functions, or
-unknown objects calling `extractall()`.
+The checker does not flag `extract()`, custom extraction functions, or unknown objects calling `extractall()`.
 
 ## Fix classification
 
