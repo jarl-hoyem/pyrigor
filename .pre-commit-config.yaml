@@ -220,10 +220,16 @@ repos:
       # More complexity/quality, fastest first.
       - id: radon-maintainability
         name: radon maintainability
-        entry: python scripts/run_on_git_python_files.py radon mi
+        # The radon tool never fails on the maintainability index, so
+        # scripts/check_maintainability.py fails on any rank below A. Each
+        # --allow entry is a module waiting to be split under #268. The check
+        # fails once an entry is no longer needed.
+        entry: python scripts/run_on_git_python_files.py python scripts/check_maintainability.py
         language: python
         types: [python]
-        args: ["--min", "A"]
+        args:
+          - --allow=tests/checkers/test_cli.py
+          - --allow=tests/checkers/test_pyr406_return_values_used.py
         additional_dependencies: ["radon==6.0.1"]
         pass_filenames: false
         stages: [pre-commit]

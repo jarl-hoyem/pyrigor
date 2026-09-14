@@ -5,10 +5,11 @@ cannot read .gitignore receive this file list instead of scanning the working
 tree, so no tool needs an exclusion list of its own.
 """
 
-import shutil
 import subprocess  # nosec B404 -- runs git and the tool named by the hook's own entry
 import sys
 from pathlib import Path
+
+from dev_tooling_shared import find_executable
 
 
 def python_files(*, git: str) -> list[str]:
@@ -29,30 +30,14 @@ def python_files(*, git: str) -> list[str]:
     return [path for path in result.stdout.split("\0") if path and Path(path).is_file()]
 
 
-def _find_executable(*, name: str) -> str:
-    """Return the absolute path of an executable on PATH, exiting with 127 when it is missing.
-
-    Args:
-        name: The executable to look up.
-
-    Returns:
-        Its absolute path.
-    """
-    path = shutil.which(name)
-    if path is None:
-        print(f"command not found: {name}", file=sys.stderr)
-        raise SystemExit(127)
-    return path
-
-
 def main() -> int:
     """Run the given command with the Python file list appended, returning its exit code."""
     command = sys.argv[1:]
     if not command:
         print("usage: run_on_git_python_files.py TOOL [ARGS...]", file=sys.stderr)
         return 2
-    git = _find_executable(name="git")
-    tool = _find_executable(name=command[0])
+    git = find_executable(name="git")
+    tool = find_executable(name=command[0])
     files = python_files(git=git)
     if not files:
         print("No Python files to check.")

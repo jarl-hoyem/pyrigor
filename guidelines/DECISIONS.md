@@ -441,9 +441,10 @@ fixture's own same-named function — a fragile basis for narrowing, since renam
 start flagging `violations.py`'s own `run()` too, for a reason unrelated to that fixture's own content. Every fixture's
 entry point is invoked externally by the pyrigor CLI, never referenced from anywhere else in the corpus, the same
 property already established for pyrigor's own self-check exclusion of these files. A real, per-file property confirmed
-by isolated testing, not an artefact of scanning them together. Running radon and xenon against the directory found
-nothing — trivial one-line fixtures do not trip complexity or maintainability thresholds, so unlike vulture, no
-exclusion was needed for either.
+by isolated testing, not an artefact of scanning them together. Running xenon against the directory found nothing
+because trivial one-line fixtures do not trip its complexity threshold, so unlike vulture, no exclusion was needed.
+Radon's clean result proved nothing at the time because its hook could not fail. See "Radon's maintainability index is
+enforced by a script".
 
 `ty`, `mypy`, and `pyright` don't have this problem: confirmed empirically (`mypy .` reports checking exactly 44 source
 files, never touching `.venv`), all three have real, built-in smart defaults that skip virtual environments and build
@@ -737,3 +738,24 @@ A manual pyright run ignores `.gitignore` unless it goes through the wrapper, as
 Constants used by more than one script live in `scripts/dev_tooling_shared.py`. Constants used by one script stay in
 that script. The module lost its leading underscore within the same issue. Nothing depended on the underscore, and
 removing it deleted two `import-private-name` suppressions instead of adding three more.
+
+### Radon's maintainability index is enforced by a script
+
+Radon has been one of three complexity tools since the first tooling commit, alongside xenon and complexipy. It measures
+something the other two do not: the maintainability index, which falls mainly with module size and Halstead volume.
+Xenon grades cyclomatic complexity and complexipy grades cognitive complexity per function, so neither is designed to
+catch a long module of simple functions.
+
+Its hook could never fail. The `radon mi` command has no failing exit status, and `--min A` only filters what it prints.
+A probe module scoring 0.00, rank C, exited 0 with the hook's own arguments and pre-commit hides a passing hook's
+output. Two test modules had fallen below A unnoticed: `tests/checkers/test_cli.py` at C and
+`tests/checkers/test_pyr406_return_values_used.py` at B.
+
+The hook now runs `scripts/check_maintainability.py` through the git file-list wrapper. The script runs
+`radon mi --json` and fails on any rank below A, on a file radon cannot parse and on a radon crash. It runs radon as a
+subprocess rather than importing it, because radon ships no type information, and strict mypy and pyright would need a
+stub or suppressions.
+
+The two test modules are listed with `--allow`, the same kind of documented exception as the file `xenon-shared`
+relaxes. An entry fails once its module ranks A or is no longer checked, so an exception cannot outlive its split. Both
+are tracked by #268, which is blocked by #225.

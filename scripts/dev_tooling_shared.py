@@ -1,9 +1,27 @@
 """Shared helpers for pyrigor's own dev-tooling scripts (staged-file inspection)."""
 
+import shutil
 import subprocess  # nosec -- fixed git commands only, no untrusted input
+import sys
 
 PYPROJECT_TOML = "pyproject.toml"
 PRE_COMMIT_CONFIG = ".pre-commit-config.yaml"
+
+
+def find_executable(*, name: str) -> str:
+    """Return the absolute path of an executable on PATH, exiting with 127 when it is missing.
+
+    Args:
+        name: The executable to look up.
+
+    Returns:
+        Its absolute path.
+    """
+    path = shutil.which(name)
+    if path is None:
+        print(f"command not found: {name}", file=sys.stderr)
+        raise SystemExit(127)
+    return path
 
 
 def staged_files(*, check: bool) -> list[str]:
