@@ -15,6 +15,26 @@ doc was fully written.
 If the pattern is already covered, do not write the rule. Add it to [`REJECTED.md`](./REJECTED.md) instead, so the idea
 is not lost but also is not rebuilt or re-debated later.
 
+## 0.5. Check for a predictable human failure
+
+Prefer rules that prevent a predictable human mistake rather than merely
+enforcing an abstract preference.
+
+A strong candidate should identify:
+
+1. A predictable human limitation or failure mode.
+2. A concrete Python pattern through which that failure can occur.
+3. A deterministic way to detect the pattern.
+4. A meaningful consequence of allowing it.
+
+Informally:
+
+> human limitation → predictable mistake → detectable pattern → automatic
+> prevention
+
+This is a rule-selection criterion, not a requirement that every rule have a
+behavioural-science explanation.
+
 ## 1. Pick a number
 
 See [`NUMBERING.md`](./NUMBERING.md) for the bucket scheme. Check `guidelines/` and open GitHub Issues for the current
