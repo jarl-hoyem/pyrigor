@@ -4,7 +4,7 @@
 
 Any value with a fixed-length `tuple` type annotation, where each position has a distinct meaning, must use a
 `NamedTuple` instead — whether it is a variable, a dataclass/attrs field, a dict value, or any other typed value.
-Function parameters and return types are covered by their own, more specific rules. See “Related” below.
+Function parameters and return types are covered by their own, more specific rules. See "Related" below.
 
 This rule covers tuple-typed values outside function signatures. Parameters and return annotations are governed by
 PYR405 and PYR401.
@@ -25,8 +25,8 @@ last_position: Position = Position(row=3, col=7)
 
 ## Rationale
 
-A bare, fixed-length `tuple` type is positionally meaningful but carries no names — `tuple[int, int]` says “two ints,”
-not “a row and a column.” Every place that value is constructed, unpacked, or passed around has to independently know
+A bare, fixed-length `tuple` type is positionally meaningful but carries no names — `tuple[int, int]` says "two ints,"
+not "a row and a column." Every place that value is constructed, unpacked, or passed around has to independently know
 and correctly apply the intended ordering, with nothing but convention or a comment enforcing it.
 
 ```python
@@ -41,7 +41,7 @@ col, row = last_position
 This is the same failure shape [PYR401](./PYR401-namedtuple-returns.md) addresses for function returns and
 [PYR405](./PYR405-namedtuple-parameters.md) addresses for function parameters — PYR301 is the general form, covering
 every other place a bare positional tuple can appear: a plain variable, a `dataclass` field, a value stored in a `dict`,
-an item in a `list`. Wherever a fixed-length tuple’s positions carry distinct meaning, the same ambiguity exists,
+an item in a `list`. Wherever a fixed-length tuple's positions carry distinct meaning, the same ambiguity exists,
 regardless of whether a function signature is involved at all.
 
 `NamedTuple` closes it the same way throughout: named field access removes the positional slot as an attack surface,

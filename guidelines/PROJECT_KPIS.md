@@ -1,7 +1,7 @@
 # Project KPIs
 
 Lightweight, low-effort metrics tracked at release time to catch things the test suite cannot see: a rule becoming too
-noisy on real-world code, or the codebase’s own documentation discipline eroding. The `PERFORMANCE.md` already does this
+noisy on real-world code, or the codebase's own documentation discipline eroding. The `PERFORMANCE.md` already does this
 pattern for speed. These are the same idea for other properties.
 
 Kept to the metrics below until a real gap shows up that neither catches — the same discipline `REVIEW_CHECKLIST.md`
@@ -16,7 +16,7 @@ refreshes", below).
 
 **Corpus:** [home-assistant/core](https://github.com/home-assistant/core), pinned to a fixed commit so
 release-over-release deltas are comparable. The pin is deliberately not bumped on every release — only on a deliberate,
-noted refresh — otherwise a count change could come from home-assistant’s own code changing instead of pyrigor's.
+noted refresh — otherwise a count change could come from home-assistant's own code changing instead of pyrigor's.
 
 **Persistent local checkout:** `C:\Users\jarl\smallgig\core`. Reuse this checkout; it is already populated and should
 not be cloned again. The release KPI command therefore is:
@@ -107,7 +107,7 @@ blank lines, reformatting, or wrapped long lines the way `loc` and `sloc` are. W
 
 **Comparing against another project:** that guidance is for pyrigor's own releases, measured with the same tool —
 comparing pyrigor's size to a different project (a README claim, a GitHub language-stats page) is a different question.
-The `sloc` is the conventional choice there: it is what most external tools report by default (`cloc`, GitHub’s own
+The `sloc` is the conventional choice there: it is what most external tools report by default (`cloc`, GitHub's own
 stats) and what classic cost-estimation models like COCOMO are built on, so it is the only one of the three likely to be
 measuring the same thing as whatever number the other project published. The `lloc` is formatting-insensitive and
 arguably the more honest size measure, but almost nothing outside Python tooling reports it, so it only works when both

@@ -5,7 +5,7 @@ pattern cannot be checked without an unacceptable false-positive rate. Pyrigor e
 to re-implement checks they already do well (see [`ADDING_A_RULE.md`](./ADDING_A_RULE.md), step 0). This document is the
 audit trail, so a rejected idea does not get silently rebuilt or re-debated from scratch later.
 
-Entries here are not permanent. If a project stops using the covering tool, or the covering tool’s check turns out to
+Entries here are not permanent. If a project stops using the covering tool, or the covering tool's check turns out to
 have a real gap of its own, a rejected rule can be revisited. Note why revisiting if that happens.
 
 ## PYREJECT101 — Mutable default argument values
@@ -44,10 +44,10 @@ overlap/feasibility check.
 Would have required docstrings on private module-level functions and methods, including single- and double-underscore
 names.
 
-**Covered by**: Pylint’s `C0116` (`missing-function-docstring`) when its `no-docstring-rgx` is configured as `^$`, so no
+**Covered by**: Pylint's `C0116` (`missing-function-docstring`) when its `no-docstring-rgx` is configured as `^$`, so no
 function or method name is exempt. PyCharm also reports the issue through its inspections.
 
-**Status**: rejected as duplicate tooling. This may be revisited if Pylint’s coverage changes.
+**Status**: rejected as duplicate tooling. This may be revisited if Pylint's coverage changes.
 
 ## Not yet rejected, flagged as likely overlapping
 
@@ -57,9 +57,9 @@ reasoning visible alongside the confirmed rejection above.
 
 - **No wildcard imports** — covered by the ruff's `F403`/`F405` and pylint's `W0401`.
 - **Required return type annotations** — covered by mypy's `--disallow-untyped-defs` (part of `--strict`, already
-  assumed as pyrigor's baseline per PYR401’s own "Detection scope" section) and ruff's `ANN` rule family, if enabled.
+  assumed as pyrigor's baseline per PYR401's own "Detection scope" section) and ruff's `ANN` rule family, if enabled.
 - **Timezone-aware datetime construction** — covered by ruff's `DTZ` rule family (flake8-datetimez), if enabled.
-- **Mandate `StrEnum` over plain `Enum` when a state crosses a string-typed boundary** — considered alongside PYR202’s
+- **Mandate `StrEnum` over plain `Enum` when a state crosses a string-typed boundary** — considered alongside PYR202's
   own `Literal`/`StrEnum` discussion. Picking plain `Enum` where `StrEnum` would help fails early (`TypeError` on
   serialization, or a mypy type mismatch at the call site), not silently — the opposite of the failure class PYR202
   itself targets. Detecting it would also need real cross-site usage analysis (does this `Enum` ever meet a string

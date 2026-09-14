@@ -40,7 +40,7 @@ Only the latest tagged release is supported. The `main` branch is a work in prog
 
 ### Security-sensitive issues
 
-Use GitHub’s built-in private disclosure: **Security → Report a vulnerability** (top of the repository page).
+Use GitHub's built-in private disclosure: **Security → Report a vulnerability** (top of the repository page).
 
 ### Non-security bugs
 

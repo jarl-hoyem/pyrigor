@@ -1,6 +1,6 @@
 # Review checklist
 
-A Fagan-Inspection-style checklist, in the sense of Gilb and Graham’s _Software Inspection_: checklist questions derive
+A Fagan-Inspection-style checklist, in the sense of Gilb and Graham's _Software Inspection_: checklist questions derive
 their authority from a rule, are earned one at a time by a real defect that slipped through, and are pruned if they stop
 finding anything. Not brainstormed, not copied from elsewhere.
 
@@ -19,7 +19,7 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 
 2. **Did this change involve a real architectural or design decision? If so, has `DECISIONS.md` been checked and updated
    by name, not just README.md and CHANGELOG.md?** ← rule: `DEFINITION_OF_DONE.md`, Communication _Earned by:_ the
-   'ast.walk' refactoring’s own design decision, the shared-walk approach and the rejected cache-based alternative, went
+   'ast.walk' refactoring's own design decision, the shared-walk approach and the rejected cache-based alternative, went
    undocumented in `DECISIONS.md` until asked about directly. `DEFINITION_OF_DONE.md`'s "any relevant guidelines/ doc"
    wording was too vague to catch it, only the explicitly named README.md and CHANGELOG.md got checked in practice.
 
@@ -33,25 +33,25 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 4. **When reviewing a comparison source fetched in one pass, was every distinct section actually individually evaluated,
    not just the one that produced the most obvious finding?** ← rule: `DEFINITION_OF_DONE.md`, Correctness _Earned by:_
    Pickomino's `[tool.pylint.variables]` and `[tool.pylint.string]` sections were fetched and displayed in full during
-   the same pass that found pyright’s missing config, but were never individually evaluated, only surfaced later because
-   the person asked "did we miss anything" directly, not because the review process caught it on its own.
+   the same pass that found pyright's missing config, but were never individually evaluated, only surfaced later because
+   the person asked "was anything missed" directly, not because the review process caught it on its own.
 5. **Does every CHANGELOG.md entry claiming to close an issue actually have that issue closed on GitHub, checked
    directly, not assumed from the changelog text alone?** ← rule: `DEFINITION_OF_DONE.md`, Additional checks _Earned
-   by:_ v0.8.0’s own CHANGELOG.md entry said, "Closes #11", but #11 was still open on GitHub when checked. Writing
-   "Closes #N" in a changelog’s own prose does not close anything automatically, unlike a commit message or PR
+   by:_ v0.8.0's own CHANGELOG.md entry said, "Closes #11", but #11 was still open on GitHub when checked. Writing
+   "Closes #N" in a changelog's own prose does not close anything automatically, unlike a commit message or PR
    description, that is a separate, manual step, and it had been skipped.
 
 6. **For a CLI/user-facing interface change, was the test coverage deliberately expanded beyond what a draft or
    static-only analysis proposed as enough, and actually run against the real code before trusting it?** ← rule:
    `DEFINITION_OF_DONE.md`, Correctness ("What would a deliberately adversarial reader try to break, given the actual
-   code, not the intended behaviour? Try that.") _Earned by:_ #51’s argparse migration draft, produced by static
+   code, not the intended behaviour? Try that.") _Earned by:_ #51's argparse migration draft, produced by static
    reasoning alone (never executed against real code, by design), suggested two new tests as adequate. It asserted all
    12 existing tests would pass unchanged — both true, but insufficient. Applying the change for real and running an
-   expanded, more thorough test set (prompted by "this is direct UI and has to work flawlessly," not by the draft’s own
-   analysis) surfaced two real bugs the draft missed entirely: `argparse`’s default `allow_abbrev=True` silently
+   expanded, more thorough test set (prompted by "this is direct UI and has to work flawlessly," not by the draft's own
+   analysis) surfaced two real bugs the draft missed entirely: `argparse`'s default `allow_abbrev=True` silently
    accepted the typo `--onl` as a valid abbreviation of `--only`, defeating the typo-safety improvement the migration
    was meant to deliver. A separate, existing crash-handling test, never monkeypatching `sys.argv`, was unknowingly
-   parsing pytest’s own real command-line flags. It passed "by coincidence" rather than actually exercising the crash
+   parsing pytest's own real command-line flags. It passed "by coincidence" rather than actually exercising the crash
    path — invisible to any review that reasoned about the code without running it.
 
 7. **Was a finding produced under a flag that disables the underlying check entirely (like `--disable=all`), not just
@@ -84,9 +84,9 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line
-  guard, --only’s two known gaps). Found: PYR401 and PYR403 both lacked an async-function test (added, both passed,
-  confirming existing code was already correct). Suppression’s defensive out-of-range guard had never been tested
-  (added, confirmed correct). --only’s unknown-code behaviour was genuinely undefined (fixed separately, not just
+  guard, --only's two known gaps). Found: PYR401 and PYR403 both lacked an async-function test (added, both passed,
+  confirming existing code was already correct). Suppression's defensive out-of-range guard had never been tested
+  (added, confirmed correct). --only's unknown-code behaviour was genuinely undefined (fixed separately, not just
   tested). No new checklist question earned: this was question 1 doing its job on prior work, not a new failure mode.
 
 ## Adding a question

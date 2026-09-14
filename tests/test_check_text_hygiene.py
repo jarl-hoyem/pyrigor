@@ -70,3 +70,33 @@ def test_rejects_invalid_utf8_as_binary_text(*, tmp_path: Path) -> None:
     issues = _run_checker(tmp_path=tmp_path, data=b"valid\xff\n")
 
     assert issues == [f"{tmp_path / 'sample.txt'}: invalid UTF-8"]
+
+
+def test_accepts_straight_apostrophes_and_quotation_marks(*, tmp_path: Path) -> None:
+    """Straight apostrophes and quotation marks pass, in prose and in code."""
+    source = b"It's \"quoted\" prose, and `value = 'text'` in code.\n"
+    assert _run_checker(tmp_path=tmp_path, data=source) == []
+
+
+def test_accepts_text_without_any_quotation_marks(*, tmp_path: Path) -> None:
+    """A file with no apostrophes or quotation marks at all has nothing to report."""
+    assert _run_checker(tmp_path=tmp_path, data=b"plain text\n") == []
+
+
+def test_rejects_each_curly_quotation_mark(*, tmp_path: Path) -> None:
+    """All four curly forms are rejected, one issue per character, in order."""
+    codes = ("U+2018", "U+2019", "U+201C", "U+201D")
+    curly = chr(0x2018) + " " + chr(0x2019) + " " + chr(0x201C) + " " + chr(0x201D)
+    issues = _run_checker(tmp_path=tmp_path, data=(curly + "\n").encode())
+
+    assert len(issues) == len(codes)
+    assert all(code in issue and "curly quotation mark" in issue for code, issue in zip(codes, issues, strict=True))
+
+
+def test_rejects_curly_apostrophe_inside_fenced_code(*, tmp_path: Path) -> None:
+    """The rule is unconditional, so a fenced code block does not exempt a curly apostrophe."""
+    source = ("```python\nname = 'it" + chr(0x2019) + "s'\n```\n").encode()
+    issues = _run_checker(tmp_path=tmp_path, data=source)
+
+    assert len(issues) == 1
+    assert "U+2019" in issues[0]

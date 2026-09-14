@@ -1,9 +1,10 @@
-"""Reject terminal-control characters and common mojibake in text files."""
+"""Reject terminal-control characters, common mojibake and curly quotation marks in text files."""
 
 import sys
 from pathlib import Path
 
 _MOJIBAKE_MARKERS = frozenset("\u00e2\u00c2\u00c3\u00f0")
+_CURLY_QUOTATION_MARKS = frozenset("\u2018\u2019\u201c\u201d")
 _REPLACEMENT_CODEPOINT = 0xFFFD
 _C0_LIMIT = 32
 _DEL_CODEPOINT = 0x7F
@@ -34,6 +35,8 @@ def _character_issue(*, character: str) -> str | None:
         return "U+FFFD replacement character"
     if character in _MOJIBAKE_MARKERS:
         return f"{character} mojibake marker"
+    if character in _CURLY_QUOTATION_MARKS:
+        return f"U+{ord(character):04X} curly quotation mark, use a straight one"
     return None
 
 

@@ -77,7 +77,7 @@ consequence is already caught by mypy/pyright.
 ## When this does not apply
 
 - Functions with zero parameters — nothing to name.
-- Functions with two or more parameters — that is [PYR402](PYR402-keyword-only-arguments.md)’s territory, not PYR403’s.
+- Functions with two or more parameters — that is [PYR402](PYR402-keyword-only-arguments.md)'s territory, not PYR403's.
 - The same exceptions [PYR402](PYR402-keyword-only-arguments.md) lists apply here too: established positional
   conventions from a wrapped library or `dataclass`-generated code, and profiled hot paths where keyword-argument
   binding overhead has been shown to matter.

@@ -86,7 +86,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Changed
 
 - Suppression comments drop the colon after "pyrigor": `# pyrigor: CODE # reason` → `# pyrigor CODE # reason`. The colon
-  form collided with ruff’s ERA001 (commented-out-code) when a suppression comment sat on its own line, since
+  form collided with ruff's ERA001 (commented-out-code) when a suppression comment sat on its own line, since
   `pyrigor: 402` parses as valid Python (a bare annotation) and ERA001 flags any standalone comment that parses. This is
   a permanent syntax change, not a temporary workaround — existing colon-based comments will stop suppressing (they now
   print a near-miss warning instead of silently doing nothing, so the break is visible, not silent). Closes #46.
@@ -97,13 +97,13 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 - `pyrigor` double-counted files and violations when the same file was reachable through two different path arguments
   (an overlapping directory argument, a relative versus absolute form) — for example `pyrigor $(git diff --name-only) .`
-  in a CI script. `_collect_python_files()` now deduplicates by each file’s resolved path while keeping its first-seen
+  in a CI script. `_collect_python_files()` now deduplicates by each file's resolved path while keeping its first-seen
   string form for output. Closes #8.
 - `--only=` given a second time was silently treated as a path instead of erroring —
   `pyrigor --only=PYR401 --only=PYR402 file.py` dropped the second rule code entirely and produced a confusing "no such
   file" warning. A repeated `--only=` flag now errors immediately (exit code 2) instead. Closes #10.
-- Suppression comments were matched against each candidate line’s raw text via the regular expression, with no awareness
-  of Python’s lexical structure. A string or docstring literal whose contents happened to exactly match
+- Suppression comments were matched against each candidate line's raw text via the regular expression, with no awareness
+  of Python's lexical structure. A string or docstring literal whose contents happened to exactly match
   `# pyrigor: CODE # reason` syntax could silently suppress a real violation on that line, since regular expression over
   raw text cannot distinguish a genuine comment from text that merely looks like one inside a string. Suppression
   matching now tokenises the source and only considers genuine comment tokens. Closes #41.
@@ -113,7 +113,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Added
 
 - Suppression comments (`# pyrigor: CODE # reason`) may now also go on the line directly above a violation, or anywhere
-  within a multi-line statement’s own span, not just the violation’s exact starting line. Closes #31.
+  within a multi-line statement's own span, not just the violation's exact starting line. Closes #31.
 
 ## [0.7.2] 2026-08-18
 
@@ -131,7 +131,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 - PYR406 silently missed a PEP 604 union return type (`int | str`, `int | None`). `_annotation_name()` did not recognise
   the `X | Y` syntax, treating it the same as an unrecognised annotation shape — indistinguishable from `-> None` to the
-  checker, so the function’s discarded return value was never flagged. Now detected and protected like any other
+  checker, so the function's discarded return value was never flagged. Now detected and protected like any other
   non-`None` return type.
 
 ## [0.7.0] 2026-08-17
@@ -142,7 +142,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
   non-`None`-returning function whose result is discarded. Scoped to bare-name calls only — a call through attribute
   access (`self.foo()`, `obj.foo()`) is out of scope, since pyrigor cannot reliably determine which class or object it
   belongs to from the AST alone. Functions with a leading `self`/`cls` parameter are therefore excluded from the
-  protected set entirely, to avoid a method’s name leaking a false positive onto an unrelated bare call sharing the
+  protected set entirely, to avoid a method's name leaking a false positive onto an unrelated bare call sharing the
   name.
 
 ## [0.6.0] 2026-08-16
@@ -193,7 +193,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 - `is_bare_multi_value_tuple` now exempts `tuple[X, ...]`, the unbounded homogeneous form, found via pyrigor's own
   `CHECKERS` tuple immediately triggering a false positive once PYR301 went live against its own source.
 - PYR203 rewritten to a strict, mechanical rule (any number other than `0`, `1`, or `-1` must be a `Final` constant),
-  following Steve McConnell’s actual _Code Complete_ formulation, replacing an earlier, softer "self-explanatory"
+  following Steve McConnell's actual _Code Complete_ formulation, replacing an earlier, softer "self-explanatory"
   exemption that reintroduced the exact judgment call the rule was meant to eliminate.
 
 ### Fixed
@@ -215,15 +215,15 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 - `count_parameters` and `find_violations_by_predicate` extracted into `pyrigor/checkers/_shared.py`, removing
   duplicated logic across all four checkers. Two new `Protocol` types (`_PredicateFun`, `_CheckerFun`) added, since a
   bare `Callable` type hint cannot express a keyword-only calling convention.
-- Every checker’s own `_has_violation` and `find_violations`, plus `cli.py`'s `main`, are now keyword-only themselves,
+- Every checker's own `_has_violation` and `find_violations`, plus `cli.py`'s `main`, are now keyword-only themselves,
   fixing nine real PYR403 violations pyrigor found in its own source the moment the rule went live.
 - `.pre-commit-config.yaml`'s `pyrigor` hook now uses `pass_filenames: false` and always checks the whole `pyrigor/`
   directory, matching every other whole-project tool already configured that way, instead of receiving batched,
-  per-commit filenames from pre-commit’s default behaviour.
+  per-commit filenames from pre-commit's default behaviour.
 
 ### Fixed
 
-- The summary line’s em dash was displayed as a garbled non-printable character in PowerShell. Replaced with a plain
+- The summary line's em dash was displayed as a garbled non-printable character in PowerShell. Replaced with a plain
   ASCII double hyphen.
 
 ## [0.3.0] 2026-08-13
@@ -257,7 +257,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Fixed
 
 - `site-packages` directories are now excluded by default during directory walks, regardless of the containing venv
-  folder’s own name.
+  folder's own name.
 - A single unreadable or unparsable file no longer crashes the run. Files that cannot be decoded or contain invalid
   syntax are skipped with a warning and do not affect the exit code.
 
@@ -292,7 +292,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 - The v0.1.0 GitHub release was published before `publish.yaml` existed, so it never actually reached PyPI. This release
   fixes the publishing pipeline.
-- PYR402’s guideline doc "Enforced by" section, which was stale.
+- PYR402's guideline doc "Enforced by" section, which was stale.
 
 ## [0.1.0] 2026-08-12
 

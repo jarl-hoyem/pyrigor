@@ -77,17 +77,17 @@ and the cost scaled linearly with the number of registered checkers, every futur
 
 Two designs were considered.
 
-**Cache-based** (rejected): keep every checker’s own `find_violations(*, tree)` signature exactly as-is, walk once
+**Cache-based** (rejected): keep every checker's own `find_violations(*, tree)` signature exactly as-is, walk once
 inside `_run_checkers`, and cache the result keyed by `id(tree)`, so a repeated internal `ast.walk` call inside
 `_shared.py` would hit the cache rather than re-walking. Smaller diff, no signature changes anywhere. Rejected because
 it is exactly the kind of implicit, hidden coupling this project has repeatedly been burned by — the
 `zip(CHECKERS, Rule)` positional-coupling bug fixed earlier is the same category of problems. It rests on an unenforced
 assumption: "every checker always walks the same cached tree." It also does not remove the actual walk cost — it only
-hides one walk behind a cache lookup. Real savings would require every future checker’s own logic to want the tree
+hides one walk behind a cache lookup. Real savings would require every future checker's own logic to want the tree
 walked in the same way, silently broken the moment one does not.
 
 **Nodes-based** (chosen): walk the tree exactly once in `_run_checkers`, via `walk_once()`, producing a
-`WalkedNodes( function_nodes, assign_nodes)`. Every checker’s own public `find_violations` signature changes from
+`WalkedNodes( function_nodes, assign_nodes)`. Every checker's own public `find_violations` signature changes from
 `(*, tree: ast.Module)` to `(*, nodes: WalkedNodes)`, an honest interface describing exactly what each checker actually
 needs, rather than "a tree, which happens to be pre-walked somewhere else by convention." Real cost: touched five
 checker files, the `_CheckerFun` Protocol, and every existing test calling `find_violations` directly. Real result:
@@ -101,10 +101,10 @@ access (`self.compute_total()`, `obj.compute_total()`). Consequently, functions 
 (methods) are excluded from the protected set entirely.
 
 Why: pyrigor cannot reliably determine which class or object an attribute call belongs to — it has no type inference and
-processes one file at a time. Without this exclusion, matching by name alone would let a method’s name enter the
+processes one file at a time. Without this exclusion, matching by name alone would let a method's name enter the
 protected set even though nothing ever calls it as a bare name. The only effect would be a false positive on some
-unrelated bare call elsewhere in the file that happens to share the method’s name. Excluding likely methods removes that
-risk at the cost of not covering method calls at all, consistent with the guideline doc’s own examples, which are all
+unrelated bare call elsewhere in the file that happens to share the method's name. Excluding likely methods removes that
+risk at the cost of not covering method calls at all, consistent with the guideline doc's own examples, which are all
 bare-name, module level or nested function calls.
 
 The lexical-scope utilities used to resolve those bare names live in `checkers/_shared.py`, rather than in PYR406. This
@@ -112,16 +112,16 @@ is deliberate: the documented PYR407 generator-result rule has the same local-de
 the planned second consumer. The shared layer provides scope structure. Each rule retains its own return-value
 classification.
 
-### The --select/--ignore combines like ruff’s select/ignore, and full-overlap combination errors
+### The --select/--ignore combines like ruff's select/ignore, and full-overlap combination errors
 
-`--only` was renamed to `--select` (#68), and `--ignore` was added (#69) as its rule-axis opposite, matching ruff’s own
+`--only` was renamed to `--select` (#68), and `--ignore` was added (#69) as its rule-axis opposite, matching ruff's own
 `select`/ `ignore` pair rather than inventing pyrigor-specific terms (a principle first stated on #66).
 
-Combination semantics, verified against ruff’s own documented behaviour rather than assumed: `--ignore` removes codes
-from `--select`’s set (or from every rule, if `--select` is omitted). Order on the command line never matters. Argparse
-collects each flag’s own value independently of where it sits relative to the other flag. `_filter_checkers()`’s
+Combination semantics, verified against ruff's own documented behaviour rather than assumed: `--ignore` removes codes
+from `--select`'s set (or from every rule, if `--select` is omitted). Order on the command line never matters. Argparse
+collects each flag's own value independently of where it sits relative to the other flag. `_filter_checkers()`'s
 combination logic is pure set arithmetic on the final parsed values, not a fold over argv in parse order. Partial
-overlap (`--select=PYR401,PYR402 --ignore=PYR402`, leaving PYR401) is the intended, normal use case, matching ruff’s own
+overlap (`--select=PYR401,PYR402 --ignore=PYR402`, leaving PYR401) is the intended, normal use case, matching ruff's own
 documented "select a category, ignore one rule within it" pattern — not an error.
 
 Full overlap is different in kind, not just degree — a combination that empties the selection entirely
@@ -133,13 +133,13 @@ rather than threading exit-code concerns into the library function tests call di
 
 ### CLI exit code 2 covers both a crash and a bad invocation, deliberately not split
 
-When pyrigor's `run()` migrated from hand-rolled `sys.argv` scanning to `argparse` (#51), argparse’s own native parse
+When pyrigor's `run()` migrated from hand-rolled `sys.argv` scanning to `argparse` (#51), argparse's own native parse
 errors (unrecognised flag, missing required `paths`) landed on exit code 2 — the same code already used for two
 different pre-existing cases: an unexpected internal crash (the top-level `except Exception` handler) and a bad `--only`
 invocation (repeated flag, unknown rule code). All three now share one exit code.
 
 Decided not to split them. Reasoning: the ambiguity predates this migration — "2 means either a crash or a bad
-invocation" was already the convention before argparse was introduced, so widening it to argparse’s own errors is
+invocation" was already the convention before argparse was introduced, so widening it to argparse's own errors is
 consistent, not a new compromise. Splitting would need either a custom `ArgumentParser` subclass overriding `error()`,
 or wrapping `parse_args()` in `try/except SystemExit` to remap its code — real added surface area for a distinction no
 test, issue or actual consumer of pyrigor's exit code has needed yet. If a concrete need for the distinction shows up
@@ -257,7 +257,7 @@ Pyrigor fills gaps that existing quality tools do not cover. It does not impleme
 an existing tool already detects, even when that tool requires an explicit configuration. The covering tool should be
 documented instead, and the proposed pyrigor rule should be recorded in `REJECTED.md`.
 
-This applies to missing docstrings on private functions and methods: Pylint’s `missing-function-docstring` (`C0116`)
+This applies to missing docstrings on private functions and methods: Pylint's `missing-function-docstring` (`C0116`)
 detects them when `no-docstring-rgx` is configured to exempt no names. PyCharm also reports the issue. A dedicated
 pyrigor rule would therefore duplicate existing tooling. Missing docstrings on nested functions remain a separate
 question because Pylint does not report them.
@@ -323,14 +323,14 @@ No retrofit needed: every existing reference in both files already matches this 
 
 ### The tool complexipy runs through a Python wrapper, not a .bat script
 
-The tool complexipy’s own console output (via `rich`) crashes on Windows’ legacy `cp1252` codepage when printing status
+The tool complexipy's own console output (via `rich`) crashes on Windows' legacy `cp1252` codepage when printing status
 emoji, confirmed across two different pinned versions (an octopus at v3.0.0, a checkmark at v7.0.1), a genuine, systemic
 upstream bug, not fixed between releases.
 
 A Windows batch script (`scripts/run_complexipy.bat` setting `PYTHONUTF8=1` before invoking the binary) was considered
 first, and would have worked locally. Rejected because it is Windows-only, `.bat` syntax and `%*` argument forwarding
-mean nothing on macOS or Linux, and this project’s own CI matrix explicitly tests `ubuntu-latest`, `macos-latest`, and
-`windows-latest`. A fix that only works for one contributor’s own OS is not a real fix for a project with a genuinely
+mean nothing on macOS or Linux, and this project's own CI matrix explicitly tests `ubuntu-latest`, `macos-latest`, and
+`windows-latest`. A fix that only works for one contributor's own OS is not a real fix for a project with a genuinely
 cross-platform CI matrix.
 
 Chosen instead: `scripts/run_complexipy.py`, a Python wrapper setting `PYTHONUTF8` via `os.environ` before invoking
@@ -346,14 +346,14 @@ self-check running only the pinned, released version would lose the opposite, re
 rules have repeatedly caught real bugs in pyrigor's own in-progress source the moment they were built, before any
 release existed. Kept both, deliberately, rather than choosing one.
 
-### Mutation testing runs under tini and disables coverage through mutmut’s own config
+### Mutation testing runs under tini and disables coverage through mutmut's own config
 
 Two failures made mutmut unusable in Docker, both caused by configuring something mutmut never read.
 
 The tool mutmut 3.7 has no `tests` config key. Its `_load_config()` reads `pytest_add_cli_args` and
 `pytest_add_cli_args_test_selection`. A `tests = "pytest ... -c pytest-mutmut.ini"` line is accepted silently and
 discarded, so every attempt to disable pytest-cov through it changed nothing. Four rounds of workarounds followed,
-ending in a repository-wide `--cov-fail-under=0`, which switched off this project’s own 100% coverage gate for every
+ending in a repository-wide `--cov-fail-under=0`, which switched off this project's own 100% coverage gate for every
 ordinary test run. Fixed by passing `--no-cov` through `pytest_add_cli_args`, which mutmut appends after the copied
 `pyproject.toml`'s `addopts`, so it wins, leaving the repository's own threshold at 100. The tool pytest-cov stays
 installed on purpose. Uninstalling it makes `--cov=pyrigor` in `addopts` an unrecognised argument, pytest exits 4, and
@@ -373,7 +373,7 @@ An earlier version of this entry blamed `pytest_add_cli_args_test_selection` for
 key was innocent, and 288 was the honest number, briefly discarded in favour of a flattering one.
 
 The second failure was `KeyError: <pid>` in `read_one_child_exit_status()`, which calls a bare `os.wait()` and then
-indexes `source_file_mutation_data_by_pid[pid]`. As the container’s entrypoint, mutmut runs as PID 1, so every orphaned
+indexes `source_file_mutation_data_by_pid[pid]`. As the container's entrypoint, mutmut runs as PID 1, so every orphaned
 process in the container is reparented to it, and this test suite spawns real `git` and `python` subprocesses. The tool
 mutmut then reap a pid it never forked and crashes. Running `docker run --init` fixes it, but only when every call site
 remembers the flag. Installing tini and making it the entrypoint makes the image correct on its own, including for an
@@ -477,38 +477,38 @@ scheduled workflow is a real, ongoing maintenance surface for a cosmetic gap. Th
 confirming the released package works the way an external adopter would use it, which it still does correctly one
 version behind. Revisit only if a real consumer is ever confused by the lag in practice, not preemptively.
 
-### Pyrigor's suppression comment must come last when stacked with another tool’s
+### Pyrigor's suppression comment must come last when stacked with another tool's
 
 The regular expression in `_suppressed_tokens()` (`#\s*pyrigor\s*:\s*(?P<tokens>.+)$`) captures everything after
-`# pyrigor:` to the end of the line as the reason. Stacking another tool’s suppression comment (`# nosec`,
+`# pyrigor:` to the end of the line as the reason. Stacking another tool's suppression comment (`# nosec`,
 `# complexipy: ignore`) after pyrigor's own gets silently absorbed into that reason text, since `body.partition("#")`
 only splits once.
 
 Considered fixing the parser instead, truncating the reason at the next `#` regardless of what follows. Rejected — this
 would break a legitimate case: a reason referencing a GitHub issue number, for example `# pyrigor: 406 # see issue #42`.
 Truncating trades away real information to guard against a risk that, checked directly, has no current observable
-effect. The function `filter_suppressed()` never reads a reason’s content, only checks whether it is None.
+effect. The function `filter_suppressed()` never reads a reason's content, only checks whether it is None.
 
 Chosen instead: a house convention, not a code change. Pyrigor's own suppression comment goes last when stacked with
-another tool’s (`# nosec  # pyrigor: PYR402 # reason`, not the reverse). The opposite ordering already works correctly,
+another tool's (`# nosec  # pyrigor: PYR402 # reason`, not the reverse). The opposite ordering already works correctly,
 since `re.search` finds `# pyrigor:` wherever it appears on the line — this convention costs nothing beyond documenting
 it.
 
 ### Suppression scanning uses tokenising, not raw-line regular expression
 
-`_suppressed_tokens()` and the near-miss check both used to search each candidate physical line’s raw text via regular
-expression (`_SUPPRESSION_PATTERN`, `_NEAR_MISS_PATTERN`), with no awareness of Python’s lexical structure. A string
+`_suppressed_tokens()` and the near-miss check both used to search each candidate physical line's raw text via regular
+expression (`_SUPPRESSION_PATTERN`, `_NEAR_MISS_PATTERN`), with no awareness of Python's lexical structure. A string
 literal or docstring whose contents happened to exactly match `# pyrigor: CODE # reason` syntax would not just trigger a
 spurious near-miss warning — it could silently suppress a real violation on that line, since regular expression over raw
 text cannot tell a genuine comment from text that merely looks like one inside a string. Found scanning `tests/` for the
-first time: a near-miss warning fired on a test’s own fixture string containing literal `# pyrigor` text, not a real
+first time: a near-miss warning fired on a test's own fixture string containing literal `# pyrigor` text, not a real
 comment (#41).
 
-Chosen fix: tokenise the source once per every file with Python’s own `tokenize` module, and build a
+Chosen fix: tokenise the source once per every file with Python's own `tokenize` module, and build a
 line-number-to-comment-text mapping from genuine `tokenize.COMMENT` tokens only. String and docstring content is
 tokenised as `STRING`, never `COMMENT`, so text that only looks like a suppression comment inside a string can no longer
 match at all. Candidate-line lookup changed from list-indexing raw source lines to a dict lookup on this map, which also
-removes the need for the old `_line_at()`’s explicit out-of-range bounds check — a missing dict key returns "", the same
+removes the need for the old `_line_at()`'s explicit out-of-range bounds check — a missing dict key returns "", the same
 "no comment here" result an out-of-range line used to require special-casing for.
 
 Rejected: keeping the regular expression approach and trying to special-case strings within it (for example, stripping
@@ -526,19 +526,19 @@ Confirmed directly against a real, installed ruff 0.16.3, not just inferred: `# 
 is flagged. Whereas `# pyrigor 402 # reason` (space instead of colon) is not.
 
 Considered: requesting pyrigor's own comment prefix be added to ruff's `ALLOWLIST_REGEX`, the mechanism `# noqa`,
-`# nosec`, `# type: ignore`, and others already use to avoid exactly this collision. Rejected — not contacting ruff’s
+`# nosec`, `# type: ignore`, and others already use to avoid exactly this collision. Rejected — not contacting ruff's
 maintainers to request inclusion, so this is not a path being pursued.
 
 Chosen instead: drop the colon permanently. `# pyrigor CODE[,CODE] # reason`. The regular expression's `\s*:\s*` between
 "pyrigor" and the token list becomes `\s+`, requiring only whitespace, not a colon. This is a genuine, permanent syntax
-change, not a temporary workaround. Every existing colon-based suppression comment (in this project’s own source and in
+change, not a temporary workaround. Every existing colon-based suppression comment (in this project's own source and in
 any external adopters) needs migrating. An un-migrated old comment does not fail silently: `_NEAR_MISS_PATTERN` still
 matches it (a colon is not whitespace, so it no longer matches `_SUPPRESSION_PATTERN`, but "pyrigor" is still present),
 so it prints the existing near-miss warning rather than suppressing nothing. Closes #46.
 
-## The magic_value pylint extension: Real, independent corroboration of PYR203’s boundary
+## The magic_value pylint extension: Real, independent corroboration of PYR203's boundary
 
-Enabled in pyrigor's own pyproject.toml. Default valid-magic-values (0, -1, 1, "", `"__main__"`) match PYR203’s own
+Enabled in pyrigor's own pyproject.toml. Default valid-magic-values (0, -1, 1, "", `"__main__"`) match PYR203's own
 chosen exemption list (0, 1, -1) independently. Real corroboration of the boundary is reasonable, not an accident.
 Narrower scope than PYR203, though, only fires on comparisons (if x == 3), not arithmetic or function arguments.
 
@@ -562,36 +562,36 @@ called within its own defining file, exactly the wrong behaviour for this codeba
 individually importable, individually testable functions (find_violations, walk_once, count_parameters and every other
 checker function). Rejected, not enabled.
 
-## The tool pyrigor's own suppression works anywhere in a wrapped statement’s span, deliberately
+## The tool pyrigor's own suppression works anywhere in a wrapped statement's span, deliberately
 
-Confirmed the contrast directly tonight: suppressing ruff’s S607/S603 findings on wrapped `subprocess.run(...)` calls
-required getting the `# noqa` onto the _exact_ physical line ruff’s own diagnostic pointed to, sometimes the opening
+Confirmed the contrast directly tonight: suppressing ruff's S607/S603 findings on wrapped `subprocess.run(...)` calls
+required getting the `# noqa` onto the _exact_ physical line ruff's own diagnostic pointed to, sometimes the opening
 line, sometimes the arguments line, easy to get wrong (happened twice in one session). Same friction hit earlier with
-the tool bandit’s own `# nosec`, same-line only, no tolerance at all.
+the tool bandit's own `# nosec`, same-line only, no tolerance at all.
 
 The tool pyrigor's own suppression mechanism, by design, does not have this fragility. A `# pyrigor CODE # reason`
-comment works on the line above the violation, or on any line within the violation’s own `end_line` span, not just one
+comment works on the line above the violation, or on any line within the violation's own `end_line` span, not just one
 exact physical line. Confirmed by, `test_suppression_comment_on_middle_line_of_multiline_statement_suppresses`. And
 confirmed by `test_suppression_comment_on_closing_line_of_multiline_statement_suppresses`.
 
 Worth stating this explicitly as a real, deliberate design advantage in the README.md or the eventual suppression-syntax
-reference doc, not just an implicit property. Adopters coming from the ruff/bandit’s own stricter placement rules will
+reference doc, not just an implicit property. Adopters coming from the ruff/bandit's own stricter placement rules will
 likely appreciate knowing this up front.
 
-## The tool ruff’s select = ["ALL"] adopted, with a real, evidence-based ignore list
+## The tool ruff's select = ["ALL"] adopted, with a real, evidence-based ignore list
 
 Considered simply picking a curated set of categories versus enabling everything and reviewing what comes back. Chose
 "ALL" plus a deliberate ignore list, following Pickomino's own real precedent (confirmed directly from its
 pyproject.toml), rather than guessing at categories in the abstract. Every ignored rule has a real, specific reason
 (D203/D213/D413 conflict with the chosen docstring convention, COM812 conflicts with the formatter, EM101/EM102/TRY003
-reflect this project’s own no-custom-exception-hierarchy style, CPY001 has no adopted copyright convention). Verified
+reflect this project's own no-custom-exception-hierarchy style, CPY001 has no adopted copyright convention). Verified
 empirically at each step (427 findings raw, resolved category by category down to 16 real, individually reviewed fixes)
-rather than trusting the ignore list’s own reasoning without checking real output.
+rather than trusting the ignore list's own reasoning without checking real output.
 
 ## Dev-tooling scripts share real logic via a `check: bool` parameter, not a hardcoded default
 
 The file check_definition_of_done.py and version_sync.py both needed the identical git-diff-inspection logic
-(staged_files, pyproject_version_changed), found as genuine duplicate code by pylint’s own R0801, not just an incidental
+(staged_files, pyproject_version_changed), found as genuine duplicate code by pylint's own R0801, not just an incidental
 shared literal (unlike the filename-constants decision, which stayed local per script). Extracted into
 scripts/_dev_tooling_shared.py.
 
@@ -609,14 +609,14 @@ This was not just the API response.
 #19 added branch protection (13 required checks from `ci.yaml`, 1 required review, strict mode) via a direct `gh api`
 call. The API response confirmed the settings were accepted. But that only proves GitHub stored the configuration, not
 that it behaves as intended — this repo had zero human-authored PRs before this point (all five prior PRs were
-Dependabot’s), so the mechanism had never actually been exercised.
+Dependabot's), so the mechanism had never actually been exercised.
 
 Verified directly, this very entry is the content of that test PR:
 
 - All 13 required checks ran and passed. `mergeStateStatus` stayed `BLOCKED` and `reviewDecision` stayed
   `REVIEW_REQUIRED` anyway — green checks alone do not satisfy the review requirement, the two gates are genuinely
   independent.
-- A wrong assumption caught in the process: self-approval is not an org-only restriction. GitHub blocks a PR’s own
+- A wrong assumption caught in the process: self-approval is not an org-only restriction. GitHub blocks a PR's own
   author from approving it as a baseline rule — confirmed directly, the author hit this in the real GitHub UI, not
   inferred from documentation. Exactly which review-related settings _are_ org-specific (versus this universal one) was
   not re-verified and should not be assumed either way without checking again.

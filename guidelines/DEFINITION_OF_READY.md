@@ -12,7 +12,7 @@ An issue is ready to be worked on when:
 - The description contains real criteria for when the issue is done, not just a problem statement. For a new rule, this
   means pointing at `ADDING_A_RULE.md`'s own checklist. For anything else, a concrete, checkable outcome.
 - Its scope has been checked for whether it can be split smaller before any work starts. Splitting after starting means
-  real complexity was discovered the hard way, mid-flight. This is the same discipline behind Steve McConnell’s
+  real complexity was discovered the hard way, mid-flight. This is the same discipline behind Steve McConnell's
   "miniature milestones" practice (_Rapid Development_): decompose before starting, not after.
 - Every label from `CONTRIBUTING.md`'s full list has been checked against the issue, not just the required
   type/value/effort minimum. Multiple labels commonly apply together.

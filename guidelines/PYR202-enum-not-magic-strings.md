@@ -49,14 +49,14 @@ an _unbounded_ type (any `str`, any `int`) standing in for a value that should o
 An `Enum` makes the set of valid values a real, checkable type, rather than a convention every caller has to remember
 and get exactly right.
 
-This matches [PEP 435](https://peps.python.org/pep-0435/)’s own stated motivation for adding `enum` to Python itself. It
+This matches [PEP 435](https://peps.python.org/pep-0435/)'s own stated motivation for adding `enum` to Python itself. It
 frames the same problem: a plain `int` or `str` can represent discrete values well enough, but nothing stops "operations
 without meaning ('Wednesday times two')" from being defined on them. Nothing keeps a value from one enumeration distinct
 from a value in another, either. An `Enum` closes both gaps at once — the same distinctness argument PYR201 makes for
 two same-typed values, applied here to a value standing in for one of several unrelated named states.
 
-**The same failure is more common at boundaries than inside a program’s own logic.** A value arriving from JSON, a CSV
-file, a form field, a database row, or an environment variable is stringly typed by construction — `"42"`, `"true"`,
+**The same failure is more common at boundaries than inside a program's own logic.** Construction stringly types a value
+arriving from JSON, a CSV file, a form field, a database row, or an environment variable — `"42"`, `"true"`,
 `"converged"` — regardless of what it conceptually represents. If that value is used as-is, without converting it into
 the type it actually represents at the point it enters the program, every one of its bugs (a mistyped status string, a
 `"0"`/`"1"` standing in for a boolean, a numeric ID compared against a string) is deferred to wherever the value is
@@ -129,8 +129,8 @@ string-based boundary. The tool cannot construct either the naming or that choic
 
 ## Enforced by
 
-Not yet implemented. Checked against existing tools first, per `ADDING_A_RULE.md`’s step 0: `ruff` has no rule for this
-pattern. `pylint`’s `magic-value-comparison` (R2004) is related but broader — it flags any literal used in a comparison,
+Not yet implemented. Checked against existing tools first, per `ADDING_A_RULE.md`'s step 0: `ruff` has no rule for this
+pattern. `pylint`'s `magic-value-comparison` (R2004) is related but broader — it flags any literal used in a comparison,
 whether a numeric threshold or an arbitrary string, and suggests "a named constant or an enum" generically. It does not
 distinguish a continuous threshold from a genuinely closed set of named states, so it does not specifically detect or
-enforce this rule’s narrower claim. The gap PYR202 addresses remains real.
+enforce this rule's narrower claim. The gap PYR202 addresses remains real.

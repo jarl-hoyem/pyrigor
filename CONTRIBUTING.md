@@ -1,6 +1,6 @@
 # Contributing to pyrigor
 
-Contributions are welcome! Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
+Contributions are welcome. Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Creating Issues
 
@@ -28,7 +28,7 @@ An `XL`-sized issue is a sign the work has not been broken down enough yet, not 
 Beyond `value:`/`effort:` (see sizing above) and a type label, check every issue against the full label set before
 finalising, not just the three required minimums.
 
-GitHub’s own label picker is the source of truth. Every label carries a description there, shown at the point where you
+GitHub's own label picker is the source of truth. Every label carries a description there, shown at the point where you
 apply it, so this file does not repeat the list. A copy here only drifts, as it already had.
 
 Multiple labels commonly apply at once, a type label plus `technical debt / refactoring` is a normal, expected
@@ -71,7 +71,7 @@ earned, defect-derived checklist alongside it.
 ## Self-hosted pre-commit hook
 
 The tool pyrigor checks itself two ways, deliberately: a pinned entry (`repo: https://github.com/jarl-hoyem/pyrigor`,
-`rev: vX.Y.Z`) running the last real, released version, and a local entry running today’s uncommitted code. The local
+`rev: vX.Y.Z`) running the last real, released version, and a local entry running today's uncommitted code. The local
 entry is the one that matters day to day. It is what catches a new rule firing on pyrigor's own source the moment it is
 built, before any release exists. The pinned entry exists mainly to confirm the released package genuinely works as a
 real, external hook would use it.

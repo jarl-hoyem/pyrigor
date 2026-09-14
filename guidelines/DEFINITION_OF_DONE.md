@@ -21,7 +21,7 @@ matrix includes module and local rebinding, nested functions, `global`, `nonloca
 imports and aliases, arguments, exception aliases, match bindings, sequential redefinitions, lambdas, and classes.
 
 This applies with extra force when a feature is scoped as "behaves like an existing feature." In that case, the existing
-feature’s own test file is the checklist. Read it. Confirm an equivalent test exists for each tested behaviour in the
+feature's own test file is the checklist. Read it. Confirm an equivalent test exists for each tested behaviour in the
 new feature too, before calling the new feature done.
 
 "Tested" means more than the happy path, and the one case explicitly discussed. Before calling something done,
@@ -48,7 +48,7 @@ finishing the work, not as a separate step performed only when asked.
 `--only` was scoped, explicitly, as "the same lenient forms as suppression comments." It shipped, declared done, with
 tests for code-form and symbolic-name-form only. Whitespace tolerance, something suppression comments already have a
 dedicated test for, was never checked. The user asked a pointed follow-up question and caught it. This should have been
-caught before the feature was called done, by cross-referencing suppression’s own test list, which already existed and
+caught before the feature was called done, by cross-referencing suppression's own test list, which already existed and
 already covered exactly this case.
 
 ## What this is not
@@ -65,7 +65,7 @@ whether the same mistake was already made once before. This file is the same pat
 behaviour, not just checkers, because the same category of gaps has now shown up twice in that domain (`--version`'s
 coverage, `--only`'s leniency).
 
-`guidelines/REVIEW_CHECKLIST.md` extends this further, in the style of Gilb and Graham’s _Software Inspection_: each
+`guidelines/REVIEW_CHECKLIST.md` extends this further, in the style of Gilb and Graham's _Software Inspection_: each
 checklist question is earned by a real defect that slipped through, tagged back to the rule it elaborates, not
 brainstormed in the abstract. Run it alongside this file before declaring anything done.
 
@@ -87,8 +87,8 @@ general knowledge only):
 - **Bug fixes get a reproducing test first.** Write the test that captures the reported bug before writing the fix, not
   after — confirms the fix actually addresses what was reported, not just a symptom near it, and locks in the
   regression.
-- **Backward compatibility.** If this change alters any documented public behaviour (a return type, a CLI flag’s shape,
-  a rule’s scope), the version bump and `CHANGELOG.md` entry reflect that, not as a smaller change than it actually is.
+- **Backward compatibility.** If this change alters any documented public behaviour (a return type, a CLI flag's shape,
+  a rule's scope), the version bump and `CHANGELOG.md` entry reflect that, not as a smaller change than it actually is.
 - **Issue traceability.** If this work closes an existing GitHub Issue, close it (see the close-at-changelog-entry-time
   rule below). Do not leave it sitting open as if the work were still pending.
 - **Read every comment before closing.** Before closing a GitHub Issue as part of this work, read its full comment
@@ -105,10 +105,10 @@ general knowledge only):
   not later, at release time. The changelog entry is the trigger. Waiting until release risks the close being forgotten
   entirely once [Unreleased] becomes a real, dated version heading, as happened with #11.
 - Guideline docs, rule descriptions, and issue text describe the current, correct state, not the history of how they got
-  that way. No "earlier version allowed...", no "this was fixed tonight", no narration of this project’s own past states
+  that way. No "earlier version allowed...", no "this was fixed tonight", no narration of this project's own past states
   or evolution. This is not a ban on citing real, external sources. Citing McConnell, OSSF, a style guide, or another
-  real project’s own config is a legitimate citation anywhere in the project, never a history lesson.
-- DECISIONS.md and REVIEW_CHECKLIST.md’s own "Earned by" sections are explicit exceptions to the no-project-history part
+  real project's own config is a legitimate citation anywhere in the project, never a history lesson.
+- DECISIONS.md and REVIEW_CHECKLIST.md's own "Earned by" sections are explicit exceptions to the no-project-history part
   specifically, their whole purpose is documenting past decisions and incidents.
 
 ## Releasing a version

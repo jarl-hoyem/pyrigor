@@ -31,11 +31,11 @@ def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
 
 ## Rationale
 
-Type annotations describe the shape of a value’s type, `np.ndarray`, `str`, `int`, but they cannot describe every
+Type annotations describe the shape of a value's type, `np.ndarray`, `str`, `int`, but they cannot describe every
 assumption a function actually depends on to behave correctly. The term `x: np.ndarray` says nothing about what shape
-`x` must be, whether it must match some other argument’s shape, or whether its values must fall within a particular
+`x` must be, whether it must match some other argument's shape, or whether its values must fall within a particular
 range. When a function relies on such an assumption without stating it, the assumption still exists, invisible, living
-only in the author’s head when the function was written.
+only in the author's head when the function was written.
 
 ```python
 def compute_cost(*, x: np.ndarray, y: np.ndarray, w: Weight, b: Bias) -> float:
@@ -56,13 +56,13 @@ a violation is caught immediately, at its true source, rather than discovered la
 This is design-by-contract in miniature: state what a function requires of its inputs as a real, enforced precondition,
 rather than trusting every caller to already know and honour an assumption that was never written anywhere.
 
-**Why `raise`, not `assert`?** `assert` is the natural tool for this, and earlier drafts of this guideline recommended
-it. It is the wrong choice for anything that actually matters: Python's `-O` flag removes every `assert` statement from
-the compiled bytecode entirely, and `-OO` goes further. A precondition check written as `assert` is not a weaker version
-of the check, it is no check at all in an optimised build, silently.
+**Why `raise`, not `assert`?** `assert` is the natural tool for this. Earlier drafts of this guideline recommended it.
+It is the wrong choice for anything that actually matters: Python's `-O` flag removes every `assert` statement from the
+compiled bytecode entirely, and `-OO` goes further. A precondition check written as `assert` is not a weaker version of
+the check, it is no check at all in an optimised build, silently.
 
 This is a real, known Python gap, not a hypothetical one (see [OSSF's Secure Coding Guide for Python,
-pyscg-0037][ossf-pyscg-0037]). `raise` with an explicit exception has no such gap, it runs identically regardless of
+pyscg-0037][ossf-pyscg-0037]). The `raise` with an explicit exception has no such gap, it runs identically regardless of
 optimisation flags.
 
 [ossf-pyscg-0037]:
@@ -89,7 +89,7 @@ surface some other way too. See `DECISIONS.md`'s "Severity" entry for the full p
 - The assumption is already fully captured by the type system itself, for example, a `NewType` or a `Literal` union that
   makes an invalid value impossible to build at all. A check that only restates that what mypy already guarantees adds
   no protection.
-- A hot path where the check’s runtime cost has been measured to matter, and the precondition is instead enforced once,
+- A hot path where the check's runtime cost has been measured to matter, and the precondition is instead enforced once,
   further upstream, at the point the value is first constructed or received.
 - A genuinely internal, debug-only invariant, never reachable from untrusted input, where being silently skipped in an
   optimised build is an acceptable, deliberate trade-off. `assert` is the correct tool for exactly this narrower case,

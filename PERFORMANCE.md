@@ -57,7 +57,7 @@ now costs only its own predicate evaluation over already-collected nodes, not an
 
 - **Home Assistant (larger, more files) ran faster per-file than the CPython stdlib** (~202 files/sec versus ~90–115
   files/sec) — evidence that pyrigor's cost scales with actual code complexity per file, not file count alone. The
-  stdlib includes some huge, complex modules (`typing.py`, `re/_parser.py`). Home Assistant’s codebase is many smaller,
+  stdlib includes some huge, complex modules (`typing.py`, `re/_parser.py`). Home Assistant's codebase is many smaller,
   more uniform integration files.
 - **No crashes across either large run**, including real edge cases the smaller ML-repo test did not surface: a UTF-8
   Byte Order Mark (BOM) crash, an unrelated non-UTF-8 file crash, and scanning into a differently named venv folder —
@@ -71,7 +71,7 @@ now costs only its own predicate evaluation over already-collected nodes, not an
 ## Not yet tested
 
 - Parallelism/multiprocessing — deliberately not pursued. An estimate suggested a ~4x speedup ceiling (bound by CPU core
-  count, since checking is CPU bound and Python’s Global Interpreter Lock (GIL) prevents threading from helping). Judged
+  count, since checking is CPU bound and Python's Global Interpreter Lock (GIL) prevents threading from helping). Judged
   not worth the complexity given current scale, and the diminishing-cost trajectory as checkers share a single parse.
   Revisit if real usage patterns show this actually matters.
 - A Rust rewrite of the checker core (the ruff approach) — explicitly out of scope. Would be pursued for learning

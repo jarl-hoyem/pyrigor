@@ -28,7 +28,7 @@ while attempt_count < MAX_RETRIES:
 ## Rationale
 
 This is a narrower, structurally checkable sibling of [PYR203](./PYR203-final-not-magic-numbers.md), not a replacement
-for it. PYR203’s full scope, any numeric literal whose meaning is not self-evident, cannot be reliably detected from
+for it. PYR203's full scope, any numeric literal whose meaning is not self-evident, cannot be reliably detected from
 syntax alone. Whether a given `3` is meaningful, or an incidental loop bound is a judgment call an AST cannot make.
 PYR205 sidesteps that judgment entirely by checking a different, purely structural question: does this exact number
 appear more than once in this file, with no name attached to either occurrence.

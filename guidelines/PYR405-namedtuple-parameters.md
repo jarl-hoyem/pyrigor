@@ -26,7 +26,7 @@ def step_bot(*, action: BotAction) -> None: ...
 
 ## Rationale
 
-This is [PYR401](./PYR401-namedtuple-returns.md)’s failure mode on the other side of the function boundary. PYR401 stops
+This is [PYR401](./PYR401-namedtuple-returns.md)'s failure mode on the other side of the function boundary. PYR401 stops
 a function from _returning_ a positionally ambiguous multi-value tuple. PYR405 stops a function from _accepting_ one as
 a parameter.
 
@@ -67,7 +67,7 @@ caught by other means and narrower blast radius than error-tier rules.
 
 - Genuinely homogeneous, order-independent, or unbounded-length tuples (`tuple[float, ...]`), where there is no fixed
   positional meaning to get wrong.
-- A tuple parameter matching an external API’s expected shape (numpy/library conventions, a fixed C-extension calling
+- A tuple parameter matching an external API's expected shape (numpy/library conventions, a fixed C-extension calling
   convention) where introducing a `NamedTuple` wrapper would require constant unwrapping at the boundary with the
   library.
 

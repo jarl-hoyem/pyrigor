@@ -1,6 +1,6 @@
 # Rule naming convention
 
-Every guideline’s filename slug (the part after `PYRxxx-`) is also its symbolic name — the token used in suppression
+Every guideline's filename slug (the part after `PYRxxx-`) is also its symbolic name — the token used in suppression
 comments (`# pyrigor SYMBOLIC-NAME # reason`) and as a `Rule` enum value. This document is the convention for choosing
 that slug, so it does not need re-deciding at every new rule.
 
@@ -29,9 +29,10 @@ PYR202-enum-not-magic-strings
 ## Family resemblance counts
 
 A name that would be ambiguous in isolation can still work mandate-only if it clearly belongs to an established family
-of rules. `PYR301-namedtuple-values` and `PYR405-namedtuple-parameters` both lean on `PYR401-namedtuple-returns` already
-existing — "NamedTuple for X" reads as an obvious pattern once one member of the family is established, even though
-"values" or "parameters" alone would not necessarily imply "instead of a bare tuple" on their own.
+of rules. The rules `PYR301-namedtuple-values` and `PYR405-namedtuple-parameters` both lean on
+`PYR401-namedtuple-returns` already existing — "NamedTuple for X" reads as an obvious pattern once one member of the
+family is established, even though "values" or "parameters" alone would not necessarily imply "instead of a bare tuple"
+on their own.
 
 ## Why mandate-naming, not just short-naming
 

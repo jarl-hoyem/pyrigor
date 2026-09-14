@@ -2,7 +2,7 @@
 
 ## Rule
 
-A function parameter’s default value must never be a mutable object (`list`, `dict`, `set`, or any other mutable type).
+A function parameter's default value must never be a mutable object (`list`, `dict`, `set`, or any other mutable type).
 Use `None` as the default and construct the mutable value inside the function body instead.
 
 ```python

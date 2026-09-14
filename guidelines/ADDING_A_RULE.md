@@ -28,7 +28,7 @@ genuinely ambiguous about what it replaces.
 ## 3. Write the guideline doc
 
 File: `guidelines/PYRxxx-<symbolic-name>.md`. Follow the existing structure: Rule, Rationale, When this does not apply,
-Related, Enforced by. Cross-reference related rules in both directions, that is update the other rule’s doc too, not
+Related, Enforced by. Cross-reference related rules in both directions, that is update the other rule's doc too, not
 just this one.
 
 ## 4. Register the rule
@@ -66,10 +66,10 @@ implemented, add the matching `RuleInfo` entry and make the synchronisation test
 - Use `make_violation(node=node, rule=Rule.PYRxxx)` from `pyrigor/violations.py` to construct violations, rather than
   building `Violation` by hand.
 - Check `pyrigor/checkers/_shared.py` for existing reusable logic before writing new AST-walking code. If the new
-  checker needs logic that is a near-duplicate of an existing checker’s, extract it to `_shared.py` rather than copying
+  checker needs logic that is a near-duplicate of an existing checker's, extract it to `_shared.py` rather than copying
   it.
 
-## 6. Write the checker’s tests
+## 6. Write the checker's tests
 
 Test Driven Development (TDD): write a failing test before writing the checker. Cover, at minimum, the following edge
 cases, since past checkers have hit real bugs in every one of them:

@@ -26,7 +26,7 @@ def compute_gradient(x: np.ndarray, y: np.ndarray, w: np.ndarray, b: float) -> t
 dj_db_wrong, dj_dw_wrong = compute_gradient(x, y, w, b)
 ```
 
-This is not a hypothetical — it reproduces any time a function’s return order does not match a caller’s assumed order,
+This is not a hypothetical — it reproduces any time a function's return order does not match a caller's assumed order,
 particularly when copying code between files or from reference material that uses a different convention (for example
 `b, w` instead of `w, b`).
 
@@ -85,20 +85,20 @@ the `pyrigor` CLI (`pip install pyrigor`, then `pyrigor path/to/file.py`).
 
 ## Detection scope
 
-PYR401’s checker operates on return type annotations, not runtime inference of what a function actually returns. A
-function with no return annotation at all is outside this checker’s scope. The tool pyrigor assumes mypy (or an
+PYR401's checker operates on return type annotations, not runtime inference of what a function actually returns. A
+function with no return annotation at all is outside this checker's scope. The tool pyrigor assumes mypy (or an
 equivalent type checker) is already enforcing annotated returns project-wide and treats "no annotation" as a separate,
 already-covered concern rather than something PYR401 needs to detect itself.
 
-## A note on Google’s Python Style Guide
+## A note on Google's Python Style Guide
 
-Google’s own [Python Style Guide](https://google.github.io/styleguide/pyguide.html) addresses this exact problem and
+Google's own [Python Style Guide](https://google.github.io/styleguide/pyguide.html) addresses this exact problem and
 reaches a different conclusion: it recommends documenting a multi-value tuple return clearly in the docstring ("Returns:
 A tuple (mat_x, mat_y), where..."), rather than switching to a `NamedTuple`. This is a real, considered alternative
 mitigation, not an oversight, worth engaging with directly rather than ignoring.
 
 The gap this leaves: a docstring is not checked by any tool, mypy included. A caller can still unpack
 `dj_db, dj_dw = compute_gradient(...)` in the wrong order, silently, despite a docstring correctly warning against it,
-since nothing enforces that the unpacking order matches what the docstring describes. Google’s own mitigation is a
+since nothing enforces that the unpacking order matches what the docstring describes. Google's own mitigation is a
 human-readable convention The failure mode PYR401 addresses is specifically the one that survives a correctly written
 docstring, because nothing checks that the reader actually followed it.

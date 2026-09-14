@@ -51,7 +51,7 @@ repos:
   - repo: local
     hooks:
       - id: text-hygiene
-        name: reject control characters and mojibake
+        name: reject control characters, mojibake and curly quotes
         language: system
         entry: uv run python scripts/check_text_hygiene.py
         stages: [pre-commit]

@@ -28,7 +28,7 @@ genuinely about function call sites specifically and correctly sits in 4xx.
 ## Reserved but unwritten rules
 
 A rule number can be reserved by opening a GitHub Issue stating the intended number before its guideline doc exists.
-This prevents a later rule from claiming the same number, which has happened once already in this project’s history (a
+This prevents a later rule from claiming the same number, which has happened once already in this project's history (a
 file was misnamed `PYR404` when it should have been `PYR405`, colliding with the already-reserved mutable-defaults
 number).
 

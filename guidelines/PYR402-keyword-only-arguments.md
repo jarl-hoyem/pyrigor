@@ -35,7 +35,7 @@ def apply_correction(weight: Weight, bias: Bias) -> float: ...
 apply_correction(bias_value, weight_value)
 ```
 
-So PYR402 is not closing a static-type blind spot PYR201 leaves open — it is addressing three things PYR201’s protection
+So PYR402 is not closing a static-type blind spot PYR201 leaves open — it is addressing three things PYR201's protection
 is _contingent_ on, plus one PYR201 cannot address at all:
 
 **1. Mypy has to actually run, and has to see the chain.** The `NewType` protection is static-only. If a value is
@@ -62,7 +62,7 @@ is closer to design-by-contract than relying on a type-checker run to surface th
 None of this makes [PYR201](PYR201-newtype-same-typed-values.md) redundant — `NewType` still gives mypy the chance to
 catch a bare, unwrapped value landing in the wrong slot, which keyword-only calling alone does not. A keyword call with
 the _wrong keyword name_ used by mistake is still a real, if less common, way to swap values. PYR402 is defence in
-depth: a language-level guarantee that holds even when the static-analysis guarantee’s preconditions are not met.
+depth: a language-level guarantee that holds even when the static-analysis guarantee's preconditions are not met.
 
 Combined with [PYR401](PYR401-namedtuple-returns.md) and [PYR201](PYR201-newtype-same-typed-values.md), this closes the
 remaining gaps in the full picture:

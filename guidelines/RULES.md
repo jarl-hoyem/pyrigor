@@ -22,8 +22,8 @@ this file by hand, it is overwritten on the next commit. See each rule's own gui
 | PYR402 | Force keyword-only arguments for all parameters                         | `pyrigor` CLI (pre-commit hook) |
 | PYR403 | Use keyword-only arguments even for single-parameter functions          | `pyrigor` CLI (pre-commit hook) |
 | PYR405 | Use `NamedTuple` for multi-value parameter types, not bare `tuple`      | `pyrigor` CLI (pre-commit hook) |
-| PYR406 | Use every locally defined function’s non-`None` return value            | `pyrigor` CLI (pre-commit hook) |
-| PYR407 | Use every locally defined generator function’s result                   | Not yet implemented             |
+| PYR406 | Use every locally defined function's non-`None` return value            | `pyrigor` CLI (pre-commit hook) |
+| PYR407 | Use every locally defined generator function's result                   | Not yet implemented             |
 | PYR501 | End a `match` over a closed set with `case _: assert_never(...)`        | Not yet implemented             |
 | PYR502 | State implicit assumptions about inputs as explicit preconditions       | Not yet implemented             |
 | PYR503 | Verify extracted archive members stay within the target directory       | Not yet implemented             |

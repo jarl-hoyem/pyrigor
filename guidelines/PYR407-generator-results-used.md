@@ -1,4 +1,4 @@
-# PYR407 — Use every locally defined generator function’s result
+# PYR407 — Use every locally defined generator function's result
 
 ## Rule
 
@@ -24,7 +24,7 @@ Same structural, no-decorator design as PYR406, matching every other enforced py
 ## Rationale
 
 Calling a generator function and discarding the result is a distinct, and arguably worse, failure mode than discarding a
-normal return value. Calling `process_items(items)` creates a generator object and runs none of the function’s body at
+normal return value. Calling `process_items(items)` creates a generator object and runs none of the function's body at
 all, `yield` never executes until something iterates the result. The call looks identical to a real, working call at the
 source level, produces no error, and silently does nothing.
 
@@ -39,7 +39,7 @@ def handle_request(items: list[Item]) -> None:
     log_and_yield_results(items)  # bug: nothing runs at all, no logging, no transforms
 ```
 
-This is exactly the case PYR406’s own guideline doc identified and deliberately carved out as separate territory,
+This is exactly the case PYR406's own guideline doc identified and deliberately carved out as separate territory,
 discarding a normal return value wastes real, already-computed work, discarding a generator call means the work never
 happened.
 
@@ -72,7 +72,7 @@ work never happened at all, not merely computed and thrown away.
 
 ## Related
 
-PYR406, the sibling rule for non-generator functions. See PYR406’s own guideline doc for why the two are separate rules
+PYR406, the sibling rule for non-generator functions. See PYR406's own guideline doc for why the two are separate rules
 rather than one combined rule.
 
 ## Enforced by

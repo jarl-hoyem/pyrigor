@@ -1,4 +1,4 @@
-# PYR406 — Use every locally defined function’s non-`None` return value
+# PYR406 — Use every locally defined function's non-`None` return value
 
 ## Rule
 
@@ -36,7 +36,7 @@ def handle_request(data: RawInput) -> None:
     process(data)  # still processing the raw, unvalidated input
 ```
 
-This is precisely the class of bug MITRE’s CWE-252 (Unchecked Return Value), and the equivalent SEI CERT rules for Java
+This is precisely the class of bug MITRE's CWE-252 (Unchecked Return Value), and the equivalent SEI CERT rules for Java
 (EXP00-J) and C (EXP12-C) describe. It is exactly what OSSF's Secure Coding Guide for Python, pyscg-0036 ("Check Return
 Values"), addresses directly for Python specifically. This rule enforces that guidance mechanically rather than relying
 on a reviewer noticing a missing assignment by eye.
@@ -64,8 +64,8 @@ optional chaining, a status code from a call whose primary purpose is a side eff
 noise entirely, rather than trying to detect every legitimate exception automatically:
 
 - **Only the functions defined within the codebase pyrigor is checking.** A call into an external library, anything not
-  defined in the project’s own source, is never flagged, regardless of its return type. The project has no control over
-  that library’s own conventions.
+  defined in the project's own source, is never flagged, regardless of its return type. The project has no control over
+  that library's own conventions.
 - **A function returning `None`** (explicit or inferred) is automatically excluded, there is nothing meaningful to
   discard. This removes the largest source of potential noise, `print`, `logger.info`, `list.append`, and any other
   side-effecting, `None`-returning function.
@@ -76,14 +76,14 @@ noise entirely, rather than trying to detect every legitimate exception automati
   still counts, since its own `self` is the same instance. A nested class defined inside the method does not, since its
   own `self` refers to its own instance instead.
 - **A subclass calling an inherited method through `self` is not detected.** Pyrigor never resolves a class hierarchy,
-  only a class’s own directly defined methods. A `cls.<name>()` call is not detected either, out of scope for this
+  only a class's own directly defined methods. A `cls.<name>()` call is not detected either, out of scope for this
   narrower pass.
 - **Any attribute call through something other than `self`** (`obj.compute_total()`) is never matched. Pyrigor cannot
   reliably determine which class or object an arbitrary attribute belongs to — it has no type inference and processes
   one file at a time.
 - **A `lambda` expression** is excluded entirely, structurally rather than as a deliberate carve-out. It has no `.name`
-  for the checker’s name-matching mechanism to key on — only whatever variable it is assigned to carries a name.
-  Python’s grammar also gives a `lambda` no `->` return-annotation slot at all, so even a named `lambda` could never
+  for the checker's name-matching mechanism to key on — only whatever variable it is assigned to carries a name.
+  Python's grammar also gives a `lambda` no `->` return-annotation slot at all, so even a named `lambda` could never
   satisfy the return-type check.
 
 ## When this does not apply
@@ -93,12 +93,12 @@ noise entirely, rather than trying to detect every legitimate exception automati
   suppression comment for these, `# pyrigor 406 # deliberately discarding the removed value`, rather than expecting the
   rule to infer the exception automatically.
 - Any call into code outside the project being checked. This rule never inspects or assumes anything about an external
-  library’s own conventions.
+  library's own conventions.
 
 ## Not covered by this rule
 
 A **generator function** (`-> Iterator[X]`, `Generator[X, Y, Z]`, or `AsyncGenerator[X, Y]`), called and discarded, is a
-related but distinct, arguably worse failure mode: discarding the call means none of the function’s body ever runs at
+related but distinct, arguably worse failure mode: discarding the call means none of the function's body ever runs at
 all, `yield` never executes until something iterates the result, not merely "computed and thrown away," but "never
 computed." This case is covered by PYR407 instead, a separate rule.
 

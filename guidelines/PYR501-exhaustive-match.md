@@ -60,7 +60,7 @@ match status:
 A `case _: assert_never(status)` branch closes this gap in two layers. At type-check time, mypy already understands
 `assert_never`'s contract: if every other branch has narrowed the `status` down to nothing remaining, the `case _:`
 branch is statically proven unreachable, and mypy accepts it silently. The moment a new enum member is added, and a
-branch for it is not, mypy’s narrowing can no longer remove every possibility before reaching `case _:`, and it raises a
+branch for it is not, mypy's narrowing can no longer remove every possibility before reaching `case _:`, and it raises a
 type error at the `assert_never` call, at the exact `match` statement that needs updating, before the code ever runs. At
 runtime, if this path is ever reached despite that guarantee, for example, when an entirely different, untyped data
 source produces an unexpected value, `assert_never` raises immediately, rather than the `match` statement completing

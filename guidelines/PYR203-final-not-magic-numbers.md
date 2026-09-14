@@ -99,7 +99,7 @@ something else entirely is a real human judgment call, the same limiting factor 
   with `Enum` rather than `Final`.
 - [PYR205](./PYR205-final-constants.md) — a narrower, independently adoptable rule catching only the subset of this
   problem where the same literal is duplicated across a file, a lighter starting point for a codebase not yet ready to
-  adopt PYR203’s full scope.
+  adopt PYR203's full scope.
 
 ## Enforced by
 
