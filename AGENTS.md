@@ -131,7 +131,7 @@ Work efficiently with model tokens, tool calls, network access and the maintaine
   session's model. Delegated subagents may use a cheaper model when delegation is appropriate. Wait for the user's
   choice before proceeding.
 - Increase model capability or reasoning effort only when task complexity or observed failure warrants it. Reserve the
-  most expensive reasoning modes for work where their quality gain justifies the additional cost.
+  most expensive reasoning modes for work where their quality gain justifies the cost.
 - Prepare one cohesive, exact diff for the approval instead of requesting a series of small edits.
 - Use targeted validation proportional to the change. Do not duplicate the full pre-commit suite when the maintainer's
   commit workflow runs it, unless targeted checks reveal risk or the maintainer requests it.
@@ -219,7 +219,7 @@ were confirmed for real on 2026-09-05, adding #61 to #62's blocker list and remo
 Older issues (#66/#67) still use the prose form from before this convention started. Not worth migrating retroactively.
 Use the real feature going forward.
 
-Any GitHub issue action that changes its state — creating, editing, commenting on, labelling or closing an issue — needs
+Any GitHub issue action that changes its state — creating, editing, commenting, labelling or closing an issue — needs
 the user's explicit go-ahead first, the same as a file edit. Show what will be created, changed or said before doing it,
 not just describe the plan.
 
@@ -250,6 +250,7 @@ exact keyword-then-#N pattern verbatim.
 
 ## Project-wide conventions
 
+- The project name is always written `pyrigor`, in lowercase. Do not write `Pyrigor` or `PyRigor`.
 - All checker/CLI functions use keyword-only arguments (`*,`) - pyrigor enforces this on itself (PYR402/PYR403).
 - Functions returning more than one value use `NamedTuple`, not bare tuples (PYR401) - see `guidelines/DECISIONS.md` for
   why `NamedTuple` and `NewType` close different gaps.

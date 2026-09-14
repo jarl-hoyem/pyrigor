@@ -37,8 +37,8 @@ on their own.
 ## Why mandate-naming, not just short-naming
 
 This is not purely a style choice — it reflects what pyrigor actually is meant to do. Every guideline written so far
-pairs "here is what is wrong" with "here is specifically what to do instead", including a worked `# Good` example.
-Pyrigor is a prescriptive tool: it does not just flag risky patterns and leave the fix to the reader, it commits to one
+pairs "here is what is wrong" with "here is specifically what to do instead", including a worked `# Good` example. As a
+tool, pyrigor is prescriptive: it does not just flag risky patterns and leave the fix to the reader, it commits to one
 specific, verified answer. Mandate-based naming is honest about that — the name says what the tool actually tells you to
 do.
 
