@@ -121,4 +121,5 @@ addopts = [
   "--cov-fail-under=100",
   "--strict-markers",
   "-W", "error",
+  "-p", "no:tach",
 ]
