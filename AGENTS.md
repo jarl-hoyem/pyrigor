@@ -231,6 +231,11 @@ Wait for CI to pass before closing. A fix that is committed is not yet a fix tha
 on a red build has to be reopened. This is why a commit message references an issue with `refs` rather than a closing
 keyword: the keyword closes it the moment the commit lands on the default branch, before any check has run.
 
+A commit merged by auto-merge has no CI run on `main`. GitHub starts no workflow for a push made with `GITHUB_TOKEN`,
+and auto-merge merges as `github-actions[bot]` with that token. Branch protection requires the pull request to be up to
+date and green before it merges, so its last CI run tested the tree that landed. Check that run instead. A missing run
+on `main` after an auto-merge is expected, not a gap in testing.
+
 GitHub auto-closes an issue the moment a closing keyword (`fix`, `fixes`, `closes`, `resolves`, and their variants) sits
 directly in front of `#N` in any commit message that lands on the default branch — no PR, no review, no repo setting to
 turn it off. This bypasses the go-ahead-and-closing-comment rule above entirely, silently: issue #10 was auto-closed
