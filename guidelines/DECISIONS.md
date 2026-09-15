@@ -795,6 +795,11 @@ The lock was set back to the previously pinned versions, so the move changed no 
 separate Dependabot pull requests. The same 41 hooks run with the same results before and after, apart from the hook id
 `ruff` becoming `ruff-check`, and a deliberate violation still fails each converted hook.
 
+The mutmut Docker image had the same gap. It ran `pip install`, which took the newest release of every dev tool, so CI
+ran mutmut 3.8.0 while the lock pinned 3.7.0. The newer mutmut created 42 more mutants, so the mutation score changed
+with upstream releases rather than with pyrigor. The image now runs `uv sync --locked`, and Dependabot's `docker`
+ecosystem updates its uv image pin.
+
 ### Prettier runs from the locked package, with one pin
 
 Prettier's version was stated twice. The first place was `package.json` and `package-lock.json`, which PyCharm's
