@@ -36,4 +36,5 @@ The review outcome is one of:
 
 Any material disagreement between the issue author and reviewer must be resolved before implementation begins.
 
-The reviewer must be independent of the person or LLM that will implement the work.
+The reviewer must be independent of the person or LLM that wrote the issue. The expected outcome of a review is a
+tighter specification. The implementer does not need to be independent of either.
