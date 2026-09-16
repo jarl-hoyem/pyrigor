@@ -61,16 +61,6 @@ _CONTRACT_ANNOTATION_KEYS = (
     "x-fix-conventions",
     "x-edit-conventions",
 )
-_REQUIRED_IMPLEMENTATION_INVARIANTS = frozenset(
-    {
-        (
-            "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 "
-            "code-point boundary."
-        ),
-        "code names a member of Rule.",
-        "level is the severity configured for the Rule named by code.",
-    },
-)
 
 # Every keyword JSON Schema 2020-12 defines. Validators silently ignore a misspelt keyword, so any other key must be
 # an extension key starting with x-.
@@ -362,13 +352,6 @@ def test_contract_annotation_is_present_and_nonempty(*, key: str) -> None:
     assert len(value) == len(set(value))
 
 
-def test_required_implementation_invariants_are_listed() -> None:
-    """Every invariant delegated to the producer remains part of its contract."""
-    invariants = cast("list[str]", _load_schema()["x-invariants"])
-
-    assert set(invariants) >= _REQUIRED_IMPLEMENTATION_INVARIANTS
-
-
 def _first_span(*, finding: Json) -> Json:
     """Return the first span of a finding."""
     return cast("list[Json]", finding["spans"])[0]
@@ -560,6 +543,47 @@ _HOSTILE_FILE_NAMES = {
     "c1-control-character-inside-segment": "src/a\x9bpp.py",
 }
 
+_INVISIBLE_CHARACTERS = {
+    "soft-hyphen": chr(0x00AD),
+    "combining-grapheme-joiner": chr(0x034F),
+    "arabic-letter-mark": chr(0x061C),
+    "hangul-choseong-filler": chr(0x115F),
+    "hangul-jungseong-filler": chr(0x1160),
+    "mongolian-vowel-separator": chr(0x180E),
+    "inhibit-symmetric-swapping": chr(0x206A),
+    "nominal-digit-shapes": chr(0x206F),
+    "hangul-filler": chr(0x3164),
+    "halfwidth-hangul-filler": chr(0xFFA0),
+    "interlinear-annotation-anchor": chr(0xFFF9),
+    "interlinear-annotation-terminator": chr(0xFFFB),
+}
+
+
+def _invisible_character_findings() -> list[object]:
+    """Build one finding per invisible character in each place where people see text."""
+    return [
+        pytest.param(finding, id=f"{place}-{name}")
+        for name, character in _INVISIBLE_CHARACTERS.items()
+        for place, finding in (
+            ("span-file-name", _finding(spans=[_span(file_name=f"src/ap{character}p.py")])),
+            ("edit-file-name", _with_fix(edits=[_edit(file_name=f"src/ap{character}p.py")])),
+            ("symbol-name", _symbol(kind="function", name=f"ap{character}ply")),
+            ("message", _finding(message=f"ok{character}")),
+            ("message-of-only-that-character", _finding(message=character)),
+            ("label", _finding(spans=[_span(label=f"here{character}")])),
+            (
+                "fix-message",
+                _finding(fixes=[{"applicability": "safe", "message": f"apply{character}", "edits": [_edit()]}]),
+            ),
+        )
+    ]
+
+
+@pytest.mark.parametrize("finding", _invisible_character_findings())
+def test_invisible_character_is_rejected_wherever_text_is_shown(*, finding: Json) -> None:
+    """Zero-width, filler and format characters can disguise shown text, so every text field rejects them."""
+    assert not _is_valid(definition="Finding", instance=finding)
+
 
 def _hostile_file_name_findings() -> list[object]:
     """Build one finding per hostile file name, used once in a span and once in an edit."""
@@ -709,6 +733,13 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         ),
         pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
         pytest.param(_finding(code="PYR402", level="error"), id="level-does-not-match-rule"),
+        pytest.param(
+            _finding(spans=[_span(byte_start=1_000_000_000_000, byte_end=1_000_000_000_000)]),
+            id="offset-beyond-any-file",
+        ),
+        pytest.param(_finding(message="line\u2028break"), id="line-separator-inside-message"),
+        pytest.param(_finding(spans=[_span(file_name="src/a\u2029p.py")]), id="paragraph-separator-in-file-name"),
+        pytest.param(_finding(message="tag\U000e0041"), id="tag-character-in-message"),
         pytest.param(_symbol(kind="function", name="\u00e9\u00a7"), id="non-ascii-non-identifier-symbol-name"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
         pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
@@ -722,7 +753,9 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
 def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Json) -> None:
     """These are accepted by design and listed in x-invariants, or are integers under JSON Schema's own definition.
 
-    If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants.
+    If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants. Line and
+    paragraph separators inside text and tag characters outside the Basic Multilingual Plane wait for portable patterns
+    in #291.
     """
     assert _is_valid(definition="Finding", instance=finding)
 

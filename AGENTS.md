@@ -270,6 +270,8 @@ exact keyword-then-#N pattern verbatim.
 - Do not use em dashes (U+2014) or en dashes (U+2013). Split the sentence with a full stop or use a comma or
   parentheses. For a range, use a hyphen or the word "to."
 - Do not use contractions. Write the expanded form, so "cannot" and "it is."
+- Do not use the serial (Oxford) comma. Write "A, B and C", not "A, B and C". Where a list without it would be
+  ambiguous, split the sentence instead. Direct quotations keep their original punctuation.
 - Headings use a sentence case. Capitalise the first word, proper nouns and acronyms only, so "Sunk cost fallacy" and
   "Chesterton's fence", but "KISS" and "YAGNI" are unchanged. Google's and Microsoft's style guides both require this.
   Title case has no single definition, so it cannot be applied consistently without first choosing between AP, Chicago

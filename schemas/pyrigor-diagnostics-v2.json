@@ -34,8 +34,8 @@
     "file_name is in Unicode normalisation form NFC.",
     "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely.",
     "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 code-point boundary.",
-    "code names a member of Rule.",
-    "level is the severity configured for the Rule named by code."
+    "code names a rule pyrigor defines.",
+    "level is the severity pyrigor assigns to the rule named by code."
   ],
   "x-span-conventions": [
     "byte_start and byte_end are offsets into the raw bytes of the file, end-exclusive.",
@@ -249,7 +249,11 @@
           "allOf": [
             {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
+            },
+            {
+              "description": "No invisible filler, joiner or annotation characters.",
+              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
             },
             {
               "description": "At least one visible character.",
@@ -303,7 +307,11 @@
         },
         {
           "description": "No zero-width, bidirectional control or byte-order mark characters.",
-          "pattern": "^(?![\\s\\S]*[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+          "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
+        },
+        {
+          "description": "No invisible filler, joiner or annotation characters.",
+          "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
         },
         {
           "description": "Relative, so not starting with a slash or a drive letter.",
@@ -389,7 +397,11 @@
           "allOf": [
             {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
+            },
+            {
+              "description": "No invisible filler, joiner or annotation characters.",
+              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
             },
             {
               "description": "At least one visible character.",
@@ -418,7 +430,11 @@
             },
             {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
+            },
+            {
+              "description": "No invisible filler, joiner or annotation characters.",
+              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
             },
             {
               "description": "Identifier characters, dots and angle brackets only. Non-ASCII is checked loosely.",
@@ -520,7 +536,11 @@
           "allOf": [
             {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
+            },
+            {
+              "description": "No invisible filler, joiner or annotation characters.",
+              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
             },
             {
               "description": "At least one visible character.",

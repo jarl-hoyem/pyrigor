@@ -78,7 +78,7 @@ and the cost scaled linearly with the number of registered checkers, every futur
 Two designs were considered.
 
 **Cache-based** (rejected): keep every checker's own `find_violations(*, tree)` signature exactly as-is, walk once
-inside `_run_checkers`, and cache the result keyed by `id(tree)`, so a repeated internal `ast.walk` call inside
+inside `_run_checkers` and cache the result keyed by `id(tree)`, so a repeated internal `ast.walk` call inside
 `_shared.py` would hit the cache rather than re-walking. Smaller diff, no signature changes anywhere. Rejected because
 it is exactly the kind of implicit, hidden coupling this project has repeatedly been burned by — the
 `zip(CHECKERS, Rule)` positional-coupling bug fixed earlier is the same category of problems. It rests on an unenforced
@@ -90,7 +90,7 @@ walked in the same way, silently broken the moment one does not.
 `WalkedNodes( function_nodes, assign_nodes)`. Every checker's own public `find_violations` signature changes from
 `(*, tree: ast.Module)` to `(*, nodes: WalkedNodes)`, an honest interface describing exactly what each checker actually
 needs, rather than "a tree, which happens to be pre-walked somewhere else by convention." Real cost: touched five
-checker files, the `_CheckerFun` Protocol, and every existing test calling `find_violations` directly. Real result:
+checker files, the `_CheckerFun` Protocol and every existing test calling `find_violations` directly. Real result:
 confirmed via profiling, `ast.walk`'s own call count dropped exactly 5.0x (69,393,100 to 13,878,620), and real-world
 timing on the same 18,187-file run dropped from 388.20 s to 55.46 s, 7x.
 
@@ -160,7 +160,7 @@ was considered). Adopted as a permanent, standing part of every new rule doc's o
 The actual FixProposal architecture itself (a real suggest() implementation, editor extensions, an LSP) is explicitly
 deferred, not adopted now. Building real engineering toward editor integration for a tool with zero real external
 adopters and no editor integration at all yet is exactly the kind of premature investment already identified as this
-project's biggest real risk. Revisit only once real, concrete demand exists, a real user asking, or genuine
+project's biggest real risk. Revisit only once real, concrete demand exists, a real user asking or genuine
 editor-integration work actually starting, not before.
 
 ## Severity: Language Server Protocol DiagnosticSeverity naming adopted, real per-rule levels assigned
@@ -206,8 +206,29 @@ The `--output-format=json` output is an editor and tooling API. Its published JS
 contract tests must validate actual output for clean results, diagnostics, suppression and operational errors. Rule
 metadata such as severity and fixability has one canonical source in `RuleInfo`. Documentation and tests should detect
 drift rather than duplicate the classification independently. Human output remains a separate compatibility surface.
-Source locations expose Python text columns (code points), not encoded byte offsets, and Unicode behaviour is covered
-explicitly.
+Columns count code points. The v2 contract adds raw byte offsets alongside them because exact edits need positions in
+the file as written. Unicode behaviour is covered explicitly.
+
+### The v2 finding contract is one JSON Schema, attacked on purpose
+
+`schemas/pyrigor-diagnostics-v2.json` is the single source of the finding types and their conventions, and it is edited
+directly. A script generating it would be a second copy to keep in synch. The file `FINDING_MODEL.md` records the
+reasons, and the worked position examples are checked by tests against raw bytes and Python's parser, so a direct edit
+stays safe.
+
+The model was settled by an architecture council of five independent reviews on #278: raw byte offsets with code-point
+columns, an edit shape of its own, a list of fixes, an enclosing symbol for identity and an extension policy. It has no
+child diagnostics, notebook cells or per-finding URL.
+
+The schema was then attacked deliberately, in rounds. A regression test rejects every hostile input it can recognise.
+Every violation it cannot recognise is pinned as accepted and listed as a producer invariant. Removing any single rule
+makes a test fail. The attacks decided three things the review had not. The root rejects every document until the
+wrapper exists (#288). The `uniqueItems` is not used because it made validation quadratic. Text that people see may not
+contain zero-width, bidirectional control or invisible filler characters.
+
+Earned by: the first version accepted any document at its root, a rule code with a trailing newline and absolute file
+names, and took seconds to validate a finding with thousands of spans. Its tests passed because they only checked the
+rules the schema's author had thought of. Portability of the patterns across regex engines is still open in #291.
 
 ## Opt-in rule tier: Real, two independent axes, no separate numbering
 
@@ -329,7 +350,7 @@ upstream bug, not fixed between releases.
 
 A Windows batch script (`scripts/run_complexipy.bat` setting `PYTHONUTF8=1` before invoking the binary) was considered
 first, and would have worked locally. Rejected because it is Windows-only, `.bat` syntax and `%*` argument forwarding
-mean nothing on macOS or Linux, and this project's own CI matrix explicitly tests `ubuntu-latest`, `macos-latest`, and
+mean nothing on macOS or Linux, and this project's own CI matrix explicitly tests `ubuntu-latest`, `macos-latest` and
 `windows-latest`. A fix that only works for one contributor's own OS is not a real fix for a project with a genuinely
 cross-platform CI matrix.
 
@@ -411,12 +432,12 @@ this project rejects.
 the actual file found it already mostly matches a real principle, just never named.
 
 Changed-files-only, correctly: `ruff`, `ruff-format`, `gitleaks`, `actionlint`, `bandit`, `codespell`,
-`markdownlint-cli2`, `complexipy`, `pylint`, `text-hygiene`, and the published, pinned `pyrigor` hook. Every one of
-these produces findings that are strictly local to the files it looks at. Nothing about an untouched file's own
-cleanliness can change from editing a different one, so re-checking it on every commit would be pure waste.
+`markdownlint-cli2`, `complexipy`, `pylint`, `text-hygiene` and the published, pinned `pyrigor` hook. Every one of these
+produces findings that are strictly local to the files it looks at. Nothing about an untouched file's own cleanliness
+can change from editing a different one, so re-checking it on every commit would be pure waste.
 
 Whole-project, always, correctly: `ty`, `mypy`, `pyright`, `radon-maintainability`, `xenon` (both entries), `tach`,
-`uv-lock-check`, `dod-check`, `generate-rule-table`, `pip-audit`, `pytest`, and the local, 'wip' `pyrigor` self-check
+`uv-lock-check`, `dod-check`, `generate-rule-table`, `pip-audit`, `pytest` and the local, 'wip' `pyrigor` self-check
 (see "The tool pyrigor runs two self-checks" above for why that one and the published one are scoped differently on
 purpose). Each needs cross-file or whole-program context to be completely correct: type inference across module
 boundaries, module-boundary enforcement itself, lock-file consistency against the full dependency set, a generated file
@@ -428,7 +449,7 @@ just faster.
 whole-project neighbours, but it is correctly changed-files-only — pylint checks one file at a time, same as ruff. Left
 as-is, deliberately, not "fixed" into whole-project.
 
-Three tools — `vulture`, `radon-maintainability`, and the strict `xenon` — hardcoded directory allowlists
+Three tools — `vulture`, `radon-maintainability` and the strict `xenon` — hardcoded directory allowlists
 (`pyrigor scripts tests`, or a subset — radon's list was even missing `scripts/`), so each silently stopped covering any
 directory added later. Confirmed real: `manual-tests/` was never scanned by any of the three. Running the tool vulture
 against the directory at once found three hits (`nested_function`, `café`, `unused_pair`) — but testing each fixture
@@ -446,13 +467,13 @@ because trivial one-line fixtures do not trip its complexity threshold, so unlik
 Radon's clean result proved nothing at the time because its hook could not fail. See "Radon's maintainability index is
 enforced by a script".
 
-`ty`, `mypy`, and `pyright` don't have this problem: confirmed empirically (`mypy .` reports checking exactly 44 source
+`ty`, `mypy` and `pyright` don't have this problem: confirmed empirically (`mypy .` reports checking exactly 44 source
 files, never touching `.venv`), all three have real, built-in smart defaults that skip virtual environments and build
 artefacts without any configuration. Vulture's own `--help` says plainly it has none: "For each directory Vulture
 analyses all contained `*.py` files."
 
 Fixed by pointing all three at the project (`.`) instead of a hardcoded allowlist, with an explicit, evidence-based
-denylist. All three exclude `.venv`, `htmlcov`, and `*.egg-info` (never real source). Vulture also excludes
+denylist. All three exclude `.venv`, `htmlcov` and `*.egg-info` (never real source). Vulture also excludes
 `manual-tests` with `--exclude`, while radon and xenon use `--ignore` for the same patterns. Verified empirically for
 each: identical results to before, now covering `scripts/` (radon missed it initially) and `manual-tests/` (all three
 missed it) that were previously invisible.

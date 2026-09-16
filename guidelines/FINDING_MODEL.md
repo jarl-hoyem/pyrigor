@@ -26,8 +26,8 @@ Ruff and rustc already expose diagnostics to editors, automation and humans. Reu
 translation between pyrigor and the surrounding Python tooling ecosystem and makes the model easier for consumers to
 understand.
 
-This is why pyrigor uses names such as `code`, `message`, `spans`, `is_primary`, `label`, and `applicability` rather
-than inventing pyrigor-specific synonyms.
+This is why pyrigor uses names such as `code`, `message`, `spans`, `is_primary`, `label` and `applicability` rather than
+inventing pyrigor-specific synonyms.
 
 The goal is not to copy either format wholesale. Their models contain concepts specific to their implementations.
 Instead, pyrigor adopts vocabulary and structure where it has a clear fit and deliberately rejects concepts that do not.
@@ -35,7 +35,7 @@ Instead, pyrigor adopts vocabulary and structure where it has a clear fit and de
 ### Structured spans instead of one location
 
 A finding is not necessarily about one source position. Some diagnostics naturally involve several locations: a
-declaration and its use, two values that should not be confused, or a source location plus the place where a consequence
+declaration and its use, two values that should not be confused or a source location plus the place where a consequence
 occurs.
 
 A `spans` collection therefore provides a durable model for both simple and multi-location findings. The `is_primary`
@@ -96,12 +96,32 @@ module. Its name follows Python's own `__qualname__`, such as `Class.method` or 
 already defined by Python, and it keeps two nested functions with the same name apart. How a baseline turns the symbol
 into a fingerprint is left to the baseline itself.
 
+Because the name is a `__qualname__`, its shape follows from its kind. Every segment is a Python identifier, a method's
+name ends with its class, and a function is either at module level or directly inside another function. A name that
+contradicts its kind cannot come from Python, so the schema rejects it rather than letting a consumer build identity on
+it.
+
+### One spelling per file
+
+Sorting findings and matching them against a baseline both compare file names as strings. The same file must therefore
+always be written the same way: relative, with forward slashes, without `.` segments, without whitespace at the edges of
+a segment and in Unicode normalisation form NFC. Any other spelling of a path pyrigor reports would make one file look
+like two.
+
+### Text cannot disguise itself
+
+File names, symbol names, messages and labels are shown to people, in terminals, editors and reports. Zero-width
+characters, bidirectional controls and invisible fillers can make such a text display differently from what it contains,
+which is how "Trojan Source" attacks hide code. The schema rejects them in all shown text and requires every message and
+label to contain a visible character. Edit content is the exception, because a fix can need such a character inside a
+string literal it writes.
+
 ### Fixes are structured actions
 
 A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed and
 which source ranges it changes.
 
-Therefore, a fix has an `applicability`, a `message`, and one or more `edits`. Each edit identifies a byte range and
+Therefore, a fix has an `applicability`, a `message` and one or more `edits`. Each edit identifies a byte range and
 replacement content.
 
 A finding carries a list of fixes, not a single one. Some findings can be resolved in more than one way, and a list lets
@@ -125,7 +145,7 @@ Keeping those concerns separate avoids duplicating the rule-definition structure
 documentation link is a property of the rule, the same for every finding, so it belongs with the rule metadata rather
 than in each finding.
 
-The finding carries `code`, `message`, and `level` directly, so each finding stays readable on its own.
+The finding carries `code`, `message` and `level` directly, so each finding stays readable on its own.
 
 ### Absent values have one representation
 
@@ -138,6 +158,24 @@ one.
 Planned features will add information to findings, such as suppression state and baseline state. The schema therefore
 states an extension policy: consumers ignore fields they do not know, and adding an optional field is a compatible
 change. The tool pyrigor still validates its own output strictly, so a field it did not intend to emit is caught.
+
+### Validation stays linear
+
+A consumer validates whatever it receives, including hostile documents. The `uniqueItems` keyword compares every item
+with every other, so a single finding with a few thousand spans took seconds to validate. The schema therefore does not
+use it, and uniqueness of spans, fixes and edits is an invariant the producer guarantees.
+
+### What the schema leaves to the producer
+
+Some rules cannot be expressed in JSON Schema: an offset not after its end, sorted and non-overlapping edits, offsets
+within the file, NFC and valid Unicode, a code that names a rule pyrigor defines and a level that matches the severity
+pyrigor assigns to that rule. The schema lists them as invariants for the producer, and tests pin that the schema
+accepts each violation, so a later change that starts enforcing one updates the list deliberately.
+
+### No document validates before the wrapper exists
+
+The schema defines finding types, but not yet the document that carries them. Until the document wrapper is defined, the
+schema's root rejects every document, so nothing can pass validation against a contract that is incomplete.
 
 ### Do not import implementation-specific machinery
 
@@ -171,6 +209,9 @@ The schema defines these types:
 - `Fix`
 - `Edit`
 
+It also defines `FileName`, `ByteOffset` and `LinePosition` once, and spans and edits refer to them, so the two cannot
+disagree.
+
 Their fields, the position conventions, the worked position examples and the invariants the schema cannot express are in
 [`schemas/pyrigor-diagnostics-v2.json`](../schemas/pyrigor-diagnostics-v2.json).
 
@@ -202,7 +243,7 @@ The following rustc/Ruff fields are not part of the canonical finding model:
 
 ## Future capabilities
 
-A later version of pyrigor may expose suppression locations to editors so that tools can navigate to, create, or modify
+A later version of pyrigor may expose suppression locations to editors so that tools can navigate to, create or modify
 suppressions. Suppression location is therefore a future diagnostic capability, not part of the core finding.
 
 Child diagnostics and notebook cells can be added as optional fields under the extension policy when they are needed.
