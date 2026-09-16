@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jarl-hoyem/pyrigor/blob/main/schemas/pyrigor-diagnostics-v2.json",
   "title": "pyrigor diagnostics v2",
-  "description": "Output contract for pyrigor's diagnostics. This file defines the finding types.",
+  "description": "Output contract for pyrigor's diagnostics, defining the finding types. See x-extension-policy.",
   "x-root": [
     "No document validates yet, because the document wrapper is not defined.",
     "Validate a single type through its definition, such as #/$defs/Finding."

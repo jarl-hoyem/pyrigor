@@ -17,6 +17,12 @@ _BYTE_ORDER_MARK = b"\xef\xbb\xbf"
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LARGEST_SAFE_INTEGER = 9_007_199_254_740_991  # 2 to the 53rd power, minus 1
 _NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
+_EXTENSION_POLICY_KEY = "x-extension-policy"
+_EXTENSION_POLICY_RULES = (
+    "ignore fields they do not know",
+    "optional field is a compatible change",
+    "changes the version",
+)
 _QUADRATIC_KEYWORD = "uniqueItems"
 _REQUIRED_EXAMPLE_NAMES = frozenset(
     {
@@ -213,6 +219,17 @@ def _is_valid(*, definition: str, instance: Json) -> bool:
 def test_schema_file_is_valid_json_schema_2020_12() -> None:
     """The schema itself conforms to the JSON Schema 2020-12 meta-schema."""
     jsonschema.Draft202012Validator.check_schema(_load_schema())
+
+
+def test_schema_states_its_extension_policy() -> None:
+    """The top-level description points to the extension policy, and the policy states each rule."""
+    schema = _load_schema()
+    policy = " ".join(cast("list[str]", schema[_EXTENSION_POLICY_KEY]))
+
+    missing = [rule for rule in _EXTENSION_POLICY_RULES if rule not in policy]
+
+    assert _EXTENSION_POLICY_KEY in cast("str", schema["description"])
+    assert not missing
 
 
 def test_missing_schema_file_fails_instead_of_skipping(*, tmp_path: Path) -> None:
