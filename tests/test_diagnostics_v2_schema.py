@@ -14,7 +14,7 @@ from jsonschema.protocols import Validator
 _SCHEMA_PATH = Path(__file__).parent.parent / "schemas" / "pyrigor-diagnostics-v2.json"
 _BYTE_ORDER_MARK = b"\xef\xbb\xbf"
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
-_LARGEST_SAFE_INTEGER = 2**53 - 1
+_LARGEST_SAFE_INTEGER = 9_007_199_254_740_991  # 2 to the 53rd power, minus 1
 _NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
 _REQUIRED_EXAMPLE_NAMES = frozenset(
     {
@@ -35,8 +35,8 @@ _REQUIRED_EXAMPLE_NAMES = frozenset(
     },
 )
 
-# Every keyword JSON Schema 2020-12 defines. A misspelt keyword is silently ignored by validators, so any other key
-# must be an x- extension.
+# Every keyword JSON Schema 2020-12 defines. Validators silently ignore a misspelt keyword, so any other key must be
+# an extension key starting with x-.
 _KNOWN_KEYWORDS = frozenset(
     {
         "$schema",
@@ -244,7 +244,7 @@ def test_every_enclosing_symbol_kind_validates(*, kind: str, name: str) -> None:
 
 def test_empty_edit_content_is_a_deletion() -> None:
     """An edit with empty content validates because it deletes its range."""
-    assert _is_valid(definition="Edit", instance=_edit(byte_start=0, byte_end=3, content=""))
+    assert _is_valid(definition="Edit", instance=_edit(byte_end=3, content=""))
 
 
 def _without(*, instance: Json, key: str) -> Json:
@@ -323,18 +323,9 @@ def test_invalid_findings_are_rejected(*, finding: Json) -> None:
 @pytest.mark.parametrize(
     "fix",
     [
-        pytest.param(
-            {"applicability": "safe", "message": "m", "edits": [_edit(byte_start=0, byte_end=0, content="x")]},
-            id="safe",
-        ),
-        pytest.param(
-            {"applicability": "unsafe", "message": "m", "edits": [_edit(byte_start=0, byte_end=0, content="x")]},
-            id="unsafe",
-        ),
-        pytest.param(
-            {"applicability": "display", "message": "m", "edits": [_edit(byte_start=0, byte_end=0, content="x")]},
-            id="display",
-        ),
+        pytest.param({"applicability": "safe", "message": "m", "edits": [_edit()]}, id="safe"),
+        pytest.param({"applicability": "unsafe", "message": "m", "edits": [_edit()]}, id="unsafe"),
+        pytest.param({"applicability": "display", "message": "m", "edits": [_edit()]}, id="display"),
     ],
 )
 def test_every_applicability_validates(*, fix: Json) -> None:
@@ -344,7 +335,7 @@ def test_every_applicability_validates(*, fix: Json) -> None:
 
 def test_invalid_applicability_is_rejected() -> None:
     """An applicability value outside the three allowed values is rejected."""
-    fix: Json = {"applicability": "suggestion", "message": "m", "edits": [_edit(byte_start=0, byte_end=0, content="x")]}
+    fix: Json = {"applicability": "suggestion", "message": "m", "edits": [_edit()]}
     assert not _is_valid(definition="Fix", instance=fix)
 
 
@@ -518,11 +509,11 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         pytest.param(_finding(spans=[_span(line_start=5, line_end=2)]), id="line-end-before-start"),
         pytest.param(_with_fix(edits=[_edit(file_name="a.py"), _edit(file_name="b.py")]), id="edits-in-two-files"),
         pytest.param(
-            _with_fix(edits=[_edit(byte_start=0, byte_end=5), _edit(byte_start=2, byte_end=6)]),
+            _with_fix(edits=[_edit(byte_end=5), _edit(byte_start=2, byte_end=6)]),
             id="overlapping-edits",
         ),
         pytest.param(
-            _with_fix(edits=[_edit(byte_start=5, byte_end=6), _edit(byte_start=0, byte_end=1)]),
+            _with_fix(edits=[_edit(byte_start=5, byte_end=6), _edit(byte_end=1)]),
             id="unsorted-edits",
         ),
         pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
@@ -552,12 +543,16 @@ def test_no_document_validates_until_the_wrapper_is_defined(*, document: JsonVal
 
 
 def _schema_keys(*, node: object) -> set[str]:
-    """Collect every key used in a schema position, not inside property names or x- data."""
+    """Collect every key used in a schema position, not inside property names or data under keys starting with x-."""
     if isinstance(node, list):
+        # pyright strict needs the cast after isinstance narrowing
+        # noinspection PyUnnecessaryCast
         return _keys_in_list(items=cast("list[object]", node))
     if not isinstance(node, dict):
         return set()
     keys: set[str] = set()
+    # pyright strict needs the cast after isinstance narrowing
+    # noinspection PyUnnecessaryCast
     for key, value in cast("Json", node).items():
         keys |= {key} | _keys_below(key=key, value=value)
     return keys
@@ -581,7 +576,7 @@ def _keys_below(*, key: str, value: object) -> set[str]:
 
 
 def test_schema_uses_no_misspelt_keyword() -> None:
-    """Every key is a JSON Schema 2020-12 keyword or an x- extension, so no rule is silently ignored."""
+    """Every key is a JSON Schema 2020-12 keyword or an extension key starting with x-, so no rule is ignored."""
     keys = _schema_keys(node=_load_schema())
 
     unknown = {key for key in keys if key not in _KNOWN_KEYWORDS and not key.startswith("x-")}
