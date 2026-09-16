@@ -525,7 +525,7 @@ def test_hostile_finding_is_rejected(*, finding: Json) -> None:
         pytest.param(_symbol(kind="class", name="build.<locals>.Report"), id="class-in-function"),
         pytest.param(_finding(spans=[_span(file_name=".github/workflows/ci.py")]), id="dot-directory"),
         pytest.param(_finding(spans=[_span(file_name="src/app.test.py")]), id="dots-in-a-name"),
-        pytest.param(_finding(message="Call 'apply' is \u00e9valu\u00e9"), id="non-ascii-message"),
+        pytest.param(_finding(message="Call 'apply' uses \u00e9 and \u00fc"), id="non-ascii-message"),
         pytest.param(_symbol(kind="function", name="\u00e9tape"), id="non-ascii-identifier"),
         pytest.param(_finding(spans=[_span(file_name="app.py")]), id="file-in-working-directory"),
         pytest.param(_finding(spans=[_span(file_name="src/..app.py")]), id="dots-inside-a-segment"),
