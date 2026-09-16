@@ -28,7 +28,10 @@
     "Edits within a fix are sorted by byte_start and then byte_end.",
     "Edits within a fix do not overlap, and no two zero-width edits share an offset.",
     "Edits within a fix are all in the same file.",
-    "A finding's primary span is in the file the finding belongs to."
+    "A finding's primary span is in the file the finding belongs to.",
+    "Spans within a finding, fixes within a finding and edits within a fix are each unique.",
+    "Strings are valid Unicode, so they contain no lone surrogates.",
+    "file_name is in Unicode normalisation form NFC."
   ],
   "x-span-conventions": [
     "byte_start and byte_end are offsets into the raw bytes of the file, end-exclusive.",
@@ -218,7 +221,8 @@
   "x-edit-conventions": [
     "byte_start and byte_end follow the byte conventions of Span.",
     "Empty content deletes the range.",
-    "A zero-width range inserts the content."
+    "A zero-width range inserts the content.",
+    "content may contain any character, because a fix can need one inside a string literal."
   ],
   "$defs": {
     "Finding": {
@@ -238,7 +242,16 @@
           "description": "What was found, for a human reader.",
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "allOf": [
+            {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
+              "description": "At least one visible character.",
+              "pattern": "\\S"
+            }
+          ]
         },
         "level": {
           "description": "The rule's severity.",
@@ -248,7 +261,6 @@
           "description": "The source ranges involved. Exactly one is primary. Secondary spans may be in other files.",
           "type": "array",
           "minItems": 1,
-          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Span"
           },
@@ -270,7 +282,6 @@
         "fixes": {
           "description": "Alternative fixes. A consumer applies at most one of them.",
           "type": "array",
-          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Fix"
           }
@@ -301,6 +312,10 @@
               "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
             },
             {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
               "description": "Relative, so not starting with a slash or a drive letter.",
               "pattern": "^(?!/)(?![A-Za-z]:)"
             },
@@ -314,7 +329,15 @@
             },
             {
               "description": "No parent-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?\\.\\.(?:/|$))"
+              "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
+            },
+            {
+              "description": "No current-directory segment.",
+              "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
+            },
+            {
+              "description": "No segment starts or ends with whitespace.",
+              "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
             }
           ]
         },
@@ -355,7 +378,16 @@
           "description": "Why this range matters. Omitted when no explanation is needed.",
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "allOf": [
+            {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
+              "description": "At least one visible character.",
+              "pattern": "\\S"
+            }
+          ]
         }
       }
     },
@@ -377,8 +409,12 @@
               "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
             },
             {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
               "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
-              "pattern": "^(?:<module>|[^\\s.<>]+(?:\\.(?:<locals>\\.)?[^\\s.<>]+)*)$"
+              "pattern": "^(?:<module>|[^\\s.<>]+(?:[.](?:<locals>[.])?[^\\s.<>]+)*)$"
             }
           ]
         }
@@ -415,6 +451,40 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "method"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "description": "A method is defined directly in a class, so its class is the segment before it.",
+                "pattern": "^(?:[\\s\\S]*[.])?[^.<>]+[.][^.<>]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "function"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "description": "A function is at module level or directly inside another function.",
+                "pattern": "^(?:[^.<>]+|[\\s\\S]*[.]<locals>[.][^.<>]+)$"
+              }
+            }
+          }
         }
       ]
     },
@@ -431,12 +501,20 @@
         "message": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "allOf": [
+            {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
+              "description": "At least one visible character.",
+              "pattern": "\\S"
+            }
+          ]
         },
         "edits": {
           "type": "array",
           "minItems": 1,
-          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Edit"
           }
@@ -458,6 +536,10 @@
               "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
             },
             {
+              "description": "No zero-width, bidirectional control or byte-order mark characters.",
+              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+            },
+            {
               "description": "Relative, so not starting with a slash or a drive letter.",
               "pattern": "^(?!/)(?![A-Za-z]:)"
             },
@@ -471,7 +553,15 @@
             },
             {
               "description": "No parent-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?\\.\\.(?:/|$))"
+              "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
+            },
+            {
+              "description": "No current-directory segment.",
+              "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
+            },
+            {
+              "description": "No segment starts or ends with whitespace.",
+              "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
             }
           ]
         },

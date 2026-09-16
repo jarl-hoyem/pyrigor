@@ -3,6 +3,7 @@
 import ast
 import copy
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any, NamedTuple, cast
@@ -16,6 +17,7 @@ _BYTE_ORDER_MARK = b"\xef\xbb\xbf"
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LARGEST_SAFE_INTEGER = 9_007_199_254_740_991  # 2 to the 53rd power, minus 1
 _NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
+_QUADRATIC_KEYWORD = "uniqueItems"
 _REQUIRED_EXAMPLE_NAMES = frozenset(
     {
         "line feed",
@@ -430,6 +432,18 @@ _HOSTILE_FILE_NAMES = {
     "empty-segment": "src//app.py",
     "trailing-slash": "src/",
     "empty": "",
+    "bidi-override": "src/app\u202e.py",
+    "bidi-isolate": "src/\u2066app.py",
+    "zero-width-space": "src/ap\u200bp.py",
+    "byte-order-mark-character": "\ufeffsrc/app.py",
+    "dot-segment-inside": "src/./app.py",
+    "dot-segment-at-start": "./app.py",
+    "dot-segment-alone": ".",
+    "trailing-space-in-segment": "src /app.py",
+    "leading-space-in-segment": "src/ app.py",
+    "trailing-space-in-name": "src/app.py ",
+    "control-character-inside-segment": "src/a\x07pp.py",
+    "c1-control-character-inside-segment": "src/a\x9bpp.py",
 }
 
 
@@ -465,8 +479,6 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
         pytest.param(_with_fix(edits=[_edit(byte_end=_LARGEST_SAFE_INTEGER + 1)]), id="edit-beyond-safe-integer"),
         pytest.param(_finding(spans=[_span(is_primary=1)]), id="integer-as-is-primary"),
         pytest.param(_finding(spans=[_span(byte_start=True)]), id="boolean-as-byte-offset"),
-        pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
-        pytest.param(_with_fix(edits=[_edit(), _edit()]), id="duplicate-edits"),
         pytest.param(_symbol(kind="module", name="apply"), id="module-kind-with-function-name"),
         pytest.param(_symbol(kind="function", name="<module>"), id="function-kind-named-module"),
         pytest.param(_symbol(kind="function", name="not a name"), id="symbol-name-with-spaces"),
@@ -474,6 +486,25 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
         pytest.param(_symbol(kind="method", name="Class..method"), id="symbol-name-with-empty-segment"),
         pytest.param(_symbol(kind="function", name=".apply"), id="symbol-name-starting-with-dot"),
         pytest.param(_symbol(kind="function", name="outer.<lambda>"), id="lambda-as-symbol"),
+        pytest.param(_symbol(kind="function", name="ap\u2066ply"), id="bidi-isolate-in-symbol-name"),
+        pytest.param(_symbol(kind="function", name="ap\u200bply"), id="zero-width-space-in-symbol-name"),
+        pytest.param(_symbol(kind="method", name="render"), id="method-without-class"),
+        pytest.param(_symbol(kind="method", name="outer.<locals>.inner"), id="method-directly-in-function"),
+        pytest.param(_symbol(kind="function", name="Report.render"), id="function-directly-in-class"),
+        pytest.param(_symbol(kind="class", name="<module>"), id="class-kind-named-module"),
+        pytest.param(
+            _finding(fixes=[{"applicability": "safe", "message": " ", "edits": [_edit()]}]),
+            id="whitespace-only-fix-message",
+        ),
+        pytest.param(
+            _finding(fixes=[{"applicability": "safe", "message": "apply\u202e", "edits": [_edit()]}]),
+            id="bidi-override-in-fix-message",
+        ),
+        pytest.param(_finding(message="ok\u202e"), id="bidi-override-in-message"),
+        pytest.param(_finding(message="\u200b"), id="zero-width-only-message"),
+        pytest.param(_finding(message="\u200b\u2060\ufeff "), id="invisible-only-message"),
+        pytest.param(_finding(spans=[_span(label="here\u2067")]), id="bidi-isolate-in-label"),
+        pytest.param(_finding(spans=[_span(label="\u200d")]), id="zero-width-only-label"),
     ],
 )
 def test_hostile_finding_is_rejected(*, finding: Json) -> None:
@@ -489,6 +520,12 @@ def test_hostile_finding_is_rejected(*, finding: Json) -> None:
         pytest.param(_symbol(kind="method", name="Report.render"), id="method"),
         pytest.param(_symbol(kind="class", name="Report"), id="class"),
         pytest.param(_symbol(kind="function", name="outer.<locals>.inner"), id="nested-function"),
+        pytest.param(_symbol(kind="method", name="outer.<locals>.Report.render"), id="method-of-nested-class"),
+        pytest.param(_symbol(kind="class", name="Outer.Inner"), id="nested-class"),
+        pytest.param(_symbol(kind="class", name="build.<locals>.Report"), id="class-in-function"),
+        pytest.param(_finding(spans=[_span(file_name=".github/workflows/ci.py")]), id="dot-directory"),
+        pytest.param(_finding(spans=[_span(file_name="src/app.test.py")]), id="dots-in-a-name"),
+        pytest.param(_finding(message="Call 'apply' is \u00e9valu\u00e9"), id="non-ascii-message"),
         pytest.param(_symbol(kind="function", name="\u00e9tape"), id="non-ascii-identifier"),
         pytest.param(_finding(spans=[_span(file_name="app.py")]), id="file-in-working-directory"),
         pytest.param(_finding(spans=[_span(file_name="src/..app.py")]), id="dots-inside-a-segment"),
@@ -518,6 +555,12 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         ),
         pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
+        pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
+        pytest.param(_with_fix(edits=[_edit(), _edit()]), id="duplicate-edits"),
+        pytest.param(_finding(spans=[_span(file_name="e\u0301tape.py")]), id="decomposed-file-name"),
+        pytest.param(_finding(message="bad\ud800"), id="lone-surrogate-in-message"),
+        pytest.param(_finding(spans=[_span(file_name="src/\udc00.py")]), id="lone-surrogate-in-file-name"),
+        pytest.param(_with_fix(edits=[{**_edit(), "content": "x = '\u202e'"}]), id="bidi-control-in-edit-content"),
     ],
 )
 def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Json) -> None:
@@ -540,6 +583,52 @@ def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Jso
 def test_no_document_validates_until_the_wrapper_is_defined(*, document: JsonValue) -> None:
     """The root rejects every document, so nothing can pass validation before the wrapper exists."""
     assert not _root_validator().is_valid(document)
+
+
+@pytest.mark.parametrize(
+    "finding",
+    [
+        pytest.param(_finding(spans=[_span(is_primary=None)]), id="null-is-primary"),
+        pytest.param(_finding(spans=[_span(is_primary="true")]), id="string-is-primary"),
+        pytest.param(_finding(spans=[_span(byte_start="4")]), id="string-offset"),
+        pytest.param(_finding(spans=[_span(byte_start=4.5)]), id="fractional-offset"),
+        pytest.param(_finding(spans=[_span(byte_start=math.nan)]), id="nan-offset"),
+        pytest.param(_finding(spans=[_span(byte_start=1e300)]), id="huge-float-offset"),
+        pytest.param(_finding(level="WARNING"), id="uppercase-level"),
+        pytest.param(_finding(level="warning "), id="level-with-trailing-space"),
+        pytest.param(
+            _finding(fixes=[{"applicability": "SAFE", "message": "m", "edits": [_edit()]}]),
+            id="uppercase-applicability",
+        ),
+        pytest.param(_symbol(kind="Function", name="apply"), id="uppercase-kind"),
+        pytest.param(_finding(code=" PYR402"), id="code-with-leading-space"),
+        pytest.param(_finding(code="PYR\uff14\uff10\uff12"), id="code-with-fullwidth-digits"),
+        pytest.param(
+            _finding(fixes=[{"applicability": "safe", "message": "m", "edits": [_edit()], "extra": 1}]),
+            id="unknown-fix-field",
+        ),
+        pytest.param(
+            _finding(enclosing_symbol={"kind": "function", "name": "apply", "extra": 1}),
+            id="unknown-symbol-field",
+        ),
+        pytest.param(_finding(spans=_span()), id="spans-as-object"),
+        pytest.param(_with_fix(edits=[{**_edit(), "content": None}]), id="null-edit-content"),
+        pytest.param(_finding(enclosing_symbol={"kind": "function"}), id="symbol-without-name"),
+        pytest.param(_finding(spans=[_span(label=5)]), id="numeric-label"),
+    ],
+)
+def test_malformed_finding_is_rejected(*, finding: Json) -> None:
+    """A finding with a wrong type, value or shape is rejected."""
+    assert not _is_valid(definition="Finding", instance=finding)
+
+
+def test_schema_uses_no_quadratic_keyword() -> None:
+    """The schema never uses uniqueItems, which would let a hostile finding stall validation.
+
+    uniqueItems compares every item with every other, so thousands of spans took seconds to validate. Uniqueness is a
+    producer invariant instead.
+    """
+    assert _QUADRATIC_KEYWORD not in _schema_keys(node=_load_schema())
 
 
 def _schema_keys(*, node: object) -> set[str]:
