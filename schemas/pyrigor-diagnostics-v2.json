@@ -259,6 +259,10 @@
           "minLength": 1,
           "allOf": [
             {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
+            {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
               "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
             },
@@ -407,6 +411,10 @@
           "minLength": 1,
           "allOf": [
             {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
+            {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
               "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
             },
@@ -545,6 +553,10 @@
           "type": "string",
           "minLength": 1,
           "allOf": [
+            {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
             {
               "description": "No zero-width, bidirectional control or byte-order mark characters.",
               "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"

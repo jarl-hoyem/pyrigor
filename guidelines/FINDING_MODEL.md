@@ -116,6 +116,9 @@ which is how "Trojan Source" attacks hide code. The schema rejects them in all s
 label to contain a visible character. Edit content is the exception, because a fix can need such a character inside a
 string literal it writes.
 
+Control characters are rejected in shown text too, including tabs and line breaks. A terminal escape sequence in a
+message can recolour or overwrite output, and a line break can forge a line that looks like another finding.
+
 ### Fixes are structured actions
 
 A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed and

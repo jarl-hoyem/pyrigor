@@ -559,6 +559,48 @@ _INVISIBLE_CHARACTERS = {
     "interlinear-annotation-terminator": chr(0xFFFB),
 }
 
+_CONTROL_CHARACTERS = {
+    "null": chr(0x00),
+    "bell": chr(0x07),
+    "tab": chr(0x09),
+    "line-feed": chr(0x0A),
+    "carriage-return": chr(0x0D),
+    "escape": chr(0x1B),
+    "delete": chr(0x7F),
+    "next-line": chr(0x85),
+    "control-sequence-introducer": chr(0x9B),
+}
+
+
+def _control_character_findings() -> list[object]:
+    """Build one finding per control character in each text field a terminal or report displays."""
+    return [
+        pytest.param(finding, id=f"{place}-{name}")
+        for name, character in _CONTROL_CHARACTERS.items()
+        for place, finding in (
+            ("message", _finding(message=f"ok{character}text")),
+            ("label", _finding(spans=[_span(label=f"here{character}text")])),
+            (
+                "fix-message",
+                _finding(fixes=[{"applicability": "safe", "message": f"apply{character}text", "edits": [_edit()]}]),
+            ),
+        )
+    ]
+
+
+@pytest.mark.parametrize("finding", _control_character_findings())
+def test_control_character_is_rejected_in_displayed_text(*, finding: Json) -> None:
+    """Control characters in the shown text can recolour, overwrite or forge terminal output.
+
+    So text fields reject them.
+    """
+    assert not _is_valid(definition="Finding", instance=finding)
+
+
+def test_terminal_escape_sequence_is_rejected_in_message() -> None:
+    """A message cannot carry an ANSI colour sequence that would change how human output looks."""
+    assert not _is_valid(definition="Finding", instance=_finding(message="ok \x1b[31mred\x1b[0m"))
+
 
 def _invisible_character_findings() -> list[object]:
     """Build one finding per invisible character in each place where people see text."""
