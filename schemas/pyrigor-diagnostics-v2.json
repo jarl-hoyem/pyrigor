@@ -3,6 +3,11 @@
   "$id": "https://github.com/jarl-hoyem/pyrigor/blob/main/schemas/pyrigor-diagnostics-v2.json",
   "title": "pyrigor diagnostics v2",
   "description": "Output contract for pyrigor's diagnostics. This file defines the finding types.",
+  "x-root": [
+    "No document validates yet, because the document wrapper is not defined.",
+    "Validate a single type through its definition, such as #/$defs/Finding."
+  ],
+  "not": {},
   "x-extension-policy": [
     "pyrigor validates its own output strictly against this schema.",
     "Consumers must ignore fields they do not know.",
@@ -225,12 +230,15 @@
         "code": {
           "description": "The rule code.",
           "type": "string",
+          "minLength": 6,
+          "maxLength": 6,
           "pattern": "^PYR[0-9]{3}$"
         },
         "message": {
           "description": "What was found, for a human reader.",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "level": {
           "description": "The rule's severity.",
@@ -240,6 +248,7 @@
           "description": "The source ranges involved. Exactly one is primary. Secondary spans may be in other files.",
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Span"
           },
@@ -261,6 +270,7 @@
         "fixes": {
           "description": "Alternative fixes. A consumer applies at most one of them.",
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Fix"
           }
@@ -284,31 +294,59 @@
       "properties": {
         "file_name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "allOf": [
+            {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
+            {
+              "description": "Relative, so not starting with a slash or a drive letter.",
+              "pattern": "^(?!/)(?![A-Za-z]:)"
+            },
+            {
+              "description": "Forward slashes only.",
+              "pattern": "^(?![\\s\\S]*\\\\)"
+            },
+            {
+              "description": "No empty segment, and no trailing slash.",
+              "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
+            },
+            {
+              "description": "No parent-directory segment.",
+              "pattern": "^(?!(?:[\\s\\S]*/)?\\.\\.(?:/|$))"
+            }
+          ]
         },
         "byte_start": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
         "byte_end": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
         "line_start": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "column_start": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "line_end": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "column_end": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 9007199254740991
         },
         "is_primary": {
           "type": "boolean"
@@ -316,7 +354,8 @@
         "label": {
           "description": "Why this range matters. Omitted when no explanation is needed.",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         }
       }
     },
@@ -331,9 +370,53 @@
         },
         "name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "allOf": [
+            {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
+            {
+              "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
+              "pattern": "^(?:<module>|[^\\s.<>]+(?:\\.(?:<locals>\\.)?[^\\s.<>]+)*)$"
+            }
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "module"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "<module>"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "name": {
+                "const": "<module>"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "const": "module"
+              }
+            }
+          }
+        }
+      ]
     },
     "Fix": {
       "description": "One way to resolve a finding. See x-fix-conventions.",
@@ -347,11 +430,13 @@
         },
         "message": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "edits": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/Edit"
           }
@@ -366,15 +451,39 @@
       "properties": {
         "file_name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "allOf": [
+            {
+              "description": "No control characters.",
+              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+            },
+            {
+              "description": "Relative, so not starting with a slash or a drive letter.",
+              "pattern": "^(?!/)(?![A-Za-z]:)"
+            },
+            {
+              "description": "Forward slashes only.",
+              "pattern": "^(?![\\s\\S]*\\\\)"
+            },
+            {
+              "description": "No empty segment, and no trailing slash.",
+              "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
+            },
+            {
+              "description": "No parent-directory segment.",
+              "pattern": "^(?!(?:[\\s\\S]*/)?\\.\\.(?:/|$))"
+            }
+          ]
         },
         "byte_start": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
         "byte_end": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
         "content": {
           "type": "string"

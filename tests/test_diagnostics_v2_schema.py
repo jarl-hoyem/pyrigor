@@ -1,4 +1,4 @@
-"""Tests for the v2 diagnostics schema: its finding types, invariants and worked position examples."""
+"""Tests for the v2 diagnostics schema: its types, hostile inputs, known limits and worked position examples."""
 
 import ast
 import copy
@@ -14,6 +14,8 @@ from jsonschema.protocols import Validator
 _SCHEMA_PATH = Path(__file__).parent.parent / "schemas" / "pyrigor-diagnostics-v2.json"
 _BYTE_ORDER_MARK = b"\xef\xbb\xbf"
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
+_LARGEST_SAFE_INTEGER = 2**53 - 1
+_NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
 _REQUIRED_EXAMPLE_NAMES = frozenset(
     {
         "line feed",
@@ -33,8 +35,73 @@ _REQUIRED_EXAMPLE_NAMES = frozenset(
     },
 )
 
+# Every keyword JSON Schema 2020-12 defines. A misspelt keyword is silently ignored by validators, so any other key
+# must be an x- extension.
+_KNOWN_KEYWORDS = frozenset(
+    {
+        "$schema",
+        "$id",
+        "$ref",
+        "$defs",
+        "$comment",
+        "$anchor",
+        "$dynamicRef",
+        "$dynamicAnchor",
+        "$vocabulary",
+        "title",
+        "description",
+        "default",
+        "deprecated",
+        "readOnly",
+        "writeOnly",
+        "examples",
+        "type",
+        "enum",
+        "const",
+        "multipleOf",
+        "maximum",
+        "exclusiveMaximum",
+        "minimum",
+        "exclusiveMinimum",
+        "maxLength",
+        "minLength",
+        "pattern",
+        "maxItems",
+        "minItems",
+        "uniqueItems",
+        "maxContains",
+        "minContains",
+        "maxProperties",
+        "minProperties",
+        "required",
+        "dependentRequired",
+        "allOf",
+        "anyOf",
+        "oneOf",
+        "not",
+        "if",
+        "then",
+        "else",
+        "dependentSchemas",
+        "prefixItems",
+        "items",
+        "contains",
+        "properties",
+        "patternProperties",
+        "additionalProperties",
+        "propertyNames",
+        "unevaluatedItems",
+        "unevaluatedProperties",
+        "format",
+        "contentEncoding",
+        "contentMediaType",
+        "contentSchema",
+    },
+)
+
 # JSON documents are untyped by nature. Any matches the jsonschema stubs' own instance type.
 Json = dict[str, Any]
+JsonValue = Json | list[Any] | None
 
 
 class _Position(NamedTuple):
@@ -56,40 +123,48 @@ def _load_schema() -> Json:
     return cast("Json", json.loads(_SCHEMA_PATH.read_text(encoding="utf-8")))
 
 
+def _root_validator() -> Validator:
+    """Build a validator for the schema root, which is how a whole document is validated."""
+    return jsonschema.Draft202012Validator(_load_schema())
+
+
 def _validator(*, definition: str) -> Validator:
-    """Build a validator for one definition of the schema."""
+    """Build a validator for one definition, without the root's rejection of every document."""
     schema = _load_schema()
+    schema.pop("not", None)
     return jsonschema.Draft202012Validator({**schema, "$ref": f"#/$defs/{definition}"})
 
 
-def _span(*, is_primary: bool = True, file_name: str = "src/app.py") -> Json:
-    """Build a valid single-line span."""
-    return {
-        "file_name": file_name,
+def _span(**overrides: object) -> Json:
+    """Build a valid single-line primary span, with some fields replaced."""
+    span: Json = {
+        "file_name": "src/app.py",
         "byte_start": 4,
         "byte_end": 9,
         "line_start": 1,
         "column_start": 5,
         "line_end": 1,
         "column_end": 10,
-        "is_primary": is_primary,
+        "is_primary": True,
     }
+    return {**span, **overrides}
 
 
-def _edit(*, byte_start: int, byte_end: int, content: str) -> Json:
-    """Build a valid edit in the primary file."""
-    return {"file_name": "src/app.py", "byte_start": byte_start, "byte_end": byte_end, "content": content}
+def _edit(*, byte_start: int = 0, byte_end: int = 0, content: str = "x", file_name: str = "src/app.py") -> Json:
+    """Build a valid edit."""
+    return {"file_name": file_name, "byte_start": byte_start, "byte_end": byte_end, "content": content}
 
 
-def _finding() -> Json:
-    """Build a minimal valid finding."""
-    return {
+def _finding(**overrides: object) -> Json:
+    """Build a minimal valid finding, with some fields replaced."""
+    finding: Json = {
         "code": "PYR402",
         "message": "Function 'apply' has positional parameters; all parameters should be keyword-only",
         "level": "warning",
         "spans": [_span()],
         "fixes": [],
     }
+    return {**copy.deepcopy(finding), **overrides}
 
 
 def _with_labelled_spans() -> Json:
@@ -159,12 +234,12 @@ def test_valid_findings_validate(*, finding: Json) -> None:
 
 
 @pytest.mark.parametrize(
-    "kind",
-    ["function", "method", "class", "module"],
+    ("kind", "name"),
+    [("function", "apply"), ("method", "Report.render"), ("class", "Report"), ("module", "<module>")],
 )
-def test_every_enclosing_symbol_kind_validates(*, kind: str) -> None:
-    """Each enclosing symbol kind is accepted."""
-    assert _is_valid(definition="EnclosingSymbol", instance={"kind": kind, "name": "<module>"})
+def test_every_enclosing_symbol_kind_validates(*, kind: str, name: str) -> None:
+    """Each enclosing symbol kind is accepted with a name of that kind."""
+    assert _is_valid(definition="EnclosingSymbol", instance={"kind": kind, "name": name})
 
 
 def test_empty_edit_content_is_a_deletion() -> None:
@@ -195,7 +270,7 @@ def _invalid_findings() -> list[object]:
     no_primary = _finding()
     _first_span(finding=no_primary)["is_primary"] = False
     two_primaries = _finding()
-    two_primaries["spans"] = [_span(), _span()]
+    two_primaries["spans"] = [_span(), _span(file_name="src/other.py")]
     empty_spans: Json = {**_finding(), "spans": []}
     edit_with_primary = _with_alternative_fixes()
     _first_edit(finding=edit_with_primary)["is_primary"] = True
@@ -339,3 +414,176 @@ def _first_function(*, source: str) -> ast.FunctionDef:
     """Parse source from its encoded bytes and return its first function definition."""
     functions = [node for node in ast.walk(ast.parse(source.encode())) if isinstance(node, ast.FunctionDef)]
     return functions[0]
+
+
+def _with_fix(*, edits: list[Json]) -> Json:
+    """Build a valid finding with one fix made of the given edits."""
+    return _finding(fixes=[{"applicability": "safe", "message": "m", "edits": edits}])
+
+
+def _symbol(*, kind: str, name: str) -> Json:
+    """Build a finding with the given enclosing symbol."""
+    return _finding(enclosing_symbol={"kind": kind, "name": name})
+
+
+_HOSTILE_FILE_NAMES = {
+    "backslash": "src\\app.py",
+    "absolute": "/src/app.py",
+    "drive-letter": "C:/app.py",
+    "parent-segment-at-start": "../app.py",
+    "parent-segment-inside": "src/../app.py",
+    "parent-segment-at-end": "src/..",
+    "trailing-newline": "src/app.py\n",
+    "tab": "src/\tapp.py",
+    "c1-control-character": "src/\x85app.py",
+    "empty-segment": "src//app.py",
+    "trailing-slash": "src/",
+    "empty": "",
+}
+
+
+def _hostile_file_name_findings() -> list[object]:
+    """Build one finding per hostile file name, used once in a span and once in an edit."""
+    return [
+        pytest.param(finding, id=f"{place}-{name}")
+        for name, file_name in _HOSTILE_FILE_NAMES.items()
+        for place, finding in (
+            ("span", _finding(spans=[_span(file_name=file_name)])),
+            ("edit", _with_fix(edits=[_edit(file_name=file_name)])),
+        )
+    ]
+
+
+@pytest.mark.parametrize("finding", _hostile_file_name_findings())
+def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> None:
+    """Each hostile file name is rejected wherever a file name appears."""
+    assert not _is_valid(definition="Finding", instance=finding)
+
+
+@pytest.mark.parametrize(
+    "finding",
+    [
+        pytest.param(_finding(code="PYR402\n"), id="code-with-trailing-newline"),
+        pytest.param(_finding(code="PYR\u0664\u0660\u0662"), id="code-with-non-ascii-digits"),
+        pytest.param(_finding(code="pyr402"), id="code-in-lowercase"),
+        pytest.param(_finding(message="   "), id="whitespace-only-message"),
+        pytest.param(_finding(message="\n"), id="newline-only-message"),
+        pytest.param(_finding(spans=[_span(label=" ")]), id="whitespace-only-label"),
+        pytest.param(_finding(spans=[_span(byte_end=_LARGEST_SAFE_INTEGER + 1)]), id="byte-offset-beyond-safe-integer"),
+        pytest.param(_finding(spans=[_span(line_end=_LARGEST_SAFE_INTEGER + 1)]), id="line-beyond-safe-integer"),
+        pytest.param(_with_fix(edits=[_edit(byte_end=_LARGEST_SAFE_INTEGER + 1)]), id="edit-beyond-safe-integer"),
+        pytest.param(_finding(spans=[_span(is_primary=1)]), id="integer-as-is-primary"),
+        pytest.param(_finding(spans=[_span(byte_start=True)]), id="boolean-as-byte-offset"),
+        pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
+        pytest.param(_with_fix(edits=[_edit(), _edit()]), id="duplicate-edits"),
+        pytest.param(_symbol(kind="module", name="apply"), id="module-kind-with-function-name"),
+        pytest.param(_symbol(kind="function", name="<module>"), id="function-kind-named-module"),
+        pytest.param(_symbol(kind="function", name="not a name"), id="symbol-name-with-spaces"),
+        pytest.param(_symbol(kind="function", name="apply\n"), id="symbol-name-with-trailing-newline"),
+        pytest.param(_symbol(kind="method", name="Class..method"), id="symbol-name-with-empty-segment"),
+        pytest.param(_symbol(kind="function", name=".apply"), id="symbol-name-starting-with-dot"),
+        pytest.param(_symbol(kind="function", name="outer.<lambda>"), id="lambda-as-symbol"),
+    ],
+)
+def test_hostile_finding_is_rejected(*, finding: Json) -> None:
+    """A hostile finding the schema can recognise is rejected."""
+    assert not _is_valid(definition="Finding", instance=finding)
+
+
+@pytest.mark.parametrize(
+    "finding",
+    [
+        pytest.param(_symbol(kind="module", name="<module>"), id="module"),
+        pytest.param(_symbol(kind="function", name="apply"), id="function"),
+        pytest.param(_symbol(kind="method", name="Report.render"), id="method"),
+        pytest.param(_symbol(kind="class", name="Report"), id="class"),
+        pytest.param(_symbol(kind="function", name="outer.<locals>.inner"), id="nested-function"),
+        pytest.param(_symbol(kind="function", name="\u00e9tape"), id="non-ascii-identifier"),
+        pytest.param(_finding(spans=[_span(file_name="app.py")]), id="file-in-working-directory"),
+        pytest.param(_finding(spans=[_span(file_name="src/..app.py")]), id="dots-inside-a-segment"),
+        pytest.param(_finding(spans=[_span(file_name="src/.hidden/app.py")]), id="hidden-directory"),
+        pytest.param(_finding(spans=[_span(byte_end=_LARGEST_SAFE_INTEGER)]), id="largest-safe-integer"),
+        pytest.param(_finding(message="Function 'apply' has positional parameters"), id="message-with-spaces"),
+    ],
+)
+def test_boundary_finding_is_accepted(*, finding: Json) -> None:
+    """A finding at the edge of a rule is still accepted."""
+    assert _is_valid(definition="Finding", instance=finding)
+
+
+@pytest.mark.parametrize(
+    "finding",
+    [
+        pytest.param(_finding(spans=[_span(byte_start=9, byte_end=4)]), id="byte-end-before-start"),
+        pytest.param(_finding(spans=[_span(line_start=5, line_end=2)]), id="line-end-before-start"),
+        pytest.param(_with_fix(edits=[_edit(file_name="a.py"), _edit(file_name="b.py")]), id="edits-in-two-files"),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_start=0, byte_end=5), _edit(byte_start=2, byte_end=6)]),
+            id="overlapping-edits",
+        ),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_start=5, byte_end=6), _edit(byte_start=0, byte_end=1)]),
+            id="unsorted-edits",
+        ),
+        pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
+        pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
+    ],
+)
+def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Json) -> None:
+    """These are accepted by design and listed in x-invariants, or are integers under JSON Schema's own definition.
+
+    If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants.
+    """
+    assert _is_valid(definition="Finding", instance=finding)
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        pytest.param({}, id="empty-object"),
+        pytest.param({"anything": 1}, id="arbitrary-object"),
+        pytest.param([], id="array"),
+        pytest.param(None, id="null"),
+    ],
+)
+def test_no_document_validates_until_the_wrapper_is_defined(*, document: JsonValue) -> None:
+    """The root rejects every document, so nothing can pass validation before the wrapper exists."""
+    assert not _root_validator().is_valid(document)
+
+
+def _schema_keys(*, node: object) -> set[str]:
+    """Collect every key used in a schema position, not inside property names or x- data."""
+    if isinstance(node, list):
+        return _keys_in_list(items=cast("list[object]", node))
+    if not isinstance(node, dict):
+        return set()
+    keys: set[str] = set()
+    for key, value in cast("Json", node).items():
+        keys |= {key} | _keys_below(key=key, value=value)
+    return keys
+
+
+def _keys_in_list(*, items: list[object]) -> set[str]:
+    """Collect the schema keys of every item in a list."""
+    keys: set[str] = set()
+    for item in items:
+        keys |= _schema_keys(node=item)
+    return keys
+
+
+def _keys_below(*, key: str, value: object) -> set[str]:
+    """Collect the schema keys below one keyword's value."""
+    if key.startswith("x-"):
+        return set()
+    if key in _NAMED_SCHEMA_MAPS:
+        return _keys_in_list(items=list(cast("Json", value).values()))
+    return _schema_keys(node=value)
+
+
+def test_schema_uses_no_misspelt_keyword() -> None:
+    """Every key is a JSON Schema 2020-12 keyword or an x- extension, so no rule is silently ignored."""
+    keys = _schema_keys(node=_load_schema())
+
+    unknown = {key for key in keys if key not in _KNOWN_KEYWORDS and not key.startswith("x-")}
+
+    assert not unknown
