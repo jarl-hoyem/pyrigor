@@ -61,6 +61,16 @@ _CONTRACT_ANNOTATION_KEYS = (
     "x-fix-conventions",
     "x-edit-conventions",
 )
+_REQUIRED_IMPLEMENTATION_INVARIANTS = frozenset(
+    {
+        (
+            "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 "
+            "code-point boundary."
+        ),
+        "code names a member of Rule.",
+        "level is the severity configured for the Rule named by code.",
+    },
+)
 
 # Every keyword JSON Schema 2020-12 defines. Validators silently ignore a misspelt keyword, so any other key must be
 # an extension key starting with x-.
@@ -352,6 +362,13 @@ def test_contract_annotation_is_present_and_nonempty(*, key: str) -> None:
     assert len(value) == len(set(value))
 
 
+def test_required_implementation_invariants_are_listed() -> None:
+    """Every invariant delegated to the producer remains part of its contract."""
+    invariants = cast("list[str]", _load_schema()["x-invariants"])
+
+    assert set(invariants) >= _REQUIRED_IMPLEMENTATION_INVARIANTS
+
+
 def _first_span(*, finding: Json) -> Json:
     """Return the first span of a finding."""
     return cast("list[Json]", finding["spans"])[0]
@@ -532,6 +549,7 @@ _HOSTILE_FILE_NAMES = {
     "bidi-isolate": "src/\u2066app.py",
     "zero-width-space": "src/ap\u200bp.py",
     "byte-order-mark-character": "\ufeffsrc/app.py",
+    "arabic-letter-mark": "src/ap\u061cp.py",
     "dot-segment-inside": "src/./app.py",
     "dot-segment-at-start": "./app.py",
     "dot-segment-alone": ".",
@@ -584,6 +602,7 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
         pytest.param(_symbol(kind="function", name="outer.<lambda>"), id="lambda-as-symbol"),
         pytest.param(_symbol(kind="function", name="ap\u2066ply"), id="bidi-isolate-in-symbol-name"),
         pytest.param(_symbol(kind="function", name="ap\u200bply"), id="zero-width-space-in-symbol-name"),
+        pytest.param(_symbol(kind="function", name="ap\u061cply"), id="arabic-letter-mark-in-symbol-name"),
         pytest.param(_symbol(kind="method", name="render"), id="method-without-class"),
         pytest.param(_symbol(kind="method", name="outer.<locals>.inner"), id="method-directly-in-function"),
         pytest.param(_symbol(kind="function", name="Report.render"), id="function-directly-in-class"),
@@ -597,10 +616,16 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
             id="bidi-override-in-fix-message",
         ),
         pytest.param(_finding(message="ok\u202e"), id="bidi-override-in-message"),
+        pytest.param(_finding(message="ok\u061c"), id="arabic-letter-mark-in-message"),
         pytest.param(_finding(message="\u200b"), id="zero-width-only-message"),
         pytest.param(_finding(message="\u200b\u2060\ufeff "), id="invisible-only-message"),
         pytest.param(_finding(spans=[_span(label="here\u2067")]), id="bidi-isolate-in-label"),
+        pytest.param(_finding(spans=[_span(label="here\u061c")]), id="arabic-letter-mark-in-label"),
         pytest.param(_finding(spans=[_span(label="\u200d")]), id="zero-width-only-label"),
+        pytest.param(
+            _finding(fixes=[{"applicability": "safe", "message": "apply\u061c", "edits": [_edit()]}]),
+            id="arabic-letter-mark-in-fix-message",
+        ),
     ],
 )
 def test_hostile_finding_is_rejected(*, finding: Json) -> None:
@@ -683,6 +708,7 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
             id="zero-width-edit-inside-range",
         ),
         pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
+        pytest.param(_finding(code="PYR402", level="error"), id="level-does-not-match-rule"),
         pytest.param(_symbol(kind="function", name="\u00e9\u00a7"), id="non-ascii-non-identifier-symbol-name"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
         pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
