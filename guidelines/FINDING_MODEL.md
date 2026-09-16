@@ -2,15 +2,18 @@
 
 ## Purpose
 
-Findings in pyrigor use a structured diagnostic model designed for machine consumers, editors, and human-readable
+Findings in pyrigor use a structured diagnostic model designed for machine consumers, editors and human-readable
 renderers.
 
 The model adopts established diagnostic vocabulary from Ruff and rustc where that vocabulary fits pyrigor. The finding
 is semantic data. Rendering is a separate concern.
 
+The types, their fields and the position conventions are defined once, in
+[`schemas/pyrigor-diagnostics-v2.json`](../schemas/pyrigor-diagnostics-v2.json). This document gives the reasons.
+
 ## Why this model
 
-The existing `Violation` type is intentionally small, but it mixes the concepts of a finding, its source location, and
+The existing `Violation` type is intentionally small, but it mixes the concepts of a finding, its source location and
 the information needed by future consumers. That makes incremental extension a poor design strategy: adding fields one
 at a time would preserve assumptions from the old representation rather than defining a coherent diagnostic contract.
 
@@ -19,7 +22,7 @@ terminology wherever possible.
 
 ### Reuse established vocabulary
 
-Ruff and rustc already expose diagnostics to editors, automation, and humans. Reusing their canonical names reduces
+Ruff and rustc already expose diagnostics to editors, automation and humans. Reusing their canonical names reduces
 translation between pyrigor and the surrounding Python tooling ecosystem and makes the model easier for consumers to
 understand.
 
@@ -38,8 +41,8 @@ occurs.
 A `spans` collection therefore provides a durable model for both simple and multi-location findings. The `is_primary`
 field identifies the focal location without imposing a single-span representation.
 
-This also gives editors and other consumers precise source ranges without requiring them to reconstruct the diagnostic
-from a checker-specific context model.
+Exactly one span is primary, so every consumer that shows a single location shows the same one. A secondary span may be
+in another file because a related definition does not always live next to the finding.
 
 ### Keep exact byte ranges
 
@@ -47,15 +50,30 @@ Line and column information is necessary for human diagnostics, but exact byte o
 source range. They are useful for editor integration and precise edits. They also save every consumer from
 reconstructing offsets from line and column information.
 
-Therefore, `byte_start` and `byte_end` are part of the target model even though the current AST-based implementation
-naturally works with line and column positions.
+Byte offsets count the raw bytes of the file, not the decoded text. Reading a file as text removes a byte-order mark and
+can translate line endings, so offsets into decoded text would not match the file an editor or a fixer writes back.
+
+### Columns count characters
+
+Columns count Unicode code points. The tools rustc and Ruff, whose field names the model uses, count characters too, so
+a consumer that trusts the names reads the right unit. Byte positions already live in `byte_start` and `byte_end`, so
+counting bytes in the columns as well would repeat them in a unit no reader counts in.
+
+### Lines break where Python's parser breaks them
+
+A line ends at a line feed, a CRLF or a lone carriage return, the same places Python's parser ends a line. Other
+characters that `str.splitlines()` treats as breaks, such as U+2028 or a form feed, are not line breaks here. Treating
+them as breaks would put a finding on a different line than the one Python reports.
+
+A line's break characters belong to the line they end. Every byte offset then has exactly one line and column, including
+the positions at the end of a line and at the end of a file.
 
 ### Separate semantic data from rendering
 
-A finding should describe what was found, where it was found, and what action may be proposed. It should not contain a
+A finding should describe what was found, where it was found and what action may be proposed. It should not contain a
 pre-rendered presentation of that information.
 
-Different consumers may need terminal output, JSON, editor diagnostics, HTML, or another representation. Keeping
+Different consumers may need terminal output, JSON, editor diagnostics, HTML or another representation. Keeping
 rendering outside the semantic model avoids coupling the finding contract to one presentation format.
 
 For the same reason, `rendered` is deliberately excluded.
@@ -68,40 +86,58 @@ into every finding creates duplicated data that can become stale and increases t
 Therefore, `text` is deliberately excluded from the core model. A particular output format may enrich diagnostics with
 source excerpts when appropriate.
 
-### Children are explanatory diagnostics
+### Record where a finding is
 
-Some diagnostics need more than one explanation. A main finding can have related child diagnostics that point to
-supporting locations or explain why the main diagnostic exists.
+A baseline or a trend report needs to recognise the same finding after unrelated lines have changed. Positions alone
+cannot do that, because every position moves when a line above it changes.
 
-The `children` structure provides this relationship without forcing unrelated information into the main message or span.
-Rust's current diagnostic model demonstrates this pattern.
-
-At this stage, pyrigor deliberately does not make children recursively nested. The current use case needs attached
-explanatory diagnostics, not an arbitrarily deep diagnostic tree.
+A finding therefore records its enclosing symbol: the innermost function, method or class that contains it, or the
+module. Its name follows Python's own `__qualname__`, such as `Class.method` or `outer.<locals>.inner`. That form is
+already defined by Python, and it keeps two nested functions with the same name apart. How a baseline turns the symbol
+into a fingerprint is left to the baseline itself.
 
 ### Fixes are structured actions
 
-A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed, and
+A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed and
 which source ranges it changes.
 
-Therefore, a fix has an `applicability`, a `message`, and one or more `edits`. Each edit identifies a span and
+Therefore, a fix has an `applicability`, a `message`, and one or more `edits`. Each edit identifies a byte range and
 replacement content.
 
-The `applicability` field deliberately uses Ruff's terminology and practical three-level semantics (`safe`, `unsafe`,
-`display`). This is more useful for pyrigor than copying rustc's four internal applicability values because pyrigor's
-fix model is aimed at the same practical distinction: which fixes apply automatically, which require explicit opt-in,
-and which are only presented as suggestions.
+A finding carries a list of fixes, not a single one. Some findings can be resolved in more than one way, and a list lets
+those alternatives exist without a breaking change. A consumer applies at most one of them.
+
+An edit has its own shape rather than reusing a span. The `is_primary` and `label` mean nothing on an edit, and
+repeating lines and columns there would give an edit two sets of coordinates that could disagree exactly where
+correctness matters most. The edits of one fix refer to the original file, are sorted and do not overlap, so applying
+them needs no knowledge of the order in which they were produced. They are also all in the same file because applying
+edits to several files together is a separate problem no fixer has.
+
+The `applicability` field deliberately uses Ruff's terminology (`safe`, `unsafe`, `display`). The meaning of each value
+is recorded with the fix classification decision.
 
 ### Keep rule metadata separate from the finding
 
-A rule definition describes the rule itself: its identity, default severity, fixability, rationale, and documentation. A
+A rule definition describes the rule itself: its identity, default severity, fixability, rationale and documentation. A
 finding describes one concrete occurrence in one source location.
 
-Keeping those concerns separate allows the diagnostic to be self-contained for consumers while avoiding duplication of
-rule-definition structure inside every finding.
+Keeping those concerns separate avoids duplicating the rule-definition structure inside every finding. A rule's
+documentation link is a property of the rule, the same for every finding, so it belongs with the rule metadata rather
+than in each finding.
 
-The finding therefore carries `code`, `message`, and `level` directly rather than requiring consumers to reconstruct the
-diagnostic from `RuleInfo`.
+The finding carries `code`, `message`, and `level` directly, so each finding stays readable on its own.
+
+### Absent values have one representation
+
+A list is always present, even when empty, and only `fixes` may be empty. An optional value is omitted when absent,
+never written as `null`. Consumers then never handle a missing list, and never handle both a missing field and a `null`
+one.
+
+### Grow without breaking consumers
+
+Planned features will add information to findings, such as suppression state and baseline state. The schema therefore
+states an extension policy: consumers ignore fields they do not know, and adding an optional field is a compatible
+change. The tool pyrigor still validates its own output strictly, so a field it did not intend to emit is caught.
 
 ### Do not import implementation-specific machinery
 
@@ -115,63 +151,28 @@ model.
 Suppression remains a separate concern. A later version of pyrigor may expose suppression locations to editors, but that
 does not make suppression location part of the finding itself.
 
-### Preserve notebook compatibility without committing to notebook support
+### Add structure when a rule needs it
 
-A `cell` field is retained as an optional span property because notebook diagnostics can identify a cell in addition to
-a file. Keeping the field costs little and avoids unnecessarily constraining the model.
+The compiler rustc attaches child diagnostics to a finding, and notebook diagnostics carry a cell. No current or planned
+pyrigor rule needs either. The uses of children are covered by secondary spans with labels and by the list of fixes, and
+Ruff's own JSON diagnostics have no children. A notebook cell also left undefined whether lines and bytes count from the
+cell or from the file.
 
-Its presence does not commit pyrigor to implementing notebook analysis. It simply keeps the target diagnostic model
-compatible with that potential consumer context.
+Both are therefore left out. Under the extension policy, either can be added later as an optional field when a rule or a
+consumer needs it.
 
 ## Canonical model
 
-A finding consists of:
+The schema defines these types:
 
-- `code`
-- `message`
-- `level`
-- `spans`
-- `children`
-- `fix` (optional)
-- `url` (optional)
+- `Finding`
+- `Span`
+- `EnclosingSymbol`
+- `Fix`
+- `Edit`
 
-### Span
-
-Each span consists of:
-
-- `file_name`
-- `cell` (optional)
-- `byte_start`
-- `byte_end`
-- `line_start`
-- `line_end`
-- `column_start`
-- `column_end`
-- `is_primary`
-- `label`
-
-Multiple spans are supported. The `is_primary` field identifies the focal span.
-
-### Child diagnostic
-
-A child diagnostic consists of:
-
-- `code`
-- `message`
-- `level`
-- `spans`
-
-Children are explanatory diagnostics attached to the main finding. Child diagnostics are not recursively nested.
-
-### Fix
-
-A fix consists of:
-
-- `applicability`
-- `message`
-- `edits`
-
-Each edit identifies a `span` and replacement `content`.
+Their fields, the position conventions, the worked position examples and the invariants the schema cannot express are in
+[`schemas/pyrigor-diagnostics-v2.json`](../schemas/pyrigor-diagnostics-v2.json).
 
 ## Vocabulary decisions
 
@@ -195,23 +196,22 @@ The following rustc/Ruff fields are not part of the canonical finding model:
 - `text`: source text is available from the referenced source.
 - `expansion`: no current pyrigor equivalent justifies it.
 - `noqa_row`: suppression metadata is separate from the semantic finding.
-
-The `byte_start` and `byte_end` fields are retained because exact source ranges are useful for editor integration and
-precise fixes.
+- `children`: no rule needs child diagnostics yet.
+- `cell`: no notebook support exists, and its line and byte base was undefined.
+- `url`: a documentation link belongs to the rule, not to each finding.
 
 ## Future capabilities
 
 A later version of pyrigor may expose suppression locations to editors so that tools can navigate to, create, or modify
 suppressions. Suppression location is therefore a future diagnostic capability, not part of the core finding.
 
-Notebook support is compatible with this model. Retaining the optional `cell` field does not commit pyrigor to
-implementing notebook analysis.
+Child diagnostics and notebook cells can be added as optional fields under the extension policy when they are needed.
 
 ## Separation from migration
 
 This document defines only the target model for findings.
 
-It does not prescribe how the existing `Violation` model is migrated, whether compatibility is maintained, or how
+It does not prescribe how the existing `Violation` model is migrated, whether compatibility is maintained or how
 existing consumers are changed.
 
 Migration is a separate implementation decision and should reference this document as its target specification.

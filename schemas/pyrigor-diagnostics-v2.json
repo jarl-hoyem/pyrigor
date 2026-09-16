@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jarl-hoyem/pyrigor/blob/main/schemas/pyrigor-diagnostics-v2.json",
+  "title": "pyrigor diagnostics v2",
+  "description": "Output contract for pyrigor's diagnostics. This file defines the finding types.",
+  "x-extension-policy": [
+    "pyrigor validates its own output strictly against this schema.",
+    "Consumers must ignore fields they do not know.",
+    "Adding an optional field is a compatible change.",
+    "Removing a field, or making an optional field required, changes the version.",
+    "Changing a field's type or meaning changes the version."
+  ],
+  "x-absent-values": [
+    "Lists are always present. Only fixes may be empty.",
+    "Optional values are omitted when absent, never written as null."
+  ],
+  "x-invariants": [
+    "byte_start is less than or equal to byte_end.",
+    "A span's start position is not after its end position.",
+    "Lines and columns agree with the byte offsets under the position conventions of Span.",
+    "No position falls inside a byte-order mark.",
+    "No position falls between the carriage return and the line feed of a CRLF.",
+    "Edits within a fix are sorted by byte_start and then byte_end.",
+    "Edits within a fix do not overlap, and no two zero-width edits share an offset.",
+    "Edits within a fix are all in the same file.",
+    "A finding's primary span is in the file the finding belongs to."
+  ],
+  "x-span-conventions": [
+    "byte_start and byte_end are offsets into the raw bytes of the file, end-exclusive.",
+    "A UTF-8 byte-order mark counts 3 bytes, and a CRLF counts 2.",
+    "Lines break only on a line feed, a CRLF or a lone carriage return, where Python's parser breaks them.",
+    "Other characters, such as U+2028 or a form feed, are not line breaks.",
+    "Lines are 1-based.",
+    "Columns are 1-based Unicode code points, end-exclusive, and do not count a byte-order mark.",
+    "A line's break characters belong to the line they end.",
+    "The position just before a line break is on that line, after its last character.",
+    "The position just after a line break is column 1 of the next line.",
+    "The end of a file that ends with a line break is column 1 of the line after the last line.",
+    "The end of a file without a final line break is on the last line, after its last character.",
+    "A zero-width range, where byte_start equals byte_end, is allowed.",
+    "file_name is the path relative to the working directory, with forward slashes."
+  ],
+  "x-span-position-examples": [
+    {
+      "name": "line feed",
+      "source": "x = 1\ndef apply(left, right):\n    return left\n",
+      "text": "apply",
+      "byte_start": 10,
+      "byte_end": 15,
+      "line_start": 2,
+      "column_start": 5,
+      "line_end": 2,
+      "column_end": 10
+    },
+    {
+      "name": "byte-order mark on line 1",
+      "source": "\ufeffdef apply(left):\n    return left\n",
+      "text": "def",
+      "byte_start": 3,
+      "byte_end": 6,
+      "line_start": 1,
+      "column_start": 1,
+      "line_end": 1,
+      "column_end": 4
+    },
+    {
+      "name": "CRLF",
+      "source": "x = 1\r\ndef apply(left):\r\n    return left\r\n",
+      "text": "apply",
+      "byte_start": 11,
+      "byte_end": 16,
+      "line_start": 2,
+      "column_start": 5,
+      "line_end": 2,
+      "column_end": 10
+    },
+    {
+      "name": "lone carriage return",
+      "source": "x = 1\rdef apply(left):\r    return left\r",
+      "text": "apply",
+      "byte_start": 10,
+      "byte_end": 15,
+      "line_start": 2,
+      "column_start": 5,
+      "line_end": 2,
+      "column_end": 10
+    },
+    {
+      "name": "line separator inside a string",
+      "source": "x = 'a\u2028b'\ndef apply(left):\n    return left\n",
+      "text": "apply",
+      "byte_start": 16,
+      "byte_end": 21,
+      "line_start": 2,
+      "column_start": 5,
+      "line_end": 2,
+      "column_end": 10
+    },
+    {
+      "name": "form feed inside a string",
+      "source": "x = 'a\fb'\ndef apply(left):\n    return left\n",
+      "text": "apply",
+      "byte_start": 14,
+      "byte_end": 19,
+      "line_start": 2,
+      "column_start": 5,
+      "line_end": 2,
+      "column_end": 10
+    },
+    {
+      "name": "2-byte character before on the same line",
+      "source": "s = '\u00e9'; apply(1)\n",
+      "text": "apply",
+      "byte_start": 10,
+      "byte_end": 15,
+      "line_start": 1,
+      "column_start": 10,
+      "line_end": 1,
+      "column_end": 15
+    },
+    {
+      "name": "3-byte character before on the same line",
+      "source": "s = '\u20ac'; apply(1)\n",
+      "text": "apply",
+      "byte_start": 11,
+      "byte_end": 16,
+      "line_start": 1,
+      "column_start": 10,
+      "line_end": 1,
+      "column_end": 15
+    },
+    {
+      "name": "4-byte character before on the same line",
+      "source": "s = '\ud83d\ude00'; apply(1)\n",
+      "text": "apply",
+      "byte_start": 12,
+      "byte_end": 17,
+      "line_start": 1,
+      "column_start": 10,
+      "line_end": 1,
+      "column_end": 15
+    },
+    {
+      "name": "whole line without its break",
+      "source": "x = 1\ny = 2\n",
+      "text": "x = 1",
+      "byte_start": 0,
+      "byte_end": 5,
+      "line_start": 1,
+      "column_start": 1,
+      "line_end": 1,
+      "column_end": 6
+    },
+    {
+      "name": "whole line with its break",
+      "source": "x = 1\ny = 2\n",
+      "text": "x = 1\n",
+      "byte_start": 0,
+      "byte_end": 6,
+      "line_start": 1,
+      "column_start": 1,
+      "line_end": 2,
+      "column_end": 1
+    },
+    {
+      "name": "whole CRLF line with its break",
+      "source": "x = 1\r\ny = 2\r\n",
+      "text": "x = 1\r\n",
+      "byte_start": 0,
+      "byte_end": 7,
+      "line_start": 1,
+      "column_start": 1,
+      "line_end": 2,
+      "column_end": 1
+    },
+    {
+      "name": "end of file after a final line break",
+      "source": "x = 1\ny = 2\n",
+      "text": "",
+      "byte_start": 12,
+      "byte_end": 12,
+      "line_start": 3,
+      "column_start": 1,
+      "line_end": 3,
+      "column_end": 1
+    },
+    {
+      "name": "end of file without a final line break",
+      "source": "x = 1\ny = 2",
+      "text": "",
+      "byte_start": 11,
+      "byte_end": 11,
+      "line_start": 2,
+      "column_start": 6,
+      "line_end": 2,
+      "column_end": 6
+    }
+  ],
+  "x-enclosing-symbol-conventions": [
+    "The innermost definition that contains the finding.",
+    "The name is Python's __qualname__ for it, such as Class.method or outer.<locals>.inner.",
+    "At module level the name is <module> and the kind is module.",
+    "A function defined directly in a class body is a method.",
+    "Lambdas and comprehensions are not symbols, so the nearest enclosing definition is used."
+  ],
+  "x-fix-conventions": [
+    "The edits of one fix are all in the same file, and apply together or not at all.",
+    "Edit offsets refer to the original file.",
+    "Edits are sorted by byte_start and then byte_end.",
+    "Touching ranges are allowed.",
+    "Overlapping ranges, and two zero-width edits at the same offset, are not allowed."
+  ],
+  "x-edit-conventions": [
+    "byte_start and byte_end follow the byte conventions of Span.",
+    "Empty content deletes the range.",
+    "A zero-width range inserts the content."
+  ],
+  "$defs": {
+    "Finding": {
+      "description": "One concrete occurrence of a rule violation.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "level", "spans", "fixes"],
+      "properties": {
+        "code": {
+          "description": "The rule code.",
+          "type": "string",
+          "pattern": "^PYR[0-9]{3}$"
+        },
+        "message": {
+          "description": "What was found, for a human reader.",
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "description": "The rule's severity.",
+          "enum": ["error", "warning", "info"]
+        },
+        "spans": {
+          "description": "The source ranges involved. Exactly one is primary. Secondary spans may be in other files.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Span"
+          },
+          "contains": {
+            "type": "object",
+            "required": ["is_primary"],
+            "properties": {
+              "is_primary": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        "enclosing_symbol": {
+          "$ref": "#/$defs/EnclosingSymbol"
+        },
+        "fixes": {
+          "description": "Alternative fixes. A consumer applies at most one of them.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Fix"
+          }
+        }
+      }
+    },
+    "Span": {
+      "description": "A source range. See x-span-conventions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file_name",
+        "byte_start",
+        "byte_end",
+        "line_start",
+        "column_start",
+        "line_end",
+        "column_end",
+        "is_primary"
+      ],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byte_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byte_end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "is_primary": {
+          "type": "boolean"
+        },
+        "label": {
+          "description": "Why this range matters. Omitted when no explanation is needed.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EnclosingSymbol": {
+      "description": "Where a finding is. See x-enclosing-symbol-conventions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": {
+          "enum": ["function", "method", "class", "module"]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Fix": {
+      "description": "One way to resolve a finding. See x-fix-conventions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicability", "message", "edits"],
+      "properties": {
+        "applicability": {
+          "description": "Whether the fix may be applied automatically.",
+          "enum": ["safe", "unsafe", "display"]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Edit"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "description": "Replaces a byte range with content. See x-edit-conventions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_name", "byte_start", "byte_end", "content"],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byte_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byte_end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
