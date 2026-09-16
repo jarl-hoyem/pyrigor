@@ -106,6 +106,8 @@ source = ["pyrigor"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
+# The schema tests read schemas/, which mutmut does not copy into its workspace by default.
+also_copy = ["schemas/"]
 pytest_add_cli_args = ["--no-cov"]
 
 [tool.pytest.ini_options]
