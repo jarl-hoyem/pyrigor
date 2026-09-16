@@ -42,6 +42,25 @@ _REQUIRED_EXAMPLE_NAMES = frozenset(
         "end of file without a final line break",
     },
 )
+_SPAN_REQUIRED_FIELDS = (
+    "file_name",
+    "byte_start",
+    "byte_end",
+    "line_start",
+    "column_start",
+    "line_end",
+    "column_end",
+    "is_primary",
+)
+_CONTRACT_ANNOTATION_KEYS = (
+    "x-extension-policy",
+    "x-absent-values",
+    "x-invariants",
+    "x-span-conventions",
+    "x-enclosing-symbol-conventions",
+    "x-fix-conventions",
+    "x-edit-conventions",
+)
 
 # Every keyword JSON Schema 2020-12 defines. Validators silently ignore a misspelt keyword, so any other key must be
 # an extension key starting with x-.
@@ -261,6 +280,12 @@ def test_every_enclosing_symbol_kind_validates(*, kind: str, name: str) -> None:
     assert _is_valid(definition="EnclosingSymbol", instance={"kind": kind, "name": name})
 
 
+@pytest.mark.parametrize("level", ["error", "warning", "info"])
+def test_every_level_validates(*, level: str) -> None:
+    """Each severity value is accepted as a finding level."""
+    assert _is_valid(definition="Finding", instance=_finding(level=level))
+
+
 def test_empty_edit_content_is_a_deletion() -> None:
     """An edit with empty content validates because it deletes its range."""
     assert _is_valid(definition="Edit", instance=_edit(byte_end=3, content=""))
@@ -271,6 +296,60 @@ def _without(*, instance: Json, key: str) -> Json:
     result = copy.deepcopy(instance)
     del result[key]
     return result
+
+
+@pytest.mark.parametrize(
+    ("definition", "instance", "required_fields"),
+    [
+        pytest.param(
+            "Span",
+            _span(),
+            _SPAN_REQUIRED_FIELDS,
+            id="span",
+        ),
+        pytest.param(
+            "Edit",
+            _edit(),
+            ("file_name", "byte_start", "byte_end", "content"),
+            id="edit",
+        ),
+        pytest.param(
+            "Fix",
+            {"applicability": "safe", "message": "m", "edits": [_edit()]},
+            ("applicability", "message", "edits"),
+            id="fix",
+        ),
+        pytest.param(
+            "EnclosingSymbol",
+            {"kind": "function", "name": "apply"},
+            ("kind", "name"),
+            id="enclosing-symbol",
+        ),
+    ],
+)
+def test_every_nested_required_field_is_required(
+    *,
+    definition: str,
+    instance: Json,
+    required_fields: tuple[str, ...],
+) -> None:
+    """Every required field of each nested type is independently enforced."""
+    for field in required_fields:
+        assert not _is_valid(definition=definition, instance=_without(instance=instance, key=field))
+
+
+@pytest.mark.parametrize(
+    "key",
+    _CONTRACT_ANNOTATION_KEYS,
+)
+def test_contract_annotation_is_present_and_nonempty(*, key: str) -> None:
+    """Every prose contract required by the issue remains present and unambiguous."""
+    value = cast("list[str]", _load_schema()[key])
+
+    assert isinstance(value, list)
+    assert value
+    assert all(isinstance(item, str) and item for item in value)
+    assert len(value) == len(set(value))
 
 
 def _first_span(*, finding: Json) -> Json:
@@ -529,6 +608,17 @@ def test_hostile_finding_is_rejected(*, finding: Json) -> None:
     assert not _is_valid(definition="Finding", instance=finding)
 
 
+@pytest.mark.parametrize("name", ["123", "has-hyphen", "outer.1inner", "Report.has$dollar", "outer.<locals>.9"])
+def test_non_identifier_symbol_name_is_rejected(*, name: str) -> None:
+    """An enclosing symbol name is made only of Python identifier segments.
+
+    The kind is class, because class names have no kind-specific rule that could reject the name first.
+    """
+    symbol: Json = {"kind": "class", "name": name}
+
+    assert not _is_valid(definition="EnclosingSymbol", instance=symbol)
+
+
 @pytest.mark.parametrize(
     "finding",
     [
@@ -540,11 +630,21 @@ def test_hostile_finding_is_rejected(*, finding: Json) -> None:
         pytest.param(_symbol(kind="method", name="outer.<locals>.Report.render"), id="method-of-nested-class"),
         pytest.param(_symbol(kind="class", name="Outer.Inner"), id="nested-class"),
         pytest.param(_symbol(kind="class", name="build.<locals>.Report"), id="class-in-function"),
+        pytest.param(_symbol(kind="function", name="_private2"), id="underscore-and-digit-in-name"),
+        pytest.param(_symbol(kind="method", name="Report.__init__"), id="dunder-method"),
         pytest.param(_finding(spans=[_span(file_name=".github/workflows/ci.py")]), id="dot-directory"),
         pytest.param(_finding(spans=[_span(file_name="src/app.test.py")]), id="dots-in-a-name"),
         pytest.param(_finding(message="Call 'apply' uses \u00e9 and \u00fc"), id="non-ascii-message"),
         pytest.param(_symbol(kind="function", name="\u00e9tape"), id="non-ascii-identifier"),
         pytest.param(_finding(spans=[_span(file_name="app.py")]), id="file-in-working-directory"),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_end=5), _edit(byte_start=5, byte_end=5)]),
+            id="zero-width-edit-touching-range-end",
+        ),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_start=2, byte_end=2), _edit(byte_start=2, byte_end=5)]),
+            id="zero-width-edit-touching-range-start",
+        ),
         pytest.param(_finding(spans=[_span(file_name="src/..app.py")]), id="dots-inside-a-segment"),
         pytest.param(_finding(spans=[_span(file_name="src/.hidden/app.py")]), id="hidden-directory"),
         pytest.param(_finding(spans=[_span(byte_end=_LARGEST_SAFE_INTEGER)]), id="largest-safe-integer"),
@@ -570,7 +670,20 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
             _with_fix(edits=[_edit(byte_start=5, byte_end=6), _edit(byte_end=1)]),
             id="unsorted-edits",
         ),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_end=4), _edit(byte_end=2)]),
+            id="same-start-edits",
+        ),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_end=5), _edit(byte_start=2, byte_end=3)]),
+            id="nested-edits",
+        ),
+        pytest.param(
+            _with_fix(edits=[_edit(byte_end=5), _edit(byte_start=2, byte_end=2)]),
+            id="zero-width-edit-inside-range",
+        ),
         pytest.param(_finding(code="PYR000"), id="code-of-no-rule"),
+        pytest.param(_symbol(kind="function", name="\u00e9\u00a7"), id="non-ascii-non-identifier-symbol-name"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
         pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
         pytest.param(_with_fix(edits=[_edit(), _edit()]), id="duplicate-edits"),
@@ -637,6 +750,70 @@ def test_no_document_validates_until_the_wrapper_is_defined(*, document: JsonVal
 def test_malformed_finding_is_rejected(*, finding: Json) -> None:
     """A finding with a wrong type, value or shape is rejected."""
     assert not _is_valid(definition="Finding", instance=finding)
+
+
+_INVALID_BYTE_VALUES = (
+    pytest.param(-1, id="negative"),
+    pytest.param(True, id="boolean"),
+    pytest.param("1", id="string"),
+    pytest.param(1.5, id="fractional"),
+    pytest.param(math.nan, id="not-a-number"),
+    pytest.param(_LARGEST_SAFE_INTEGER + 1, id="beyond-safe-integer"),
+)
+_INVALID_POSITION_VALUES = (
+    pytest.param(0, id="zero"),
+    *_INVALID_BYTE_VALUES,
+)
+
+
+@pytest.mark.parametrize("field", ["byte_start", "byte_end"])
+@pytest.mark.parametrize("value", _INVALID_BYTE_VALUES)
+def test_every_span_byte_field_rejects_invalid_number(*, field: str, value: object) -> None:
+    """Every span byte field enforces the same numeric boundaries."""
+    assert not _is_valid(definition="Span", instance=_span(**{field: value}))
+
+
+@pytest.mark.parametrize("field", ["line_start", "column_start", "line_end", "column_end"])
+@pytest.mark.parametrize("value", _INVALID_POSITION_VALUES)
+def test_every_span_line_and_column_field_rejects_invalid_number(*, field: str, value: object) -> None:
+    """Every span line and column field enforces the same numeric boundaries."""
+    assert not _is_valid(definition="Span", instance=_span(**{field: value}))
+
+
+@pytest.mark.parametrize("field", ["byte_start", "byte_end"])
+@pytest.mark.parametrize("value", _INVALID_BYTE_VALUES)
+def test_every_edit_byte_field_rejects_invalid_number(*, field: str, value: object) -> None:
+    """Every edit byte field enforces the same numeric boundaries."""
+    edit = _edit()
+    edit[field] = value
+
+    assert not _is_valid(definition="Edit", instance=edit)
+
+
+@pytest.mark.parametrize(
+    ("definition", "instance"),
+    [
+        pytest.param("Span", _span(byte_start=0, byte_end=_LARGEST_SAFE_INTEGER), id="span-bytes"),
+        pytest.param(
+            "Span",
+            _span(
+                line_start=1,
+                column_start=1,
+                line_end=_LARGEST_SAFE_INTEGER,
+                column_end=_LARGEST_SAFE_INTEGER,
+            ),
+            id="span-lines-and-columns",
+        ),
+        pytest.param(
+            "Edit",
+            _edit(byte_end=_LARGEST_SAFE_INTEGER),
+            id="edit-bytes",
+        ),
+    ],
+)
+def test_every_numeric_field_accepts_its_boundaries(*, definition: str, instance: Json) -> None:
+    """Every numeric field accepts its inclusive lower and upper boundaries."""
+    assert _is_valid(definition=definition, instance=instance)
 
 
 def test_schema_uses_no_quadratic_keyword() -> None:

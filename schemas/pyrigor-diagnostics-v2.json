@@ -31,7 +31,8 @@
     "A finding's primary span is in the file the finding belongs to.",
     "Spans within a finding, fixes within a finding and edits within a fix are each unique.",
     "Strings are valid Unicode, so they contain no lone surrogates.",
-    "file_name is in Unicode normalisation form NFC."
+    "file_name is in Unicode normalisation form NFC.",
+    "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely."
   ],
   "x-span-conventions": [
     "byte_start and byte_end are offsets into the raw bytes of the file, end-exclusive.",
@@ -288,6 +289,57 @@
         }
       }
     },
+    "FileName": {
+      "description": "A path relative to the working directory, with forward slashes.",
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        {
+          "description": "No control characters.",
+          "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
+        },
+        {
+          "description": "No zero-width, bidirectional control or byte-order mark characters.",
+          "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
+        },
+        {
+          "description": "Relative, so not starting with a slash or a drive letter.",
+          "pattern": "^(?!/)(?![A-Za-z]:)"
+        },
+        {
+          "description": "Forward slashes only.",
+          "pattern": "^(?![\\s\\S]*\\\\)"
+        },
+        {
+          "description": "No empty segment, and no trailing slash.",
+          "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
+        },
+        {
+          "description": "No parent-directory segment.",
+          "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
+        },
+        {
+          "description": "No current-directory segment.",
+          "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
+        },
+        {
+          "description": "No segment starts or ends with whitespace.",
+          "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
+        }
+      ]
+    },
+    "ByteOffset": {
+      "description": "An offset into the raw bytes of a file.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "LinePosition": {
+      "description": "A 1-based line or column.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
     "Span": {
       "description": "A source range. See x-span-conventions.",
       "type": "object",
@@ -304,72 +356,25 @@
       ],
       "properties": {
         "file_name": {
-          "type": "string",
-          "minLength": 1,
-          "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
-            },
-            {
-              "description": "Relative, so not starting with a slash or a drive letter.",
-              "pattern": "^(?!/)(?![A-Za-z]:)"
-            },
-            {
-              "description": "Forward slashes only.",
-              "pattern": "^(?![\\s\\S]*\\\\)"
-            },
-            {
-              "description": "No empty segment, and no trailing slash.",
-              "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
-            },
-            {
-              "description": "No parent-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
-            },
-            {
-              "description": "No current-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
-            },
-            {
-              "description": "No segment starts or ends with whitespace.",
-              "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
-            }
-          ]
+          "$ref": "#/$defs/FileName"
         },
         "byte_start": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/ByteOffset"
         },
         "byte_end": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/ByteOffset"
         },
         "line_start": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/LinePosition"
         },
         "column_start": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/LinePosition"
         },
         "line_end": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/LinePosition"
         },
         "column_end": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/LinePosition"
         },
         "is_primary": {
           "type": "boolean"
@@ -413,8 +418,12 @@
               "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
             },
             {
+              "description": "Identifier characters, dots and angle brackets only. Non-ASCII is checked loosely.",
+              "pattern": "^[0-9A-Za-z_.<>\u0080-\uffff]*$"
+            },
+            {
               "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
-              "pattern": "^(?:<module>|[^\\s.<>]+(?:[.](?:<locals>[.])?[^\\s.<>]+)*)$"
+              "pattern": "^(?:<module>|[^\\s\\d.<>][^\\s.<>]*(?:[.](?:<locals>[.])?[^\\s\\d.<>][^\\s.<>]*)*)$"
             }
           ]
         }
@@ -422,6 +431,7 @@
       "allOf": [
         {
           "if": {
+            "required": ["kind"],
             "properties": {
               "kind": {
                 "const": "module"
@@ -438,6 +448,7 @@
         },
         {
           "if": {
+            "required": ["name"],
             "properties": {
               "name": {
                 "const": "<module>"
@@ -454,6 +465,7 @@
         },
         {
           "if": {
+            "required": ["kind"],
             "properties": {
               "kind": {
                 "const": "method"
@@ -464,13 +476,14 @@
             "properties": {
               "name": {
                 "description": "A method is defined directly in a class, so its class is the segment before it.",
-                "pattern": "^(?:[\\s\\S]*[.])?[^.<>]+[.][^.<>]+$"
+                "pattern": "^(?:[\\s\\S]*[.])?[^\\s\\d.<>][^\\s.<>]*[.][^\\s\\d.<>][^\\s.<>]*$"
               }
             }
           }
         },
         {
           "if": {
+            "required": ["kind"],
             "properties": {
               "kind": {
                 "const": "function"
@@ -528,52 +541,13 @@
       "required": ["file_name", "byte_start", "byte_end", "content"],
       "properties": {
         "file_name": {
-          "type": "string",
-          "minLength": 1,
-          "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u2069\\ufeff])"
-            },
-            {
-              "description": "Relative, so not starting with a slash or a drive letter.",
-              "pattern": "^(?!/)(?![A-Za-z]:)"
-            },
-            {
-              "description": "Forward slashes only.",
-              "pattern": "^(?![\\s\\S]*\\\\)"
-            },
-            {
-              "description": "No empty segment, and no trailing slash.",
-              "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
-            },
-            {
-              "description": "No parent-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
-            },
-            {
-              "description": "No current-directory segment.",
-              "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
-            },
-            {
-              "description": "No segment starts or ends with whitespace.",
-              "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
-            }
-          ]
+          "$ref": "#/$defs/FileName"
         },
         "byte_start": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/ByteOffset"
         },
         "byte_end": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
+          "$ref": "#/$defs/ByteOffset"
         },
         "content": {
           "type": "string"
