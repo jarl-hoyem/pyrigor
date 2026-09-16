@@ -35,6 +35,7 @@ _REQUIRED_EXAMPLE_NAMES = frozenset(
         "2-byte character before on the same line",
         "3-byte character before on the same line",
         "4-byte character before on the same line",
+        "combining character before on the same line",
         "whole line without its break",
         "whole line with its break",
         "whole CRLF line with its break",
@@ -743,10 +744,26 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         pytest.param(_symbol(kind="function", name="\u00e9\u00a7"), id="non-ascii-non-identifier-symbol-name"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
         pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
+        pytest.param(
+            _finding(
+                fixes=[
+                    {"applicability": "safe", "message": "m", "edits": [_edit()]},
+                    {"applicability": "safe", "message": "m", "edits": [_edit()]},
+                ]
+            ),
+            id="duplicate-fixes",
+        ),
         pytest.param(_with_fix(edits=[_edit(), _edit()]), id="duplicate-edits"),
         pytest.param(_finding(spans=[_span(file_name="e\u0301tape.py")]), id="decomposed-file-name"),
         pytest.param(_finding(message="bad\ud800"), id="lone-surrogate-in-message"),
         pytest.param(_finding(spans=[_span(file_name="src/\udc00.py")]), id="lone-surrogate-in-file-name"),
+        pytest.param(_finding(spans=[_span(label="bad\ud800")]), id="lone-surrogate-in-label"),
+        pytest.param(
+            _finding(fixes=[{"applicability": "safe", "message": "bad\ud800", "edits": [_edit()]}]),
+            id="lone-surrogate-in-fix-message",
+        ),
+        pytest.param(_with_fix(edits=[_edit(content="bad\ud800")]), id="lone-surrogate-in-edit-content"),
+        pytest.param(_symbol(kind="function", name="bad\ud800"), id="lone-surrogate-in-symbol-name"),
         pytest.param(_with_fix(edits=[{**_edit(), "content": "x = '\u202e'"}]), id="bidi-control-in-edit-content"),
     ],
 )
