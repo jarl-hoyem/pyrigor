@@ -8,6 +8,11 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the PYR402 fixer inserting its keyword-only separator at the wrong position when non-Python line-break
+  characters occur inside an earlier string literal (#286).
+
 ## [0.13.0] 2026-09-05
 
 ### Added

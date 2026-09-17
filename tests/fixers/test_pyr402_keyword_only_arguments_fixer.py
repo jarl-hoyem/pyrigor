@@ -81,6 +81,144 @@ def test_preserves_decorators() -> None:
     assert result.source == "@decorator(option=True)\ndef apply(*, weight, bias):\n    pass\n"
 
 
+@pytest.mark.parametrize(
+    "character",
+    [chr(code_point) for code_point in (0x2028, 0x2029, 0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85)],
+    ids=[
+        "line-separator",
+        "paragraph-separator",
+        "line-tabulation",
+        "form-feed",
+        "file-separator",
+        "group-separator",
+        "record-separator",
+        "next-line",
+    ],
+)
+def test_does_not_treat_non_python_line_breaks_in_strings_as_lines(*, character: str) -> None:
+    """A string character that splitlines treats as a break does not shift a later fix."""
+    source = f"X = 'a{character}(b'\ndef apply(left, right):\n    return left\n"
+
+    result = fix_source(source=source)
+
+    assert result.source == f"X = 'a{character}(b'\ndef apply(*, left, right):\n    return left\n"
+
+
+@pytest.mark.parametrize("character", [chr(0x2028), chr(0x0C)], ids=["line-separator", "form-feed"])
+def test_handles_non_ascii_text_before_function(*, character: str) -> None:
+    """A UTF-8 character before the string does not alter the insertion position."""
+    source = f"é = 'a{character}(b'\n\ndef apply(left, right):\n    return left\n"
+
+    result = fix_source(source=source)
+
+    assert result.source == f"é = 'a{character}(b'\n\ndef apply(*, left, right):\n    return left\n"
+
+
+def test_handles_non_python_line_break_in_crlf_source() -> None:
+    """A non-Python line-break character does not change CRLF offset handling."""
+    source = "X = 'a\u2028(b'\r\ndef apply(left, right):\r\n    return left\r\n"
+
+    result = fix_source(source=source.encode())
+
+    assert result.source == "X = 'a\u2028(b'\r\ndef apply(*, left, right):\r\n    return left\r\n".encode()
+
+
+@pytest.mark.parametrize(
+    "character",
+    [chr(code_point) for code_point in (0x2028, 0x2029, 0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85)],
+    ids=[
+        "line-separator",
+        "paragraph-separator",
+        "line-tabulation",
+        "form-feed",
+        "file-separator",
+        "group-separator",
+        "record-separator",
+        "next-line",
+    ],
+)
+def test_handles_every_non_python_line_break_with_byte_input(*, character: str) -> None:
+    """Every non-Python line-break character is preserved in byte input."""
+    source = f"X = 'a{character}(b'\ndef apply(left, right):\n    return left\n".encode()
+
+    result = fix_source(source=source)
+
+    assert result.source == f"X = 'a{character}(b'\ndef apply(*, left, right):\n    return left\n".encode()
+
+
+def test_dry_run_preserves_affected_source() -> None:
+    """Dry-run mode reports an affected source without changing it."""
+    source = "X = 'a\u2028(b'\ndef apply(left, right):\n    return left\n"
+
+    result = fix_source(source=source, dry_run=True)
+
+    assert result.source == source
+    assert result.status is FixStatus.WOULD_CHANGE
+
+
+def test_handles_method_async_and_nested_functions() -> None:
+    """Affected strings do not shift edits for methods, async functions or nested functions."""
+    source = (
+        "X = 'a\u2028(b'\n"
+        "class Corrector:\n"
+        "    def apply(self, left, right):\n"
+        "        async def inner(first, second):\n"
+        "            return first + second\n"
+        "        return left + right\n"
+    )
+
+    result = fix_source(source=source)
+
+    assert result.source == (
+        "X = 'a\u2028(b'\n"
+        "class Corrector:\n"
+        "    def apply(self, *, left, right):\n"
+        "        async def inner(*, first, second):\n"
+        "            return first + second\n"
+        "        return left + right\n"
+    )
+
+
+def test_handles_multiple_affected_strings_and_functions() -> None:
+    """Multiple affected strings do not shift edits for multiple eligible functions."""
+    source = (
+        "X = 'a\u2028(b'\n"
+        "Y = 'c\x0c(d'\n"
+        "def first(left, right):\n"
+        "    return left\n"
+        "def second(first, second):\n"
+        "    return second\n"
+    ).encode()
+
+    result = fix_source(source=source)
+
+    assert (
+        result.source
+        == (
+            "X = 'a\u2028(b'\n"
+            "Y = 'c\x0c(d'\n"
+            "def first(*, left, right):\n"
+            "    return left\n"
+            "def second(*, first, second):\n"
+            "    return second\n"
+        ).encode()
+    )
+
+
+@pytest.mark.parametrize("separator", ["/", "*args"], ids=["positional-only", "varargs"])
+def test_preserves_negative_paths_with_affected_string(*, separator: str) -> None:
+    """Affected strings do not change rejection or unchanged behaviour."""
+    if separator == "/":
+        source = "X = 'a\u2028(b'\ndef apply(left, right, /):\n    pass\n"
+        with pytest.raises(FixRejectedError):
+            fix_source(source=source)
+    else:
+        source = "X = 'a\u2028(b'\ndef apply(left, right, *args):\n    pass\n"
+        result = fix_source(source=source)
+        assert result.source == source
+        assert result.status is FixStatus.UNCHANGED
+
+
 def test_fixes_async_function() -> None:
     """Async functions use the same safe signature transformation."""
     source = "async def apply(weight, bias):\n    return weight + bias\n"

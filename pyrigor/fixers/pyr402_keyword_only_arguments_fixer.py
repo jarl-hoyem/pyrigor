@@ -6,6 +6,8 @@ import ast
 from enum import Enum
 from typing import NamedTuple
 
+from pyrigor.findings import PositionIndex
+
 _MINIMUM_POSITIONAL_PARAMETERS = 2
 
 __all__ = ["FixRejectedError", "FixResult", "FixStatus", "fix_source"]
@@ -42,8 +44,9 @@ def fix_source(*, source: str | bytes, dry_run: bool = False) -> FixResult:
     original = source
     text = source.decode() if isinstance(source, bytes) else source
     tree = ast.parse(text)
-    offsets = _line_offsets(text=text)
-    edits = _source_edits(text=text, tree=tree, offsets=offsets)
+    raw = text.encode()
+    index = PositionIndex(raw=raw)
+    edits = _source_edits(text=text, raw=raw, tree=tree, index=index)
 
     if not edits:
         return FixResult(source=original, status=FixStatus.UNCHANGED)
@@ -62,45 +65,44 @@ def _apply_edits(*, text: str, edits: list[_Insertion], as_bytes: bool) -> str |
     return text.encode() if as_bytes else text
 
 
-def _line_offsets(*, text: str) -> list[int]:
-    """Return the absolute offset of each source line."""
-    offsets: list[int] = []
-    total = 0
-    for line in text.splitlines(keepends=True):
-        offsets.append(total)
-        total += len(line)
-    return offsets
-
-
-def _source_edits(*, text: str, tree: ast.AST, offsets: list[int]) -> list[_Insertion]:
+def _source_edits(*, text: str, raw: bytes, tree: ast.AST, index: PositionIndex) -> list[_Insertion]:
     """Collect safe edits for every function in a source tree."""
     edits: list[_Insertion] = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            edit = _function_edit(text=text, node=node, offsets=offsets)
+            edit = _function_edit(text=text, raw=raw, node=node, index=index)
             if edit is not None:
                 edits.append(edit)
     return edits
 
 
-def _function_edit(*, text: str, node: ast.FunctionDef | ast.AsyncFunctionDef, offsets: list[int]) -> _Insertion | None:
+def _function_edit(
+    *, text: str, raw: bytes, node: ast.FunctionDef | ast.AsyncFunctionDef, index: PositionIndex
+) -> _Insertion | None:
     """Return a safe insertion for one function if it needs fixing."""
     if node.args.posonlyargs:
         raise FixRejectedError(f"positional-only parameters in {node.name}")
     positional = node.args.args
     if len(positional) < _MINIMUM_POSITIONAL_PARAMETERS or node.args.vararg is not None:
         return None
-    return _function_insertion(text=text, node=node, positional=positional, offsets=offsets)
+    return _function_insertion(text=text, raw=raw, node=node, positional=positional, index=index)
 
 
 def _function_insertion(
-    *, text: str, node: ast.FunctionDef | ast.AsyncFunctionDef, positional: list[ast.arg], offsets: list[int]
+    *,
+    text: str,
+    raw: bytes,
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    positional: list[ast.arg],
+    index: PositionIndex,
 ) -> _Insertion:
     """Return a source insertion for an eligible function."""
-    start = offsets[node.lineno - 1] + node.col_offset
+    start_byte = index.byte_offset(line=node.lineno, utf8_column=node.col_offset)
     end_line = node.end_lineno or node.lineno
     end_column = node.end_col_offset or 0
-    end = offsets[end_line - 1] + end_column
+    end_byte = index.byte_offset(line=end_line, utf8_column=end_column)
+    start = len(raw[:start_byte].decode())
+    end = len(raw[:end_byte].decode())
     opening = text.find("(", start, end)
     if opening < 0:
         raise FixRejectedError(f"unsupported signature in {node.name}")
