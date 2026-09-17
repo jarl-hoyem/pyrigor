@@ -1,4 +1,7 @@
-"""Shared support for the tests of the v2 diagnostics schema and of the finding types that implement it."""
+"""Shared support for the v2 diagnostics tests.
+
+It serves the schema tests and the tests of the finding types that implement the schema.
+"""
 
 import json
 from pathlib import Path

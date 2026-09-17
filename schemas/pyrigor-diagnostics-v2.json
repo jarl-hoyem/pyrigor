@@ -32,6 +32,7 @@
     "Spans within a finding, fixes within a finding and edits within a fix are each unique.",
     "Strings are valid Unicode, so they contain no lone surrogates.",
     "file_name is in Unicode normalisation form NFC.",
+    "A symbol name is in Unicode normalisation form NFKC, the form Python gives an identifier.",
     "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely.",
     "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 code-point boundary.",
     "code names a rule pyrigor defines.",

@@ -1,4 +1,7 @@
-"""Tests for the v2 diagnostics schema: its types, hostile inputs, known limits and worked position examples."""
+"""Tests for the v2 diagnostics schema.
+
+They cover its types, hostile inputs, known limits and worked position examples.
+"""
 
 import ast
 import copy
@@ -749,14 +752,24 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         pytest.param(_with_fix(edits=[_edit(content="bad\ud800")]), id="lone-surrogate-in-edit-content"),
         pytest.param(_symbol(kind="function", name="bad\ud800"), id="lone-surrogate-in-symbol-name"),
         pytest.param(_with_fix(edits=[{**_edit(), "content": "x = '\u202e'"}]), id="bidi-control-in-edit-content"),
+        pytest.param(_finding(message=chr(0x17B4)), id="khmer-vowel-inherent-aq-as-message"),
+        pytest.param(_finding(message=chr(0x180B)), id="mongolian-variation-selector-as-message"),
+        pytest.param(_finding(spans=[_span(label=chr(0xFE0F))]), id="variation-selector-16-as-label"),
+        pytest.param(_finding(message=chr(0xE0100)), id="variation-selector-17-as-message"),
+        pytest.param(_finding(message=chr(0x2800)), id="braille-pattern-blank-as-message"),
+        pytest.param(_symbol(kind="function", name=chr(0xFF2B)), id="non-nfkc-symbol-name"),
     ],
 )
 def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Json) -> None:
-    """These are accepted by design and listed in x-invariants, or are integers under JSON Schema's own definition.
+    """These are accepted by design.
 
-    If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants. Line and
-    paragraph separators inside text and tag characters outside the Basic Multilingual Plane wait for portable patterns
-    in #291.
+    Each one is listed in x-invariants or is an integer under JSON Schema's own definition.
+
+    If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants.
+
+    Several cases wait for the portable patterns in #291. Those are the line and paragraph separators inside text, the
+    tag characters outside the Basic Multilingual Plane, the invisible marks and the blank Braille pattern. None of
+    them is whitespace, so the rule asking for a non-whitespace character accepts them.
     """
     assert _is_valid(definition="Finding", instance=finding)
 
@@ -886,7 +899,10 @@ def test_schema_uses_no_quadratic_keyword() -> None:
 
 
 def _schema_keys(*, node: object) -> set[str]:
-    """Collect every key used in a schema position, not inside property names or data under keys starting with x-."""
+    """Collect every key used in a schema position.
+
+    Property names and data under keys starting with x- are left out.
+    """
     if isinstance(node, list):
         # pyright strict needs the cast after isinstance narrowing
         # noinspection PyUnnecessaryCast
@@ -919,7 +935,10 @@ def _keys_below(*, key: str, value: object) -> set[str]:
 
 
 def test_schema_uses_no_misspelt_keyword() -> None:
-    """Every key is a JSON Schema 2020-12 keyword or an extension key starting with x-, so no rule is ignored."""
+    """Every key is a JSON Schema 2020-12 keyword or an extension key starting with x-.
+
+    A misspelt keyword would be ignored, taking its rule with it.
+    """
     keys = _schema_keys(node=load_v2_schema())
 
     unknown = {key for key in keys if key not in _KNOWN_KEYWORDS and not key.startswith("x-")}

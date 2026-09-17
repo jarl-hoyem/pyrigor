@@ -96,6 +96,10 @@ module. Its name follows Python's own `__qualname__`, such as `Class.method` or 
 already defined by Python, and it keeps two nested functions with the same name apart. How a baseline turns the symbol
 into a fingerprint is left to the baseline itself.
 
+Python normalises an identifier to Normalisation Form KC, so a function written with fullwidth letters defines the plain
+name. A symbol name is stored in that form, so one symbol has one spelling, for the same reason a file name is stored in
+NFC.
+
 Because the name is a `__qualname__`, its shape follows from its kind. Every segment is a Python identifier, a method's
 name ends with its class, and a function is either at module level or directly inside another function. A name that
 contradicts its kind cannot come from Python, so the schema rejects it rather than letting a consumer build identity on

@@ -38,8 +38,8 @@ _KEYWORD_CALL_TEXT = b"copy(item=item, target=target)"
 _PARAMETERS_TEXT = b"(self, item, target)"
 _KEYWORD_PARAMETERS_TEXT = b"(self, *, item, target)"
 _LONE_SURROGATE = chr(0xD800)
-_DECOMPOSEDFILE_NAME = FileName("src/e" + chr(0x0301) + ".py")
-_COMPOSEDFILE_NAME = FileName("src/" + chr(0xE9) + ".py")
+_DECOMPOSED_FILE_NAME = FileName("src/e" + chr(0x0301) + ".py")
+_COMPOSED_FILE_NAME = FileName("src/" + chr(0xE9) + ".py")
 
 _SPAN = Span(
     file_name=FILE_NAME,
@@ -106,7 +106,10 @@ def _argument_edit(*, argument: ast.expr, index: PositionIndex) -> Edit:
 
 
 def _method_finding() -> Finding:
-    """Build a finding from real source code with labelled spans, an enclosing symbol and two alternative fixes."""
+    """Build a finding from real source code.
+
+    It has labelled spans, an enclosing symbol and two alternative fixes.
+    """
     index = PositionIndex(raw=_METHOD_SOURCE)
     function = _first_node(node_type=ast.FunctionDef)
     call = _first_node(node_type=ast.Call)
@@ -129,7 +132,10 @@ def _method_finding() -> Finding:
 
 
 def _applied(*, fix: Fix) -> bytes:
-    """Apply a fix to the method source, last edit first, so the earlier offsets still refer to the original."""
+    """Apply a fix to the method source, last edit first.
+
+    The earlier offsets then still refer to the original.
+    """
     edited = _METHOD_SOURCE
     for edit in reversed(fix.edits):
         start, end = edit.byte_start, edit.byte_end
@@ -411,8 +417,8 @@ def test_lone_surrogate_is_rejected(*, build: Callable[[], object], field: str) 
 @pytest.mark.parametrize(
     "build",
     [
-        pytest.param(lambda: dataclasses.replace(_SPAN, file_name=_DECOMPOSEDFILE_NAME), id="span"),
-        pytest.param(lambda: dataclasses.replace(_EDIT, file_name=_DECOMPOSEDFILE_NAME), id="edit"),
+        pytest.param(lambda: dataclasses.replace(_SPAN, file_name=_DECOMPOSED_FILE_NAME), id="span"),
+        pytest.param(lambda: dataclasses.replace(_EDIT, file_name=_DECOMPOSED_FILE_NAME), id="edit"),
     ],
 )
 def test_file_name_not_in_nfc_is_rejected(*, build: Callable[[], object]) -> None:
@@ -423,9 +429,9 @@ def test_file_name_not_in_nfc_is_rejected(*, build: Callable[[], object]) -> Non
 
 def test_file_name_in_nfc_is_accepted() -> None:
     """A composed non-ASCII file name is valid."""
-    span = dataclasses.replace(_SPAN, file_name=_COMPOSEDFILE_NAME)
+    span = dataclasses.replace(_SPAN, file_name=_COMPOSED_FILE_NAME)
 
-    assert span.file_name == _COMPOSEDFILE_NAME
+    assert span.file_name == _COMPOSED_FILE_NAME
 
 
 @pytest.mark.parametrize(

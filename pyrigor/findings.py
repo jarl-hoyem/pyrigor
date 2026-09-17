@@ -394,7 +394,9 @@ def _fix_to_json(*, fix: Fix) -> JsonObject:
 
 
 def finding_to_json(*, finding: Finding) -> JsonObject:
-    """Serialise a finding to its v2 JSON shape, omitting absent optional values and always writing its fixes.
+    """Serialise a finding to its v2 JSON shape.
+
+    An absent optional value is omitted, and the fixes are always written.
 
     Args:
         finding: The finding to serialise.

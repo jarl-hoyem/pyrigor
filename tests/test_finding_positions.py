@@ -1,4 +1,7 @@
-"""Tests for finding positions: the position index and the spans make_span builds from real source code."""
+"""Tests for finding positions.
+
+They cover the position index and the spans make_span builds from real source code.
+"""
 
 import ast
 from itertools import accumulate
@@ -48,7 +51,10 @@ class _CallPosition(NamedTuple):
 
 
 def _call_span(*, source: bytes) -> Span:
-    """Build the span of the first call in a source, parsed the way the command line interface reads a file."""
+    """Build the span of the first call in a source.
+
+    The source is parsed the way the command line interface reads a file.
+    """
     tree = ast.parse(source.decode("utf-8-sig"))
     node = next(node for node in ast.walk(tree) if isinstance(node, ast.Call))
     return make_span(node=node, index=PositionIndex(raw=source), file_name=FILE_NAME)
@@ -60,7 +66,10 @@ def _body_start(*, raw: bytes) -> int:
 
 
 def _reference_position(*, raw: bytes, offset: int) -> Position:
-    """Compute a position by splitting the bytes before an offset into lines, instead of searching line starts."""
+    """Compute a position by splitting the bytes before an offset into lines.
+
+    The index search line starts instead, so the two computations stay independent.
+    """
     body_start = _body_start(raw=raw)
     lines = LINE_BREAK.split(raw[body_start:offset])
     return Position(line=LineNumber(len(lines)), column=ColumnNumber(len(lines[-1].decode("utf-8")) + 1))
@@ -89,7 +98,10 @@ def test_worked_position_example(*, example: Json) -> None:
 
 
 def test_every_valid_offset_matches_reference_computation() -> None:
-    """Across a byte-order mark, all three line breaks and multibyte characters, every position matches decoding."""
+    """Every position matches the reference computation.
+
+    The source mixes a byte-order mark, all three line breaks and multibyte characters.
+    """
     index = PositionIndex(raw=_MIXED_SOURCE)
     valid_offsets = _valid_offsets(raw=_MIXED_SOURCE)
 
@@ -102,7 +114,10 @@ def test_every_valid_offset_matches_reference_computation() -> None:
     "character", _NON_BREAKING_SPLITLINES_CHARACTERS.values(), ids=_NON_BREAKING_SPLITLINES_CHARACTERS.keys()
 )
 def test_splitlines_break_in_string_above_node_is_not_a_line_break(*, character: str) -> None:
-    """A character only str.splitlines() treats as a break leaves the node's line and byte offsets unchanged."""
+    """A break only str.splitlines() recognises leaves the node's position unchanged.
+
+    Its line and its byte offsets both stay as they are without the character.
+    """
     first_line = f"x = 'a{character}b'\n".encode()
 
     span = _call_span(source=first_line + _CALL_TEXT + b"\n")
