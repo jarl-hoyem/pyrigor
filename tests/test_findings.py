@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import NamedTuple, TypeVar, cast
 
 import pytest
-from diagnostics_v2_support import FILE_NAME, REPOSITORY_ROOT, Json, definition_validator, load_v2_schema
 
 from pyrigor.findings import (
     Applicability,
@@ -26,6 +25,7 @@ from pyrigor.findings import (
     make_span,
 )
 from pyrigor.rules import Rule, Severity
+from tests.diagnostics_v2_support import FILE_NAME, REPOSITORY_ROOT, Json, definition_validator, load_v2_schema
 
 FindingType = type[Finding | Span | EnclosingSymbol | Fix | Edit]
 _NodeT = TypeVar("_NodeT", bound=ast.AST)

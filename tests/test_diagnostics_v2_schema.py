@@ -11,14 +11,15 @@ from typing import Any, cast
 
 import jsonschema
 import pytest
-from diagnostics_v2_support import (
+from jsonschema.protocols import Validator
+
+from tests.diagnostics_v2_support import (
     FILE_NAME,
     Json,
     definition_validator,
     load_v2_schema,
     require_schema_file,
 )
-from jsonschema.protocols import Validator
 
 _LARGEST_SAFE_INTEGER = 9_007_199_254_740_991  # 2 to the 53rd power, minus 1
 _NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
@@ -901,7 +902,7 @@ def test_schema_uses_no_quadratic_keyword() -> None:
 def _schema_keys(*, node: object) -> set[str]:
     """Collect every key used in a schema position.
 
-    Property names and data under keys starting with x- are left out.
+    Property names and data under keys starting with x - are left out.
     """
     if isinstance(node, list):
         # pyright strict needs the cast after isinstance narrowing

@@ -8,13 +8,13 @@ from typing import cast
 import jsonschema
 import pytest
 
-# Pytest injects the schema fixture into each test.
-# pylint: disable=redefined-outer-name
-from line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
-
 # noinspection PyProtectedMember
 from pyrigor.checkers.cli import main  # pyright: ignore[reportPrivateUsage]
 from pyrigor.findings import FileName, PositionIndex, make_span
+from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
+
+# Pytest injects the schema fixture into each test.
+# pylint: disable=redefined-outer-name
 
 _READ_ERROR = "read_error"
 _SHIFTED_LINE_SOURCE = "X = 'a{character}b'\nif X:\n if X:\n        def bad(a, b):\n            ...\n"
@@ -173,7 +173,7 @@ def test_json_location_converts_utf8_byte_columns_to_code_points(
 def _expected_location(*, source_file: Path) -> dict[str, dict[str, int]]:
     """Compute the expected location of the first function, through the v2 position index.
 
-    The index reads the file's raw bytes, so it is independent of the command line interface's own conversion.
+    The index reads the file's raw bytes, so it is not dependent on the command line interface's own conversion.
     """
     raw = source_file.read_bytes()
     tree = ast.parse(raw.decode("utf-8-sig"))
@@ -192,7 +192,7 @@ def test_json_location_survives_a_break_only_splitlines_recognises(
 ) -> None:
     """A character above the finding that only str.splitlines() breaks on leaves the location correct.
 
-    Reading the wrong line crashes the run when the slice cuts a character in half, and reports a wrong column
+    Reading the wrong line crashes the run when the slice cuts a character in half and reports a wrong column
     otherwise.
     """
     source_file = tmp_path / "break.py"

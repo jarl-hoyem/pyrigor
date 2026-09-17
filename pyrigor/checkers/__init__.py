@@ -2,7 +2,7 @@
 
 from typing import NamedTuple, Protocol
 
-from pyrigor.checkers._shared import WalkedNodes
+from pyrigor.checkers._shared import WalkedNodes, walk_once
 from pyrigor.checkers.pyr301_namedtuple_values import find_violations as _pyr301
 from pyrigor.checkers.pyr401_namedtuple_returns import find_violations as _pyr401
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations as _pyr402
@@ -21,7 +21,8 @@ class _CheckerFun(Protocol):  # pylint: disable=too-few-public-methods
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-# noinspection DuplicatedCode  # Intentional small NamedTuple structure matching shared checker records.
+# Intentional small NamedTuple structure matching shared checker records.
+# noinspection DuplicatedCode
 class RegisteredChecker(NamedTuple):
     """A checker explicitly paired with the rule it enforces.
 
@@ -43,4 +44,4 @@ CHECKERS: tuple[RegisteredChecker, ...] = (
     RegisteredChecker(rule=Rule.PYR406, find_violations=_pyr406),
 )
 
-__all__ = ["CHECKERS", "RegisteredChecker"]
+__all__ = ["CHECKERS", "RegisteredChecker", "walk_once"]

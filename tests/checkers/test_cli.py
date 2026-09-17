@@ -135,21 +135,38 @@ def test_run_show_fixes_requires_fix(
     assert "requires --fix" in capsys.readouterr().err
 
 
-def test_run_fix_leaves_clean_file_unchanged(
-    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+def _assert_fix_leaves_source_unchanged(
+    *,
+    source: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Fixing a clean file produces no change report."""
+    """Assert fix mode leaves one source unchanged and reports no change."""
     source_file = tmp_path / "source.py"
-    original = "def apply(*, weight, bias):\n    ...\n"
-    source_file.write_text(original)
+    source_file.write_text(source)
     monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
     assert exc_info.value.code == 0
-    assert source_file.read_text() == original
+    assert source_file.read_text() == source
     assert capsys.readouterr().out == ""
+
+
+def test_run_fix_leaves_clean_file_unchanged(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Fixing a clean file produces no change report."""
+    original = "def apply(*, weight, bias):\n    ...\n"
+
+    _assert_fix_leaves_source_unchanged(
+        source=original,
+        tmp_path=tmp_path,
+        monkeypatch=monkeypatch,
+        capsys=capsys,
+    )
 
 
 def test_run_fix_reports_unreadable_file(
@@ -437,17 +454,18 @@ def test_run_fix_preserves_unedited_bytes(*, tmp_path: Path, monkeypatch: pytest
     assert fixed.replace(b"*, ", b"") == original
 
 
-def test_run_fix_leaves_suppression_comments_unchanged(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """--fix does not invent or remove suppression comments as a side effect."""
-    source_file = tmp_path / "source.py"
-    source_file.write_text("def apply(left, right):  # pyrigor PYR402 # public API\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(source_file)])
+def test_run_fix_honors_suppression_comments(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--fix leaves a suppressed PYR402 function byte-identical."""
+    original = "def apply(left, right):  # pyrigor PYR402 # public API\n    ...\n"
 
-    with pytest.raises(SystemExit) as exc_info:
-        run()
-
-    assert exc_info.value.code == 0
-    assert "# pyrigor PYR402 # public API" in source_file.read_text()
+    _assert_fix_leaves_source_unchanged(
+        source=original,
+        tmp_path=tmp_path,
+        monkeypatch=monkeypatch,
+        capsys=capsys,
+    )
 
 
 def test_run_fix_rejects_json_output_combination(

@@ -6,7 +6,10 @@ import ast
 from enum import Enum
 from typing import NamedTuple
 
+from pyrigor.checkers import walk_once
+from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations as find_pyr402_violations
 from pyrigor.findings import PositionIndex
+from pyrigor.suppression import filter_suppressed
 
 _MINIMUM_POSITIONAL_PARAMETERS = 2
 
@@ -40,13 +43,23 @@ class _Insertion(NamedTuple):
 
 
 def fix_source(*, source: str | bytes, dry_run: bool = False) -> FixResult:
-    """Insert bare stars into safe fixable PYR402 function signatures."""
+    """Insert bare stars into safe fixable signatures with kept PYR402 violations."""
     original = source
     text = source.decode() if isinstance(source, bytes) else source
     tree = ast.parse(text)
     raw = text.encode()
     index = PositionIndex(raw=raw)
-    edits = _source_edits(text=text, raw=raw, tree=tree, index=index)
+    nodes = walk_once(tree=tree)
+    violations = find_pyr402_violations(nodes=nodes)
+    kept = filter_suppressed(violations=violations, source=text).kept
+    target_positions = {(violation.line, violation.column) for violation in kept}
+    edits = _source_edits(
+        text=text,
+        raw=raw,
+        nodes=nodes.function_nodes,
+        target_positions=target_positions,
+        index=index,
+    )
 
     if not edits:
         return FixResult(source=original, status=FixStatus.UNCHANGED)
@@ -65,14 +78,22 @@ def _apply_edits(*, text: str, edits: list[_Insertion], as_bytes: bool) -> str |
     return text.encode() if as_bytes else text
 
 
-def _source_edits(*, text: str, raw: bytes, tree: ast.AST, index: PositionIndex) -> list[_Insertion]:
-    """Collect safe edits for every function in a source tree."""
+def _source_edits(
+    *,
+    text: str,
+    raw: bytes,
+    nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
+    target_positions: set[tuple[int, int]],
+    index: PositionIndex,
+) -> list[_Insertion]:
+    """Collect safe edits for functions with kept PYR402 violations."""
     edits: list[_Insertion] = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            edit = _function_edit(text=text, raw=raw, node=node, index=index)
-            if edit is not None:
-                edits.append(edit)
+    for node in nodes:
+        if (node.lineno, node.col_offset + 1) not in target_positions:
+            continue
+        edit = _function_edit(text=text, raw=raw, node=node, index=index)
+        if edit is not None:
+            edits.append(edit)
     return edits
 
 

@@ -4,9 +4,9 @@
 from typing import SupportsIndex
 
 import pytest
-from line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixStatus, fix_source
+from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 
 def test_adds_bare_star_before_positional_parameters() -> None:
@@ -27,6 +27,36 @@ def test_preserves_self_before_keyword_only_parameters() -> None:
 
     assert result.source == "class Corrector:\n    def apply(self, *, weight, bias):\n        return weight + bias\n"
     assert result.status is FixStatus.CHANGED
+
+
+def test_leaves_single_parameter_method_unchanged() -> None:
+    """A method with one parameter after self belongs to PYR403, not PYR402."""
+    source = "class Corrector:\n    def apply(self, weight):\n        return weight\n"
+
+    result = fix_source(source=source)
+
+    assert result.source == source
+    assert result.status is FixStatus.UNCHANGED
+
+
+def test_leaves_single_parameter_dunder_method_unchanged() -> None:
+    """A positional protocol method outside PYR402 must retain its runtime semantics."""
+    source = "class Value:\n    def __eq__(self, other):\n        return True\n"
+
+    result = fix_source(source=source)
+
+    assert result.source == source
+    assert result.status is FixStatus.UNCHANGED
+
+
+def test_leaves_suppressed_pyr402_function_unchanged() -> None:
+    """The fixer must honour the same suppression comments as the checker."""
+    source = "def callback(left, right):  # pyrigor 402 # external callback contract\n    return left\n"
+
+    result = fix_source(source=source)
+
+    assert result.source == source
+    assert result.status is FixStatus.UNCHANGED
 
 
 def test_dry_run_does_not_return_a_modified_source() -> None:

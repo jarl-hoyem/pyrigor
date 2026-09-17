@@ -8,8 +8,6 @@ from itertools import accumulate
 from typing import NamedTuple, cast
 
 import pytest
-from diagnostics_v2_support import FILE_NAME, Json, load_v2_schema
-from line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 from pyrigor.findings import (
     BYTE_ORDER_MARK,
@@ -21,6 +19,8 @@ from pyrigor.findings import (
     Span,
     make_span,
 )
+from tests.diagnostics_v2_support import FILE_NAME, Json, load_v2_schema
+from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 _POSITION_EXAMPLES = cast("list[Json]", load_v2_schema()["x-span-position-examples"])
 _CRLF_TEXT = "\r\n"
