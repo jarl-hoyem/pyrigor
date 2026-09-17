@@ -4,6 +4,7 @@
 from typing import SupportsIndex
 
 import pytest
+from line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixStatus, fix_source
 
@@ -81,20 +82,7 @@ def test_preserves_decorators() -> None:
     assert result.source == "@decorator(option=True)\ndef apply(*, weight, bias):\n    pass\n"
 
 
-@pytest.mark.parametrize(
-    "character",
-    [chr(code_point) for code_point in (0x2028, 0x2029, 0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85)],
-    ids=[
-        "line-separator",
-        "paragraph-separator",
-        "line-tabulation",
-        "form-feed",
-        "file-separator",
-        "group-separator",
-        "record-separator",
-        "next-line",
-    ],
-)
+@pytest.mark.parametrize("character", NON_PYTHON_LINE_BREAKS, ids=LINE_BREAK_IDS)
 def test_does_not_treat_non_python_line_breaks_in_strings_as_lines(*, character: str) -> None:
     """A string character that splitlines treats as a break does not shift a later fix."""
     source = f"X = 'a{character}(b'\ndef apply(left, right):\n    return left\n"
@@ -123,20 +111,7 @@ def test_handles_non_python_line_break_in_crlf_source() -> None:
     assert result.source == "X = 'a\u2028(b'\r\ndef apply(*, left, right):\r\n    return left\r\n".encode()
 
 
-@pytest.mark.parametrize(
-    "character",
-    [chr(code_point) for code_point in (0x2028, 0x2029, 0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85)],
-    ids=[
-        "line-separator",
-        "paragraph-separator",
-        "line-tabulation",
-        "form-feed",
-        "file-separator",
-        "group-separator",
-        "record-separator",
-        "next-line",
-    ],
-)
+@pytest.mark.parametrize("character", NON_PYTHON_LINE_BREAKS, ids=LINE_BREAK_IDS)
 def test_handles_every_non_python_line_break_with_byte_input(*, character: str) -> None:
     """Every non-Python line-break character is preserved in byte input."""
     source = f"X = 'a{character}(b'\ndef apply(left, right):\n    return left\n".encode()

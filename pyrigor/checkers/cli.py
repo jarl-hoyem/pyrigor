@@ -38,6 +38,7 @@ _DEFAULT_EXCLUDES = frozenset(
 
 OutputFormat = Literal["human", "json"]
 CheckErrorKind = Literal["read_error", "parse_error"]
+_LINE_FEED = "\n"
 _JSON_OUTPUT_FORMAT: Final = "json"
 
 
@@ -380,8 +381,12 @@ def _print_human_results(*, results_by_file: dict[str, FileCheckResult]) -> None
 
 
 def _codepoint_column(*, source: str, line: int, utf8_column: int) -> int:
-    """Convert a 1-based UTF-8 byte column into a 1-based code-point column."""
-    line_text = source.splitlines()[line - 1]
+    """Convert a 1-based UTF-8 byte column into a 1-based code-point column.
+
+    The source was read with universal newlines, so its lines break only where Python's parser breaks them. The method
+    str.splitlines() breaks on more characters, such as U+2028, which would read the wrong line.
+    """
+    line_text = source.split(_LINE_FEED)[line - 1]
     prefix = line_text.encode()[: utf8_column - 1]
     return len(prefix.decode()) + 1
 

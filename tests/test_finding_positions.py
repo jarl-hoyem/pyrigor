@@ -9,6 +9,7 @@ from typing import NamedTuple, cast
 
 import pytest
 from diagnostics_v2_support import FILE_NAME, Json, load_v2_schema
+from line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 
 from pyrigor.findings import (
     BYTE_ORDER_MARK,
@@ -27,18 +28,6 @@ _CALL_TEXT = b"apply(1)"
 _MULTI_LINE_CALL_TEXT = b"apply(\r\n    1,\r\n)"
 _LINES_WITH_EACH_BREAK = b"x\r\nyy\rz"
 _MIXED_SOURCE = "\ufeffx = 'a\u2028b\u00e9'\r\ndef apply(left):\r    return '\u20ac\U0001f600'\n\tpass\f\n".encode()
-
-# Characters str.splitlines() treats as line breaks although Python's parser does not.
-_NON_BREAKING_SPLITLINES_CHARACTERS = {
-    "line-separator": chr(0x2028),
-    "paragraph-separator": chr(0x2029),
-    "line-tabulation": chr(0x0B),
-    "form-feed": chr(0x0C),
-    "file-separator": chr(0x1C),
-    "group-separator": chr(0x1D),
-    "record-separator": chr(0x1E),
-    "next-line": chr(0x85),
-}
 
 
 class _CallPosition(NamedTuple):
@@ -110,9 +99,7 @@ def test_every_valid_offset_matches_reference_computation() -> None:
     assert positions == [_reference_position(raw=_MIXED_SOURCE, offset=offset) for offset in valid_offsets]
 
 
-@pytest.mark.parametrize(
-    "character", _NON_BREAKING_SPLITLINES_CHARACTERS.values(), ids=_NON_BREAKING_SPLITLINES_CHARACTERS.keys()
-)
+@pytest.mark.parametrize("character", NON_PYTHON_LINE_BREAKS, ids=LINE_BREAK_IDS)
 def test_splitlines_break_in_string_above_node_is_not_a_line_break(*, character: str) -> None:
     """A break only str.splitlines() recognises leaves the node's position unchanged.
 

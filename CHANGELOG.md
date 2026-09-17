@@ -12,6 +12,8 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 - Fixed the PYR402 fixer inserting its keyword-only separator at the wrong position when non-Python line-break
   characters occur inside an earlier string literal (#286).
+- Fixed `--output-format=json` crashing the whole run, or reporting a wrong column, when a string above a finding
+  contains a character that `str.splitlines()` treats as a line break and Python's parser does not (#295).
 
 ## [0.13.0] 2026-09-05
 
