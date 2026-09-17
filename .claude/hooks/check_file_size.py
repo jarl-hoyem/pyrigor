@@ -69,6 +69,7 @@ def main() -> None:
     line_count = _oversized_lines(tool_input=request.get("tool_input", {}))
     if line_count is not None:
         sys.stdout.write(_denial(line_count=line_count))
+        sys.exit(2)
 
 
 if __name__ == "__main__":
