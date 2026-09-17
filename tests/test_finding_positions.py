@@ -68,7 +68,7 @@ def _body_start(*, raw: bytes) -> int:
 def _reference_position(*, raw: bytes, offset: int) -> Position:
     """Compute a position by splitting the bytes before an offset into lines.
 
-    The index search line starts instead, so the two computations stay independent.
+    The index searches for line starts instead, so the two computations stay independent.
     """
     body_start = _body_start(raw=raw)
     lines = LINE_BREAK.split(raw[body_start:offset])

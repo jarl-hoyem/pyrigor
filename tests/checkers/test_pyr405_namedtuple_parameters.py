@@ -8,6 +8,7 @@ import ast
 # noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr405_namedtuple_parameters import find_violations
+from pyrigor.rules import Rule
 
 
 def test_flags_function_with_bare_tuple_parameter() -> None:
@@ -20,6 +21,7 @@ def step_bot(*, action: tuple[int, int]) -> None:
 
     assert len(violations) == 1
     assert violations[0].context_name == "step_bot"
+    assert violations[0].rule is Rule.PYR405
 
 
 def test_no_violation_for_normal_parameters() -> None:

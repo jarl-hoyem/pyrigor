@@ -8,6 +8,7 @@ import ast
 # noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr403_keyword_only_single_argument import find_violations
+from pyrigor.rules import Rule
 
 
 def test_flags_single_positional_parameter() -> None:
@@ -20,6 +21,7 @@ def load_config(path):
 
     assert len(violations) == 1
     assert violations[0].context_name == "load_config"
+    assert violations[0].rule is Rule.PYR403
 
 
 def test_no_violation_for_already_keyword_only_single_parameter() -> None:

@@ -7,7 +7,12 @@ import ast
 from typing import cast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import _is_unbounded_homogeneous_tuple, walk_once  # pyright: ignore[reportPrivateUsage]
+from pyrigor.checkers._shared import (
+    _is_unbounded_homogeneous_tuple,  # pyright: ignore[reportPrivateUsage]
+    count_parameters,
+    function_scopes,
+    walk_once,
+)
 
 
 def test_unbounded_homogeneous_tuple_requires_two_elements() -> None:
@@ -15,6 +20,41 @@ def test_unbounded_homogeneous_tuple_requires_two_elements() -> None:
     # noinspection PyInvalidCast
     elements = [cast("ast.expr", ast.Name(id="item"))]
     assert not _is_unbounded_homogeneous_tuple(elts=elements)
+
+
+def test_count_parameters_strips_cls_and_counts_keyword_only_parameters() -> None:
+    """A leading cls is implicit, while positional and keyword-only parameters all count."""
+    tree = ast.parse(
+        """
+class Builder:
+    def build(cls, left, right, *, option):
+        ...
+"""
+    )
+    class_node = tree.body[0]
+    assert isinstance(class_node, ast.ClassDef)
+    method = class_node.body[0]
+    assert isinstance(method, ast.FunctionDef)
+
+    counts = count_parameters(node=method)
+
+    assert [argument.arg for argument in counts.positional_args] == ["left", "right"]
+    assert counts.total_params == 3
+
+
+def test_function_scopes_skips_a_containing_class() -> None:
+    """A method's enclosing lexical function scope is the module, not its class."""
+    tree = ast.parse(
+        """
+class Example:
+    def method(self):
+        ...
+"""
+    )
+    nodes = walk_once(tree=tree)
+    method = nodes.function_nodes[0]
+
+    assert list(function_scopes(scope=method, parents=nodes.parents)) == [method, tree]
 
 
 def test_walk_once_collects_function_nodes() -> None:
