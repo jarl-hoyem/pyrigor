@@ -25,28 +25,22 @@ the motivating example was a function argument swap. The rule protects any same-
 everywhere, not specifically function arguments. Contrast with [PYR402](./PYR402-keyword-only-arguments.md), which is
 genuinely about function call sites specifically and correctly sits in 4xx.
 
-## Reserved but unwritten rules
+## When a number is decided
 
-A rule number can be reserved by opening a GitHub Issue stating the intended number before its guideline doc exists.
-This prevents a later rule from claiming the same number, which has happened once already in this project's history (a
-file was misnamed `PYR404` when it should have been `PYR405`, colliding with the already-reserved mutable-defaults
-number).
+A rule gets a number when its guideline document is created, not before. An issue about a candidate rule names the idea,
+not a number. An issue is eventually closed, while the document endures, so a number claimed in an issue reserves
+nothing and goes stale where nobody looks.
 
-## Current allocations
+## Which numbers are taken?
 
-As of this writing:
+The guideline documents are the allocation list. The files `guidelines/PYR*.md` say which numbers exist, and
+`guidelines/RULES.md` is generated from them. Read that directory when choosing the next number in a bucket:
 
-- **1xx**: none yet.
-- **2xx**: PYR201 (`NewType`), PYR202 (`Enum`), PYR203 (`Final`, general form), PYR204 (float tolerance), PYR205
-  (`Final`, repeated-literal subset), PYR206 (`Decimal` from string, not float).
-- **3xx**: PYR301 (`NamedTuple` for values), PYR302 (frozen dataclasses), PYR303 (iterate over a copy when mutating).
-- **4xx**: PYR401 (`NamedTuple` returns), PYR402/PYR403 (keyword-only arguments), PYR404 reused for a future
-  function-signature rule, no longer permanently reserved for the rejected mutable-defaults candidate, see REJECTED.md
-  and the rejected-rules-numbering issue for why, PYR405 (`NamedTuple` parameters), PYR406 (return values used).
-- **5xx**: PYR501 (exhaustive match), PYR502 (explicit preconditions), PYR503 (safe archive extraction).
+```bash
+ls guidelines/PYR*.md
+```
 
-Check the `guidelines/` directory and open GitHub Issues (search for existing PYRxxx mentions) for the current highest
-number in a bucket before claiming the next one, rather than relying on this table alone, since it can go stale.
+A number whose rule was rejected returns to the pool, so `PYR404` is free for reuse. See [`REJECTED.md`](./REJECTED.md).
 
 ## Adding a new rule
 

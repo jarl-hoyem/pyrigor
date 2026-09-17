@@ -34,8 +34,8 @@ This is a rule-selection criterion, not a requirement that every rule have a beh
 
 ## 1. Pick a number
 
-See [`NUMBERING.md`](./NUMBERING.md) for the bucket scheme. Check `guidelines/` and open GitHub Issues for the current
-highest number in the relevant bucket before claiming the next one.
+See [`NUMBERING.md`](./NUMBERING.md) for the bucket scheme. The guideline documents in `guidelines/` are the list of
+numbers in use, so read that directory for the highest number in the relevant bucket before claiming the next one.
 
 ## 2. Pick a name
 
