@@ -175,6 +175,15 @@ within the file, NFC and valid Unicode, a code that names a rule pyrigor defines
 pyrigor assigns to that rule. The schema lists them as invariants for the producer, and tests pin that the schema
 accepts each violation, so a later change that starts enforcing one updates the list deliberately.
 
+The Python types in `pyrigor/findings.py` enforce the invariants a validator cannot: an ordered byte range, an ordered
+position, sorted and non-overlapping edits in one file, unique spans and fixes, valid Unicode, a file name in NFC, a
+qualified name whose segments are identifiers and a level derived from the rule. Positions come from `PositionIndex`, so
+a span's offsets lie within the file, on code-point boundaries and never inside a byte-order mark or a CRLF.
+
+They do not repeat the rules the schema states, such as the text patterns, the path spelling or the shape a name must
+have for its kind. Those hold because pyrigor validates its own output against the schema. A type therefore accepts
+values the schema rejects, and the document, not the object, is where that is caught.
+
 ### No document validates before the wrapper exists
 
 The schema defines finding types, but not yet the document that carries them. Until the document wrapper is defined, the
