@@ -145,7 +145,7 @@ sort_key = lambda weight, bias: weight + bias
 def test_known_limitation_staticmethod_with_only_self_param() -> None:
     """A @staticmethod whose only param is misleadingly named `self` escapes detection.
 
-    This is a known, accepted limitation, not a bug we're fixing: the checker
+    This is a known, accepted limitation, not a bug needing fixing: the checker
     exempts the first positional param named `self`/`cls` without checking for
     @staticmethod or class context. If you name a @staticmethod's parameter
     `self`, you've done this to yourself — pyrigor isn't going to save you

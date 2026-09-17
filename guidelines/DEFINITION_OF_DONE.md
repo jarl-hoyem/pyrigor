@@ -116,19 +116,21 @@ general knowledge only):
 1. **Update `CHANGELOG.md` first.** Move `[Unreleased]`'s content into a new `[X.Y.Z]` heading with the real date, add a
    fresh, empty `[Unreleased]` above it.
 2. **Bump `pyproject.toml`'s version**, then run `uv lock`.
-3. **Commit `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` together, in one commit.** Not two. The changelog entry and
+3. **Refresh Python dependencies**, review the `uv.lock` changes and run all tests before release. Use
+   `uv lock --upgrade` as part of release preparation rather than monitoring routine updates manually.
+4. **Commit `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` together, in one commit.** Not two. The changelog entry and
    the version bump describe the same release, they should land together, not have the changelog trail behind as an
    afterthought.
-4. **Run the Key Performance Indicators (KPI) scans** (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their
+5. **Run the Key Performance Indicators (KPI) scans** (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their
    own commit.
-5. **Run pyscn's clone detection** (`uvx pyscn@latest analyze . --select clones`), review real findings against the
+6. **Run pyscn's clone detection** (`uvx pyscn@latest analyze . --select clones`), review real findings against the
    known, deliberate architectural patterns (checker `find_violations` wrappers, `_shared.py`'s helper functions), file
    an issue for anything genuinely new.
-6. **Run the PyCharm inspection** (`just inspect`), and check that the release's own changes drew no new findings
+7. **Run the PyCharm inspection** (`just inspect`), and check that the release's own changes drew no new findings
    outside the three known settings categories tracked in #236. Delete `.pycharm-inspection-results/` and
    `.pycharm-inspection.log` afterwards. This is the only scheduled moment the inspection runs, since it is too slow for
    pre-commit and its backlog is too large to gate on. See `DECISIONS.md`.
-7. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag and title) with real release notes.
+8. Push, then create the GitHub release/tag (`vX.Y.Z`, matching tag and title) with real release notes.
 
 Dev-tooling-only changes (a new pre-commit hook, a CI workflow fix, internal refactors with no user-visible behaviour
 change) do not need a `CHANGELOG.md` entry. Only user-facing changes do.
