@@ -362,14 +362,18 @@ repos:
         types: [python]
         pass_filenames: false
         stages: [pre-commit]
-      # Fast local dependency audit runs before the slower test suite.
+      # The two slowest checks run on push, not on every commit. Measured on
+      # 2026-09-18: pytest 15s and pip-audit 3s, against 34s for a whole commit
+      # touching one Python file. Nothing reaches a branch without them, CI runs
+      # both stages, and the environment they audit cannot change between
+      # commits without the lock changing too. See DECISIONS.md.
       - id: pip-audit
         name: pip-audit (fast, local environment)
         language: system
         entry: uv run --extra dev pip-audit --local
         pass_filenames: false
         always_run: true
-        stages: [pre-commit]
+        stages: [pre-push]
       # Tests.
       - id: pytest
         name: pytest
@@ -378,7 +382,7 @@ repos:
         language: system
         entry: uv run --extra dev pytest
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [pre-push]
       # Precise locked dependency audit is CI only and intentionally slow. It no
       # longer runs on local `git push`; the `pre-push` stage itself stays
       # available for future local hooks (see #235).

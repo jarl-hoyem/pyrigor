@@ -58,6 +58,13 @@ jobs:
           SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit' || '' }}
         run: just check
 
+      - name: Run quality checks (pre-push stage)
+        env:
+          # pip-audit currently fails during import on Python 3.15 because
+          # its dependency stack still imports the removed `imp` module.
+          SKIP: ${{ matrix.python-version == '3.15' && 'pip-audit' || '' }}
+        run: just check pre-push
+
       - name: "Run quality checks (manual stage: pip-audit-locked)"
         env:
           # The locked audit uses the same pip-audit stack and is likewise

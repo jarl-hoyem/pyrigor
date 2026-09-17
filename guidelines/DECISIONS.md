@@ -836,6 +836,20 @@ ran mutmut 3.8.0 while the lock pinned 3.7.0. The newer mutmut created 42 more m
 with upstream releases rather than with pyrigor. The image now runs `uv sync --locked`, and Dependabot's `docker`
 ecosystem updates its uv image pin.
 
+### The two slowest checks run on push, not on every commit
+
+Measured on 2026-09-18: a commit touching one Python file cost 34 seconds, and a Markdown-only commit 25 seconds. The
+suite pays about 2 seconds of startup per hook, and pytest at 15 seconds and the local pip-audit at 3 seconds sat on top
+of that. Moving both to the `pre-push` stage brought the same commits to 17 and 11 seconds.
+
+Nothing reaches a branch without them. Pre-commit's pre-push hook runs both before a push, and CI runs the pre-commit,
+pre-push and manual stages, so the workflow file still mirrors the hook file. The audited environment cannot change
+between commits unless the lock changes, and that change is itself committed and audited on the next push.
+
+The cost is that one commit in a series can contain failing tests. That is accepted because the series is not shared
+until it is pushed, and bisecting over a local commit is rare compared with the time a full suite takes on every commit.
+Parallel runs of the remaining checks are a separate question (#199), and the measurements above are recorded there.
+
 ### Prettier runs from the locked package, with one pin
 
 Prettier's version was stated twice. The first place was `package.json` and `package-lock.json`, which PyCharm's

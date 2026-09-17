@@ -22,6 +22,7 @@ Setup:
 ```bash
 uv sync --extra dev
 pre-commit install
+pre-commit install --hook-type pre-push
 ```
 
 Run the linter itself:
@@ -52,8 +53,12 @@ Run all quality gates (same checks CI runs via pre-commit, so there is no separa
 just check
 ```
 
-`pytest` currently runs as part of this (no `stages:` restriction is active yet — the pytest hook in
-`.pre-commit-config.yaml` has a commented-out `stages: [pre-push]` line, "saved for later", not yet applied).
+`pytest` and `pip-audit` run on push rather than on every commit, so a commit costs about 18 seconds less. Run them
+before offering a commit message:
+
+```bash
+just check pre-push
+```
 
 Individual tools, if needed outside pre-commit: `uv run mypy .`,
 `uv run python scripts/run_on_git_python_files.py pyright --project=pyproject.toml`, `uv run ty check .`,
