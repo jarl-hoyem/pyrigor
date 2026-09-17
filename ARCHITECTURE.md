@@ -51,6 +51,9 @@ suppression.py           (depends only on violations.py -- a
                            separate branch, not part of the checker
                            chain above)
 
+findings.py              (depends only on rules.py -- the v2 finding
+                           types, not yet used by any other module)
+
 checkers/cli.py           (top of the graph: imports checkers,
                            checkers._shared, rules, suppression, and
                            violations -- nothing imports from it)

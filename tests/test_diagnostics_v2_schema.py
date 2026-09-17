@@ -2,19 +2,21 @@
 
 import ast
 import copy
-import json
 import math
-import re
 from pathlib import Path
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 
 import jsonschema
 import pytest
+from diagnostics_v2_support import (
+    FILE_NAME,
+    Json,
+    definition_validator,
+    load_v2_schema,
+    require_schema_file,
+)
 from jsonschema.protocols import Validator
 
-_SCHEMA_PATH = Path(__file__).parent.parent / "schemas" / "pyrigor-diagnostics-v2.json"
-_BYTE_ORDER_MARK = b"\xef\xbb\xbf"
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LARGEST_SAFE_INTEGER = 9_007_199_254_740_991  # 2 to the 53rd power, minus 1
 _NAMED_SCHEMA_MAPS = frozenset({"properties", "$defs"})
 _EXTENSION_POLICY_KEY = "x-extension-policy"
@@ -127,46 +129,18 @@ _KNOWN_KEYWORDS = frozenset(
     },
 )
 
-# JSON documents are untyped by nature. Any matches the jsonschema stubs' own instance type.
-Json = dict[str, Any]
 JsonValue = Json | list[Any] | None
-
-
-class _Position(NamedTuple):
-    """A 1-based line and column."""
-
-    line: int
-    column: int
-
-
-def _require_schema_file(*, path: Path) -> None:
-    """Fail, rather than skip, when the schema file is missing."""
-    if not path.is_file():
-        pytest.fail(f"schema file not found: {path}")
-
-
-def _load_schema() -> Json:
-    """Load the schema."""
-    _require_schema_file(path=_SCHEMA_PATH)
-    return cast("Json", json.loads(_SCHEMA_PATH.read_text(encoding="utf-8")))
 
 
 def _root_validator() -> Validator:
     """Build a validator for the schema root, which is how a whole document is validated."""
-    return jsonschema.Draft202012Validator(_load_schema())
-
-
-def _validator(*, definition: str) -> Validator:
-    """Build a validator for one definition, without the root's rejection of every document."""
-    schema = _load_schema()
-    schema.pop("not", None)
-    return jsonschema.Draft202012Validator({**schema, "$ref": f"#/$defs/{definition}"})
+    return jsonschema.Draft202012Validator(load_v2_schema())
 
 
 def _span(**overrides: object) -> Json:
     """Build a valid single-line primary span, with some fields replaced."""
     span: Json = {
-        "file_name": "src/app.py",
+        "file_name": FILE_NAME,
         "byte_start": 4,
         "byte_end": 9,
         "line_start": 1,
@@ -178,7 +152,7 @@ def _span(**overrides: object) -> Json:
     return {**span, **overrides}
 
 
-def _edit(*, byte_start: int = 0, byte_end: int = 0, content: str = "x", file_name: str = "src/app.py") -> Json:
+def _edit(*, byte_start: int = 0, byte_end: int = 0, content: str = "x", file_name: str = FILE_NAME) -> Json:
     """Build a valid edit."""
     return {"file_name": file_name, "byte_start": byte_start, "byte_end": byte_end, "content": content}
 
@@ -233,17 +207,17 @@ def _with_alternative_fixes() -> Json:
 
 def _is_valid(*, definition: str, instance: Json) -> bool:
     """Return whether an instance validates against one definition."""
-    return _validator(definition=definition).is_valid(instance)
+    return definition_validator(definition=definition).is_valid(instance)
 
 
 def test_schema_file_is_valid_json_schema_2020_12() -> None:
     """The schema itself conforms to the JSON Schema 2020-12 meta-schema."""
-    jsonschema.Draft202012Validator.check_schema(_load_schema())
+    jsonschema.Draft202012Validator.check_schema(load_v2_schema())
 
 
 def test_schema_states_its_extension_policy() -> None:
     """The top-level description points to the extension policy, and the policy states each rule."""
-    schema = _load_schema()
+    schema = load_v2_schema()
     policy = " ".join(cast("list[str]", schema[_EXTENSION_POLICY_KEY]))
 
     missing = [rule for rule in _EXTENSION_POLICY_RULES if rule not in policy]
@@ -255,7 +229,7 @@ def test_schema_states_its_extension_policy() -> None:
 def test_missing_schema_file_fails_instead_of_skipping(*, tmp_path: Path) -> None:
     """A missing schema file is a test failure, not a skipped test."""
     with pytest.raises(pytest.fail.Exception, match="schema file not found"):
-        _require_schema_file(path=tmp_path / "missing.json")
+        require_schema_file(path=tmp_path / "missing.json")
 
 
 @pytest.mark.parametrize(
@@ -269,7 +243,7 @@ def test_missing_schema_file_fails_instead_of_skipping(*, tmp_path: Path) -> Non
 )
 def test_valid_findings_validate(*, finding: Json) -> None:
     """Findings covering each model feature validate."""
-    _validator(definition="Finding").validate(finding)
+    definition_validator(definition="Finding").validate(finding)
 
 
 @pytest.mark.parametrize(
@@ -345,7 +319,7 @@ def test_every_nested_required_field_is_required(
 )
 def test_contract_annotation_is_present_and_nonempty(*, key: str) -> None:
     """Every prose contract required by the issue remains present and unambiguous."""
-    value = cast("list[str]", _load_schema()[key])
+    value = cast("list[str]", load_v2_schema()[key])
 
     assert isinstance(value, list)
     assert value
@@ -440,17 +414,7 @@ def test_invalid_applicability_is_rejected() -> None:
 
 def _position_examples() -> list[Json]:
     """Return the worked position examples for spans."""
-    return cast("list[Json]", _load_schema()["x-span-position-examples"])
-
-
-def _reference_position(*, raw: bytes, offset: int) -> _Position:
-    """Compute a line and column from raw bytes, independently of pyrigor's code."""
-    body_start = len(_BYTE_ORDER_MARK) if raw.startswith(_BYTE_ORDER_MARK) else 0
-    before = raw[body_start:offset].decode()
-    breaks = list(_LINE_BREAK.finditer(before))
-    line_start = breaks[-1].end() if breaks else 0
-    line_text = before[line_start:]
-    return _Position(line=len(breaks) + 1, column=len(line_text) + 1)
+    return cast("list[Json]", load_v2_schema()["x-span-position-examples"])
 
 
 def test_position_examples_cover_every_required_case() -> None:
@@ -458,28 +422,6 @@ def test_position_examples_cover_every_required_case() -> None:
     names = {cast("str", example["name"]) for example in _position_examples()}
 
     assert names == _REQUIRED_EXAMPLE_NAMES
-
-
-@pytest.mark.parametrize("example", _position_examples(), ids=lambda example: cast("str", example["name"]))
-def test_position_example_bytes_match_its_text(*, example: Json) -> None:
-    """Each example's byte range slices its exact text out of the encoded source."""
-    raw = cast("str", example["source"]).encode()
-    byte_start = cast("int", example["byte_start"])
-    byte_end = cast("int", example["byte_end"])
-
-    assert raw[byte_start:byte_end].decode() == example["text"]
-
-
-@pytest.mark.parametrize("example", _position_examples(), ids=lambda example: cast("str", example["name"]))
-def test_position_example_lines_and_columns_follow_the_conventions(*, example: Json) -> None:
-    """Each example's lines and columns follow the stated conventions."""
-    raw = cast("str", example["source"]).encode()
-
-    start = _reference_position(raw=raw, offset=cast("int", example["byte_start"]))
-    end = _reference_position(raw=raw, offset=cast("int", example["byte_end"]))
-
-    assert start == _Position(line=cast("int", example["line_start"]), column=cast("int", example["column_start"]))
-    assert end == _Position(line=cast("int", example["line_end"]), column=cast("int", example["column_end"]))
 
 
 @pytest.mark.parametrize(
@@ -940,7 +882,7 @@ def test_schema_uses_no_quadratic_keyword() -> None:
     uniqueItems compares every item with every other, so thousands of spans took seconds to validate. Uniqueness is a
     producer invariant instead.
     """
-    assert _QUADRATIC_KEYWORD not in _schema_keys(node=_load_schema())
+    assert _QUADRATIC_KEYWORD not in _schema_keys(node=load_v2_schema())
 
 
 def _schema_keys(*, node: object) -> set[str]:
@@ -978,7 +920,7 @@ def _keys_below(*, key: str, value: object) -> set[str]:
 
 def test_schema_uses_no_misspelt_keyword() -> None:
     """Every key is a JSON Schema 2020-12 keyword or an extension key starting with x-, so no rule is ignored."""
-    keys = _schema_keys(node=_load_schema())
+    keys = _schema_keys(node=load_v2_schema())
 
     unknown = {key for key in keys if key not in _KNOWN_KEYWORDS and not key.startswith("x-")}
 

@@ -230,6 +230,21 @@ Earned by: the first version accepted any document at its root, a rule code with
 names, and took seconds to validate a finding with thousands of spans. Its tests passed because they only checked the
 rules the schema's author had thought of. Portability of the patterns across regex engines is still open in #291.
 
+### Finding types are frozen dataclasses that check themselves
+
+The v2 finding types in `pyrigor/findings.py` are frozen, keyword-only dataclasses, not NamedTuples. A NamedTuple is a
+tuple, so a span would compare equal to a plain tuple of the same values and could be unpacked by position, the
+confusion PYR401 exists to prevent. A dataclass can check its invariants when it is built, so a finding with two primary
+spans or a fix with overlapping edits cannot exist. Frozen keeps findings hashable, which the uniqueness checks use.
+
+Each type rejects the structural mistakes #287 lists and the producer invariants the schema cannot express, such as
+unsorted edits, a lone surrogate or a file name not in NFC. It does not repeat the schema's own rules. Validating the
+serialised finding checks those, so each rule has one source.
+
+A finding's `level` is computed from its rule instead of stored, so it cannot disagree with `code`. Byte offsets, lines
+and columns are separate `NewType`s, so a column cannot be passed where a line is expected. Positions come from the raw
+file bytes through a `PositionIndex` built once per file, and `make_span` is the only code that constructs a span.
+
 ## Opt-in rule tier: Real, two independent axes, no separate numbering
 
 Found while considering a "ban the walrus operator" rule (#163): every PYRxxx rule today is framed as eventually

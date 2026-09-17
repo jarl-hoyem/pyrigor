@@ -61,3 +61,7 @@ depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.violations"]
 [[modules]]
 path = "pyrigor.checkers.pyr403_keyword_only_single_argument"
 depends_on = ["pyrigor.checkers._shared", "pyrigor.violations", "pyrigor.rules"]
+
+[[modules]]
+path = "pyrigor.findings"
+depends_on = ["pyrigor.rules"]
