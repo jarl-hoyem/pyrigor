@@ -81,6 +81,14 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
     class-body scope. A name-resolution rule cannot be trusted from direct-definition tests alone, while syntax-only
     rules should not accumulate irrelevant scope cases.
 
+11. **When a suspected defect did not reproduce, was the input built to make the fault observable, rather than one
+    passing case taken as proof that the defect is absent?** ← rule: `DEFINITION_OF_DONE.md`, Correctness ("What would a
+    deliberately adversarial reader try to break, given the actual code, not the intended behaviour? Try that.") _Earned
+    by:_ #286 recorded that the JSON column conversion did not share the fixer's `str.splitlines()` defect, based on one
+    U+2028 case whose misread line happened to be ASCII and long enough to give the right column. A multibyte character
+    on the misread line crashes pyrigor, and a shorter misread line reports a wrong column (#295). The fault was
+    reachable in every release since v0.10.0.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line
