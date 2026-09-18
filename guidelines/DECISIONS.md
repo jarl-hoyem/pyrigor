@@ -462,7 +462,7 @@ just faster.
 
 The two complexity tools are the arguable pair, and scoping them was tried and rejected on 2026-09-18. A maintainability
 index and a complexity rank are both per file, so a changed-files run would give the same verdict. Measured, it saved
-about 0.9 seconds of a 16 second commit. Against that, `radon-maintainability` broke outright, because its `--allow`
+about 0.9 seconds of a 16-second commit. Against that, `radon-maintainability` broke outright, because its `--allow`
 entries must name a file that was checked, which is how a stale entry fails once #268 removes the need for it. The
 strict `xenon` worked, but it would have left `vulture` and `radon-maintainability` on
 `scripts/run_on_git_python_files.py` while one tool of the three used pre-commit's own list, and that list holds tracked
