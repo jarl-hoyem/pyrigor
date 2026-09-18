@@ -1211,8 +1211,12 @@ def test_run_filter_swallowing_path_prints_a_hint(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A filter that consumes the only path prints a targeted hint."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", flag, ".\\pyrigor\\"])
+    """A filter that consumes the only path prints a targeted hint.
+
+    A valid --ignore=CODE precedes it, so the hint scan must skip past a
+    non-culprit token before finding the actual swallowed value.
+    """
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR401", flag, ".\\pyrigor\\"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
