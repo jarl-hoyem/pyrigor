@@ -245,6 +245,29 @@ A finding's `level` is computed from its rule instead of stored, so it cannot di
 and columns are separate `NewType`s, so a column cannot be passed where a line is expected. Positions come from the raw
 file bytes through a `PositionIndex` built once per file, and `make_span` is the only code that constructs a span.
 
+### The v2 output is one JSON document, not a JSON Lines stream
+
+JSON Lines was considered for the v2 output while the wrapper (#288) was still undefined. It would give three things:
+sharded or parallel runs whose outputs merge with `cat`, bounded memory at sizes like the 90,488 findings of a key
+performance indicator scan and a file that stays parseable up to its last newline after a crash.
+
+None of the three is available today. The pipeline aggregates every file's results before printing, so nothing streams
+until that changes, and no consumer reads the output in shards.
+
+The costs are immediate. Most of the wrapper #288 defines is per-run: `schema_version`, the tool name and version,
+`rules`, `errors` and `summary`. Only `findings` and `suppressed` hold findings, and they are two lists. A single stream
+of records cannot tell them apart, and the per-run parts cannot appear at all, without a tag on every record. The stream
+then becomes a discriminated union, and a record is no longer a `Finding`. That is the one type the schema pins down
+with `additionalProperties: false` and its invariants. Validation also stops being something `check-jsonschema` or an
+editor does for free. A version is worse in a stream than in a document. A consumer reads `schema_version` before
+anything else in a document, but in a stream it either trusts the first record to be a header or discovers a version it
+cannot handle halfway through.
+
+The option is kept open rather than closed. The schema defines a finding and no document, so a later
+`--output-format=jsonl` could emit `#/$defs/Finding` records for kept findings only, with no header, leaving the per-run
+parts to the document format. Defining a JSON Lines wrapper now is what would foreclose that. Two things would justify
+one: a consumer that must act on findings before the run ends, or runs sharded across workers whose outputs concatenate.
+
 ## Opt-in rule tier: Real, two independent axes, no separate numbering
 
 Found while considering a "ban the walrus operator" rule (#163): every PYRxxx rule today is framed as eventually
