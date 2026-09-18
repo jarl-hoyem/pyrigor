@@ -117,7 +117,22 @@ def test_run_fix_requires_explicit_pyr402_selection(
         run()
 
     assert exc_info.value.code == 2
-    assert "explicit --select=PYR402" in capsys.readouterr().err
+    assert capsys.readouterr().err == "pyrigor: fixer options require explicit --select=PYR402\n"
+
+
+def test_run_diff_requires_explicit_pyr402_selection(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Diff mode also requires explicitly selecting PYR402."""
+    source_file = tmp_path / "source.py"
+    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert capsys.readouterr().err == "pyrigor: fixer options require explicit --select=PYR402\n"
 
 
 def test_run_show_fixes_requires_fix(
@@ -132,7 +147,7 @@ def test_run_show_fixes_requires_fix(
         run()
 
     assert exc_info.value.code == 2
-    assert "requires --fix" in capsys.readouterr().err
+    assert capsys.readouterr().err == "pyrigor: --show-fixes requires --fix\n"
 
 
 def _assert_fix_leaves_source_unchanged(
@@ -484,7 +499,7 @@ def test_run_fix_rejects_json_output_combination(
 
     assert exc_info.value.code == 2
     assert source_file.read_text() == original
-    assert "output-format" in capsys.readouterr().err
+    assert capsys.readouterr().err == "pyrigor: fixer options cannot be combined with --output-format json\n"
 
 
 def test_cli_help_documents_fixer_modes(*, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
@@ -793,6 +808,16 @@ def test_main_combines_file_and_directory_exclusions(*, tmp_path: Path, capsys: 
     assert "nested.py" not in captured.out
 
 
+def test_directory_walk_excludes_egg_info(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Generated Python inside an 'egg-info' directory is excluded."""
+    metadata = tmp_path / "example.egg-info"
+    metadata.mkdir()
+    (metadata / "generated.py").write_text("def generated(left, right):\n    ...\n")
+
+    assert main(paths=[str(tmp_path)]) == 0
+    assert "generated.py" not in capsys.readouterr().out
+
+
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """main() should print how many files were checked and how long it took."""
@@ -863,6 +888,7 @@ def test_unreadable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest.
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "bad_encoding.py" in captured.err
+    assert "utf-8" in captured.err
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -876,6 +902,7 @@ def test_unparseable_file_is_skipped_with_warning(tmp_path: Path, capsys: pytest
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "bad_syntax.py" in captured.err
+    assert "invalid syntax" in captured.err
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -910,8 +937,7 @@ def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: pytest.CaptureFi
     main(paths=[str(tmp_path)])
 
     captured = capsys.readouterr()
-    assert "PYR401: 1" in captured.out
-    assert "PYR402: 1" in captured.out
+    assert "PYR401: 1, PYR402: 1\n" in captured.out
 
 
 # pyrigor 403 # pytest fixture injection, not a real violation
@@ -1087,15 +1113,13 @@ def test_run_select_flag_errors_on_unknown_code(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """--select with an unrecognised code should error immediately, not silently run zero checkers."""
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR999", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--select=PYR999,PYR998", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
     assert exc_info.value.code == 2
-    captured = capsys.readouterr()
-    assert "PYR999" in captured.err
-    assert "unknown" in captured.err.lower()
+    assert capsys.readouterr().err == "pyrigor: unknown rule code(s) in --select: PYR998, PYR999\n"
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -1180,24 +1204,23 @@ def test_run_no_paths_errors(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
-def test_run_select_swallowing_path_prints_a_hint(
+@pytest.mark.parametrize("flag", ["--select", "--ignore"])
+def test_run_filter_swallowing_path_prints_a_hint(
+    *,
+    flag: str,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """--select PATH (space form, no real code) should hint that PATH was consumed as '--select's' value.
-
-    A valid --ignore=CODE precedes it, so the hint scan must skip past a
-    non-culprit token before finding the actual swallowed value.
-    """
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR401", "--select", ".\\pyrigor\\"])
+    """A filter that consumes the only path prints a targeted hint."""
+    monkeypatch.setattr("sys.argv", ["pyrigor", flag, ".\\pyrigor\\"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
     assert exc_info.value.code == 2
     captured = capsys.readouterr()
-    assert "'.\\pyrigor\\' was consumed as --select's value" in captured.err
-    assert "--select=PYR401" in captured.err
+    assert f"'.\\pyrigor\\' was consumed as {flag}'s value" in captured.err
+    assert f"{flag}=PYR401" in captured.err
     assert "the following arguments are required: paths" in captured.err
 
 
@@ -1357,6 +1380,24 @@ def test_run_select_and_ignore_combine_with_partial_overlap(
     captured = capsys.readouterr()
     assert "PYR401" in captured.out
     assert "PYR402" not in captured.out
+
+
+def test_run_rejects_empty_rule_selection(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An empty effective rule selection reports the canonical usage error."""
+    source = tmp_path / "source.py"
+    source.write_text("def apply(left, right):\n    ...\n")
+    monkeypatch.setattr(
+        "sys.argv",
+        ["pyrigor", "--select=PYR402", "--ignore=PYR402", str(source)],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert capsys.readouterr().err == "pyrigor: --select and --ignore combine to leave no rules to check\n"
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation

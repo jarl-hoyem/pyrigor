@@ -736,7 +736,7 @@ def outer() -> None:
 
 
 def test_named_expression_in_comprehension_stops_outer_function_resolution() -> None:
-    """A comprehension named expression binds in its containing function scope."""
+    """A comprehension-named expression binds in its containing function scope."""
     source = """
 def value() -> int:
     return 1

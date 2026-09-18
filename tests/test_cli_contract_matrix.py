@@ -11,7 +11,7 @@ _WINDOWS_OS_NAME = "nt"
 _SUCCESS_EXIT_CODE = 0
 _USAGE_ERROR_EXIT_CODE = 2
 _NO_VIOLATIONS = "0 violations"
-_EMPTY_RULE_SELECTION_ERROR = "--select and --ignore combine to leave no rules to check"
+_EMPTY_RULE_SELECTION_ERROR = "pyrigor: --select and --ignore combine to leave no rules to check\n"
 _REPEATED_OUTPUT_FORMAT_ERROR = "--output-format can only be given once"
 _JSON_OPTION = "--output-format=json"
 _CLI_NAME = "pyrigor.exe" if os.name == _WINDOWS_OS_NAME else "pyrigor"
@@ -116,7 +116,7 @@ def test_installed_cli_rejects_empty_rule_selection(*, tmp_path: Path) -> None:
     result = _run_cli(arguments=["--select=PYR402", "--ignore=PYR402", str(source)])
 
     assert result.returncode == _USAGE_ERROR_EXIT_CODE
-    assert _EMPTY_RULE_SELECTION_ERROR in result.stderr
+    assert result.stderr == _EMPTY_RULE_SELECTION_ERROR
 
 
 def test_installed_cli_rejects_repeated_output_format(*, tmp_path: Path) -> None:

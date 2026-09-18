@@ -29,6 +29,17 @@ def test_preserves_self_before_keyword_only_parameters() -> None:
     assert result.status is FixStatus.CHANGED
 
 
+def test_preserves_cls_in_single_line_method() -> None:
+    """An eligible one-line class method retains cls before the separator."""
+    source = "class Corrector:\n    def apply(cls, left, right): return left + right\n"
+
+    result = fix_source(source=source)
+
+    expected = "class Corrector:\n    def apply(cls, *, left, right): return left + right\n"
+    assert result.source == expected
+    assert result.status is FixStatus.CHANGED
+
+
 def test_leaves_single_parameter_method_unchanged() -> None:
     """A method with one parameter after self belongs to PYR403, not PYR402."""
     source = "class Corrector:\n    def apply(self, weight):\n        return weight\n"
