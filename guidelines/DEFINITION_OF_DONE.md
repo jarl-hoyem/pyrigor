@@ -123,9 +123,11 @@ general knowledge only):
    afterthought.
 5. **Run the Key Performance Indicators (KPI) scans** (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their
    own commit.
-6. **Run pyscn's clone detection** (`uvx pyscn@latest analyze . --select clones`), review real findings against the
-   known, deliberate architectural patterns (checker `find_violations` wrappers, `_shared.py`'s helper functions), file
-   an issue for anything genuinely new.
+6. **Run pyscn's clone detection** (`uvx pyscn@latest analyze pyrigor scripts tests --select clones`), review real
+   findings against the known, deliberate architectural patterns (checker `find_violations` wrappers, `_shared.py`'s
+   helper functions), file an issue for anything genuinely new. Name the directories rather than passing `.`, because
+   pyscn does not read `.gitignore`: over `.` it also analyses a leftover `mutants/` workspace, where every generated
+   mutant is a near-copy of its module, and it then reports most of the project as cloned.
 7. **Run the PyCharm inspection** (`just inspect`), and check that the release's own changes drew no new findings
    outside the three known settings categories tracked in #236. Delete `.pycharm-inspection-results/` and
    `.pycharm-inspection.log` afterwards. This is the only scheduled moment the inspection runs, since it is too slow for
