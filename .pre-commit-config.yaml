@@ -216,6 +216,10 @@ repos:
         # The anchor below is aliased by the WIP self-check hook further
         # down, so this list is written once.
         args: &fixture_excludes
+          # mutmut's generated workspace. It is gitignored, but both hooks walk
+          # directories themselves, and a mutant is deliberately broken code.
+          - --exclude
+          - mutants
           - --exclude
           - manual-tests/cli/violations.py
           - --exclude
