@@ -7,7 +7,9 @@
 # pylint: disable=use-implicit-booleaness-not-comparison-to-string, use-implicit-booleaness-not-comparison-to-zero
 
 import json
+import re
 from pathlib import Path
+from typing import Final
 
 import pytest
 
@@ -94,7 +96,8 @@ def test_run_diff_does_not_write_and_shows_patch(
     """--diff previews the PYR402 fix without modifying the source file."""
     source_file = tmp_path / "source.py"
     original = "def apply(weight, bias):\n    ...\n"
-    source_file.write_text(original)
+    # Bytes, not write_text, so the patch below does not depend on the platform's line endings.
+    source_file.write_bytes(original.encode())
     monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", "--select=PYR402", str(source_file)])
 
     with pytest.raises(SystemExit) as exc_info:
@@ -102,7 +105,39 @@ def test_run_diff_does_not_write_and_shows_patch(
 
     assert exc_info.value.code == 0
     assert source_file.read_text() == original
-    assert "-def apply(weight, bias):" in capsys.readouterr().out
+    # The whole patch, because every part of it is a mutable detail: the file headers, the
+    # hunk range, the line endings kept by splitlines and the absence of a trailing blank line.
+    assert capsys.readouterr().out == (
+        f"--- {source_file}\n"
+        f"+++ {source_file}\n"
+        "@@ -1,2 +1,2 @@\n"
+        "-def apply(weight, bias):\n"
+        "+def apply(*, weight, bias):\n"
+        "     ...\n"
+    )
+
+
+def test_run_diff_leaves_the_byte_order_mark_out_of_the_patch(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A byte order mark belongs to the file's encoding, so the patch shows the line without it."""
+    source_file = tmp_path / "source.py"
+    source_file.write_bytes("\ufeff# coding: utf-8\ndef apply(left, right):\n    ...\n".encode())
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", "--select=PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out == (
+        f"--- {source_file}\n"
+        f"+++ {source_file}\n"
+        "@@ -1,3 +1,3 @@\n"
+        " # coding: utf-8\n"
+        "-def apply(left, right):\n"
+        "+def apply(*, left, right):\n"
+        "     ...\n"
+    )
 
 
 def test_run_fix_requires_explicit_pyr402_selection(
@@ -221,7 +256,11 @@ def test_run_fix_reports_missing_file(
         run()
 
     assert exc_info.value.code == 0
-    assert "missing.py" in capsys.readouterr().err
+    # The whole line, because the file name alone comes from the path and would still be
+    # printed if the error carried no message at all.
+    rejection = capsys.readouterr().err
+    assert rejection.startswith(f"{missing}: [Errno 2] No such file or directory: ")
+    assert rejection.count("\n") == 1
 
 
 def test_run_fix_honors_exclusions(
@@ -322,7 +361,10 @@ def test_run_fix_rejects_declared_non_utf8_source_without_modifying_it(
 
     assert exc_info.value.code == 0
     assert source_file.read_bytes() == original
-    assert source_file.name in capsys.readouterr().err
+    # One line, naming the file and quoting the decoder, rather than merely mentioning the name.
+    rejection = capsys.readouterr().err
+    assert rejection.startswith(f"{source_file}: fix rejected: 'utf-8' codec can't decode byte ")
+    assert rejection.count("\n") == 1
 
 
 @pytest.mark.parametrize(("encoding", "marker"), [("latin-1", "café"), ("cp1252", "€")])
@@ -502,37 +544,80 @@ def test_run_fix_rejects_json_output_combination(
     assert capsys.readouterr().err == "pyrigor: fixer options cannot be combined with --output-format json\n"
 
 
-def test_cli_help_documents_fixer_modes(*, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
-    """CLI help exposes the fixer, diff, and reporting options."""
+# Every option's name, metavar and help text, as --help presents them. The parser is not
+#  consulted because a test that read the strings from it would assert nothing.
+_EXPECTED_HELP_LINES: Final = (
+    "paths Files or directories to check.",
+    (
+        "--select SELECT Restrict checking to these rule codes, comma-separated (full code, bare number, "
+        "or symbolic name: for example, PYR402, 402, or keyword-only-arguments)."
+    ),
+    (
+        "--ignore IGNORE Exclude these rule codes from checking, comma-separated (full code, bare number, "
+        "or symbolic name: for example, PYR402, 402, or keyword-only-arguments)."
+    ),
+    "--output-format {human,json} Output format (default: human).",
+    "--exclude PATH Exclude this file or directory (and its contents), comma-separated; may be repeated.",
+    "--fix Apply safe fixes for the explicitly selected rules.",
+    "--diff Show safe fixes as a unified diff without writing.",
+    "--show-fixes Report files changed by --fix.",
+)
+
+
+@pytest.mark.parametrize("expected", _EXPECTED_HELP_LINES)
+def test_cli_help_documents_every_option(
+    *, expected: str, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Help presents each option with its metavar and its full explanation.
+
+    Asserting only the flag names leaves the help text itself unverified. Deleting the
+    help= string of --ignore changed no behaviour and survived mutation testing, and the
+    same held for every other option's text and for the --exclude metavar.
+    """
+    # Wide enough that argparse neither rewraps nor hyphenates, so the text compares whole.
+    monkeypatch.setenv("COLUMNS", "200")
     monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
-    output = capsys.readouterr().out
+    # argparse pads between an option and its help, so compare on collapsed whitespace
+    normalised = " ".join(capsys.readouterr().out.split())
     assert exc_info.value.code == 0
-    assert "--fix" in output
-    assert "--diff" in output
-    assert "--show-fixes" in output
+    assert expected in normalised
 
 
-def test_cli_help_documents_what_ignore_accepts(
+def test_cli_help_names_the_tool_not_the_invoking_script(
     *, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """CLI help explains the token forms the --ignore flag accepts, not just that the flag exists.
-
-    Asserting only the flag name leaves the help text itself unverified. Deleting
-    the help= string of --ignore changed no behaviour and survived mutation testing.
-    """
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--help"])
+    """The usage line says pyrigor even when argv[0] is a wrapper or a runner script."""
+    monkeypatch.setenv("COLUMNS", "200")
+    monkeypatch.setattr("sys.argv", ["/opt/wrappers/run-the-linter.py", "--help"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
-    # argparse rewraps help to the terminal width, so compare on collapsed whitespace
-    normalized = " ".join(capsys.readouterr().out.split())
     assert exc_info.value.code == 0
-    assert "Exclude these rule codes from checking" in normalized
+    assert capsys.readouterr().out.startswith("usage: pyrigor [-h]")
+
+
+def test_run_rejects_an_abbreviated_flag(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An abbreviated long option is rejected rather than expanded.
+
+    Under argparse's default, '--sele' expands to '--select', so a mistyped flag would
+    quietly change which rules run instead of failing.
+    """
+    source = tmp_path / "source.py"
+    source.write_text("def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--sele=PYR402", str(source)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert exc_info.value.code == 2
+    assert "unrecognized arguments: --sele=PYR402" in capsys.readouterr().err
 
 
 def test_run_accepts_repeated_exclude_flags(
@@ -732,7 +817,9 @@ def test_run_output_format_rejects_repeated_flag(
         run()
 
     assert exc_info.value.code == 2
-    assert "--output-format" in capsys.readouterr().err
+    assert capsys.readouterr().err == (
+        "pyrigor: --output-format can only be given once (use --output-format=CODE,CODE for multiple rules)\n"
+    )
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -940,18 +1027,30 @@ def test_main_prints_per_rule_breakdown(tmp_path: Path, capsys: pytest.CaptureFi
     assert "PYR401: 1, PYR402: 1\n" in captured.out
 
 
-# pyrigor 403 # pytest fixture injection, not a real violation
-def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> None:
-    """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found."""
+def test_run_returns_2_on_unexpected_crash(
+    *, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An unexpected exception in main() should exit 2, not 1, distinguishing a real crash from violations found.
+
+    The report goes to standard error and names the exception, so a crash cannot pass
+    silently or be mistaken for output a caller is parsing.
+    """
 
     # noinspection PyUnusedLocal
-    def _boom(*, paths: list[str], select: set[str] | None, ignore: set[str] | None, excludes: list[str] | None) -> int:
+    def _boom(
+        *,
+        paths: list[str],
+        select: set[str] | None,
+        ignore: set[str] | None,
+        output_format: str,
+        excludes: list[str] | None,
+    ) -> int:
         # Must accept the same keywords as main()'s real call site
         # (main (paths=args.paths, select=select, ignore=ignore)), or a
         # TypeError is raised instead of the intended RuntimeError, still
         # caught by the same except Exception handler but not exercising
         # the real crash path.
-        del paths, select, ignore, excludes
+        del paths, select, ignore, output_format, excludes
         raise RuntimeError("something genuinely broke")
 
     monkeypatch.setattr("pyrigor.checkers.cli.main", _boom)
@@ -961,6 +1060,37 @@ def test_run_returns_2_on_unexpected_crash(monkeypatch: pytest.MonkeyPatch) -> N
         run()
 
     assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.err == "pyrigor crashed unexpectedly: something genuinely broke\n"
+    assert captured.out == ""
+
+
+# noinspection IncorrectFormatting
+@pytest.mark.parametrize(
+    ("sources", "expected"),
+    [
+        (("def one(left, right):\n    ...\n",), r"Checked 1 file in \d\.\d{2}s -- 1 violation"),
+        (
+            ("def one(left, right):\n    ...\n", "def two(left, right):\n    ...\n\ndef three(a, b):\n    ...\n"),
+            r"Checked 2 files in \d\.\d{2}s -- 3 violations",
+        ),
+    ],
+)
+def test_main_totals_line_agrees_in_number(
+    *, sources: tuple[str, ...], expected: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The total line counts files and violations and says a file or files, violation or violations.
+
+    The elapsed time is matched as a single digit and two decimals, which also rejects a
+    reading that is not a duration at all.
+    """
+    for index, source in enumerate(sources):
+        (tmp_path / f"source_{index}.py").write_text(source)
+
+    main(paths=[str(tmp_path)])
+
+    totals = capsys.readouterr().out.rstrip("\n").rsplit("\n", maxsplit=1)[-1]
+    assert re.fullmatch(expected, totals)
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -1135,8 +1265,9 @@ def test_run_select_flag_errors_on_repeated_flag(
         run()
 
     assert exc_info.value.code == 2
-    captured = capsys.readouterr()
-    assert "--select" in captured.err
+    assert capsys.readouterr().err == (
+        "pyrigor: --select can only be given once (use --select=CODE,CODE for multiple rules)\n"
+    )
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -1345,10 +1476,7 @@ def test_run_ignore_flag_errors_on_unknown_code(
         run()
 
     assert exc_info.value.code == 2
-    captured = capsys.readouterr()
-    assert "PYR999" in captured.err
-    assert "--ignore" in captured.err
-    assert "unknown" in captured.err.lower()
+    assert capsys.readouterr().err == "pyrigor: unknown rule code(s) in --ignore: PYR999\n"
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -1364,8 +1492,9 @@ def test_run_ignore_flag_errors_on_repeated_flag(
         run()
 
     assert exc_info.value.code == 2
-    captured = capsys.readouterr()
-    assert "--ignore" in captured.err
+    assert capsys.readouterr().err == (
+        "pyrigor: --ignore can only be given once (use --ignore=CODE,CODE for multiple rules)\n"
+    )
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation

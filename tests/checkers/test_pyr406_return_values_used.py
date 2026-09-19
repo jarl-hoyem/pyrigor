@@ -8,6 +8,7 @@ import ast
 # noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
 from pyrigor.checkers.pyr406_return_values_used import find_violations
+from pyrigor.rules import Rule
 
 
 def test_flags_bare_call_to_local_function_with_non_none_return() -> None:
@@ -22,6 +23,9 @@ compute_total(items)
 
     assert len(violations) == 1
     assert violations[0].context_name == "compute_total"
+    # The rule a violation carries decides its code, message and severity, and no other
+    # test in this module looks at it.
+    assert violations[0].rule is Rule.PYR406
 
 
 def test_no_violation_when_return_value_is_assigned() -> None:

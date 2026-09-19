@@ -17,6 +17,8 @@ from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 # pylint: disable=redefined-outer-name
 
 _READ_ERROR = "read_error"
+_NON_ASCII_NAME = "gr\u00f6\u00dfe"
+_ESCAPED_NON_ASCII = "\\u00f6"
 _SHIFTED_LINE_SOURCE = "X = 'a{character}b'\nif X:\n if X:\n        def bad(a, b):\n            ...\n"
 _MULTIBYTE_LINE_SOURCE = "X = 'a{character}b'\n\u00e9 = X\nif \u00e9:\n    def bad(a, b):\n        ...\n"
 
@@ -84,6 +86,36 @@ def test_json_output_includes_diagnostic_metadata(
         "severity": "warning",
         "fixability": "safe_fix",
     }
+
+
+def test_json_output_is_indented_rather_than_one_line(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """The document is printed with two-space indentation, so a person can read it in a terminal.
+
+    Every other test parses the output, which leaves the serialisation itself unchecked.
+    """
+    clean_file = tmp_path / "clean.py"
+    clean_file.write_text("def apply_correction(*, weight, bias):\n    ...\n")
+
+    assert not main(paths=[str(clean_file)], output_format="json")
+
+    raw = capsys.readouterr().out
+    assert raw.startswith('{\n  "schema_version": 1,\n')
+    assert raw.endswith("}\n")
+
+
+def test_json_output_leaves_non_ascii_text_unescaped(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A non-ASCII name is written as itself, not as an escape sequence.
+
+    The document is UTF-8, so escaping would only make it harder to read.
+    """
+    source_file = tmp_path / "source.py"
+    source_file.write_text(f"def {_NON_ASCII_NAME}(weight, bias):\n    ...\n", encoding="utf-8")
+
+    assert main(paths=[str(source_file)], output_format="json") == 1
+
+    raw = capsys.readouterr().out
+    assert f"'{_NON_ASCII_NAME}'" in raw
+    assert _ESCAPED_NON_ASCII not in raw
 
 
 def test_json_output_counts_suppressed_diagnostics(
