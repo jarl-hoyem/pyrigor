@@ -89,6 +89,18 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
     on the misread line crashes pyrigor, and a shorter misread line reports a wrong column (#295). The fault was
     reachable in every release since v0.10.0.
 
+12. **Does a defensive fallback or struct field for a supposedly nullable or missing value actually get exercised by a
+    test, confirmed by mutating it directly, rather than trusted because the type permits it?** ← rule:
+    `DEFINITION_OF_DONE.md`, Correctness _Earned by:_ #308 found `or 0`/`or node.lineno` fallbacks and an `end` search
+    bound in the PYR402 fixer, all unreachable for any node `ast.parse()` produces, none exercised by any test, all are
+    invisible to 100% branch coverage. The same investigation found the identical shape four more times in one session:
+    `pyrigor/violations.py`'s `end_line`/`end_column` fallbacks (fixed the same way), `_latest_binding`'s
+    `getattr(node, "lineno", 0)` defaults (#311), `_read_and_prepare_fix`'s `else 'read error'` string and a fully
+    unread `CheckError.kind` field (#312), and `nearest_function_scope`'s own `else node` base case, unreachable because
+    the module is never passed as the node to resolve and every other node's ancestor chain terminates before recursion
+    could reach it. Coverage showed every line as already covered in every case; only mutating the value directly, the
+    way #308's own test matrix did, revealed nothing could tell the difference.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line

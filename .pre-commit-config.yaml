@@ -274,9 +274,13 @@ repos:
         language: system
         entry: uv run --extra dev pylint
         types: [python]
-        # Changed-files-only, unlike its neighbours above
-        # — pylint checks one file at a time. Its findings never
-        # depend on another file. See DECISIONS.md.
+        # Changed-files-only, unlike its neighbours above. Most findings
+        # never depend on another file, but duplicate-code (R0801) does,
+        # so this stays serial: pre-commit shuffles and parallelises
+        # file_args across CPU cores unless require_serial is set, and
+        # R0801 has no visibility across that process boundary. See
+        # DECISIONS.md.
+        require_serial: true
         stages: [pre-commit]
       # More complexity/quality, fastest first.
       - id: radon-maintainability
@@ -321,7 +325,7 @@ repos:
         types: [python]
         # Files relaxed to level B below are excluded here, one glob
         # per comma-separated entry. Adding a new relaxed file means
-        # extending this list and xenon-shared's own path list below
+        # extending this list and xenon-shared's own path list
         # — not redesigning the mechanism.
         args:
           - --max-absolute=A

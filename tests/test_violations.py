@@ -5,8 +5,31 @@
 
 import ast
 
+import pytest
+
 from pyrigor.rules import Rule
 from pyrigor.violations import make_violation
+
+
+@pytest.mark.parametrize(
+    ("clear_end_lineno", "clear_end_col_offset"),
+    [
+        pytest.param(True, True, id="no-end"),
+        pytest.param(False, True, id="no-end-column"),
+        pytest.param(True, False, id="no-end-line"),
+    ],
+)
+def test_node_without_end_position_is_rejected(*, clear_end_lineno: bool, clear_end_col_offset: bool) -> None:
+    """A violation needs both ends, so a node missing either end field cannot become one."""
+    node = ast.parse("def apply():\n    ...\n").body[0]
+    assert isinstance(node, ast.FunctionDef)
+    if clear_end_lineno:
+        node.end_lineno = None
+    if clear_end_col_offset:
+        node.end_col_offset = None
+
+    with pytest.raises(ValueError, match=r"^node has no end position$"):
+        make_violation(node=node, rule=Rule.PYR402)
 
 
 def test_unknown_context_name_for_unrecognized_call_shape() -> None:

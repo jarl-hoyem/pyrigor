@@ -67,7 +67,13 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
 
     Returns:
         A populated Violation.
+
+    Raises:
+        ValueError: If the node has no end position.
     """
+    if node.end_lineno is None or node.end_col_offset is None:
+        raise ValueError("node has no end position")
+
     kind: ContextKind
     if isinstance(node, ast.AnnAssign):
         name = _name_from_ann_assign(node=node)
@@ -81,9 +87,9 @@ def make_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef | ast.AnnAssi
 
     return Violation(
         line=node.lineno,
-        end_line=node.end_lineno or node.lineno,
+        end_line=node.end_lineno,
         column=node.col_offset + 1,
-        end_column=(node.end_col_offset + 1 if node.end_col_offset is not None else node.col_offset + 1),
+        end_column=node.end_col_offset + 1,
         context_name=name,
         context_kind=kind,
         rule=rule,

@@ -107,6 +107,10 @@ unrelated bare call elsewhere in the file that happens to share the method's nam
 risk at the cost of not covering method calls at all, consistent with the guideline doc's own examples, which are all
 bare-name, module level or nested function calls.
 
+The exclusion is by parameter name, not by scope, so a module-level function whose first parameter happens to be called
+`self` or `cls` also escapes protection, a real false negative rather than the intended false-positive guard (#307,
+confirmed by mutation testing rather than assumed: the name check does change the result, and stays for this reason).
+
 The lexical-scope utilities used to resolve those bare names live in `checkers/_shared.py`, rather than in PYR406. This
 is deliberate: the documented PYR407 generator-result rule has the same local-definition and bare-call boundaries and is
 the planned second consumer. The shared layer provides scope structure. Each rule retains its own return-value
@@ -493,8 +497,9 @@ files only, where the script also covers untracked ones. One file-list mechanism
 second it buys.
 
 `pylint` looks miscategorized, sitting in the "Type/correctness checkers, the fastest first" comment block beside three
-whole-project neighbours, but it is correctly changed-files-only — pylint checks one file at a time, same as ruff. Left
-as-is, deliberately, not "fixed" into whole-project.
+whole-project neighbours, but it is correctly changed-files-only for the same reason as ruff: most of its findings are
+local to one file. One real exception exists, `duplicate-code` (R0801), see "Pylint's duplicate-code check needs
+`require_serial`" below. Left changed-files-only, deliberately, not "fixed" into whole-project.
 
 Three tools — `vulture`, `radon-maintainability` and the strict `xenon` — hardcoded directory allowlists
 (`pyrigor scripts tests`, or a subset — radon's list was even missing `scripts/`), so each silently stopped covering any
@@ -935,3 +940,35 @@ every workflow now sets `timeout-minutes`. Each limit is at least five times the
 minutes, because a cold Python 3.15 build compiles `complexipy` from source on Windows and macOS. The large-repository
 smoke test gets 20 because it clones Home Assistant over the network. The mutation test gets 15. A limit that proves too
 tight costs a rerun, while no limit cost hours of blocked CI.
+
+### PYR402 fixer: the `end` bound and its fallbacks were dead weight, not defensive code
+
+#308 found the `< 0` guards, the `end` bound on both `find` calls and `node.end_col_offset or 0` /
+`end_lineno or lineno` fallbacks in `pyr402_keyword_only_arguments_fixer.py` all survived mutation testing. Rewriting
+`< 0` as `== -1` now fails the project's own ordinary tests when mutated, not only the two str-subclass doubles built
+for that guard.
+
+The `end` bound was never load-bearing: `node.lineno`/`col_offset` always land on the `def`/`async` keyword past any
+decorator, so nothing but the function's own name sits between `start` and its opening parenthesis, and the comma search
+only runs once `_MINIMUM_POSITIONAL_PARAMETERS` has already guaranteed a real separating comma. Verified against an
+adversarial multi-function file with no cross-function contamination. With the bound gone, `end_byte`/`end_column`/
+`end_line` had no remaining use, so they were deleted along with their `or 0` fallbacks, rather than defended with an
+`assert`. `end_col_offset`/`end_lineno` are in fact never `None` for a parsed node, but removing the code that needed
+the fallback was the simpler fix than proving it unreachable.
+
+### Pylint's duplicate-code check needs `require_serial`
+
+`just check` passed cleanly on the split of `test_pyr406_return_values_used.py` into two files, then the same content
+failed `pylint`'s `R0801` (duplicate-code) at actual commit time. Confirmed directly: plain `pylint` on the two files,
+with or without the rest of the corpus present, finds the same four instances every time. Only pre-commit's own
+invocation is inconsistent.
+
+`pre_commit/lang_base.py`'s `run_xargs()` shuffles `file_args` and splits them across one subprocess per CPU core unless
+a hook sets `require_serial: true`. The `R0801` can only see duplication between files given to the same pylint process.
+`just check`'s `--all-files` run passes the whole tracked Python file list, large enough to span several parallel
+batches, so the two files landed in different processes and neither saw the other. A real commit passes only the files
+that changed, few enough to land in one batch, so `R0801` fired correctly there and only there.
+
+The pylint hook now sets `require_serial: true`, trading `just check`'s own parallelism for `R0801` actually working
+under `--all-files`. The alternative, leaving it parallel and trusting commit-time runs to catch what `just check`
+misses, defeats the entire point of running `just check` before committing.

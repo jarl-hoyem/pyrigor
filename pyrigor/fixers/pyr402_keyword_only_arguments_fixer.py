@@ -117,26 +117,35 @@ def _function_insertion(
     positional: list[ast.arg],
     index: PositionIndex,
 ) -> _Insertion:
-    """Return a source insertion for an eligible function."""
+    """Return a source insertion for an eligible function.
+
+    The search below has no end bound. `node.lineno`/`col_offset` always lands on the `def`
+    (or `async`) keyword itself, past any decorator. The function's own name is therefore the
+    only text between `start` and its opening parenthesis. The first "(" found from `start` is
+    therefore always this function's own, regardless of what a later function in the file
+    contains.
+    """
     start_byte = index.byte_offset(line=node.lineno, utf8_column=node.col_offset)
-    end_line = node.end_lineno or node.lineno
-    end_column = node.end_col_offset or 0
-    end_byte = index.byte_offset(line=end_line, utf8_column=end_column)
     start = len(raw[:start_byte].decode())
-    end = len(raw[:end_byte].decode())
-    opening = text.find("(", start, end)
-    if opening < 0:
+    opening = text.find("(", start)
+    if opening == -1:
         raise FixRejectedError(f"unsupported signature in {node.name}")
-    return _parameter_insertion(text=text, node=node, positional=positional, opening=opening, end=end)
+    return _parameter_insertion(text=text, node=node, positional=positional, opening=opening)
 
 
 def _parameter_insertion(
-    *, text: str, node: ast.FunctionDef | ast.AsyncFunctionDef, positional: list[ast.arg], opening: int, end: int
+    *, text: str, node: ast.FunctionDef | ast.AsyncFunctionDef, positional: list[ast.arg], opening: int
 ) -> _Insertion:
-    """Return the insertion point and text for a safe signature edit."""
+    """Return the insertion point and text for a safe signature edit.
+
+    The comma search below has no end bound either. It only runs for a self/cls method.
+    `_function_edit`'s own `_MINIMUM_POSITIONAL_PARAMETERS` guard already requires at least one
+    parameter after self/cls, so a real separating comma always exists before this function's
+    own body. That comma is always the first one to be found from `opening`.
+    """
     if positional[0].arg not in {"self", "cls"}:
         return _Insertion(opening + 1, "*, ")
-    comma = text.find(",", opening, end)
-    if comma < 0:
+    comma = text.find(",", opening)
+    if comma == -1:
         raise FixRejectedError(f"unsupported signature in {node.name}")
     return _Insertion(comma + 1, " *,")
