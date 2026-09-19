@@ -322,6 +322,22 @@ def outer(item) -> None:
     assert violations == []
 
 
+def test_wildcard_match_pattern_does_not_shadow_protected_function() -> None:
+    """A wildcard pattern binds no name and must not crash or shadow the outer function."""
+    source = """
+def value() -> int:
+    return 1
+
+def outer(item) -> None:
+    match item:
+        case _:
+            value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert len(violations) == 1
+    assert violations[0].context_name == "value"
+
+
 def test_tracks_star_and_mapping_pattern_bindings() -> None:
     """All named structural-pattern bindings must stop the outer lookup."""
     source = """

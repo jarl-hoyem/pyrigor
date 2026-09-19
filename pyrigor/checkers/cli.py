@@ -49,18 +49,34 @@ class CheckError(NamedTuple):
     message: str
 
 
-class _SourceResult(NamedTuple):
-    """The source read the result and any associated file error."""
+class _SourceOk(NamedTuple):
+    """A file's source, read successfully."""
 
-    source: str | None
-    error: CheckError | None
+    source: str
 
 
-class _FixSourceResult(NamedTuple):
-    """The byte-preserving source used by fixer mode and any file error."""
+class _SourceFailed(NamedTuple):
+    """A file's source could not be read."""
 
-    source: bytes | None
-    error: CheckError | None
+    error: CheckError
+
+
+_SourceResult = _SourceOk | _SourceFailed
+
+
+class _FixSourceOk(NamedTuple):
+    """A file's byte-preserving source, read successfully."""
+
+    source: bytes
+
+
+class _FixSourceFailed(NamedTuple):
+    """A file's byte-preserving source could not be read."""
+
+    error: CheckError
+
+
+_FixSourceResult = _FixSourceOk | _FixSourceFailed
 
 
 class _PreparedFix(NamedTuple):
@@ -197,20 +213,17 @@ def _read_source(*, path: str) -> _SourceResult:
         The file's source text and an error if it could not be read.
     """
     try:
-        return _SourceResult(source=Path(path).read_text(encoding="utf-8-sig"), error=None)
+        return _SourceOk(source=Path(path).read_text(encoding="utf-8-sig"))
     except (UnicodeDecodeError, OSError) as error:
-        return _SourceResult(
-            source=None,
-            error=CheckError(file=path, kind="read_error", message=str(error)),
-        )
+        return _SourceFailed(error=CheckError(file=path, kind="read_error", message=str(error)))
 
 
 def _read_fix_source(*, path: str) -> _FixSourceResult:
     """Read fixer input as bytes so BOMs and line endings can be preserved."""
     try:
-        return _FixSourceResult(source=Path(path).read_bytes(), error=None)
+        return _FixSourceOk(source=Path(path).read_bytes())
     except OSError as error:
-        return _FixSourceResult(source=None, error=CheckError(file=path, kind="read_error", message=str(error)))
+        return _FixSourceFailed(error=CheckError(file=path, kind="read_error", message=str(error)))
 
 
 def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, ...]) -> _CheckerResult:
@@ -259,14 +272,11 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
         The kept and suppressed violations, file errors, and source text.
     """
     source_result = _read_source(path=path)
-    if source_result.source is None:
-        # mypy, pyright and ty all reject this without the cast. PyCharm drops the None from the union.
-        # noinspection PyUnnecessaryCast
-        error = cast("CheckError", source_result.error)
+    if isinstance(source_result, _SourceFailed):
         return FileCheckResult(
             kept=KeptViolations([]),
             suppressed=SuppressedViolations([]),
-            errors=[error],
+            errors=[source_result.error],
             source=None,
         )
 
@@ -860,8 +870,8 @@ def _fix_path(*, path: str, diff: bool) -> None:
 def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
     """Read one file and prepare its safe fix, reporting rejected inputs."""
     source_result = _read_fix_source(path=path)
-    if source_result.source is None:
-        print(f"{path}: {source_result.error.message if source_result.error else 'read error'}", file=sys.stderr)
+    if isinstance(source_result, _FixSourceFailed):
+        print(f"{path}: {source_result.error.message}", file=sys.stderr)
         return None
     try:
         prepared = _fix_source(source=source_result.source)

@@ -14,7 +14,13 @@ from typing import Final
 import pytest
 
 # noinspection PyProtectedMember
-from pyrigor.checkers.cli import CheckError, _FixSourceResult, main, run  # pyright: ignore[reportPrivateUsage]
+from pyrigor.checkers.cli import (
+    CheckError,
+    _FixSourceFailed,  # pyright: ignore[reportPrivateUsage]
+    _FixSourceResult,  # pyright: ignore[reportPrivateUsage]
+    main,
+    run,
+)
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
@@ -229,9 +235,7 @@ def test_run_fix_reports_unreadable_file(
 
     def unreadable_source(*, path: str) -> _FixSourceResult:
         """Return the read error used to exercise fixer error handling."""
-        return _FixSourceResult(
-            source=None, error=CheckError(file=path, kind="read_error", message="permission denied")
-        )
+        return _FixSourceFailed(error=CheckError(file=path, kind="read_error", message="permission denied"))
 
     monkeypatch.setattr(
         "pyrigor.checkers.cli._read_fix_source",

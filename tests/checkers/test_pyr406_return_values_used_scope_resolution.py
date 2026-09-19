@@ -449,3 +449,10 @@ def test_binding_position_rejects_a_node_missing_either_field(*, node: ast.AST) 
     """A binding needs both a line and a column, so a node missing either is rejected."""
     with pytest.raises(ValueError, match=r"^binding has no position$"):
         _binding_position(node=node)
+
+
+def test_binding_position_preserves_line_and_column() -> None:
+    """A valid binding position retains both source coordinates."""
+    node = ast.Name(id="x", lineno=3, col_offset=7)
+
+    assert _binding_position(node=node) == (3, 7)

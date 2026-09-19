@@ -979,3 +979,17 @@ misses, defeats the entire point of running `just check` before committing.
 confirmed unreachable the same way: mutate the fallback, run the full suite, nothing fails. Both are now explicit
 `raise ValueError(...)`, matching `pyrigor/violations.py`'s own precedent, with `_binding_position` (a `NamedTuple`, not
 a bare tuple, per PYR401 on pyrigor's own source) carrying the guard instead of `_latest_binding` itself.
+
+### #312: `_SourceResult`/`_FixSourceResult` became real tagged unions, `CheckError.kind` stayed
+
+The first half of #312's guess was right: `_read_and_prepare_fix`'s `else 'read error'` fallback and `_check_file`'s
+`cast("CheckError", ...)` both existed only because `_SourceResult`/`_FixSourceResult` paired `source: X | None` with
+`error: CheckError | None` independently, a state space with two invalid combinations neither constructor ever produced.
+Both are now real tagged unions (`_SourceOk | _SourceFailed`, `_FixSourceOk | _FixSourceFailed`), so the invalid states
+are unconstructable and callers narrow with `isinstance` instead of a cast or a string fallback.
+
+The second half was wrong, caught before landing: the issue claimed `CheckError.kind` had no consumer, based on a grep
+for literal `.kind` attribute access. The `_print_json_results` builds the JSON error array via
+`error._asdict() for error in results.errors`, which serialises `kind` without ever writing `.kind` in the source.
+`schemas/pyrigor-diagnostics-v1.json` requires it, and `test_json_output_reports_read_error` and
+`test_installed_cli_reports_parse_error` both already assert on it through real output. The `kind` stays, unchanged.
