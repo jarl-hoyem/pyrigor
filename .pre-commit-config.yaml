@@ -290,7 +290,6 @@ repos:
         types: [python]
         args:
           - --allow=tests/checkers/test_cli.py
-          - --allow=tests/checkers/test_pyr406_return_values_used.py
         pass_filenames: false
         stages: [pre-commit]
       - id: xenon-shared
