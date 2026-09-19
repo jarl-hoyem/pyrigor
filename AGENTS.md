@@ -200,6 +200,11 @@ substitute headings such as "Acceptance criteria" for the template's "Done when"
 found, inspect it before drafting the issue. Before creation, verify the template headings, labels, milestone
 availability and required fields.
 
+An issue's own "Done when" section states only criteria specific to that piece of work. Do not restate a standing check
+from `guidelines/DEFINITION_OF_DONE.md` or `guidelines/REVIEW_CHECKLIST.md`, such as "`just check` passes" or "100%
+coverage", since those already apply to every issue regardless of what its own text says. Repeating them per issue is
+noise, not real criteria.
+
 Tangents get the `nice` label, named after Unix `nice`: the issue yields to other work. Apply it when an idea is worth
 keeping but does not move the project forward, which is most of what gets filed while going down a rabbit hole. It is
 neither a rejection nor a priority ranking. It marks an issue as one that should not compete with the current phase for
