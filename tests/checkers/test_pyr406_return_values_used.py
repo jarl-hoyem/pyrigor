@@ -334,6 +334,44 @@ def outer(item) -> None:
     assert violations == []
 
 
+def test_flags_bare_call_to_function_returning_a_subscripted_generic() -> None:
+    """A subscripted return resolves through its base name, so list[int] is protected like int.
+
+    Only the excluded generics, such as Iterator[X], were covered, and those resolve to the
+    same answer whether the subscript is followed.
+    """
+    source = """
+def build(items) -> list[int]:
+    ...
+
+build(items)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "build"
+
+
+def test_mapping_pattern_rest_alone_stops_outer_function_resolution() -> None:
+    """A mapping pattern's rest binding stops the lookup without a star pattern beside it.
+
+    The star and mapping patterns above bind the same name, so the mapping's own binding is
+    masked by the star's and never decides the result on its own.
+    """
+    source = """
+def value() -> int:
+    return 1
+
+def outer(item) -> None:
+    match item:
+        case {"key": 1, **value}:
+            value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
 def test_does_not_flag_local_class_shadowing_protected_function() -> None:
     """A local class binding must stop fallback to an outer protected function."""
     source = """
@@ -493,6 +531,26 @@ def handle(items):
     assert violations[0].context_name == "compute_total"
 
 
+def test_tuple_comprehension_target_does_not_shadow_outer_protected_function() -> None:
+    """A name inside a tuple target is still comprehension-local.
+
+    A bare target's parent is the comprehension itself, so only a nested target reaches the
+    walk towards the nearest enclosing comprehension.
+    """
+    source = """
+def compute_total(items) -> float:
+    ...
+
+def handle(pairs):
+    [first for (compute_total, first) in pairs]
+    compute_total(pairs)
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert len(violations) == 1
+    assert violations[0].context_name == "compute_total"
+
+
 def test_class_body_binding_does_not_shadow_module_function() -> None:
     """A class body's local binding must not leak into the enclosing module scope."""
     source = """
@@ -614,6 +672,28 @@ value()
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert len(violations) == 2
+
+
+def test_class_body_binding_does_not_stop_collecting_later_bindings() -> None:
+    """A skipped class-body binding does not end the scan of the remaining bindings.
+
+    The class comes first here, so a scan that stopped at it would miss the shadow below and
+    fall back to the module-level function.
+    """
+    source = """
+class Holder:
+    attribute = 1
+
+def value() -> int:
+    return 1
+
+def outer() -> None:
+    value = None
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
 
 
 def test_later_assignment_stops_outer_function_resolution() -> None:
@@ -747,6 +827,25 @@ def value() -> int:
 
 def outer(items) -> None:
     [(value := item) for item in items]
+    value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+
+    assert violations == []
+
+
+def test_named_expression_in_a_comprehension_condition_binds_in_the_enclosing_scope() -> None:
+    """A named expression binds in the enclosing scope from the condition as well as the element.
+
+    The condition sits outside the comprehension's target, which is what separates a leaking
+    named expression from a comprehension-local loop variable.
+    """
+    source = """
+def value() -> int:
+    return 1
+
+def outer(items) -> None:
+    [item for item in items if (value := item)]
     value()
 """
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))

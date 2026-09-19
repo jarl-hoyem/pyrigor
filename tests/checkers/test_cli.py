@@ -905,6 +905,25 @@ def test_directory_walk_excludes_egg_info(*, tmp_path: Path, capsys: pytest.Capt
     assert "generated.py" not in capsys.readouterr().out
 
 
+def test_main_checks_a_file_that_starts_with_a_byte_order_mark(
+    *, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A leading byte order mark belongs to the encoding, so the file parses and is checked.
+
+    Read without it stripped, the mark reaches the parser as a stray character, and the file is
+    skipped with a warning instead of reporting its violation.
+    """
+    source_file = tmp_path / "bom.py"
+    source_file.write_bytes("\ufeffdef apply(weight, bias):\n    ...\n".encode())
+
+    exit_code = main(paths=[str(source_file)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert f"{source_file}:1:1: PYR402" in captured.out
+    assert captured.err == ""
+
+
 # pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_prints_timing_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """main() should print how many files were checked and how long it took."""
@@ -1336,18 +1355,22 @@ def test_run_no_paths_errors(monkeypatch: pytest.MonkeyPatch) -> None:
 
 # pyrigor 402 # pytest fixture injection, not a real violation
 @pytest.mark.parametrize("flag", ["--select", "--ignore"])
+@pytest.mark.parametrize(
+    "leading", [[], ["--ignore=PYR401"]], ids=["as the first argument", "after a non-culprit token"]
+)
 def test_run_filter_swallowing_path_prints_a_hint(
     *,
     flag: str,
+    leading: list[str],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """A filter that consumes the only path prints a targeted hint.
 
-    A valid --ignore=CODE precedes it, so the hint scan must skip past a
-    non-culprit token before finding the actual swallowed value.
+    The scan starts at the first argument after the program name and skips past a valid
+    --ignore=CODE when one precedes the culprit.
     """
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--ignore=PYR401", flag, ".\\pyrigor\\"])
+    monkeypatch.setattr("sys.argv", ["pyrigor", *leading, flag, ".\\pyrigor\\"])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
