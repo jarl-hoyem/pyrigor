@@ -12,7 +12,7 @@ _MINIMUM_MULTI_VALUE_COUNT: Final = 2  # two or more elements means "multiple va
 
 
 def _is_unbounded_homogeneous_tuple(*, elts: list[ast.expr]) -> bool:
-    """Check whether a tuple[...] slice is the unbounded tuple[X, ...] form.
+    """Check whether a tuple[...] slice is of the form unbounded tuple[X, ...].
 
     Args:
         elts: The elements of the tuple subscript's slice.
@@ -163,10 +163,19 @@ class WalkedNodes(NamedTuple):
 
 
 def nearest_function_scope(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> ast.AST:
-    """Find the nearest function or module scope containing a node."""
+    """Find the nearest function or module scope containing a node.
+
+    Raises:
+        ValueError: If the node has no recorded parent. This happens only for the module root
+            itself: no real caller passes the module as node, and the recursion below always
+            finds a Module/FunctionDef ancestor through `current` before it could ever
+            recurse with node=<the module>.
+    """
     current = parents.get(node)
-    if current is None or isinstance(current, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
-        return current if current is not None else node
+    if current is None:
+        raise ValueError("node has no recorded parent")
+    if isinstance(current, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+        return current
     return nearest_function_scope(node=current, parents=parents)
 
 

@@ -6,11 +6,14 @@
 import ast
 from typing import cast
 
+import pytest
+
 # noinspection PyProtectedMember
 from pyrigor.checkers._shared import (
     _is_unbounded_homogeneous_tuple,  # pyright: ignore[reportPrivateUsage]
     count_parameters,
     function_scopes,
+    nearest_function_scope,
     walk_once,
 )
 
@@ -40,6 +43,15 @@ class Builder:
 
     assert [argument.arg for argument in counts.positional_args] == ["left", "right"]
     assert counts.total_params == 3
+
+
+def test_nearest_function_scope_rejects_a_node_with_no_recorded_parent() -> None:
+    """The module root is the only node walk_once never records a parent for."""
+    tree = ast.parse("def f():\n    pass\n")
+    nodes = walk_once(tree=tree)
+
+    with pytest.raises(ValueError, match=r"^node has no recorded parent$"):
+        nearest_function_scope(node=tree, parents=nodes.parents)
 
 
 def test_function_scopes_skips_a_containing_class() -> None:

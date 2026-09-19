@@ -972,3 +972,10 @@ that changed, few enough to land in one batch, so `R0801` fired correctly there 
 The pylint hook now sets `require_serial: true`, trading `just check`'s own parallelism for `R0801` actually working
 under `--all-files`. The alternative, leaving it parallel and trusting commit-time runs to catch what `just check`
 misses, defeats the entire point of running `just check` before committing.
+
+### #311: two more unreachable fallbacks, same shape as #307/#308
+
+`_latest_binding`'s `getattr(node, "lineno", 0)` defaults and `nearest_function_scope`'s `else node` base case were both
+confirmed unreachable the same way: mutate the fallback, run the full suite, nothing fails. Both are now explicit
+`raise ValueError(...)`, matching `pyrigor/violations.py`'s own precedent, with `_binding_position` (a `NamedTuple`, not
+a bare tuple, per PYR401 on pyrigor's own source) carrying the guard instead of `_latest_binding` itself.

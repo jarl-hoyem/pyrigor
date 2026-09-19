@@ -2,7 +2,7 @@
 
 import ast
 from collections.abc import Iterator
-from typing import cast
+from typing import NamedTuple, cast
 
 from pyrigor.checkers._shared import (
     WalkedNodes,
@@ -252,9 +252,31 @@ def _function_argument_names(*, node: ast.FunctionDef | ast.AsyncFunctionDef) ->
     return names
 
 
+class _BindingPosition(NamedTuple):
+    """A binding node's source-order position."""
+
+    line: int
+    column: int
+
+
+def _binding_position(*, node: ast.AST) -> _BindingPosition:
+    """Return a binding node's source-order position.
+
+    Raises:
+        ValueError: If the node has no line or column. Every node shape _node_bindings can
+            actually produce (Name, arg, ExceptHandler, MatchAs/MatchStar/MatchMapping,
+            Import/ImportFrom, ClassDef, FunctionDef/AsyncFunctionDef) always having both.
+    """
+    lineno = getattr(node, "lineno", None)
+    col_offset = getattr(node, "col_offset", None)
+    if lineno is None or col_offset is None:
+        raise ValueError("binding has no position")
+    return _BindingPosition(line=lineno, column=col_offset)
+
+
 def _latest_binding(*, bindings: list[ast.AST]) -> ast.AST:
     """Return the effective source-order binding from a non-empty list."""
-    return max(bindings, key=lambda node: (int(getattr(node, "lineno", 0)), int(getattr(node, "col_offset", 0))))
+    return max(bindings, key=lambda node: _binding_position(node=node))
 
 
 def _binding_is_protected(*, call: ast.Call, bindings: list[ast.AST], protected_names: set[str]) -> bool:

@@ -5,9 +5,16 @@
 
 import ast
 
+import pytest
+
 # noinspection PyProtectedMember
 from pyrigor.checkers._shared import walk_once
-from pyrigor.checkers.pyr406_return_values_used import find_violations
+
+# noinspection PyProtectedMember
+from pyrigor.checkers.pyr406_return_values_used import (
+    _binding_position,  # pyright: ignore[reportPrivateUsage]
+    find_violations,
+)
 
 
 def test_comprehension_target_does_not_shadow_outer_protected_function() -> None:
@@ -428,3 +435,17 @@ helper()
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
 
     assert violations == []
+
+
+@pytest.mark.parametrize(
+    "node",
+    [
+        pytest.param(ast.Name(id="x"), id="no-position"),
+        pytest.param(ast.Name(id="x", lineno=1), id="no-col_offset"),
+        pytest.param(ast.Name(id="x", col_offset=0), id="no-lineno"),
+    ],
+)
+def test_binding_position_rejects_a_node_missing_either_field(*, node: ast.AST) -> None:
+    """A binding needs both a line and a column, so a node missing either is rejected."""
+    with pytest.raises(ValueError, match=r"^binding has no position$"):
+        _binding_position(node=node)
