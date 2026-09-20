@@ -501,18 +501,55 @@ def test_file_name_in_nfc_is_accepted() -> None:
     assert span.file_name == _COMPOSED_FILE_NAME
 
 
+def _span_with_file_name(*, file_name: FileName) -> Span:
+    """Build the shared span with a supplied file name for parametrised tests."""
+    return dataclasses.replace(_SPAN, file_name=file_name)
+
+
+def _edit_with_file_name(*, file_name: FileName) -> Edit:
+    """Build the shared edit with a supplied file name for parametrised tests."""
+    return dataclasses.replace(_EDIT, file_name=file_name)
+
+
 @pytest.mark.parametrize(
-    "file_name",
+    ("build", "file_name"),
     [
-        pytest.param(FileName("/x/a.py"), id="absolute-posix"),
-        pytest.param(FileName("C:\\x\\a.py"), id="windows-path"),
-        pytest.param(FileName("src\\a.py"), id="backslash"),
+        pytest.param(
+            _span_with_file_name,
+            FileName("/x/a.py"),
+            id="span-absolute-posix",
+        ),
+        pytest.param(
+            _edit_with_file_name,
+            FileName("/x/a.py"),
+            id="edit-absolute-posix",
+        ),
+        pytest.param(
+            _span_with_file_name,
+            FileName("C:\\x\\a.py"),
+            id="span-windows-path",
+        ),
+        pytest.param(
+            _edit_with_file_name,
+            FileName("C:\\x\\a.py"),
+            id="edit-windows-path",
+        ),
+        pytest.param(
+            _span_with_file_name,
+            FileName("src\\a.py"),
+            id="span-backslash",
+        ),
+        pytest.param(
+            _edit_with_file_name,
+            FileName("src\\a.py"),
+            id="edit-backslash",
+        ),
     ],
 )
-def test_non_relative_file_name_is_rejected(*, file_name: FileName) -> None:
+def test_non_relative_file_name_is_rejected(*, build: Callable[[FileName], object], file_name: FileName) -> None:
     """Finding file names are relative and use forward slashes."""
     with pytest.raises(ValueError, match=r"^file_name must be a relative path with forward slashes$"):
-        dataclasses.replace(_SPAN, file_name=file_name)
+        build(file_name)
 
 
 @pytest.mark.parametrize(
