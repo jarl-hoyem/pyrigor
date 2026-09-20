@@ -1,11 +1,11 @@
-"""Enforce a minimum mutation score from mutmut's exported CI/CD stats.
+"""Enforce a maximum survivor count from mutmut's exported CI/CD stats.
 
 Reads the JSON that `mutmut export-cicd-stats` writes and fails when the
-mutation score falls below the required floor.
+surviving mutants exceed the required cap.
 
 Timeouts are left out of the score. They track the machine load rather than test
 quality, so counting them would make the gate flaky. Every other unkilled
-mutant counts against the score.
+mutant counts against the cap.
 """
 
 import json
@@ -14,7 +14,16 @@ from pathlib import Path
 from typing import Final, NamedTuple, cast
 
 STATS_PATH: Final = Path("mutants") / "mutmut-cicd-stats.json"
-MINIMUM_SCORE: Final = 80.0
+
+# Set from a real, clean mutmut run, never assumed. Raise it only from another
+# real measurement, and only when the survivor total itself moved (killing more
+# mutants, or mutmut's own mutant generation changing the total).
+MAX_SURVIVING_MUTANTS: Final = 31
+
+# Slack below the cap, so two contributors killing mutants in parallel do not
+# collide: each kill lowers the real count without needing the cap lowered in
+# the same commit. See the "lower it to N" report in main() below.
+SURVIVOR_CAP_HEADROOM: Final = 5
 
 _PERCENT: Final = 100.0
 _COUNT_KEYS: Final = ("total", "killed", "survived", "timeout")
@@ -112,10 +121,10 @@ def _mutation_score(*, stats: dict[str, object], path: Path) -> MutationScore:
 
 
 def main() -> int:
-    """Report the mutation score and enforce the floor.
+    """Report the mutation score and enforce the survivor cap.
 
     Returns:
-        0 when the score meets the floor, 1 when it does not.
+        0 when survivors are at or below the cap, 1 when they exceed it.
     """
     score = _mutation_score(stats=_load_stats(path=STATS_PATH), path=STATS_PATH)
     print(
@@ -124,9 +133,14 @@ def main() -> int:
         f"{score.timeout} timeout excluded)",
     )
 
-    if score.percentage < MINIMUM_SCORE:
-        print(f"mutation score is below the required {MINIMUM_SCORE}%", file=sys.stderr)
+    if score.survived > MAX_SURVIVING_MUTANTS:
+        print(
+            f"mutation survivors {score.survived} exceed the required maximum {MAX_SURVIVING_MUTANTS}",
+            file=sys.stderr,
+        )
         return 1
+    if score.survived <= MAX_SURVIVING_MUTANTS - SURVIVOR_CAP_HEADROOM:
+        print(f"mutation survivor cap is loose; lower it to {score.survived}")
     return 0
 
 

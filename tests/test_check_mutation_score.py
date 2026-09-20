@@ -14,8 +14,8 @@ import importlib.util
 import json
 import subprocess  # nosec B404 -- test invokes a fixed local checker script
 import sys
-from math import ceil
 from pathlib import Path
+from types import ModuleType
 from typing import Final
 
 _SCRIPT_NAME = "check_mutation_score.py"
@@ -43,15 +43,11 @@ def _script_path() -> Path:
     return candidate
 
 
-def _floor() -> float:
-    """Read the checker's own MINIMUM_SCORE rather than repeating its value.
-
-    Every fixture below is derived from this. Moving the floor therefore moves
-    the fixtures with it, instead of silently turning boundary cases into
-    meaningless ones.
+def _load_checker() -> ModuleType:
+    """Load the checker script as a module to read its own constants back.
 
     Returns:
-        The checker's minimum score.
+        The loaded module.
 
     Raises:
         RuntimeError: If the checker cannot be loaded as a module.
@@ -61,14 +57,38 @@ def _floor() -> float:
         raise RuntimeError(f"cannot load {_script_path()}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return float(module.MINIMUM_SCORE)
+    return module
+
+
+def _cap() -> int:
+    """Read the checker's own MAX_SURVIVING_MUTANTS rather than repeating its value.
+
+    Every fixture below is derived from this. Moving the cap therefore moves
+    the fixtures with it, instead of silently turning boundary cases into
+    meaningless ones.
+
+    Returns:
+        The checker's maximum survivor count.
+    """
+    return int(_load_checker().MAX_SURVIVING_MUTANTS)
+
+
+def _headroom() -> int:
+    """Read the checker's own SURVIVOR_CAP_HEADROOM rather than repeating its value.
+
+    The below-cap fixture is derived from this, so it stays pinned at the exact
+    boundary where the checker starts recommending a lower cap, at whatever
+    headroom the checker holds.
+
+    Returns:
+        The checker's headroom below the cap.
+    """
+    return int(_load_checker().SURVIVOR_CAP_HEADROOM)
 
 
 _TOTAL: Final = 1000
-_FLOOR: Final = _floor()
-
-# The smallest killed count that still meets the floor, so _AT_FLOOR - 1 fails.
-_AT_FLOOR: Final = ceil(_FLOOR / 100 * _TOTAL)
+_CAP: Final = _cap()
+_HEADROOM: Final = _headroom()
 
 
 def _run(*, tmp_path: Path, raw: str | None) -> subprocess.CompletedProcess[str]:
@@ -111,63 +131,58 @@ def _stats(*, total: int, killed: int, survived: int, timeout: int) -> str:
     return json.dumps({"total": total, "killed": killed, "survived": survived, "timeout": timeout})
 
 
-def test_score_above_floor_passes(*, tmp_path: Path) -> None:
-    """A score comfortably above the floor should exit zero."""
-    killed = _AT_FLOOR + 50
-    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
+def test_survivors_at_cap_pass(*, tmp_path: Path) -> None:
+    """A survivor count at the cap should exit zero."""
+    survived = _CAP
+    body = _stats(total=_TOTAL, killed=_TOTAL - survived, survived=survived, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_SUCCESS
-    assert f"{killed / _TOTAL * 100:.2f}%" in result.stdout
+    assert f"{(_TOTAL - survived) / _TOTAL * 100:.2f}%" in result.stdout
 
 
-def test_score_below_floor_fails(*, tmp_path: Path) -> None:
-    """A score under the floor should exit non-zero and say so."""
-    killed = _AT_FLOOR - 50
-    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
+def test_survivors_above_cap_fail(*, tmp_path: Path) -> None:
+    """One survivor above the cap should fail and name both numbers."""
+    survived = _CAP + 1
+    body = _stats(total=_TOTAL, killed=_TOTAL - survived, survived=survived, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_FAILURE
-    assert f"{killed / _TOTAL * 100:.2f}%" in result.stdout
-    assert "below the required" in result.stderr
+    assert f"{(_TOTAL - survived) / _TOTAL * 100:.2f}%" in result.stdout
+    assert f"{survived}" in result.stderr
+    assert f"{_CAP}" in result.stderr
 
 
-def test_score_exactly_at_floor_passes(*, tmp_path: Path) -> None:
-    """The floor is inclusive, so a score exactly on it should pass.
-
-    Guards the boundary against a fix that flips the comparison to '<='.
-    """
-    body = _stats(total=_TOTAL, killed=_AT_FLOOR, survived=_TOTAL - _AT_FLOOR, timeout=0)
+def test_zero_survivors_pass(*, tmp_path: Path) -> None:
+    """Zero survivors should pass."""
+    body = _stats(total=_TOTAL, killed=_TOTAL, survived=0, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
     assert result.returncode == _EXIT_SUCCESS
 
 
-def test_score_one_killed_mutant_below_the_floor_fails(*, tmp_path: Path) -> None:
-    """One killed mutant fewer than the floor demands should fail.
-
-    This is the tightest boundary available. Together with the test above, it
-    pins the comparison exactly at the floor, at whatever value the floor holds.
-    """
-    killed = _AT_FLOOR - 1
-    body = _stats(total=_TOTAL, killed=killed, survived=_TOTAL - killed, timeout=0)
+def test_survivors_below_cap_report_lower_value(*, tmp_path: Path) -> None:
+    """Survivors at the headroom boundary should recommend lowering the cap."""
+    survived = _CAP - _HEADROOM
+    body = _stats(total=_TOTAL, killed=_TOTAL - survived, survived=survived, timeout=0)
 
     result = _run(tmp_path=tmp_path, raw=body)
 
-    assert result.returncode == _EXIT_FAILURE
+    assert result.returncode == _EXIT_SUCCESS
+    assert f"lower it to {survived}" in result.stdout
 
 
 def test_timeouts_are_excluded_from_the_score(*, tmp_path: Path) -> None:
-    """Timeouts leave the denominator, so they cannot drag the score under the floor.
+    """Timeouts leave the denominator, so they do not count as survivors.
 
     Every scored mutant is killed here, so excluding timeouts gives 100%.
-    Counting them instead puts the score just under the floor. Deriving both
-    counts from the floor keeps this discriminating at any floor value.
+    Counting them instead would create survivors. Deriving the counts from the
+    cap keeps this discriminating at any cap value.
     """
-    scored = _AT_FLOOR - 1
+    scored = _CAP + 1
     timeout = _TOTAL - scored
     body = _stats(total=_TOTAL, killed=scored, survived=0, timeout=timeout)
 
