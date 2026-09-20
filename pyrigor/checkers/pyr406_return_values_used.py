@@ -36,18 +36,6 @@ def _simple_name(*, node: ast.expr) -> str | None:
     return None
 
 
-def _resolve_constant(*, annotation: ast.Constant) -> str | None:
-    """Resolve a Constant return annotation.
-
-    Args:
-        annotation: A Constant annotation node.
-
-    Returns:
-        "None" for an explicit -> None annotation, otherwise None.
-    """
-    return _NONE_ANNOTATION_NAME if annotation.value is None else None
-
-
 def _resolve_union(*, op: ast.operator) -> str | None:
     """Resolve a BinOp return annotation's operator.
 
@@ -68,16 +56,18 @@ def _annotation_name(*, annotation: ast.expr | None) -> str | None:
         annotation: A function's return annotation, or None.
 
     Returns:
-        "None" for an explicit -> None annotation, the bare name for
-        a Name or Attribute annotation (including the base of a
-        subscripted generic like Iterator[X]), a synthetic "UnionType"
-        name for a PEP 604 union (X | Y), or None if there is no
-        annotation, or it does not resolve to a simple name.
+        The bare name for a Name or Attribute annotation (including
+        the base of a subscripted generic like Iterator[X]), a
+        synthetic "UnionType" name for a PEP 604 union (X | Y), or
+        None if there is no annotation, it is a constant (including an
+        explicit -> None), or it does not otherwise resolve to a
+        simple name. A constant annotation needs no name of its own:
+        _is_protected_return already treats "no name" as unprotected,
+        the same outcome an explicit -> None reaches through
+        _EXCLUDED_RETURN_NAMES.
     """
-    if annotation is None:
+    if annotation is None or isinstance(annotation, ast.Constant):
         return None
-    if isinstance(annotation, ast.Constant):
-        return _resolve_constant(annotation=annotation)
     if isinstance(annotation, ast.Subscript):
         return _annotation_name(annotation=annotation.value)
     if isinstance(annotation, ast.BinOp):

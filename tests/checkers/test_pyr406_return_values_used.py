@@ -263,14 +263,39 @@ def outer() -> None:
     assert violations == []
 
 
-def test_tracks_vararg_and_kwarg_bindings() -> None:
-    """Argument bindings must also prevent the fallback to an outer function."""
+def test_tracks_vararg_binding() -> None:
+    """A vararg parameter's own name must also prevent the fallback to an outer function.
+
+    The call sits outside outer's own body, at module scope, after the def: outer's own
+    parameter names are registered there too, so this isolates the vararg name itself from the
+    body-local resolution a call inside outer would otherwise rely on.
+    """
     source = """
 def value() -> int:
     return 1
 
-def outer(value, *args, **kwargs):
-    value()
+def outer(*value):
+    pass
+
+value()
+"""
+    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    assert violations == []
+
+
+def test_tracks_kwarg_binding() -> None:
+    """A kwarg parameter's own name must also prevent the fallback to an outer function.
+
+    See test_tracks_vararg_binding for why the call sits outside outer's own body.
+    """
+    source = """
+def value() -> int:
+    return 1
+
+def outer(**value):
+    pass
+
+value()
 """
     violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
     assert violations == []

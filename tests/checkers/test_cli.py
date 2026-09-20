@@ -18,6 +18,7 @@ from pyrigor.checkers.cli import (
     CheckError,
     _FixSourceFailed,  # pyright: ignore[reportPrivateUsage]
     _FixSourceResult,  # pyright: ignore[reportPrivateUsage]
+    _read_fix_source,  # pyright: ignore[reportPrivateUsage]
     main,
     run,
 )
@@ -247,6 +248,22 @@ def test_run_fix_reports_unreadable_file(
 
     assert exc_info.value.code == 0
     assert "permission denied" in capsys.readouterr().err
+
+
+# pyrigor 403 # pytest fixture injection, not a real violation
+def test_read_fix_source_reports_the_failing_path_and_kind(tmp_path: Path) -> None:
+    """A real OSError while reading fixer input reports the exact failing path and a read_error kind.
+
+    The test above only ever exercises this through a full monkeypatch replacing
+    _read_fix_source entirely, so any test never actually ran its own try/except OSError body.
+    """
+    missing = tmp_path / "missing.py"
+
+    result = _read_fix_source(path=str(missing))
+
+    assert isinstance(result, _FixSourceFailed)
+    assert result.error.file == str(missing)
+    assert result.error.kind == "read_error"
 
 
 def test_run_fix_reports_missing_file(
