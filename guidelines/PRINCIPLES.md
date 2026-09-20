@@ -176,8 +176,8 @@ readable enough to serve as an executable description of the requirement.
 Monotonicity is a property to specify and test where applicable, not a general principle.
 
 **Additional requirement:** The test suite must also protect against regression in test effectiveness. Changes must not
-reduce the mutation score below the floor that `scripts/check_mutation_score.py` enforces. That script holds the value.
-This document does not restate it. The floor is a project-level quality gate, not a per-change target to be met by
+increase the surviving-mutant count above the cap that `scripts/check_mutation_score.py` enforces. That script holds the
+value. This document does not restate it. The cap is a project-level quality gate, not a per-change target to be met by
 weakening the mutation test suite.
 
 **Enforced by:** `scripts/check_mutation_score.py` and the `mutation-test` CI job.

@@ -442,16 +442,15 @@ mutmut then reap a pid it never forked and crashes. Running `docker run --init` 
 remembers the flag. Installing tini and making it the entrypoint makes the image correct on its own, including for an
 ad-hoc `docker run`.
 
-### Mutation testing gates on a score floor, not on zero survivors
+### Mutation testing gates on a survivor cap, not on a score floor
 
 The command `mutmut run` returns normally after printing its summary and never sets an exit code from the results, so a
 job that only runs it cannot fail on survivors. The workflow exports stats with `mutmut export-cicd-stats` and runs
-`scripts/check_mutation_score.py`, which fails below an 80% floor.
+`scripts/check_mutation_score.py`, which fails when survivors exceed `MAX_SURVIVING_MUTANTS`.
 
-The floor is 80% because the honest score is 81.63%, with 288 surviving mutants. Earlier floors of 99.5% and then 99%
-were set against measurements inflated by the coverage false kills described in the entry above. Those runs reported two
-to six survivors, which was never real. Raise this floor as the suite improves, in a step with a measured score rather
-than an assumed one.
+The cap is set from a real, clean run, never assumed, and carries headroom for run-to-run variance, both as named
+constants in the script rather than repeated here. When survivors reach the headroom boundary, the checker reports the
+lower cap to use. A mutmut upgrade rebaselines the cap, since its own mutant generation can change the total.
 
 A zero-survivor gate was rejected because it is unreachable. The mutant rewriting `version('pyrigor')` as
 `version('PYRIGOR')` survives permanently. Distribution name lookup is case-insensitive, verified directly, with both
@@ -459,12 +458,11 @@ spellings returning the same version. Only a test that mocks the lookup and asse
 and such a test pins the implementation rather than the behaviour. This mutant is also the one that exposed the false
 kills, because a coverage-enabled run claimed to have killed something no test can detect.
 
-Timeouts leave the denominator entirely. They track the machine load, not test quality. Two appeared in one local run
-only because other containers were competing for the processor.
+Timeouts leave the denominator entirely. They track the machine load, not test quality, and have appeared locally only
+when other containers were competing for the processor.
 
-A recorded baseline of known survivors would catch a single new survivor, which a floor cannot. That option stays open
-once the run-to-run variance is understood. A survivor baseline fails closed, so it is not the kind of path allowlist
-this project rejects.
+A recorded baseline of known survivors would catch a single new survivor, but the cap is intentionally the smaller
+change for now. A survivor baseline remains a later refinement once the run-to-run variance is understood.
 
 ### Pre-commit hooks scope to changed files unless a tool genuinely needs whole-project context
 
@@ -478,14 +476,14 @@ Changed-files-only, correctly: `ruff`, `ruff-format`, `gitleaks`, `actionlint`, 
 produces findings that are strictly local to the files it looks at. Nothing about an untouched file's own cleanliness
 can change from editing a different one, so re-checking it on every commit would be pure waste.
 
-Whole-project, always, correctly: `ty`, `mypy`, `pyright`, `radon-maintainability`, `xenon` (both entries), `tach`,
-`uv-lock-check`, `dod-check`, `generate-rule-table`, `pip-audit`, `pytest` and the local, 'wip' `pyrigor` self-check
-(see "The tool pyrigor runs two self-checks" above for why that one and the published one are scoped differently on
-purpose). Each needs cross-file or whole-program context to be completely correct: type inference across module
-boundaries, module-boundary enforcement itself, lock-file consistency against the full dependency set, a generated file
-that must reflect every real guideline doc, an environment-wide dependency audit and a test suite where a change in one
-file can break a test that lives in another. Scoping any of these to only the changed files would make them wrong, not
-just faster.
+Whole-project, always, correctly: `ty`, `mypy`, `pyright`, `radon-maintainability`, `xenon`, `tach`, `uv-lock-check`,
+`dod-check`, `generate-rule-table`, `pip-audit`, `pytest` and the local, 'wip' `pyrigor` self-check (see "The tool
+pyrigor runs two self-checks" above for why that one and the published one are scoped differently on purpose). Each
+needs cross-file or whole-program context to be completely correct: type inference across module boundaries,
+module-boundary enforcement itself, lock-file consistency against the full dependency set, a generated file that must
+reflect every real guideline doc, an environment-wide dependency audit and a test suite where a change in one file can
+break a test that lives in another. Scoping any of these to only the changed files would make them wrong, not just
+faster.
 
 The two complexity tools are the arguable pair, and scoping them was tried and rejected on 2026-09-18. A maintainability
 index and a complexity rank are both per file, so a changed-files run would give the same verdict. Measured, it saved
@@ -530,8 +528,8 @@ denylist. All three exclude `.venv`, `htmlcov` and `*.egg-info` (never real sour
 each: identical results to before, now covering `scripts/` (radon missed it initially) and `manual-tests/` (all three
 missed it) that were previously invisible.
 
-`xenon-shared`'s own single-file list and `tach.toml`'s `[[modules]]` list are deliberately not touched by this — both
-are curated by design, not incidental directory discovery. A new file earning a relaxed complexity threshold, or a new
+The xenon hook's own `--relax` list and `tach.toml`'s `[[modules]]` list are deliberately not touched by this — both are
+curated by design, not incidental directory discovery. A new file earning a relaxed complexity threshold, or a new
 package joining tach's dependency graph, should require a real decision each time, not silently inherit coverage the way
 a lint scan should.
 
@@ -724,13 +722,13 @@ started, in Pickomino (see the "Pickomino inheritance audit" milestone) — `bla
 the next one. Consolidating onto one tool per job, instead of layering several with overlapping opinions, came from
 living through both, not from reading about either.
 
-### xenon's two-tier grade system
+### xenon gates on one list, not two
 
-The tool xenon has no per-function suppression mechanism, unlike complexipy's inline `# complexipy: ignore`. The
-`xenon-shared` hook (relaxed to grade B) exists specifically for files with a documented, real exception (currently
-`_shared.py`'s `walk_once`, see the 'ast.walk' entry above), while the default `xenon` hook stays at strict grade A for
-everything else. A file only qualifies for the relaxed hook once it has its own DECISIONS.md-documented reason, not by
-default.
+The tool xenon has no per-function suppression, unlike complexipy's `# complexipy: ignore`, so a file with a real,
+documented exception (currently `_shared.py`'s `walk_once`, see the 'ast.walk' entry above) is named once with `--relax`
+in `scripts/check_xenon.py`'s hook. The strict set is every other file, derived rather than separately maintained, so it
+cannot drift out of agreement with the relaxed list (#309). The check also fails once a relaxed file ranks A on its own,
+so an exception cannot outlive its own fix.
 
 ### The tool vulture's confidence threshold
 
@@ -803,9 +801,8 @@ The first version kept a literal list per tool and added a check that failed whe
 drift loud but kept four copies. The wrapper replaced it within the same issue.
 
 Two deliberate exclusions remain because they are design choices rather than generated directories. The vulture hook
-excludes `manual-tests`. The strict xenon hook excludes `pyrigor/checkers/_shared.py`, which `xenon-shared` checks at a
-relaxed grade. That glob used to be `*_shared.py`, which also hid `scripts/_dev_tooling_shared.py` and
-`tests/checkers/test_shared.py` from both xenon hooks. It now names the one intended path.
+excludes `manual-tests`. The xenon hook's own `--relax` list names `pyrigor/checkers/_shared.py` exactly, not by glob,
+after a glob once matched more files than intended (see "xenon gates on one list, not two").
 
 A manual pyright run ignores `.gitignore` unless it goes through the wrapper, as `just pyright` and `AGENTS.md` now do.
 

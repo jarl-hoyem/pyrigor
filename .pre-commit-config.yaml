@@ -296,42 +296,19 @@ repos:
           - --allow=tests/checkers/test_cli.py
         pass_filenames: false
         stages: [pre-commit]
-      - id: xenon-shared
-        name: xenon (relaxed to B, for files with a documented exception)
-        language: system
-        entry: uv run --extra dev xenon
-        pass_filenames: false
-        types: [python]
-        # Each file listed here needs its own DECISIONS.md-documented
-        # reason, the same way _shared.py's walk_once does
-        # (single-pass node classification is the point — the same
-        # reason it already carries a `# complexipy: ignore`). The tool xenon
-        # has no per-function suppression, so relaxing the threshold
-        # is scoped to specific files via a second invocation, not a
-        # global threshold change.
-        args:
-          - --max-absolute=B
-          - --max-modules=A
-          - --max-average=A
-          - pyrigor/checkers/_shared.py
-          # Add a new file's own path here, and its matching
-          # path glob to the strict hook's --exclude above.
-        stages: [pre-commit]
       - id: xenon
         name: xenon
+        entry: uv run --extra dev python scripts/run_on_git_python_files.py python scripts/check_xenon.py
         language: system
-        entry: uv run --extra dev python scripts/run_on_git_python_files.py xenon
-        pass_filenames: false
         types: [python]
-        # Files relaxed to level B below are excluded here, one glob
-        # per comma-separated entry. Adding a new relaxed file means
-        # extending this list and xenon-shared's own path list
-        # — not redesigning the mechanism.
+        # Each relaxed file needs its own DECISIONS.md-documented reason, the
+        # same way _shared.py's walk_once does (single-pass node
+        # classification is the point, the same reason it already carries a
+        # `# complexipy: ignore`). Add a new file with another --relax here;
+        # nothing else needs to agree with it.
         args:
-          - --max-absolute=A
-          - --max-modules=A
-          - --max-average=A
-          - --exclude=*pyrigor/checkers/_shared.py
+          - --relax=pyrigor/checkers/_shared.py
+        pass_filenames: false
         stages: [pre-commit]
       - id: tach
         name: tach (module-boundary enforcement)
