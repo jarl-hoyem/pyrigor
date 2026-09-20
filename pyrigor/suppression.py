@@ -17,7 +17,7 @@ import re
 import sys
 import tokenize
 from io import StringIO
-from typing import NamedTuple
+from typing import Final, NamedTuple
 
 from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
@@ -36,8 +36,8 @@ class SuppressionResult(NamedTuple):
     suppressed: SuppressedViolations
 
 
-_SUPPRESSION_PATTERN = re.compile(r"#\s*pyrigor\s+(?P<tokens>.+)$")
-_NEAR_MISS_PATTERN = re.compile(r"#.*pyrigor", re.IGNORECASE)
+_SUPPRESSION_PATTERN: Final = re.compile(r"#\s*pyrigor\s+(?P<tokens>.+)$")
+_NEAR_MISS_PATTERN: Final = re.compile(r"#.*pyrigor", re.IGNORECASE)
 
 
 def _comments_by_line(*, source: str) -> dict[int, str]:

@@ -22,17 +22,17 @@ LineNumber = NewType("LineNumber", int)
 ColumnNumber = NewType("ColumnNumber", int)
 JsonObject = dict[str, object]
 
-_LOCALS_SEGMENT = "<locals>"
+_LOCALS_SEGMENT: Final = "<locals>"
 # Annotated, because PyCharm infers a byte literal read from another file as str, codecs.BOM_UTF8 included.
 BYTE_ORDER_MARK: Final[bytes] = b"\xef\xbb\xbf"
 # Where Python's parser ends a line. Other characters str.splitlines() treats as breaks, such as U+2028, do not.
-LINE_BREAK = re.compile(rb"\r\n|\r|\n")
-_CRLF = b"\r\n"
-_LONE_SURROGATE = re.compile("[\\ud800-\\udfff]")
-_CONTINUATION_BYTE_MASK = 0b1100_0000
-_CONTINUATION_BYTE_BITS = 0b1000_0000
-_WINDOWS_DRIVE = re.compile(r"^[A-Za-z]:")
-_WINDOWS_PATH_SEPARATOR = "\\"
+LINE_BREAK: Final = re.compile(rb"\r\n|\r|\n")
+_CRLF: Final = b"\r\n"
+_LONE_SURROGATE: Final = re.compile("[\\ud800-\\udfff]")
+_CONTINUATION_BYTE_MASK: Final = 0b1100_0000
+_CONTINUATION_BYTE_BITS: Final = 0b1000_0000
+_WINDOWS_DRIVE: Final = re.compile(r"^[A-Za-z]:")
+_WINDOWS_PATH_SEPARATOR: Final = "\\"
 
 
 class Applicability(Enum):

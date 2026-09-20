@@ -18,10 +18,10 @@ from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
-_MISSING_PATHS_MESSAGE = "the following arguments are required: paths"
+_MISSING_PATHS_MESSAGE: Final = "the following arguments are required: paths"
 _EXIT_CODE_USAGE_ERROR: Final = 2
 
-_DEFAULT_EXCLUDES = frozenset(
+_DEFAULT_EXCLUDES: Final = frozenset(
     {
         ".venv",
         "venv",

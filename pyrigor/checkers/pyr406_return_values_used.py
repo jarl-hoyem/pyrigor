@@ -2,7 +2,7 @@
 
 import ast
 from collections.abc import Iterator
-from typing import NamedTuple
+from typing import Final, NamedTuple
 
 from pyrigor.checkers._shared import (
     WalkedNodes,
@@ -13,9 +13,9 @@ from pyrigor.checkers._shared import (
 from pyrigor.rules import Rule
 from pyrigor.violations import Violation, make_violation
 
-_NONE_ANNOTATION_NAME = "None"
+_NONE_ANNOTATION_NAME: Final = "None"
 
-_EXCLUDED_RETURN_NAMES = frozenset(
+_EXCLUDED_RETURN_NAMES: Final = frozenset(
     {_NONE_ANNOTATION_NAME, "NoReturn", "Never", "Iterator", "Generator", "AsyncGenerator"},
 )
 

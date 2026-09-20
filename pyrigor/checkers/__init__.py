@@ -1,6 +1,6 @@
 """AST-based checkers for pyrigor's guidelines."""
 
-from typing import NamedTuple, Protocol
+from typing import Final, NamedTuple, Protocol
 
 from pyrigor.checkers._shared import WalkedNodes, walk_once
 from pyrigor.checkers.pyr301_namedtuple_values import find_violations as _pyr301
@@ -35,7 +35,7 @@ class RegisteredChecker(NamedTuple):
 
 
 # noinspection PyTypeChecker
-CHECKERS: tuple[RegisteredChecker, ...] = (
+CHECKERS: Final[tuple[RegisteredChecker, ...]] = (
     RegisteredChecker(rule=Rule.PYR301, find_violations=_pyr301),
     RegisteredChecker(rule=Rule.PYR401, find_violations=_pyr401),
     RegisteredChecker(rule=Rule.PYR402, find_violations=_pyr402),

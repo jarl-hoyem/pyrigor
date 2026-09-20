@@ -4,14 +4,14 @@
 
 import ast
 from enum import Enum
-from typing import NamedTuple
+from typing import Final, NamedTuple
 
 from pyrigor.checkers import walk_once
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations as find_pyr402_violations
 from pyrigor.findings import PositionIndex
 from pyrigor.suppression import filter_suppressed
 
-_MINIMUM_POSITIONAL_PARAMETERS = 2
+_MINIMUM_POSITIONAL_PARAMETERS: Final = 2
 
 __all__ = ["FixRejectedError", "FixResult", "FixStatus", "fix_source"]
 
