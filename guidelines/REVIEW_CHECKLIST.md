@@ -101,6 +101,13 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
     could reach it. Coverage showed every line as already covered in every case; only mutating the value directly, the
     way #308's own test matrix did, revealed nothing could tell the difference.
 
+13. **Has every discovery, unresolved concern or follow-up from this work been documented in the appropriate GitHub
+    issues or project documentation, so the work can resume without relying on LLM conversation history?** ← rule:
+    `DEFINITION_OF_DONE.md`, Continuity _Earned by:_ the #302 review found a missing test requirement after the original
+    implementation was committed. The follow-up was handled in the same session, but the checklist must also ensure that
+    any discovered work outside the current scope becomes a new GitHub issue rather than remaining only in the
+    conversation.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line
