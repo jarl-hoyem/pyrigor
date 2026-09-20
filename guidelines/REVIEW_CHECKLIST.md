@@ -108,6 +108,17 @@ Run this checklist before declaring any feature, flag, or fix done, alongside `D
     any discovered work outside the current scope becomes a new GitHub issue rather than remaining only in the
     conversation.
 
+14. **Is the implementation proportionate to the issue, with no new abstraction, script or configuration duplication
+    unless the existing structure cannot express the requirement?** ← rule: `DEFINITION_OF_READY.md`, Proportionality
+    _Earned by:_ the first #309 implementation turned each acceptance criterion into a separate abstraction and added
+    unnecessary configuration duplication. The design was more complex than the bounded issue required, so this question
+    must be checked both before work starts and after implementation.
+
+15. **Before introducing a module-level constant, was the repository searched for an existing definition representing
+    the same concept, and was one authoritative definition reused or chosen?** ← rule: `DEFINITION_OF_READY.md`,
+    Maintainability _Earned by:_ #300 found constants defined in more than one place, which prompted #301's evaluation
+    of whether the same failure mode should become a general pyrigor rule.
+
 ## Retroactive applications
 
 - **2026-08-16**: Question 1 applied retroactively across prior work (PYR401, PYR403, suppression: out-of-range line

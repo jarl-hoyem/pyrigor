@@ -14,6 +14,12 @@ An issue is ready to be worked on when:
 - Its scope has been checked for whether it can be split smaller before any work starts. Splitting after starting means
   real complexity was discovered the hard way, mid-flight. This is the same discipline behind Steve McConnell's
   "miniature milestones" practice (_Rapid Development_): decompose before starting, not after.
+- The smallest viable implementation has been identified, and every new abstraction, script or configuration duplication
+  is justified before work starts.
+- If the issue is analysis or evaluation, its questions, required evidence and decision boundary are explicit, with
+  implementation deferred until the analysis produces a build or rejection decision.
+- If the work may introduce a module-level constant, the repository has been searched for an existing definition
+  representing the same concept, and one authoritative definition will be reused or chosen.
 - Every label from `CONTRIBUTING.md`'s full list has been checked against the issue, not just the required
   type/value/effort minimum. Multiple labels commonly apply together.
 - Assigned to a Milestone when a relevant one exists
@@ -34,6 +40,6 @@ issue tracking" section: all work goes through GitHub Issues.
 ## Planning issues
 
 If an issue is unclear, larger than the largest effort size (`L`, there is no bigger size, see `CONTRIBUTING.md`'s
-sizing section), involves a real architectural decision, or blocks multiple other issues, it is not ready as-is. Create
-a planning issue instead: a smaller, sized issue whose entire scope is analysing the problem and splitting it into real,
+sizing section), involves a real architectural decision or blocks multiple other issues, it is not ready as-is. Create a
+planning issue instead: a smaller, sized issue whose entire scope is analysing the problem and splitting it into real,
 linked, individually ready issues. The planning issue is done once those real issues exist and are themselves ready.
