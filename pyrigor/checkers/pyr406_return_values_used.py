@@ -2,7 +2,7 @@
 
 import ast
 from collections.abc import Iterator
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
 from pyrigor.checkers._shared import (
     WalkedNodes,
@@ -176,8 +176,8 @@ def _is_comprehension_target(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) 
     """Return whether a node binds a name in a comprehension-local target."""
     if not isinstance(node, ast.Name) or not isinstance(node.ctx, ast.Store):
         return False
-    current = cast("ast.AST", cast("object", node))
-    parent = _nearest_comprehension(node=current, parents=parents)
+    # noinspection PyTypeChecker
+    parent = _nearest_comprehension(node=node, parents=parents)
     return parent is not None and _is_in_target(node=node, comprehension=parent)
 
 
@@ -193,8 +193,8 @@ def _nearest_comprehension(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) ->
 
 def _is_in_target(*, node: ast.Name, comprehension: ast.comprehension) -> bool:
     """Return whether a name belongs to a comprehension's target expression."""
-    target = cast("ast.AST", cast("object", comprehension.target))
-    return any(candidate is node for candidate in ast.walk(target))
+    # noinspection PyTypeChecker
+    return any(candidate is node for candidate in ast.walk(comprehension.target))
 
 
 def _node_bindings(*, node: ast.AST) -> set[str]:

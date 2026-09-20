@@ -816,24 +816,12 @@ suppressions instead of adding three more.
 
 ### Radon's maintainability index is enforced by a script
 
-Radon has been one of three complexity tools since the first tooling commit, alongside xenon and complexipy. It measures
-something the other two do not: the maintainability index, which falls mainly with module size and Halstead volume.
-Xenon grades cyclomatic complexity and complexipy grades cognitive complexity per function, so neither is designed to
-catch a long module of simple functions.
-
-Its hook could never fail. The `radon mi` command has no failing exit status, and `--min A` only filters what it prints.
-A probe module scoring 0.00, rank C, exited 0 with the hook's own arguments and pre-commit hides a passing hook's
-output. Two test modules had fallen below A unnoticed: `tests/checkers/test_cli.py` at C and
-`tests/checkers/test_pyr406_return_values_used.py` at B.
-
-The hook now runs `scripts/check_maintainability.py` through the git file-list wrapper. The script runs
-`radon mi --json` and fails on any rank below A, on a file radon cannot parse and on a radon crash. It runs radon as a
-subprocess rather than importing it, because radon ships no type information, and strict mypy and pyright would need a
-stub or suppressions.
-
-The two test modules are listed with `--allow`, the same kind of documented exception as the file `xenon-shared`
-relaxes. An entry fails once its module ranks A or is no longer checked, so an exception cannot outlive its split. Both
-are tracked by #268, which is blocked by #225.
+Radon is one of the three complexity tools, the one that measures module size and Halstead volume rather than
+per-function complexity, which xenon and complexipy do not cover. Its own hook could never fail (`radon mi` has no
+failing exit status), so `scripts/check_maintainability.py` now runs `radon mi --json` directly and fails on any rank
+below A, a file radon cannot parse, or a radon crash, as a subprocess rather than an import since radon ships no type
+stubs. A file below rank A is listed with `--allow`, the same documented-exception pattern `xenon-shared` uses; the
+check fails once an entry is no longer needed, so an exception cannot outlive its own fix (#268, blocked by #225).
 
 ### Python tool versions live in pyproject.toml, and pre-commit only runs the tools
 
