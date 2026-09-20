@@ -4,7 +4,7 @@ import ast
 import dataclasses
 from collections.abc import Callable
 from pathlib import Path
-from typing import NamedTuple, TypeVar, cast
+from typing import NamedTuple, Protocol, TypeVar, cast
 
 import pytest
 
@@ -30,6 +30,15 @@ from tests.diagnostics_v2_support import FILE_NAME, REPOSITORY_ROOT, Json, defin
 
 FindingType = type[Finding | Span | EnclosingSymbol | Fix | Edit]
 _NodeT = TypeVar("_NodeT", bound=ast.AST)
+
+
+class _FileNameBuilder(Protocol):  # pylint: disable=too-few-public-methods
+    """Build a finding component with a supplied file name."""
+
+    def __call__(self, *, file_name: FileName) -> Span | Edit:
+        """Build the component."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
 
 _DEFINITIONS = cast("Json", load_v2_schema()["$defs"])
 _SPAN_CONSTRUCTOR = Span.__name__
@@ -546,10 +555,10 @@ def _edit_with_file_name(*, file_name: FileName) -> Edit:
         ),
     ],
 )
-def test_non_relative_file_name_is_rejected(*, build: Callable[[FileName], object], file_name: FileName) -> None:
+def test_non_relative_file_name_is_rejected(*, build: _FileNameBuilder, file_name: FileName) -> None:
     """Finding file names are relative and use forward slashes."""
     with pytest.raises(ValueError, match=r"^file_name must be a relative path with forward slashes$"):
-        build(file_name)
+        build(file_name=file_name)
 
 
 @pytest.mark.parametrize(
