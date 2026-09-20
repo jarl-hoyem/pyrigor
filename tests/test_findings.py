@@ -22,6 +22,7 @@ from pyrigor.findings import (
     Span,
     SymbolKind,
     finding_to_json,
+    make_edit,
     make_span,
 )
 from pyrigor.rules import Rule, Severity
@@ -40,6 +41,7 @@ _KEYWORD_PARAMETERS_TEXT = b"(self, *, item, target)"
 _LONE_SURROGATE = chr(0xD800)
 _DECOMPOSED_FILE_NAME = FileName("src/e" + chr(0x0301) + ".py")
 _COMPOSED_FILE_NAME = FileName("src/" + chr(0xE9) + ".py")
+_EDIT_SOURCE = b"\xef\xbb\xbfprint('\xc3\xa9')\r\n"
 
 _SPAN = Span(
     file_name=FILE_NAME,
@@ -85,7 +87,13 @@ def _serialised(*, finding: Finding) -> Json:
 
 def _edit(*, byte_start: int, byte_end: int) -> Edit:
     """Build an edit of a byte range."""
-    return dataclasses.replace(_EDIT, byte_start=ByteOffset(byte_start), byte_end=ByteOffset(byte_end))
+    return make_edit(
+        index=PositionIndex(raw=_METHOD_SOURCE),
+        file_name=FILE_NAME,
+        byte_start=ByteOffset(byte_start),
+        byte_end=ByteOffset(byte_end),
+        content="x",
+    )
 
 
 def _edits(*ranges: tuple[int, int]) -> tuple[Edit, ...]:
@@ -102,7 +110,13 @@ def _argument_edit(*, argument: ast.expr, index: PositionIndex) -> Edit:
     """Build an edit that passes a name argument by keyword."""
     span = make_span(node=argument, index=index, file_name=FILE_NAME)
     name = ast.unparse(argument)
-    return Edit(file_name=FILE_NAME, byte_start=span.byte_start, byte_end=span.byte_end, content=f"{name}={name}")
+    return make_edit(
+        index=index,
+        file_name=FILE_NAME,
+        byte_start=span.byte_start,
+        byte_end=span.byte_end,
+        content=f"{name}={name}",
+    )
 
 
 def _method_finding() -> Finding:
@@ -111,10 +125,19 @@ def _method_finding() -> Finding:
     It has labelled spans, an enclosing symbol and two alternative fixes.
     """
     index = PositionIndex(raw=_METHOD_SOURCE)
+    # PyCharm does not infer the TypeVar bound from the concrete AST class.
+    # noinspection PyTypeChecker
     function = _first_node(node_type=ast.FunctionDef)
+    # noinspection PyTypeChecker
     call = _first_node(node_type=ast.Call)
     keyword_start = make_span(node=function.args.args[1], index=index, file_name=FILE_NAME).byte_start
-    keyword_edit = Edit(file_name=FILE_NAME, byte_start=keyword_start, byte_end=keyword_start, content="*, ")
+    keyword_edit = make_edit(
+        index=index,
+        file_name=FILE_NAME,
+        byte_start=keyword_start,
+        byte_end=keyword_start,
+        content="*, ",
+    )
     call_edits = tuple(_argument_edit(argument=argument, index=index) for argument in call.args)
     return Finding(
         code=Rule.PYR402,
@@ -281,6 +304,43 @@ def test_zero_width_edit_is_allowed() -> None:
 
 
 @pytest.mark.parametrize(
+    "offset",
+    [
+        pytest.param(-1, id="negative"),
+        pytest.param(len(_EDIT_SOURCE) + 1, id="past-end"),
+        pytest.param(1, id="inside-bom"),
+        pytest.param(11, id="inside-multibyte-character"),
+        pytest.param(15, id="inside-crlf"),
+    ],
+)
+def test_edit_offset_outside_source_boundary_is_rejected(*, offset: int) -> None:
+    """An edit offset must be within the source and on a UTF-8 boundary."""
+    with pytest.raises(ValueError, match=rf"offset {offset}"):
+        make_edit(
+            index=PositionIndex(raw=_EDIT_SOURCE),
+            file_name=FILE_NAME,
+            byte_start=ByteOffset(offset),
+            byte_end=ByteOffset(offset),
+            content="x",
+        )
+
+
+def test_zero_width_edit_at_end_of_file_is_allowed() -> None:
+    """An edit may insert at the end of the source file."""
+    offset = ByteOffset(len(_EDIT_SOURCE))
+
+    edit = make_edit(
+        index=PositionIndex(raw=_EDIT_SOURCE),
+        file_name=FILE_NAME,
+        byte_start=offset,
+        byte_end=offset,
+        content="x",
+    )
+
+    assert edit.byte_start == edit.byte_end == offset
+
+
+@pytest.mark.parametrize(
     "ranges",
     [
         pytest.param(((0, 3), (3, 5)), id="touching"),
@@ -312,6 +372,13 @@ def test_column_start_after_column_end_on_one_line_is_rejected() -> None:
     """A single-line span cannot end at an earlier column than it starts at."""
     with pytest.raises(ValueError, match=r"^start position is after its end position$"):
         dataclasses.replace(_SPAN, column_start=ColumnNumber(11))
+
+
+@pytest.mark.parametrize("label", ["", "   "], ids=["empty", "whitespace-only"])
+def test_blank_label_is_rejected(*, label: str) -> None:
+    """An absent label is represented by None, not blank text."""
+    with pytest.raises(ValueError, match=r"^label must not be empty or whitespace-only$"):
+        dataclasses.replace(_SPAN, label=label)
 
 
 def test_empty_spans_are_rejected() -> None:
@@ -432,6 +499,20 @@ def test_file_name_in_nfc_is_accepted() -> None:
     span = dataclasses.replace(_SPAN, file_name=_COMPOSED_FILE_NAME)
 
     assert span.file_name == _COMPOSED_FILE_NAME
+
+
+@pytest.mark.parametrize(
+    "file_name",
+    [
+        pytest.param(FileName("/x/a.py"), id="absolute-posix"),
+        pytest.param(FileName("C:\\x\\a.py"), id="windows-path"),
+        pytest.param(FileName("src\\a.py"), id="backslash"),
+    ],
+)
+def test_non_relative_file_name_is_rejected(*, file_name: FileName) -> None:
+    """Finding file names are relative and use forward slashes."""
+    with pytest.raises(ValueError, match=r"^file_name must be a relative path with forward slashes$"):
+        dataclasses.replace(_SPAN, file_name=file_name)
 
 
 @pytest.mark.parametrize(

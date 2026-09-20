@@ -31,6 +31,8 @@ _CRLF = b"\r\n"
 _LONE_SURROGATE = re.compile("[\\ud800-\\udfff]")
 _CONTINUATION_BYTE_MASK = 0b1100_0000
 _CONTINUATION_BYTE_BITS = 0b1000_0000
+_WINDOWS_DRIVE = re.compile(r"^[A-Za-z]:")
+_WINDOWS_PATH_SEPARATOR = "\\"
 
 
 class Applicability(Enum):
@@ -88,6 +90,15 @@ def _require_file_name(*, file_name: FileName) -> None:
         file_name: The file name to check.
     """
     _require_valid_unicode(text=file_name, field="file_name")
+    # Ruff formats this condition correctly, but PyCharm reports a false positive.
+    # noinspection IncorrectFormatting
+    _require(
+        condition=bool(file_name)
+        and not file_name.startswith("/")
+        and _WINDOWS_PATH_SEPARATOR not in file_name
+        and not _WINDOWS_DRIVE.match(file_name),
+        message="file_name must be a relative path with forward slashes",
+    )
     _require(
         condition=unicodedata.is_normalized("NFC", file_name),
         message="file_name is not in Unicode normalisation form NFC",
@@ -129,6 +140,7 @@ class Span:  # pylint: disable=too-many-instance-attributes # the v2 schema fixe
         )
         if self.label is not None:
             _require_valid_unicode(text=self.label, field="label")
+            _require(condition=bool(self.label.strip()), message="label must not be empty or whitespace-only")
 
 
 def _is_qualified_name(*, name: str) -> bool:
@@ -351,6 +363,31 @@ def make_span(
         is_primary=is_primary,
         label=label,
     )
+
+
+def make_edit(
+    *,
+    index: PositionIndex,
+    file_name: FileName,
+    byte_start: ByteOffset,
+    byte_end: ByteOffset,
+    content: str,
+) -> Edit:
+    """Build an edit whose byte range is valid for the indexed source file.
+
+    Args:
+        index: The position index of the edit's original file.
+        file_name: The file's path is relative to the working directory, with forward slashes.
+        byte_start: The first byte to replace.
+        byte_end: The byte after the replacement range.
+        content: The replacement text.
+
+    Returns:
+        The edit with offsets on valid UTF-8 boundaries in the file.
+    """
+    index.position(offset=byte_start)
+    index.position(offset=byte_end)
+    return Edit(file_name=file_name, byte_start=byte_start, byte_end=byte_end, content=content)
 
 
 def _span_to_json(*, span: Span) -> JsonObject:
