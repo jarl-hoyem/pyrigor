@@ -1,5 +1,6 @@
 """Smoke-test the built wheel and source distribution of pyrigor."""
 
+import argparse
 import json
 import os
 import shutil
@@ -136,17 +137,22 @@ def _install_artefact(*, artefact: Path, environment: Path) -> None:
     )
 
 
+def _locate_artefacts() -> ArtifactPair:
+    """Return the wheel and source archive already present in dist/, without building."""
+    version = _pyproject_version()
+    artefacts = sorted(DIST.glob(f"pyrigor-{version}*.whl")) + sorted(DIST.glob(f"pyrigor-{version}*.tar.gz"))
+    if len(artefacts) != EXPECTED_ARTIFACT_COUNT:
+        raise RuntimeError(f"Expected one wheel and one source distribution in {DIST}, found: {artefacts}")
+    return ArtifactPair(wheel=artefacts[0], sdist=artefacts[1])
+
+
 def _build_artefacts() -> ArtifactPair:
     """Build the distributions and return the wheel and source archive."""
     # Remove stale releases so the artefact count below describes this build.
     if DIST.exists():
         shutil.rmtree(DIST)
     subprocess.run([_uv_executable(), "build"], cwd=ROOT, check=True)  # noqa: S603  # nosec B603
-    version = _pyproject_version()
-    artefacts = sorted(DIST.glob(f"pyrigor-{version}*.whl")) + sorted(DIST.glob(f"pyrigor-{version}*.tar.gz"))
-    if len(artefacts) != EXPECTED_ARTIFACT_COUNT:
-        raise RuntimeError(f"Expected one wheel and one source distribution, found: {artefacts}")
-    return ArtifactPair(wheel=artefacts[0], sdist=artefacts[1])
+    return _locate_artefacts()
 
 
 def _compare_artefacts(*, wheel: Path, sdist: Path) -> None:
@@ -164,8 +170,15 @@ def _compare_artefacts(*, wheel: Path, sdist: Path) -> None:
 
 
 def main() -> None:
-    """Build and compare wheel and source-distribution smoke-test results."""
-    artefacts = _build_artefacts()
+    """Build (or locate already-built) and compare wheel and source-distribution smoke-test results."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--no-build",
+        action="store_true",
+        help="verify the wheel and source distribution already present in dist/ instead of building fresh ones",
+    )
+    args = parser.parse_args()
+    artefacts = _locate_artefacts() if args.no_build else _build_artefacts()
     _compare_artefacts(wheel=artefacts.wheel, sdist=artefacts.sdist)
 
 

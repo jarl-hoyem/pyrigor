@@ -30,6 +30,29 @@ jobs:
         with:
           name: release-dists
           path: dist/
+  verify-release-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - release-build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-dists
+          path: dist/
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: false
+      - name: Install development dependencies
+        run: uv sync --extra dev
+      - name: Verify the uploaded artifacts install and run correctly
+        run: uv run python scripts/smoke_test_artifacts.py --no-build
+
   large-repo-smoke-test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -59,6 +82,7 @@ jobs:
     timeout-minutes: 10
     needs:
       - release-build
+      - verify-release-artifacts
       - large-repo-smoke-test
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
