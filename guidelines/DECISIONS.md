@@ -442,6 +442,15 @@ mutmut then reap a pid it never forked and crashes. Running `docker run --init` 
 remembers the flag. Installing tini and making it the entrypoint makes the image correct on its own, including for an
 ad-hoc `docker run`.
 
+### Mutation testing container runs as a fixed non-root user, overridden at run time to the caller's UID
+
+Semgrep's `missing-user-entrypoint` flagged `docker/mutmut.Dockerfile` for running as root (#324). Since the image
+bind-mounts the checkout at `/project`, a single fixed non-root UID would break writes to that mount whenever it does
+not match the host's. Fixed both sides: the Dockerfile creates and switches to a non-root user, and every `docker run`
+in `ci.yaml`'s `mutation-test` job passes `--user "$(id -u):$(id -g)"`, overriding the image's own UID with the actual
+caller's. Verified directly: the container runs as the host's UID, writes to the bind mount and `mutmut results` reads
+the existing `mutants/` state correctly.
+
 ### Mutation testing gates on a survivor cap, not on a score floor
 
 The command `mutmut run` returns normally after printing its summary and never sets an exit code from the results, so a
@@ -463,6 +472,18 @@ when other containers were competing for the processor.
 
 A recorded baseline of known survivors would catch a single new survivor, but the cap is intentionally the smaller
 change for now. A survivor baseline remains a later refinement once the run-to-run variance is understood.
+
+### The pre-commit cache stays on Windows CI, despite a 155 s restore, because removing it is slower still
+
+A Windows `build` job took 4.5 minutes against Ubuntu's 1 minute, with "Cache pre-commit environments" alone costing
+155 s against 8s (#292). Since #248 moved most Python tools into the dev extras, only four hooks still keep their own
+environment, raising whether the cache was still worth it.
+
+Measured directly across three variants (current, no cache, exact-key cache with no `restore-keys` fallback), three runs
+each, on both OSes (median total job seconds): current 101/45 (windows/ubuntu), no cache 286/110, narrow 284/97. Every
+"no cache" and "narrow" repeat was slower than every "current" repeat, with no overlap either way. Without a warm cache,
+`pre-commit` rebuilds all four hook environments from scratch every run, costing more than the restore ever did.
+Configuration retained unchanged.
 
 ### Pre-commit hooks scope to changed files unless a tool genuinely needs whole-project context
 

@@ -20,6 +20,8 @@
       <w>buildx</w>
       <w>cicd</w>
       <w>classmethod</w>
+      <w>codespell</w>
+      <w>complexipy</w>
       <w>datetimez</w>
       <w>docparams</w>
       <w>docstyle</w>
@@ -36,6 +38,7 @@
       <w>mred</w>
       <w>mutmut</w>
       <w>mutmut's</w>
+      <w>ndarray</w>
       <w>nfkc</w>
       <w>nonascii</w>
       <w>nosec</w>
@@ -45,8 +48,10 @@
       <w>ossf's</w>
       <w>parallelises</w>
       <w>pycache</w>
+      <w>pydocstyle</w>
       <w>pylint's</w>
       <w>pypa</w>
+      <w>pyright</w>
       <w>pyrigor's</w>
       <w>pyscg</w>
       <w>pyscn's</w>
@@ -55,6 +60,7 @@
       <w>sele</w>
       <w>smallgig</w>
       <w>subscripted</w>
+      <w>tach</w>
       <w>taiki</w>
       <w>ufeff</w>
     </words>
