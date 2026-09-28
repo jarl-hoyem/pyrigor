@@ -43,6 +43,7 @@ set for Python, inspired by safety-critical coding guidelines from other languag
 - [What this is](#what-this-is)
 - [Status](#status)
 - [Guidelines](#guidelines)
+- [Engineering and CI](#engineering-and-ci)
 - [Philosophy](#philosophy)
 - [Contributing](#contributing)
 - [Acknowledgements](#acknowledgements)
@@ -108,7 +109,7 @@ without writing. Fixer modes require explicit PYR402 selection; ordinary linting
 `--select PYR402` and `--select=PYR402` are accepted.
 
 For the machine-readable editor or tooling integration, use `--output-format=json`. It emits one JSON document
-containing diagnostics, read/parse errors, and suppression counts. The default human-readable format is unchanged. See
+containing diagnostics, read/parse errors and suppression counts. The default human-readable format is unchanged. See
 [`guidelines/JSON_DIAGNOSTICS.md`](./guidelines/JSON_DIAGNOSTICS.md) for the contract and schema.
 
 To suppress a specific violation, add a same-line comment with a reason:
@@ -118,7 +119,7 @@ def f(weight, bias):  # pyrigor PYR402 # matches a fixed external API
     ...
 ```
 
-Codes may be given as the full code (`PYR402`), the bare number (`402`), or the rule's symbolic name
+Codes may be given as the full code (`PYR402`), the bare number (`402`) or the rule's symbolic name
 (`keyword-only-arguments`). Multiple codes: `# pyrigor 402,403 # reason`. A suppression comment without a reason is
 ignored, and a warning is printed. Suppressed violations are counted per rule in the summary (`PYR402: 1 suppressed`),
 not silently discarded.
@@ -194,14 +195,14 @@ compilation mode already recognises this format. In Visual Studio Code, a task i
 it reaches everyone on the project. Sublime Text takes the same expression as a build system's `file_regex`.
 
 The text line is the lowest common denominator. Where an editor can consume structured output, `--output-format=json`
-carries more: a severity per violation, the end line and column, the symbolic name, and whether a safe fix exists. An
+carries more: a severity per violation, the end line and column, the symbolic name and whether a safe fix exists. An
 integration built on that can show ranges and colour them by severity, which the plain line cannot express.
 
 ## What this is
 
 Python's failure modes are often silent: implicit type coercion, positional-argument swaps between same-typed
-parameters, mutable default arguments, float equality checks, and tuple-unpacking that "type-checks" while being
-semantically wrong are all real, tool-catchable classes of bugs that slip past mypy, pylint, and ruff's default rule
+parameters, mutable default arguments, float equality checks and tuple-unpacking that "type-checks" while being
+semantically wrong are all real, tool-catchable classes of bugs that slip past mypy, pylint and ruff's default rule
 sets.
 
 `pyrigor` is a set of guidelines, with real, working tooling enforcing them today, growing as more rules are built out.
@@ -219,12 +220,33 @@ yet.
 
 ## Guidelines
 
-See [`guidelines/`](./guidelines) for the full list. Each guideline has a rule ID, rationale, example, and — once
+See [`guidelines/`](./guidelines) for the full list. Each guideline has a rule ID, rationale, example and — once
 implemented — a link to its enforcing check.
 
 [`guidelines/RULES.md`](./guidelines/RULES.md) has a generated table of every rule and whether it is enforced yet —
 generated from the real guideline docs and `CHECKERS`, never hand-maintained, so it cannot drift the way this table once
 did.
+
+## Engineering and CI
+
+CI runs the exact same [`pre-commit`](https://pre-commit.com/) configuration used locally (`just check` runs
+`pre-commit run --all-files`), so local and CI checks cannot silently drift apart. Every push and pull request against
+`main` builds across Ubuntu, macOS and Windows, and Python 3.11 through 3.15, after `uv lock --check` confirms the
+lockfile is current.
+
+The gate includes strict typing across three checkers (mypy, pyright and ty), 100% branch-coverage enforcement and the
+security and quality checks listed in the badges above. Every run also builds the wheel and source distribution and
+smoke-tests them directly. Installing and running the packaged artefact rather than only the editable source checkout
+and runs pyrigor against the Python standard library to confirm it does not crash on real code.
+
+Mutation testing runs in its own Docker container, as a non-root user matching the calling user's ID so it can write to
+the bind-mounted checkout. It gates on a maximum number of surviving mutants rather than a bare score percentage, since
+a percentage can hide new survivors while the total mutant count also grows.
+
+On release, the build is smoke-tested against a large, real external codebase (Home Assistant's `core`) before
+publishing to PyPI through [trusted publishing](https://docs.pypi.org/trusted-publishers/), with no long-lived API token
+involved. Every workflow's action references are pinned to a commit SHA rather than a mutable tag, checkout steps do not
+persist credentials unless the job needs to push, and jobs run under least-privilege token permissions.
 
 ## Philosophy
 
