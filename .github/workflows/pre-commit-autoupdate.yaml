@@ -13,6 +13,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -37,6 +39,7 @@ jobs:
 
       - name: Enable auto-merge
         if: steps.cpr.outputs.pull-request-number
-        run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
+        run: gh pr merge --auto --squash "$PR_NUMBER"
         env:
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
           GH_TOKEN: ${{ secrets.PYRIGOR_AUTOMERGE_PAT }}

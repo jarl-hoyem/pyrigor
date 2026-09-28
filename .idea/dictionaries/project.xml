@@ -14,9 +14,11 @@
       <w>Pickomino's</w>
       <w>Pyrigor</w>
       <w>actionlint</w>
+      <w>automerge</w>
       <w>binop</w>
       <w>booleaness</w>
       <w>buildx</w>
+      <w>cicd</w>
       <w>classmethod</w>
       <w>datetimez</w>
       <w>docparams</w>
@@ -32,6 +34,7 @@
       <w>markdownlint</w>
       <w>mojibake</w>
       <w>mred</w>
+      <w>mutmut</w>
       <w>mutmut's</w>
       <w>nfkc</w>
       <w>nonascii</w>
