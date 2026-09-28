@@ -1,10 +1,13 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>COCOMO</w>
       <w>Commitizen</w>
       <w>Fagan</w>
       <w>Gilb</w>
       <w>Goodhart's</w>
+      <w>GraziConfig</w>
+      <w>LASTEXITCODE</w>
       <w>Mutmut</w>
       <w>PYREJECT</w>
       <w>Pickomino</w>
@@ -27,10 +30,14 @@
       <w>inlinevar</w>
       <w>kestar</w>
       <w>markdownlint</w>
+      <w>mojibake</w>
       <w>mred</w>
+      <w>mutmut's</w>
       <w>nfkc</w>
       <w>nonascii</w>
       <w>nosec</w>
+      <w>notlike</w>
+      <w>notmatch</w>
       <w>ossf</w>
       <w>ossf's</w>
       <w>parallelises</w>
