@@ -132,21 +132,25 @@ jobs:
       - name: Run mutation testing in Docker
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --mount type=bind,source="$(pwd)",target=/project \
             pyrigor-mutmut run
 
       - name: Report surviving mutants
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --mount type=bind,source="$(pwd)",target=/project \
             pyrigor-mutmut results
 
       - name: Enforce mutation score
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --mount type=bind,source="$(pwd)",target=/project \
             pyrigor-mutmut export-cicd-stats
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --mount type=bind,source="$(pwd)",target=/project \
             --entrypoint python pyrigor-mutmut scripts/check_mutation_score.py
 

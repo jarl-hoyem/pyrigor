@@ -18,4 +18,7 @@ RUN uv sync --locked --extra dev --no-install-project --no-cache
 COPY . .
 RUN uv sync --locked --extra dev --no-cache
 
+RUN useradd --create-home --uid 1000 mutmut
+USER mutmut
+
 ENTRYPOINT ["/usr/bin/tini", "--", "mutmut"]
