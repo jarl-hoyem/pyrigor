@@ -51,6 +51,11 @@ check stage="pre-commit":
     git add --intent-to-add .
     uv run pre-commit run --all-files --hook-stage {{stage}}
 
+# Run quality gates against only staged/changed files (fast local loop, not CI-equivalent)
+quick stage="pre-commit":
+    git add .
+    uv run pre-commit run --hook-stage {{stage}}
+
 # Run PyCharm inspections in Docker (requires Docker)
 inspect:
     .\scripts\run_pycharm_inspection_docker.ps1
