@@ -49,7 +49,7 @@ both at construction and at every point of use.
 
 ## Fix classification
 
-**Kind:** `guidance`
+**Fix availability:** `none`
 
 **Reasoning:** Needs real, human naming judgment (the `NamedTuple` class name, its field names), independent of any
 caller-safety question. Per #105's own adopted classification.

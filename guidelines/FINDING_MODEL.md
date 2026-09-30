@@ -145,8 +145,8 @@ is recorded with the fix classification decision.
 
 ### Keep rule metadata separate from the finding
 
-A rule definition describes the rule itself: its identity, default severity, fixability, rationale and documentation. A
-finding describes one concrete occurrence in one source location.
+A rule definition describes the rule itself: its identity, default severity, fix availability, applicability, rationale
+and documentation. A finding describes one concrete occurrence in one source location.
 
 Keeping those concerns separate avoids duplicating the rule-definition structure inside every finding. A rule's
 documentation link is a property of the rule, the same for every finding, so it belongs with the rule metadata rather

@@ -26,11 +26,13 @@ missing from the output.
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** Wrapping the iterated sequence in `list(...)` (or an equivalent copy) is unconditionally, mechanically
-safe. If the loop body does not mutate the sequence, the copy is a harmless no-op. If it does, this is exactly the
-correct fix. No design judgment or naming decision is required.
+**Applicability:** `unsafe`
+
+**Reasoning:** Safe for the shrink-while-iterating case this rule targets, but the same fix also applies when the loop
+body appends to the iterated sequence. Wrapping the source in `list(...)` freezes it at loop start, so a live-list for
+loop that picks up items appended during iteration no longer does. Per #289's redefinition of `safe`.
 
 ## Severity
 

@@ -152,7 +152,8 @@ def test_run_fix_requires_explicit_pyr402_selection(
 ) -> None:
     """Fixer options reject invocations without explicit PYR402 selection."""
     source_file = tmp_path / "source.py"
-    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    original = "def apply(weight, bias):\n    ...\n"
+    source_file.write_text(original)
     monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", str(source_file)])
 
     with pytest.raises(SystemExit) as exc_info:
@@ -160,6 +161,7 @@ def test_run_fix_requires_explicit_pyr402_selection(
 
     assert exc_info.value.code == 2
     assert capsys.readouterr().err == "pyrigor: fixer options require explicit --select=PYR402\n"
+    assert source_file.read_text() == original
 
 
 def test_run_diff_requires_explicit_pyr402_selection(
@@ -167,7 +169,8 @@ def test_run_diff_requires_explicit_pyr402_selection(
 ) -> None:
     """Diff mode also requires explicitly selecting PYR402."""
     source_file = tmp_path / "source.py"
-    source_file.write_text("def apply(weight, bias):\n    ...\n")
+    original = "def apply(weight, bias):\n    ...\n"
+    source_file.write_text(original)
     monkeypatch.setattr("sys.argv", ["pyrigor", "--diff", str(source_file)])
 
     with pytest.raises(SystemExit) as exc_info:
@@ -175,6 +178,7 @@ def test_run_diff_requires_explicit_pyr402_selection(
 
     assert exc_info.value.code == 2
     assert capsys.readouterr().err == "pyrigor: fixer options require explicit --select=PYR402\n"
+    assert source_file.read_text() == original
 
 
 def test_run_show_fixes_requires_fix(

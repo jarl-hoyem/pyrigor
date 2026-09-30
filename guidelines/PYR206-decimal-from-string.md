@@ -22,10 +22,13 @@ this cleanly. It is fully type-correct and syntactically fine.
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** Replacing `Decimal(1.1)` with `Decimal("1.1")` is mechanically safe and directly corrects the actual,
-virtually always intended behaviour, an exact decimal value. No design judgment is required.
+**Applicability:** `unsafe`
+
+**Reasoning:** Applying the fix changes the actual stored value: `Decimal(1.1)` and `Decimal("1.1")` are different
+numbers. No type checker is involved either way — mypy and ruff both already pass the original code cleanly — so this is
+a runtime behaviour change with no compile-time signal at all. Per #289's redefinition of `safe`.
 
 ## Severity
 

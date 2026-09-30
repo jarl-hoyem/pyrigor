@@ -150,22 +150,35 @@ test, issue or actual consumer of pyrigor's exit code has needed yet. If a concr
 later (for example, a CI wrapper that retries on exit 2 assuming it is transient, when a bad invocation is not). That is
 the evidence to revisit this, not a preference alone.
 
-## Fix classification: Adopt now, architecture: Defer
+## Fix availability and applicability: Ruff's safe/unsafe/display, replacing a single three-tier fixability
 
-Considered whether current rule-building should expect a future FixProposal architecture (detect()/suggest(), a
-three-tier fix classification: safe_fix/suggestion/guidance, full CLI→editor extension→Language Server Protocol (LSP)
-roadmap), per a real, external strategy document (#105).
+Considered whether current rule-building should expect a future FixProposal architecture (detect()/suggest(), a full CLI
+to editor extension to Language Server Protocol (LSP) roadmap), per a real, external strategy document (#105).
 
-Split the decision cleanly. Documenting a real fix classification per rule costs nothing, no code changes and already
-proved valuable once: working through it caught a real, initial misclassification (PYR402/PYR403 first looked unsafe due
-to caller breakage, corrected once the actual, primary scenario, editor-time feedback on a function with no callers yet
-was considered). Adopted as a permanent, standing part of every new rule doc's own template.
+Split the decision cleanly. Documenting a real fix classification per rule costs nothing, no code changes and remains a
+permanent, standing part of every new rule doc's own template. The actual FixProposal architecture itself (a real
+suggest() implementation, editor extensions, an LSP) stays explicitly deferred, not adopted now. Building real
+engineering toward editor integration for a tool with zero real external adopters and no editor integration at all yet
+is exactly the kind of premature investment already identified as this project's biggest real risk. Revisit only once
+real, concrete demand exists, a real user asking or genuine editor-integration work actually starting, not before.
 
-The actual FixProposal architecture itself (a real suggest() implementation, editor extensions, an LSP) is explicitly
-deferred, not adopted now. Building real engineering toward editor integration for a tool with zero real external
-adopters and no editor integration at all yet is exactly the kind of premature investment already identified as this
-project's biggest real risk. Revisit only once real, concrete demand exists, a real user asking or genuine
-editor-integration work actually starting, not before.
+The per-rule classification itself is redefined by #289. `Fixability` (safe_fix/suggestion/guidance) conflated two
+different questions and is replaced by two independent fields on `RuleInfo`: `fix_availability` (always/sometimes/none,
+whether a fix can be constructed at all) and `applicability` (safe/unsafe/display, deliberately Ruff's own vocabulary,
+whether a fix may be applied automatically).
+
+`safe` means applying the fix does not change runtime behaviour, exactly as Ruff defines it. The original PYR402/403
+classification reasoned itself into `safe_fix` by considering only "editor-time feedback on a function with no callers
+yet," then treating "a type checker would catch the breakage" as sufficient for safety. Both assumptions are false in
+general: pyrigor does not require running mypy or pyright, and `--fix` runs over whole existing codebases. #290's fixer
+defects are the concrete proof. Under the corrected definition, every rule reclassified by #289 (PYR206, PYR207, PYR303,
+PYR402, PYR403, PYR501) is `unsafe`, each for its own reason recorded in its guideline's `Fix classification` section.
+`display` covers what the old `suggestion` tier meant — a concrete fix exists and can be shown, but is never
+auto-applied even with explicit selection, for example, PYR201's `NewType` name guess.
+
+v1's `fixability` field locks a three-value enum with no `unsafe` value, and is frozen deliberately wrongly for
+PYR402/PYR403 rather than migrated: `cli.py` maps `applicability == UNSAFE` to the old `"safe_fix"` string, since v1
+stays live until #269 removes it entirely.
 
 ## Severity: Language Server Protocol DiagnosticSeverity naming adopted, real per-rule levels assigned
 
@@ -331,11 +344,11 @@ The first fixer is exposed through `--fix --select PYR402`, with `--diff` provid
 Both `--option value` and `--option=value` forms are accepted because they are equivalent argparse interfaces users
 reasonably expect.
 
-Fixer modes require explicit PYR402 selection. Unlike a general-purpose linter that may fix every rule marked safe,
-pyrigor's PYR402 transformation can make existing positional calls fail at runtime. Requiring the rule in the command
-makes that behaviour deliberate and auditable. Rejected or unsupported source is reported and left unchanged; the fixer
-never inserts automatic suppressions. Source bytes, UTF-8 BOMs and line endings are preserved wherever the source can be
-decoded as UTF-8.
+Fixer modes require explicit PYR402 selection. Unlike a general-purpose linter that may auto-apply every fix marked
+safe, PYR402/403's fix is `unsafe` (#289): it can make an existing positional call fail at runtime. Requiring the rule
+named in the command makes that consequence deliberate and auditable. Rejected or unsupported source is reported and
+left unchanged; the fixer never inserts automatic suppressions. Source bytes, UTF-8 BOMs and line endings are preserved
+wherever the source can be decoded as UTF-8.
 
 ### Fixer encoding boundary: reject non-UTF-8 sources
 

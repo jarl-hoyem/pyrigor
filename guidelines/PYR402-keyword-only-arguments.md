@@ -76,11 +76,14 @@ remaining gaps in the full picture:
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** Mechanical and correct. Any caller consequence is immediate and loud, via mypy/pyright flagging a
-positional argument against a keyword-only parameter as a hard type error, not a silent behaviour change. Per #105's own
-adopted classification.
+**Applicability:** `unsafe`
+
+**Reasoning:** Applying the fix changes runtime behaviour: an existing positional call becomes a runtime error, not just
+a type-checker finding, since pyrigor does not require mypy or pyright and `--fix` runs over whole existing codebases,
+not only editor-time scenarios with few callers. Per #289's redefinition of `safe`, superseding #105's original
+`safe_fix` classification.
 
 ## Severity
 

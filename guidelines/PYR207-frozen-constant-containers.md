@@ -41,11 +41,14 @@ immediate type error instead.
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** Wrapping a `dict`/`set` literal in `frozendict`/ `frozenset` preserves every read operation (indexing,
-`.get()`, `in`, iteration) identically. The only capability removed is a mutation, which the rule already confirmed does
-not happen anywhere in the file. Any place that assumed mutability fails at the type-checker, not silently at runtime.
+**Applicability:** `unsafe`
+
+**Reasoning:** The rule only verifies no mutation happens within the same file being fixed. An importer in another file
+that calls `.add()`/`[key] = value` on the now-frozen constant — the rule's own motivating example — breaks with a real
+error where it previously succeeded silently. Per #289's redefinition of `safe`, superseding the "fails at the
+type-checker, not silently at runtime" reasoning this classification used to rely on.
 
 ## Severity
 

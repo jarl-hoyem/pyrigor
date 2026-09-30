@@ -3,7 +3,7 @@
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
-from pyrigor.rules import Fixability, Rule, Severity
+from pyrigor.rules import Applicability, FixAvailability, Rule, Severity
 
 
 def test_pyr402_rule_has_correct_code_and_name() -> None:
@@ -22,11 +22,19 @@ def test_pyr406_rule_has_error_severity() -> None:
     assert Rule.PYR406.severity == Severity.ERROR
 
 
-def test_rule_fixability_matches_guideline_classification() -> None:
+def test_rule_fix_availability_matches_guideline_classification() -> None:
     """Rule metadata exposes the existing guideline fix classifications."""
-    assert Rule.PYR402.fixability == Fixability.SAFE_FIX
-    assert Rule.PYR301.fixability == Fixability.GUIDANCE
-    assert Fixability.SUGGESTION.value == "suggestion"
+    assert Rule.PYR402.fix_availability == FixAvailability.ALWAYS
+    assert Rule.PYR402.applicability == Applicability.UNSAFE
+    assert Rule.PYR301.fix_availability == FixAvailability.NONE
+    assert Rule.PYR301.applicability is None
+
+
+def test_fix_availability_values_are_stated() -> None:
+    """FixAvailability's string values should be always/sometimes/none."""
+    assert FixAvailability.ALWAYS.value == "always"
+    assert FixAvailability.SOMETIMES.value == "sometimes"
+    assert FixAvailability.NONE.value == "none"
 
 
 def test_severity_values_match_lsp_naming() -> None:

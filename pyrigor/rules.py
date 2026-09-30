@@ -24,12 +24,28 @@ class Severity(Enum):
     INFO = "info"
 
 
-class Fixability(Enum):
-    """The kind of fix guidance a rule can provide."""
+class Applicability(Enum):
+    """Whether a fix may be applied automatically.
 
-    SAFE_FIX = "safe_fix"
-    SUGGESTION = "suggestion"
-    GUIDANCE = "guidance"
+    Matches Ruff's own vocabulary: safe means applying the fix does not
+    change runtime behaviour.
+    """
+
+    SAFE = "safe"
+    UNSAFE = "unsafe"
+    DISPLAY = "display"
+
+
+class FixAvailability(Enum):
+    """Whether a rule can produce a fix at all.
+
+    Replaces Fixability, which conflated rule-level availability with
+    per-fix applicability — see DECISIONS.md.
+    """
+
+    ALWAYS = "always"
+    SOMETIMES = "sometimes"
+    NONE = "none"
 
 
 class RuleInfo(NamedTuple):
@@ -38,7 +54,8 @@ class RuleInfo(NamedTuple):
     symbolic_name: str
     problem: str
     severity: Severity
-    fixability: Fixability
+    fix_availability: FixAvailability
+    applicability: Applicability | None  # None iff fix_availability is NONE
 
 
 class Rule(Enum):
@@ -48,41 +65,47 @@ class Rule(Enum):
         symbolic_name="namedtuple-values",
         problem="is annotated as a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
-        fixability=Fixability.GUIDANCE,
+        fix_availability=FixAvailability.NONE,
+        applicability=None,
     )
 
     PYR401 = RuleInfo(
         symbolic_name="namedtuple-returns",
         problem="returns a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
-        fixability=Fixability.GUIDANCE,
+        fix_availability=FixAvailability.NONE,
+        applicability=None,
     )
     PYR402 = RuleInfo(
         symbolic_name="keyword-only-arguments",
         problem="has positional parameters; all parameters should be keyword-only",
         severity=Severity.WARNING,
-        fixability=Fixability.SAFE_FIX,
+        fix_availability=FixAvailability.ALWAYS,
+        applicability=Applicability.UNSAFE,
     )
 
     PYR403 = RuleInfo(
         symbolic_name="keyword-only-single-argument",
         problem="has a single positional parameter; it should be keyword-only",
         severity=Severity.WARNING,
-        fixability=Fixability.SAFE_FIX,
+        fix_availability=FixAvailability.ALWAYS,
+        applicability=Applicability.UNSAFE,
     )
 
     PYR405 = RuleInfo(
         symbolic_name="namedtuple-parameters",
         problem="has a parameter typed as a bare multi-value tuple; use a NamedTuple instead",
         severity=Severity.WARNING,
-        fixability=Fixability.GUIDANCE,
+        fix_availability=FixAvailability.NONE,
+        applicability=None,
     )
 
     PYR406 = RuleInfo(
         symbolic_name="return-values-used",
         problem="is called and its return value is discarded; use the result",
         severity=Severity.ERROR,
-        fixability=Fixability.GUIDANCE,
+        fix_availability=FixAvailability.NONE,
+        applicability=None,
     )
 
     @property
@@ -101,6 +124,11 @@ class Rule(Enum):
         return self.value.severity
 
     @property
-    def fixability(self) -> Fixability:
-        """The rule's fix classification from its guideline."""
-        return self.value.fixability
+    def fix_availability(self) -> FixAvailability:
+        """Whether this rule can produce a fix at all."""
+        return self.value.fix_availability
+
+    @property
+    def applicability(self) -> Applicability | None:
+        """Whether this rule's fix may be applied automatically if it has one."""
+        return self.value.applicability

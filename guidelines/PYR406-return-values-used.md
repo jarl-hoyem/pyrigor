@@ -43,7 +43,7 @@ on a reviewer noticing a missing assignment by eye.
 
 ## Fix classification
 
-**Kind:** `guidance`
+**Fix availability:** `none`
 
 **Reasoning:** The right fix depends entirely on developer intent the tool cannot know, was the return value meant to be
 used and simply forgotten, or is discarding it actually fine here. Per #105's own adopted classification.

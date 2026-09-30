@@ -21,26 +21,35 @@ Python Style Guide" section for the precedent.>
 
 ## Fix classification
 
-<Added following #105's real, per-rule classification (see DECISIONS.md for the adoption decision this template
-implements). Every rule declares which of three tiers its violation belongs to — this is a real design decision, not a
-formality, and directly informs whether/how an eventual `suggest()` implementation would handle it.>
+<Added following #105's real, per-rule classification, redefined by #289 (see DECISIONS.md for the adoption decision
+this template implements). Two independent questions: whether a fix can be constructed at all, and, if so, whether it
+may be applied automatically. Together these directly inform how an eventual `suggest()` implementation would handle
+this rule.>
 
-**Kind:** `safe_fix` | `suggestion` | `guidance`
+**Fix availability:** `always` | `sometimes` | `none`
 
-- **`safe_fix`** — the transformation is mechanically, unconditionally correct. Any consequence of the change at a call
-  site is immediate and loud (a type-checker error, not a silent behaviour change), not something the fix itself could
-  get wrong. Example: PYR402/PYR403 inserting `*,` — mechanical, and any resulting caller breakage is caught immediately
-  by mypy/pyright, not hidden.
-- **`suggestion`** — the tool has a strong, plausible recommendation but cannot guarantee it is the _correct_ one. A
-  human must confirm the design choice (naming, semantic intent) before it is applied. Example: PYR201 recommending a
-  specific `NewType` name — a reasonable guess, not a guaranteed-correct one.
-- **`guidance`** — the tool can identify the concern but cannot construct any specific answer at all. The right fix
-  depends entirely on the domain/design knowledge the tool has no way to infer. Example: PYR301/401/405 (needs invented
-  `NamedTuple`/field names), PYR406/407 (the correct handling of a discarded value depends entirely on developer
-  intent).
+- **`always`** — every violation of this rule can be mechanically fixed. Example: PYR402/PYR403 inserting `*,`.
+- **`sometimes`** — a fix can be constructed for some violations of this rule but not others, depending on what pyrigor
+  can determine about the specific case.
+- **`none`** — no fix is ever attempted. The right answer depends on domain/design knowledge the tool has no way to
+  infer. Example: PYR301/401/405 (needs an invented `NamedTuple`/field name), PYR406/407 (the correct handling of a
+  discarded value depends entirely on developer intent).
 
-**Reasoning:** <Why this rule sits in this tier specifically — what would have to be true for it to move to a stricter
-tier, if anything.>
+**Applicability:** `safe` | `unsafe` | `display` (omit this field when fix availability is `none`)
+
+- **`safe`** — applying the fix does not change runtime behaviour, matching Ruff's own definition of `safe`. A
+  consequence a type checker would catch is not enough on its own; pyrigor does not require running one.
+- **`unsafe`** — applying the fix can change runtime behaviour or break an existing caller. Example: PYR402/PYR403 — an
+  existing positional call becomes a runtime error, not merely a type-checker finding, since pyrigor does not require
+  mypy/pyright and `--fix` runs over whole existing codebases. `--fix` applies an unsafe fix only when its rule is
+  explicitly named with `--select`.
+- **`display`** — pyrigor can construct and show a specific proposed fix (for example, via `--diff`), but never applies
+  it automatically, even with explicit `--select`, because the right edit depends on a design judgment `--fix` cannot
+  safely make on its own. Example: PYR201 recommending a specific `NewType` name — a reasonable guess, not a
+  guaranteed-correct one.
+
+**Reasoning:** <Why this rule has this fix availability and this applicability specifically — what would have to be true
+for either to be different.>
 
 ## Severity
 
@@ -85,8 +94,9 @@ decision this template implements). Two independent axes, neither implied by the
 ## Rule metadata
 
 The `RuleInfo` entry in `pyrigor/rules.py` is the canonical source for the rule's symbolic name, problem text, severity,
-and fixability. The values declared in this document's `Fix classification`, `Severity`, and `Tier and maturity`
-sections must match that entry once the rule is implemented. The documentation-sync test checks this agreement.
+fix availability and applicability. The values declared in this document's `Fix classification`, `Severity`, and
+`Tier and maturity` sections must match that entry once the rule is implemented. The documentation-sync test checks this
+agreement.
 
 ## When this does not apply
 

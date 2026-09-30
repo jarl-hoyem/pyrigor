@@ -62,10 +62,13 @@ protection.
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** The same reasoning as [PYR402](./PYR402-keyword-only-arguments.md): mechanical and correct, and any
-caller consequence is immediate and loud via mypy/pyright, not silent. Per #105's own adopted classification.
+**Applicability:** `unsafe`
+
+**Reasoning:** The same reasoning as [PYR402](./PYR402-keyword-only-arguments.md): applying the fix changes runtime
+behaviour, since pyrigor does not require a type checker and `--fix` runs over whole existing codebases. Per #289's
+redefinition of `safe`, superseding #105's original `safe_fix` classification.
 
 ## Severity
 

@@ -14,7 +14,7 @@ from typing import Final, Literal, NamedTuple, Never, cast
 from pyrigor.checkers import CHECKERS, RegisteredChecker
 from pyrigor.checkers._shared import walk_once
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixResult, FixStatus, fix_source
-from pyrigor.rules import Rule
+from pyrigor.rules import Applicability, Rule
 from pyrigor.suppression import filter_suppressed
 from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
@@ -423,7 +423,9 @@ def _json_diagnostic(*, path: str, violation: Violation, source: str) -> dict[st
         "message": f"{violation.context_kind} '{violation.context_name}' {violation.rule.problem}",
         "context": {"kind": violation.context_kind, "name": violation.context_name},
         "severity": violation.rule.severity.value,
-        "fixability": violation.rule.fixability.value,
+        # v1 schema locks fixability to {safe_fix, suggestion, guidance} with no "unsafe" value.
+        # Per #289, v1 stays wrong for PYR402/PYR403 until #269 removes v1 entirely.
+        "fixability": "safe_fix" if violation.rule.applicability == Applicability.UNSAFE else "guidance",
     }
 
 

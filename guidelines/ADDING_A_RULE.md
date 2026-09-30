@@ -53,25 +53,26 @@ just this one.
 Add a member to the `Rule` enum in `pyrigor/rules.py`:
 
 ```python
-from pyrigor.rules import Fixability, RuleInfo, Severity
+from pyrigor.rules import Applicability, FixAvailability, RuleInfo, Severity
 
 PYRxxx = RuleInfo(
     symbolic_name="...",
     problem="...",
     severity=Severity.WARNING,  # ERROR | WARNING | INFO, see DECISIONS.md's "Severity" entry
-    fixability=Fixability.GUIDANCE,  # SAFE_FIX | SUGGESTION | GUIDANCE
+    fix_availability=FixAvailability.NONE,  # ALWAYS | SOMETIMES | NONE
+    applicability=None,  # SAFE | UNSAFE | DISPLAY, or None iff fix_availability is NONE
 )
 ```
 
 The filename slug from step 3 and `symbolic_name` here must match exactly. This is checked automatically by
 `tests/test_rules_docs_sync.py`, but it only catches the mismatch after the fact, so get it right the first time.
 
-Select `severity` and `fixability` deliberately from the guideline's `Severity` and `Fix classification` sections. The
-`RuleInfo` is the canonical source for implemented rules The documentation-sync test must pass before the rule is
-considered complete.
+Select `severity`, `fix_availability` and `applicability` deliberately from the guideline's `Severity` and
+`Fix classification` sections. The `RuleInfo` is the canonical source for implemented rules. The documentation-sync test
+must pass before the rule is considered complete.
 
-A planned guideline may declare severity and fixability before its `RuleInfo` entry exists. Once the rule is
-implemented, add the matching `RuleInfo` entry and make the synchronisation test pass.
+A planned guideline may declare severity, fix availability and applicability before its `RuleInfo` entry exists. Once
+the rule is implemented, add the matching `RuleInfo` entry and make the synchronisation test pass.
 
 ## 5. If the rule is enforced, write the checker
 

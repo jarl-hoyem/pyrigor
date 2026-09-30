@@ -68,11 +68,14 @@ silently having done nothing.
 
 ## Fix classification
 
-**Kind:** `safe_fix`
+**Fix availability:** `always`
 
-**Reasoning:** A pure, non-displacing addition. If every real case is already handled by an existing branch, the added
-`case _: assert_never(...)` is unreachable by construction and mypy accepts it silently. Per #105's own adopted
-classification.
+**Applicability:** `unsafe`
+
+**Reasoning:** Safe for every value mypy can prove is in the matched closed set. The tool pyrigor does not require a
+type checker, so an out-of-domain value reaching this match at runtime — plausible for unchecked code, for example, a
+value read from external data merely typed as the enum without validation — now raises `AssertionError` where it
+previously completed silently. Per #289's redefinition of `safe`, superseding #105's original classification.
 
 ## Severity
 
