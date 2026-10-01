@@ -181,19 +181,22 @@ def test_run_diff_requires_explicit_pyr402_selection(
     assert source_file.read_text() == original
 
 
-def test_run_show_fixes_requires_fix(
-    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+@pytest.mark.parametrize("argv_tail", [["--show-fixes"], ["--fix", "--show-fixes"]], ids=["alone", "with-fix"])
+def test_run_rejects_removed_show_fixes_flag_without_modifying_files(
+    *, argv_tail: list[str], tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """--show-fixes cannot be used without --fix."""
+    """'--show-fixes' was removed; it is rejected as an unknown argument, alone or alongside --fix."""
     source_file = tmp_path / "source.py"
-    source_file.write_text("def apply(weight, bias):\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--show-fixes", "--select", "PYR402", str(source_file)])
+    original = "def apply(weight, bias):\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", *argv_tail, "--select", "PYR402", str(source_file)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
 
     assert exc_info.value.code == 2
-    assert capsys.readouterr().err == "pyrigor: --show-fixes requires --fix\n"
+    assert "unrecognized arguments: --show-fixes" in capsys.readouterr().err
+    assert source_file.read_text() == original
 
 
 def _assert_fix_leaves_source_unchanged(
@@ -410,15 +413,15 @@ def test_run_diff_rejects_declared_non_utf8_source_without_modifying_it(
     assert "---" not in capsys.readouterr().out
 
 
-def test_run_fix_show_fixes_reports_each_changed_file(
+def test_run_fix_reports_each_changed_file(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """--show-fixes reports every changed file when combined with --fix."""
+    """--fix reports every changed file on its own, with a no -- show-fixes flag needed."""
     first = tmp_path / "first.py"
     second = tmp_path / "second.py"
     first.write_text("def first(left, right):\n    ...\n")
     second.write_text("def second(left, right):\n    ...\n")
-    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--show-fixes", "--select", "PYR402", str(tmp_path)])
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select", "PYR402", str(tmp_path)])
 
     with pytest.raises(SystemExit) as exc_info:
         run()
@@ -585,7 +588,6 @@ _EXPECTED_HELP_LINES: Final = (
     "--exclude PATH Exclude this file or directory (and its contents), comma-separated; may be repeated.",
     "--fix Apply safe fixes for the explicitly selected rules.",
     "--diff Show safe fixes as a unified diff without writing.",
-    "--show-fixes Report files changed by --fix.",
 )
 
 

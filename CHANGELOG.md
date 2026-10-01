@@ -8,6 +8,17 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+### Added
+
+- Defined the v2 diagnostics document schema for tool identity, kept and suppressed findings, selected-rule metadata,
+  operational errors and the file-count summary (#288). CLI emission remains part of #269.
+
+### Removed
+
+- Removed the `--show-fixes` flag (shipped in 0.13.0). It never reached the fixer and added nothing: `--fix` already
+  reports every changed file unconditionally. Omit `--show-fixes` from any existing command; `--fix` alone keeps the
+  same reporting (#247).
+
 ### Fixed
 
 - Fixed output order depending on filesystem directory-enumeration order and command-line path-argument order.

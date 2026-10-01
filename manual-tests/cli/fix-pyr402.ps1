@@ -37,7 +37,7 @@ function Test-Fix
     $afterDiff = [Convert]::ToBase64String([IO.File]::ReadAllBytes($Path))
     Assert-Equal $afterDiff ([Convert]::ToBase64String($Original)) "$Name diff preserves the file"
 
-    $fix = Invoke-Pyrigor @("--fix", "--show-fixes", "--select=PYR402", $Path)
+    $fix = Invoke-Pyrigor @("--fix", "--select=PYR402", $Path)
     Assert-Equal $fix.ExitCode 0 "$Name fix exit status"
     if ($fix.Output -notmatch [Regex]::Escape([IO.Path]::GetFileName($Path)))
     {

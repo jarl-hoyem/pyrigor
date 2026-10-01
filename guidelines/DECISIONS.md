@@ -247,6 +247,21 @@ Earned by: the first version accepted any document at its root, a rule code with
 names, and took seconds to validate a finding with thousands of spans. Its tests passed because they only checked the
 rules the schema's author had thought of. Portability of the patterns across regex engines is still open in #291.
 
+### The v2 document is a strict producer contract (#288)
+
+The schema root describes one run. It separates kept and suppressed findings, lists all selected rules and carries
+operational errors for CI and editors. Rule metadata is recorded once, with documentation pinned to the producing
+release. The summary contains only files checked, which cannot be derived from findings when some files are clean.
+
+Unknown fields are rejected by the producer schema. Forward-compatible consumers parse known fields and ignore new ones
+rather than validate new output against an old strict schema. This makes optional additions compatible without
+introducing a second schema or a generation step. The existing strictness tests remain useful for catching accidental
+producer fields.
+
+The wrapper extends the existing definitions directly. Definition-level test validators isolate the definitions from the
+document root, so validating a span never requires run metadata. Cross-references to selected rules and result ordering
+remain explicit producer invariants for #269, with schema-limit tests that demonstrate this boundary.
+
 ### Finding types are frozen dataclasses that check themselves
 
 The v2 finding types in `pyrigor/findings.py` are frozen, keyword-only dataclasses, not NamedTuples. A NamedTuple is a
@@ -280,7 +295,7 @@ editor does for free. A version is worse in a stream than in a document. A consu
 anything else in a document, but in a stream it either trusts the first record to be a header or discovers a version it
 cannot handle halfway through.
 
-The option is kept open rather than closed. The schema defines a finding and no document, so a later
+The option is kept open rather than closed. The schema defines a finding independently of the document, so a later
 `--output-format=jsonl` could emit `#/$defs/Finding` records for kept findings only, with no header, leaving the per-run
 parts to the document format. Defining a JSON Lines wrapper now is what would foreclose that. Two things would justify
 one: a consumer that must act on findings before the run ends, or runs sharded across workers whose outputs concatenate.
@@ -1044,3 +1059,15 @@ pass clean on the file today, since neither treats American spelling as a misspe
 happens not to prefer. No suppression comment exists for this, since no current tool fires. The file documents the
 exemption inline instead, next to the pattern data, the same way `pyproject.toml`'s `license` field and the `LICENSE`
 filename are left alone rather than "corrected."
+
+### `--show-fixes` was removed rather than given behaviour
+
+`--fix` already prints `Fixed <path>` for every changed file unconditionally, so `--show-fixes` had nothing left to add:
+it was parsed and validated but never reached the fixer. Ruff's flag of the same name earns its place because ruff's
+`--fix` output is a summary count across hundreds of rules, so listing each fix is real extra information; pyrigor has
+one fixer and `--fix` already enumerates, so the comparison does not transfer. The flag existed because ruff has one by
+that name, not because a requirement asked for it. The test it shipped with,
+`test_run_fix_show_fixes_reports_each_changed_file`, ran `--fix --show-fixes` and asserted both files were reported,
+which passes identically without `--show-fixes`: a test that cannot fail is not a test (`guidelines/PRINCIPLES.md`). If
+pyrigor grows enough fixable rules that `--fix` listing every file becomes noise, ruff's split is the right answer then,
+decided against the real need rather than held open against a hypothetical one.

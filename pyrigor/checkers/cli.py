@@ -1,7 +1,4 @@
 """Command-line entry point for pyrigor's checkers."""
-# Splitting this module into cohesive pieces is tracked separately (#225), not a reason to shrink an unrelated
-# comment to dodge the line count here.
-# pylint: disable=too-many-lines
 
 import argparse
 import ast
@@ -775,7 +772,6 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--fix", action="store_true", help="Apply safe fixes for the explicitly selected rules.")
     parser.add_argument("--diff", action="store_true", help="Show safe fixes as a unified diff without writing.")
-    parser.add_argument("--show-fixes", action="store_true", help="Report files changed by --fix.")
     parser.add_argument("paths", nargs="+", help="Files or directories to check.")
     return parser
 
@@ -871,22 +867,12 @@ def _reject_empty_selection(*, checkers: tuple[RegisteredChecker, ...]) -> None:
         sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
-def _validate_fix_selection(
-    *, fix: bool, diff: bool, show_fixes: bool, select: set[str] | None, output_format: OutputFormat
-) -> None:
+def _validate_fix_selection(*, fix: bool, diff: bool, select: set[str] | None, output_format: OutputFormat) -> None:
     """Require explicit PYR402 selection for fixer modes."""
     if (fix or diff) and output_format == _JSON_OUTPUT_FORMAT:
         print("pyrigor: fixer options cannot be combined with --output-format json", file=sys.stderr)
         sys.exit(_EXIT_CODE_USAGE_ERROR)
-    _validate_show_fixes(fix=fix, show_fixes=show_fixes)
     _validate_fixer_selection(fix=fix, diff=diff, select=select)
-
-
-def _validate_show_fixes(*, fix: bool, show_fixes: bool) -> None:
-    """Require --fix when the --show-fixes flag is requested."""
-    if show_fixes and not fix:
-        print("pyrigor: --show-fixes requires --fix", file=sys.stderr)
-        sys.exit(_EXIT_CODE_USAGE_ERROR)
 
 
 def _validate_fixer_selection(*, fix: bool, diff: bool, select: set[str] | None) -> None:
@@ -988,9 +974,7 @@ def _parse_run_options(*, args: argparse.Namespace) -> _RunOptions:
     _validate_flag_tokens(flag_name="--ignore", tokens=ignore)
     _reject_empty_selection(checkers=_filter_checkers(select=select, ignore=ignore))
     output_format: OutputFormat = args.output_format[0] if args.output_format else "human"
-    _validate_fix_selection(
-        fix=args.fix, diff=args.diff, show_fixes=args.show_fixes, select=select, output_format=output_format
-    )
+    _validate_fix_selection(fix=args.fix, diff=args.diff, select=select, output_format=output_format)
     return _RunOptions(
         paths=args.paths,
         select=select,

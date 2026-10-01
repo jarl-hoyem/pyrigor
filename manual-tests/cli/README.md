@@ -144,8 +144,8 @@ powershell -ExecutionPolicy Bypass -File manual-tests/cli/fix-pyr402.ps1
 ```
 
 The script creates and removes its own temporary fixtures. It checks the `--diff` preview does not write, then checks
-`--fix --select=PYR402 --show-fixes` changes and reports each fix. It also covers a rejected positional-only signature,
-an unchanged `*args` signature, missing input and missing explicit rule selection.
+`--fix --select=PYR402` changes and reports each fix. It also covers a rejected positional-only signature, an unchanged
+`*args` signature, missing input and missing explicit rule selection.
 
 The fixable fixtures cover UTF-8 without a BOM, UTF-8 with a BOM, LF, CRLF and mixed line endings. Each fixture must
 retain every original byte except the inserted keyword-only separator.
