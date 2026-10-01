@@ -156,15 +156,18 @@ The finding carries `code`, `message` and `level` directly, so each finding stay
 
 ### Absent values have one representation
 
-A list is always present, even when empty, and only `fixes` may be empty. An optional value is omitted when absent,
-never written as `null`. Consumers then never handle a missing list, and never handle both a missing field and a `null`
-one.
+Document lists are always present and may be empty. Within a finding, only `fixes` may be empty. An optional value is
+omitted when absent, never written as `null`. Consumers then never handle a missing list or two forms of absence.
 
 ### Grow without breaking consumers
 
 Planned features will add information to findings, such as suppression state and baseline state. The schema therefore
 states an extension policy: consumers ignore fields they do not know, and adding an optional field is a compatible
 change. The tool pyrigor still validates its own output strictly, so a field it did not intend to emit is caught.
+
+The schema is the strict producer contract. A consumer seeking forward compatibility parses its known fields and ignores
+unknown ones. It cannot validate a newer document against an older strict schema and expect added fields to pass.
+Keeping one strict schema avoids maintaining a second consumer schema or a generation step.
 
 ### Validation stays linear
 
@@ -189,10 +192,43 @@ They do not repeat the rules the schema states, such as the text patterns or the
 Those hold because pyrigor validates its own output against the schema. A type therefore accepts values the schema
 rejects, and the document, not the object, is where that is caught.
 
-### No document validates before the wrapper exists
+### One document describes one run
 
-The schema defines finding types, but not yet the document that carries them. Until the document wrapper is defined, the
-schema's root rejects every document, so nothing can pass validation against a contract that is incomplete.
+The schema root references `Document`. Its version lets every consumer identify the contract before interpreting the
+results. The tool name and version let a baseline identify the producer independently of the schema version.
+
+The `findings` list contains kept findings. Editors, CI and reports consume it. The separate `suppressed` list lets
+editors display suppressed findings differently without treating them as live findings. List membership carries the
+suppression state. A suppression reason can be added later as an optional field.
+
+The `rules` object includes every selected rule, even a rule with no findings. A report can show what was checked and
+resolve each finding's metadata through its code. Editors can use its fix availability and applicability when offering
+actions. Applicability is omitted when fix availability is `none`, matching the absence convention. Severity is not
+repeated here because each finding's `level` is its authority.
+
+A rule's URL points to its guideline on GitHub at the producing version's release tag. The guideline documents are not
+in the wheel. Pinning the link ensures a report describes the rule version that actually produced its findings.
+
+Operational errors let CI distinguish a complete run from one that could not check every file. Editors receive the same
+information without reading stderr. Parse errors and malformed suppression comments can carry line and column
+coordinates. A read error has no source position.
+
+The summary records files that are checked, including files with operational errors. Clean files have no list entries,
+so this count cannot be recovered from the findings. Counts derivable from the lists are deliberately excluded.
+
+The document has no timings or other run-dependent fields. A usage error or a crash emits no document. The CLI emits
+this contract only after the separate migration in #269.
+
+### Document invariants belong to the producer
+
+The schema validates each finding and rule entry separately. The producer must also ensure that every kept or suppressed
+finding has a matching rule entry and that the rule's object contains exactly the selected rules. Metadata must agree
+with the rule, including a documentation URL pinned to the producing tool version.
+
+The producer orders findings and suppressed findings by the primary span's file name and full start and end position,
+then code. It orders operational errors by file name and then line where present, and rules by code. These conventions
+are stated in the schema's `x-invariants`. JSON Schema cannot enforce their cross-references or ordering. Tests pin that
+such violations validate, so #269 must enforce them explicitly.
 
 ### Do not import implementation-specific machinery
 
@@ -220,6 +256,11 @@ consumer needs it.
 
 The schema defines these types:
 
+- `Document`
+- `Tool`
+- `Rules` and `RuleMetadata`
+- `OperationalError`
+- `Summary`
 - `Finding`
 - `Span`
 - `EnclosingSymbol`

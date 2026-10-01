@@ -19,7 +19,6 @@ Json = dict[str, Any]
 REPOSITORY_ROOT = Path(__file__).parent.parent
 V2_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "pyrigor-diagnostics-v2.json"
 FILE_NAME = FileName("src/app.py")
-_ROOT_REJECTION = "not"
 
 
 def require_schema_file(*, path: Path) -> None:
@@ -35,6 +34,8 @@ def load_v2_schema() -> Json:
 
 
 def definition_validator(*, definition: str) -> Validator:
-    """Build a validator for one definition, without the root's rejection of every document."""
-    schema = {key: value for key, value in load_v2_schema().items() if key != _ROOT_REJECTION}
-    return jsonschema.Draft202012Validator({**schema, "$ref": f"#/$defs/{definition}"})
+    """Build a validator for one definition, independently of the document root."""
+    schema = load_v2_schema()
+    return jsonschema.Draft202012Validator(
+        {"$schema": schema["$schema"], "$defs": schema["$defs"], "$ref": f"#/$defs/{definition}"}
+    )

@@ -258,6 +258,11 @@ rather than validate new output against an old strict schema. This makes optiona
 introducing a second schema or a generation step. The existing strictness tests remain useful for catching accidental
 producer fields.
 
+The wrapper expresses fixed values with single-value enums. They have the same validation meaning as `const`, but avoid
+JetBrains' schema inspection treating scalar constants as schemas. See the
+[JetBrains bug report](https://youtrack.jetbrains.com/issue/IJPL-196556). The strict meta-schema and document tests
+remain authoritative. Descriptions fit the 120-column limit because formatters cannot wrap JSON string values.
+
 The wrapper extends the existing definitions directly. Definition-level test validators isolate the definitions from the
 document root, so validating a span never requires run metadata. Cross-references to selected rules and result ordering
 remain explicit producer invariants for #269, with schema-limit tests that demonstrate this boundary.

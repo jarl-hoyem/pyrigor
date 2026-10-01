@@ -784,8 +784,8 @@ def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Jso
         pytest.param(None, id="null"),
     ],
 )
-def test_no_document_validates_until_the_wrapper_is_defined(*, document: JsonValue) -> None:
-    """The root rejects every document, so nothing can pass validation before the wrapper exists."""
+def test_root_rejects_values_without_the_document_wrapper(*, document: JsonValue) -> None:
+    """Arbitrary objects and non-objects cannot stand in as the document wrapper."""
     assert not _root_validator().is_valid(document)
 
 

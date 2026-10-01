@@ -2,21 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jarl-hoyem/pyrigor/blob/main/schemas/pyrigor-diagnostics-v2.json",
   "title": "pyrigor diagnostics v2",
-  "description": "Output contract for pyrigor's diagnostics, defining the finding types. See x-extension-policy.",
-  "x-root": [
-    "No document validates yet, because the document wrapper is not defined.",
-    "Validate a single type through its definition, such as #/$defs/Finding."
-  ],
-  "not": {},
+  "description": "Output contract for a complete diagnostics document. See x-extension-policy.",
+  "$ref": "#/$defs/Document",
   "x-extension-policy": [
     "pyrigor validates its own output strictly against this schema.",
     "Consumers must ignore fields they do not know.",
+    "Forward-compatible consumers parse known fields rather than validate against an older strict schema.",
     "Adding an optional field is a compatible change.",
     "Removing a field, or making an optional field required, changes the version.",
     "Changing a field's type or meaning changes the version."
   ],
   "x-absent-values": [
-    "Lists are always present. Only fixes may be empty.",
+    "Document lists are always present and may be empty. Within a finding, only fixes may be empty.",
     "Optional values are omitted when absent, never written as null."
   ],
   "x-invariants": [
@@ -36,7 +33,15 @@
     "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely.",
     "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 code-point boundary.",
     "code names a rule pyrigor defines.",
-    "level is the severity pyrigor assigns to the rule named by code."
+    "level is the severity pyrigor assigns to the rule named by code.",
+    "Every kept or suppressed finding's code has a rules entry.",
+    "The rules object contains exactly the selected rules, including those with no findings.",
+    "Rule metadata agrees with the selected rule, and its URL is pinned to the tool version's release tag.",
+    "Findings and suppressed findings are ordered by the primary span's position, then code.",
+    "The position key is file_name, line_start, column_start, line_end and column_end.",
+    "Errors are ordered by file_name and then line where present. Rules are ordered by code.",
+    "summary.files_checked is the number of files checked, including files with operational errors.",
+    "The document contains no timing or other run-dependent values. A crash or usage error emits no document."
   ],
   "x-span-conventions": [
     "byte_start and byte_end are offsets into the raw bytes of the file, end-exclusive.",
@@ -241,6 +246,189 @@
     "content may contain any character, because a fix can need one inside a string literal."
   ],
   "$defs": {
+    "Document": {
+      "description": "One run for editors, CI, reports and baselines. Lists may be empty. See x-invariants.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "tool", "findings", "suppressed", "rules", "errors", "summary"],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "enum": [2]
+        },
+        "tool": {
+          "$ref": "#/$defs/Tool"
+        },
+        "findings": {
+          "description": "Kept findings for editors, CI and reports.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        },
+        "suppressed": {
+          "description": "Suppressed findings for editors to display separately. Membership carries suppression state.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        },
+        "rules": {
+          "$ref": "#/$defs/Rules"
+        },
+        "errors": {
+          "description": "Operational errors let CI detect incomplete runs and editors show failures without stderr.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OperationalError"
+          }
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        }
+      }
+    },
+    "Tool": {
+      "description": "Producer identity lets a baseline identify the tool and version that produced it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "enum": ["pyrigor"]
+        },
+        "version": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Finding/properties/message"
+            },
+            {
+              "pattern": "^(?![\\s\\S]*\\s)"
+            }
+          ]
+        }
+      }
+    },
+    "Rules": {
+      "description": "All selected rules, keyed by code, even without findings. Reports resolve metadata here.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/Finding/properties/code"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/RuleMetadata"
+      }
+    },
+    "RuleMetadata": {
+      "description": "Rule metadata for reports and editor actions. Severity lives only on each finding.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbolic_name", "fix_availability", "url"],
+      "properties": {
+        "symbolic_name": {
+          "type": "string",
+          "minLength": 1,
+          "allOf": [
+            {
+              "pattern": "^(?![\\s\\S]*\\s)"
+            },
+            {
+              "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+            }
+          ]
+        },
+        "fix_availability": {
+          "enum": ["always", "sometimes", "none"]
+        },
+        "applicability": {
+          "$ref": "#/$defs/Fix/properties/applicability"
+        },
+        "url": {
+          "description": "GitHub guideline URL pinned to a release tag, matching the producing version.",
+          "type": "string",
+          "allOf": [
+            {
+              "pattern": "^(?![\\s\\S]*\\s)"
+            },
+            {
+              "pattern": "^https://github[.]com/jarl-hoyem/pyrigor/blob/v[^/]+/guidelines/PYR[0-9]{3}-[^/]+[.]md$"
+            }
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "fix_availability": {
+            "enum": ["none"]
+          }
+        },
+        "required": ["fix_availability"]
+      },
+      "then": {
+        "not": {
+          "required": ["applicability"]
+        }
+      },
+      "else": {
+        "required": ["applicability"]
+      }
+    },
+    "OperationalError": {
+      "description": "A file failure for CI and editors. Parse and suppression errors may include a position.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_name", "kind", "message"],
+      "properties": {
+        "file_name": {
+          "$ref": "#/$defs/FileName"
+        },
+        "kind": {
+          "enum": ["read_error", "parse_error", "malformed_suppression"]
+        },
+        "message": {
+          "$ref": "#/$defs/Finding/properties/message"
+        },
+        "line": {
+          "$ref": "#/$defs/LinePosition"
+        },
+        "column": {
+          "$ref": "#/$defs/LinePosition"
+        }
+      },
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": ["read_error"]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["line"]
+            },
+            {
+              "required": ["column"]
+            }
+          ]
+        }
+      }
+    },
+    "Summary": {
+      "description": "Facts not derivable from the lists. Clean files have no findings but still count as checked.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files_checked"],
+      "properties": {
+        "files_checked": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
     "Finding": {
       "description": "One concrete occurrence of a rule violation.",
       "type": "object",
