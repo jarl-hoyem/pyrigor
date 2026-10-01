@@ -8,6 +8,8 @@ import json
 import sys
 from pathlib import Path
 
+from hook_shared import deny_if
+
 MAX_LINES = 350
 _TARGETED_READ_KEYS = ("offset", "limit")
 
@@ -29,21 +31,15 @@ def _line_count(*, path: Path) -> int | None:
     return content.count("\n")
 
 
-def _denial(*, line_count: int) -> str:
-    """Build the hook's answer denying one oversized read."""
-    return json.dumps(
-        {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": (
-                    f"This file has {line_count} lines, exceeding the "
-                    f"{MAX_LINES}-line direct-read limit. "
-                    "Do not read the entire file. Use targeted reads with "
-                    "offset/limit, or use an appropriate large-file reader."
-                ),
-            }
-        }
+def _deny_reason(*, line_count: int | None) -> str | None:
+    """Return the reason to deny this read, or None when it may proceed."""
+    if line_count is None:
+        return None
+    return (
+        f"This file has {line_count} lines, exceeding the "
+        f"{MAX_LINES}-line direct-read limit. "
+        "Do not read the entire file. Use targeted reads with "
+        "offset/limit, or use an appropriate large-file reader."
     )
 
 
@@ -67,9 +63,7 @@ def main() -> None:
         return
 
     line_count = _oversized_lines(tool_input=request.get("tool_input", {}))
-    if line_count is not None:
-        sys.stdout.write(_denial(line_count=line_count))
-        sys.exit(2)
+    deny_if(reason=_deny_reason(line_count=line_count))
 
 
 if __name__ == "__main__":
