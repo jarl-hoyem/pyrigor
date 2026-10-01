@@ -9,6 +9,19 @@
             "command": "python .claude/hooks/check_file_size.py"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/check_new_suppressions.py"
+          },
+          {
+            "type": "command",
+            "command": "python .claude/hooks/check_british_spelling.py"
+          }
+        ]
       }
     ]
   }

@@ -1034,3 +1034,13 @@ for literal `.kind` attribute access. The `_print_json_results` builds the JSON 
 `error._asdict() for error in results.errors`, which serialises `kind` without ever writing `.kind` in the source.
 `schemas/pyrigor-diagnostics-v1.json` requires it, and `test_json_output_reports_read_error` and
 `test_installed_cli_reports_parse_error` both already assert on it through real output. The `kind` stays, unchanged.
+
+### `check_british_spelling.py` is itself exempt from the British-spelling rule it enforces
+
+The hook's word-family regex patterns are literal American spellings (`color`, `behavior`, `jewelry`, and the rest),
+because a detector has to contain the exact spelling it matches against, the same way a spam filter's source lists real
+spam phrases. Checked both tools that could plausibly flag this: `codespell` and `scripts/check_text_hygiene.py` both
+pass clean on the file today, since neither treats American spelling as a misspelling, only as a dialect the house style
+happens not to prefer. No suppression comment exists for this, since no current tool fires. The file documents the
+exemption inline instead, next to the pattern data, the same way `pyproject.toml`'s `license` field and the `LICENSE`
+filename are left alone rather than "corrected."
