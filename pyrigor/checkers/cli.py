@@ -1,4 +1,7 @@
 """Command-line entry point for pyrigor's checkers."""
+# Splitting this module into cohesive pieces is tracked separately (#225), not a reason to shrink an unrelated
+# comment to dodge the line count here.
+# pylint: disable=too-many-lines
 
 import argparse
 import ast
@@ -213,7 +216,10 @@ def _file_sort_key(*, path: str) -> str:
         The path with forward slashes, compared by Unicode code point (plain Python string order), so the
         same set of files sorts identically regardless of the platform's path separator or discovery order.
     """
-    return Path(path).as_posix()
+    # A plain string replace, not Path(path).as_posix(): pathlib only treats backslash as a separator on
+    # Windows, so as_posix() leaves a backslash untouched when this runs on Linux or macOS, breaking the very
+    # platform-independence this function exists to provide.
+    return path.replace("\\", "/")
 
 
 class _ViolationSortKey(NamedTuple):
