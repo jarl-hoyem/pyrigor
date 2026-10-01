@@ -497,6 +497,17 @@ when other containers were competing for the processor.
 A recorded baseline of known survivors would catch a single new survivor, but the cap is intentionally the smaller
 change for now. A survivor baseline remains a later refinement once the run-to-run variance is understood.
 
+### The survivor cap includes two mutants that are equivalent only inside the Linux mutation container
+
+`main()`'s file list sorts by `_file_sort_key`, which normalises a path to forward slashes before comparing, so the same
+set of files orders identically regardless of the platform's separator. Mutating that key to a plain string sort
+survives, but only inside `docker/mutmut.Dockerfile`'s Linux container: real directory traversal on Linux never produces
+a backslash, so `_file_sort_key` is the identity function there and the mutated and unmutated code is provably
+indistinguishable for any real file set in that environment. The same shape as the already-accepted
+`version('pyrigor')`/`version('PYRIGOR')` mutant above, just environment-gated rather than permanent. The actual
+cross-platform behaviour is proven two other ways instead: a unit test on `_file_sort_key` using a manufactured
+backslash string, independent of the host OS, and CI's own Windows build, which exercises real backslash paths directly.
+
 ### The pre-commit cache stays on Windows CI, despite a 155 s restore, because removing it is slower still
 
 A Windows `build` job took 4.5 minutes against Ubuntu's 1 minute, with "Cache pre-commit environments" alone costing
