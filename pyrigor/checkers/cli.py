@@ -203,6 +203,48 @@ def _append_unique_candidates(*, candidates: list[str], files: list[str], seen: 
             files.append(candidate)
 
 
+def _file_sort_key(*, path: str) -> str:
+    """Return a platform- and argument-order-independent sort key for a file path.
+
+    Args:
+        path: The file path to the key, in whatever form it was discovered or given.
+
+    Returns:
+        The path with forward slashes, compared by Unicode code point (plain Python string order), so the
+        same set of files sorts identically regardless of the platform's path separator or discovery order.
+    """
+    return Path(path).as_posix()
+
+
+class _ViolationSortKey(NamedTuple):
+    """A deterministic ordering key for one violation within its file."""
+
+    line: int
+    column: int
+    end_line: int
+    end_column: int
+    rule_code: str
+
+
+def _violation_sort_key(*, violation: Violation) -> _ViolationSortKey:
+    """Return a deterministic sort key for one violation within its file.
+
+    Args:
+        violation: The violation to key.
+
+    Returns:
+        Line, column, end line, end column, then the rule's code as a string, so two violations at the same
+        position still order deterministically, independent of which checker produced them.
+    """
+    return _ViolationSortKey(
+        line=violation.line,
+        column=violation.column,
+        end_line=violation.end_line,
+        end_column=violation.end_column,
+        rule_code=violation.rule.name,
+    )
+
+
 def _read_source(*, path: str) -> _SourceResult:
     """Read a file's source, handling decode/OS errors gracefully.
 
@@ -291,8 +333,10 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
 
     result = filter_suppressed(violations=checker_result.violations, source=source_result.source)
     return FileCheckResult(
-        kept=result.kept,
-        suppressed=result.suppressed,
+        kept=KeptViolations(sorted(result.kept, key=lambda violation: _violation_sort_key(violation=violation))),
+        suppressed=SuppressedViolations(
+            sorted(result.suppressed, key=lambda violation: _violation_sort_key(violation=violation))
+        ),
         errors=[],
         source=source_result.source,
     )
@@ -626,7 +670,7 @@ def main(
     Returns:
         0 if no violations were found, 1 otherwise.
     """
-    files = _collect_python_files(paths=paths, excludes=excludes)
+    files = sorted(_collect_python_files(paths=paths, excludes=excludes), key=lambda path: _file_sort_key(path=path))
     checkers = _filter_checkers(select=select, ignore=ignore)
     start = time.perf_counter()
 

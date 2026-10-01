@@ -357,6 +357,17 @@ encodings. Python 3.11+ support does not make arbitrary source encodings safe on
 rewriting and byte preservation would each need separate guarantees. Leaving an unsupported file unchanged is safer than
 risking corruption. Broader source-encoding support is deferred to a separate design decision.
 
+### Deterministic output orders by a normalised sort key, without changing the displayed path (#239)
+
+Output order previously depended on filesystem directory-enumeration order and command-line path-argument order,
+breaking the Determinism principle. Files are sorted by `Path(path).as_posix()`, and violations within one file by line,
+column, end line, end column, then the rule's code as a string (`_file_sort_key`/`_violation_sort_key` in `cli.py`).
+
+The sort key normalises to forward slashes, so the same fileset orders identically on Windows and on Unix, but the
+displayed path string is left exactly as discovered or given, unchanged. Normalising the displayed value too would have
+been a real diagnostic-content change, which #239 explicitly put out of scope; only the order needed to become
+platform-independent, not the path's own representation.
+
 ### Tool findings: Fix, then suppress narrow before broad
 
 Real, six-step order, not "fix or ignore": **fix → line suppress → function suppress → file suppress → folder suppress →
