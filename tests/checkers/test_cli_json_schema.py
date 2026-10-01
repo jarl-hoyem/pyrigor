@@ -17,6 +17,7 @@ from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
 # pylint: disable=redefined-outer-name
 
 _READ_ERROR = "read_error"
+_GUIDANCE_FIXABILITY = "guidance"
 _NON_ASCII_NAME = "gr\u00f6\u00dfe"
 _ESCAPED_NON_ASCII = "\\u00f6"
 _SHIFTED_LINE_SOURCE = "X = 'a{character}b'\nif X:\n if X:\n        def bad(a, b):\n            ...\n"
@@ -86,6 +87,20 @@ def test_json_output_includes_diagnostic_metadata(
         "severity": "warning",
         "fixability": "safe_fix",
     }
+
+
+def test_json_output_reports_guidance_fixability_for_a_rule_without_applicability(
+    *, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
+) -> None:
+    """A rule with no applicability (fix availability NONE) reports v1 fixability "guidance", not "safe_fix"."""
+    bad_file = tmp_path / "bad.py"
+    bad_file.write_text("x: tuple[int, str] = (1, 'a')\n")
+
+    assert main(paths=[str(bad_file)], output_format="json") == 1
+
+    document = json.loads(capsys.readouterr().out)
+    _assert_valid_schema(document=document, schema=schema)
+    assert document["diagnostics"][0]["fixability"] == _GUIDANCE_FIXABILITY
 
 
 def test_json_output_is_indented_rather_than_one_line(*, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -210,6 +225,8 @@ def _expected_location(*, source_file: Path) -> dict[str, dict[str, int]]:
     raw = source_file.read_bytes()
     tree = ast.parse(raw.decode("utf-8-sig"))
     function = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef))
+    # noinspection PyTypeChecker
+    # FunctionDef is a real subtype of stmt; mypy, pyright and ty all confirm this line type-check.
     span = make_span(node=function, index=PositionIndex(raw=raw), file_name=FileName("x.py"))
     return {
         "start": {"line": span.line_start, "column": span.column_start},

@@ -19,7 +19,8 @@ from pyrigor.checkers.cli import (
     main,
 )
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation
+from pyrigor.suppression import SuppressionResult
+from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
 
 def _without_elapsed_time(*, output: str) -> str:
@@ -138,6 +139,38 @@ def test_check_file_orders_suppressed_violations_by_position(*, tmp_path: Path) 
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
+def test_check_file_sorts_kept_and_suppressed_by_the_explicit_key_not_tuple_identity(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Kept and suppressed both sorts by the explicit (line, column, end_line, end_column, rule) key.
+
+    Violation's own field order is (line, end_line, column, ...). These two violations share a line: the
+    explicit key ranks the smaller-column one first, but Violation's own tuple identity would rank the
+    smaller-end_line one first instead, the opposite order. Proves _check_file uses the real key, not
+    whatever order Violation's fields happen to be declared in.
+    """
+    source_file = tmp_path / "source.py"
+    source_file.write_text("x = 1\n")
+    small_column_large_end_line = _violation(line=1, end_line=8, column=3, end_column=4, rule=Rule.PYR402)
+    large_column_small_end_line = _violation(line=1, end_line=2, column=10, end_column=11, rule=Rule.PYR401)
+    fixed_result = SuppressionResult(
+        kept=KeptViolations([large_column_small_end_line, small_column_large_end_line]),
+        suppressed=SuppressedViolations([large_column_small_end_line, small_column_large_end_line]),
+    )
+
+    def fake_filter_suppressed(**_ignored: object) -> SuppressionResult:
+        """Return the fixed result regardless of the real arguments, which this test does not need."""
+        return fixed_result
+
+    monkeypatch.setattr(cli_module, "filter_suppressed", fake_filter_suppressed)
+
+    result = _check_file(path=str(source_file), checkers=CHECKERS)
+
+    assert result.kept == [small_column_large_end_line, large_column_small_end_line]
+    assert result.suppressed == [small_column_large_end_line, large_column_small_end_line]
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
 def test_main_json_diagnostics_are_ordered_by_file_then_position(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -193,6 +226,27 @@ def test_main_output_is_independent_of_path_argument_order(tmp_path: Path, capsy
     natural_output = _without_elapsed_time(output=capsys.readouterr().out)
 
     assert reordered_output == natural_output
+
+
+# pyrigor 402 # pytest fixture injection, not a real violation
+def test_main_orders_files_by_normalized_key_not_native_separator_comparison(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A nested file sorts before an uppercase-prefixed sibling, which only holds under forward-slash normalisation.
+
+    Raw path comparison ranks these the other way: 'A' (0x41) sorts before a backslash (0x5C),
+    but a forward slash (0x2F) sorts before 'A'. Proves main() uses the normalised key, not a plain string sort.
+    """
+    (tmp_path / "a").mkdir()
+    (tmp_path / "a" / "Z.py").write_text("def one(x, y):\n    ...\n")
+    (tmp_path / "aA.py").write_text("def two(x, y):\n    ...\n")
+
+    main(paths=[str(tmp_path)])
+
+    out = capsys.readouterr().out
+    nested_position = out.index(str(tmp_path / "a" / "Z.py"))
+    sibling_position = out.index(str(tmp_path / "aA.py"))
+    assert nested_position < sibling_position
 
 
 # pyrigor 402 # pytest fixture injection, not a real violation
