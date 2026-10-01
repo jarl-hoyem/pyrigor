@@ -8,6 +8,12 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed output order depending on filesystem directory-enumeration order and command-line path-argument order.
+  Diagnostics, suppressed diagnostics and errors are now ordered deterministically: files by path, then findings by
+  line, column, end line, end column and rule code (#239).
+
 ## [0.13.1] 2026-09-18
 
 ### Fixed
