@@ -181,7 +181,7 @@ repos:
         types: [text]
         stages: [pre-commit]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.23.2
+    rev: v0.23.3
     hooks:
       - id: markdownlint-cli2
         stages: [pre-commit]
