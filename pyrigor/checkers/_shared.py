@@ -103,7 +103,7 @@ class _FunctionPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         """Return whether the function node violates the rule."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
@@ -111,7 +111,7 @@ class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *, node: ast.AnnAssign) -> bool:
         """Return whether the annotated-assignment node violates the rule."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 def find_function_violations(

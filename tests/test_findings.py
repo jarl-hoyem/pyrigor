@@ -37,7 +37,7 @@ class _FileNameBuilder(Protocol):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *, file_name: FileName) -> Span | Edit:
         """Build the component."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 _DEFINITIONS = cast("Json", load_v2_schema()["$defs"])
