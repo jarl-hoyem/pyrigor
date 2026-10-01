@@ -84,6 +84,10 @@ ruff-check:
 ruff-format:
     uv run ruff format
 
+# Merge a pull request authored by the repository owner, bypassing review requirements
+merge pr:
+    gh pr merge {{pr}} --repo jarl-hoyem/pyrigor --admin --squash
+
 # Show all available recipes
 help:
     just --list

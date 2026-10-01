@@ -18,7 +18,7 @@ class _CheckerFun(Protocol):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *, nodes: WalkedNodes) -> list[Violation]:
         """Return violations found in the pre-walked nodes."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 # Intentional small NamedTuple structure matching shared checker records.
