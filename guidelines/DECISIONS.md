@@ -176,9 +176,8 @@ PYR402, PYR403, PYR501) is `unsafe`, each for its own reason recorded in its gui
 `display` covers what the old `suggestion` tier meant — a concrete fix exists and can be shown, but is never
 auto-applied even with explicit selection, for example, PYR201's `NewType` name guess.
 
-v1's `fixability` field locks a three-value enum with no `unsafe` value, and is frozen deliberately wrongly for
-PYR402/PYR403 rather than migrated: `cli.py` maps `applicability == UNSAFE` to the old `"safe_fix"` string, since v1
-stays live until #269 removes it entirely.
+The v2 diagnostics document reports fix availability and applicability separately. PYR402 and PYR403 have unsafe
+applicability. The producer uses the canonical rule metadata without translating it into a legacy fixability enum.
 
 ## Severity: Language Server Protocol DiagnosticSeverity naming adopted, real per-rule levels assigned
 

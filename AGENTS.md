@@ -32,7 +32,7 @@ uv run pyrigor path/to/file.py [path/to/dir ...]
 uv run pyrigor --select=PYR401,PYR402 path/   # restrict to specific rules (code, bare number, or symbolic name)
 uv run pyrigor --ignore=PYR406 path/          # exclude specific rules instead; combines with --select
 uv run pyrigor --exclude=manual-tests path/   # omit paths, repeatable, applied by pyrigor itself
-uv run pyrigor --output-format=json path/     # stable v1 diagnostic schema for editors and tooling
+uv run pyrigor --output-format=json path/     # v2 finding document for editors and tooling
 uv run pyrigor --diff --select=PYR402 path/   # preview the safe PYR402 fix without writing
 uv run pyrigor --fix --select=PYR402 path/    # apply it, reporting each changed file
 uv run pyrigor --version
@@ -86,26 +86,31 @@ duplicated per-checker.
 **Pipeline:** `cli.py` (`main`) collects `.py` files -> parses each with `ast.parse` once -> `checkers/_shared.py`'s
 `walk_once()` walks the tree exactly once, splitting nodes into
 `WalkedNodes(function_nodes, assign_nodes, call_statement_nodes, class_nodes)` for every checker to reuse -> each
-registered checker's `find_violations(*, nodes: WalkedNodes)` runs against those pre-walked nodes -> `suppression.py`'s
-`filter_suppressed()` splits results into kept/suppressed based on same-line `# pyrigor CODE # reason` comments -> CLI
-prints and summarises.
+registered checker's `find_findings(*, nodes: WalkedNodes, context: FindingContext)` runs against those pre-walked
+nodes. The context shares decoded source, the original-byte position index, file name and parent map. `suppression.py`'s
+`filter_suppressed()` splits results into kept/suppressed based on `# pyrigor CODE # reason` comments -> CLI prints and
+summarises.
 
 The single shared walk is a deliberate performance choice, not an accident — see `guidelines/DECISIONS.md` for why a
 per-checker `ast.walk()` was replaced with this and why a caching alternative was rejected (walking scaled linearly with
 checker count. Profiling against a large external codebase found `ast.walk` was the dominant cost).
 
 **Checker registration is explicit and manual, on purpose.** `pyrigor/checkers/__init__.py`'s `CHECKERS` tuple pairs
-each `Rule` member with its `find_violations` function by name ( `RegisteredChecker(rule=..., find_violations=...)`),
-not by shared declaration order — a prior positional-coupling bug (`zip(CHECKERS, Rule)`) motivated this. A checker that
-exists but is not added to `CHECKERS` silently never runs. This has happened before (see `guidelines/ADDING_A_RULE.md`
-step 7).
+each `Rule` member with its `find_findings` function by name (`RegisteredChecker(rule=..., find_findings=...)`), not by
+shared declaration order — a prior positional-coupling bug (`zip(CHECKERS, Rule)`) motivated this. A checker that exists
+but is not added to `CHECKERS` silently never runs. This has happened before (see `guidelines/ADDING_A_RULE.md` step 7).
 
-**Violations** are built only via `pyrigor.violations.make_violation(node=..., rule=...)`, never constructed by hand, so
-the message text cannot drift from the rule it is tied to.
+**Findings** are built via `pyrigor.finding_builder.make_finding`, using the shared `FindingContext`. The canonical
+types live in `pyrigor.findings`. Messages include the subject, enclosing symbols use Python's NFKC-normalised qualified
+names, and fixes are currently empty. A file is read once as bytes. Its parsing and tokenising view decodes UTF-8-sig
+with universal newlines, while span offsets refer to the original bytes. Signature spans and suppression share one token
+stream per file through the context.
 
-**Suppression** (`suppression.py`) recognizes `# pyrigor CODE[,CODE] # reason` on the violating line. The `CODE` token
-may be the full code (`PYR402`), bare number (`402`), or symbolic name (`keyword-only-arguments`) - the same three forms
-`--only` accepts. Any suppression without a reason is ignored (with a warning), not silently honoured.
+**Suppression** (`suppression.py`) recognises `# pyrigor CODE[,CODE] # reason` on the line directly above a finding or
+on any line of its primary span. Function primary spans end after the signature colon, excluding the body. Assignment
+and call primary spans cover the statement. The `CODE` token may be the full code (`PYR402`), bare number (`402`), or
+symbolic name (`keyword-only-arguments`) - the same three forms `--select` accepts. Any suppression without a reason is
+ignored (with a warning), not silently honoured.
 
 **Adding a new rule** is a defined, checklist-driven process — follow `guidelines/ADDING_A_RULE.md` step by step
 (numbering bucket in `guidelines/NUMBERING.md`, naming convention in `guidelines/NAMING.md`). Key points that have

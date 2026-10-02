@@ -6,9 +6,10 @@ import ast
 from enum import Enum
 from typing import Final, NamedTuple
 
-from pyrigor.checkers import walk_once
-from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations as find_pyr402_violations
-from pyrigor.findings import PositionIndex
+from pyrigor.checkers import WalkedNodes, walk_once
+from pyrigor.checkers.pyr402_keyword_only_arguments import find_findings as find_pyr402_findings
+from pyrigor.finding_builder import FindingContext
+from pyrigor.findings import FileName, PositionIndex
 from pyrigor.suppression import filter_suppressed
 
 _MINIMUM_POSITIONAL_PARAMETERS: Final = 2
@@ -43,16 +44,16 @@ class _Insertion(NamedTuple):
 
 
 def fix_source(*, source: str | bytes, dry_run: bool = False) -> FixResult:
-    """Insert bare stars into safe fixable signatures with kept PYR402 violations."""
+    """Insert bare stars into eligible signatures with kept PYR402 findings."""
     original = source
     text = source.decode() if isinstance(source, bytes) else source
-    tree = ast.parse(text)
+    normalised = text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    tree = ast.parse(normalised)
     raw = text.encode()
     index = PositionIndex(raw=raw)
     nodes = walk_once(tree=tree)
-    violations = find_pyr402_violations(nodes=nodes)
-    kept = filter_suppressed(violations=violations, source=text).kept
-    target_positions = {(violation.line, violation.column) for violation in kept}
+    context = FindingContext(source=normalised, index=index, file_name=FileName("<fixer>.py"), parents=nodes.parents)
+    target_positions = _kept_positions(context=context, nodes=nodes)
     edits = _source_edits(
         text=text,
         raw=raw,
@@ -71,6 +72,14 @@ def fix_source(*, source: str | bytes, dry_run: bool = False) -> FixResult:
     )
 
 
+def _kept_positions(*, context: FindingContext, nodes: WalkedNodes) -> set[int]:
+    """Locate kept function signatures without tokenising clean files."""
+    findings = find_pyr402_findings(nodes=nodes, context=context)
+    kept = filter_suppressed(findings=findings, source=context.source, tokens=context.tokens if findings else None).kept
+    # Original byte offsets match AST nodes without mixing human code-point columns with AST byte columns.
+    return {next(span.byte_start for span in finding.spans if span.is_primary) for finding in kept}
+
+
 def _apply_edits(*, text: str, edits: list[_Insertion], as_bytes: bool) -> str | bytes:
     """Apply source edits from right to left and preserve the input type."""
     for position, insertion in reversed(edits):
@@ -83,13 +92,13 @@ def _source_edits(
     text: str,
     raw: bytes,
     nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
-    target_positions: set[tuple[int, int]],
+    target_positions: set[int],
     index: PositionIndex,
 ) -> list[_Insertion]:
-    """Collect safe edits for functions with kept PYR402 violations."""
+    """Collect eligible edits for functions with kept PYR402 findings."""
     edits: list[_Insertion] = []
     for node in nodes:
-        if (node.lineno, node.col_offset + 1) not in target_positions:
+        if index.byte_offset(line=node.lineno, utf8_column=node.col_offset) not in target_positions:
             continue
         edit = _function_edit(text=text, raw=raw, node=node, index=index)
         if edit is not None:

@@ -1,30 +1,38 @@
 # JavaScript Object Notation diagnostics
 
-`pyrigor --output-format=json path/` emits one JSON document to stdout. The default human-readable output is unchanged.
-The normative v1 schema is [`schemas/pyrigor-diagnostics-v1.json`](../schemas/pyrigor-diagnostics-v1.json).
+`pyrigor --output-format=json path/` emits one v2 JSON document to stdout. The normative schema is
+[`schemas/pyrigor-diagnostics-v2.json`](../schemas/pyrigor-diagnostics-v2.json).
 
-The top-level document contains `schema_version`, `diagnostics`, `errors`, and `summary`. The `diagnostics` contains
-only unsuppressed rule violations. Read and parse failures are operational errors, not rule violations and appear in
-`errors`. The same failures are also written as warnings to stderr.
+The document contains `schema_version`, `tool`, `findings`, `suppressed`, `rules`, `errors` and `summary`. The schema
+version is `2`. The tool identity contains pyrigor's name and installed version. Kept findings appear in `findings`;
+suppressed findings appear separately in `suppressed` with the same shape. Read, parse and malformed-suppression
+failures are operational errors. Human output also reports warnings to stderr. The summary contains only
+`files_checked`, including files with operational errors. List lengths provide finding counts.
 
-Diagnostic `file` values use the path string pyrigor checked. Locations use 1-based Unicode code-point columns and
-end-exclusive ranges. The JSON serializer converts Python AST's UTF-8 byte offsets to this representation. The `context`
-is always present because it is part of pyrigor's diagnostic contract.
+Each finding has a rule `code`, subject-bearing `message`, severity `level`, `spans`, `enclosing_symbol` and `fixes`.
+Exactly one span is primary. Function primary spans start at `def` or `async def` and end after the signature colon.
+Assignment and call primary spans cover their statements. Suppression checks the line directly above the primary span
+and every line within it. A comment elsewhere in a function body cannot suppress a signature finding.
 
-`fixability` is the rule's existing guideline classification. It does not mean that an edit is included in the response.
-Automatic fixes and fix edits are out of scope for v1.
+Span `file_name` values are NFC-normalised paths relative to the working directory, using forward slashes.
+Parent-directory segments are allowed for files outside that directory. Raw `byte_start` and `byte_end` include the
+original UTF-8 BOM and line-ending bytes. Lines and columns are 1-based; columns count Unicode code points. Ranges are
+end-exclusive. Python line breaks are LF, CRLF and lone CR; U+2028 and form feed do not start new lines. The CLI reads
+bytes once, then decodes UTF-8-sig with universal newlines for parsing and tokenising. Human output uses the same
+code-point columns. Signature spans and suppression reuse one token stream per file.
 
-Diagnostics, suppressed diagnostics and errors are emitted in a fixed, deterministic order, independent of the
-underlying filesystem's directory-enumeration order and of the order paths were given on the command line. Files are
-ordered by their path string, compared with forward slashes by Unicode code point, so the same order holds regardless of
-platform. Diagnostics and suppressed diagnostics are then ordered by line, column, end line, end column, then the rule's
-code as a string, so two findings at the same position still order deterministically, independent of which checker
-produced them. Errors are ordered by file. The human-readable output follows the same order for its finding lines, the
-per-file summary and the skipped-file warnings written to stderr.
+The enclosing symbol is the innermost function, method or class, using Python's NFKC-normalised qualified name.
+Module-level findings use `{"kind": "module", "name": "<module>"}`. Subjects belong in messages, rather than symbols.
+Every emitted finding currently has `fixes: []`. Rule metadata describes fix availability separately, including unsafe
+applicability. The existing explicit PYR402 `--fix` and `--diff` workflows remain available.
 
-The summary counts all candidate files passed to the checker, kept diagnostics, and suppressed diagnostics. The
-`suppressed_by_rule` is keyed by full rule code.
+The `rules` object contains exactly the selected rules, including rules with no findings. Each entry gives the symbolic
+name, fix availability, applicability where relevant and guideline URL. URLs are pinned to the installed tool version's
+release tag.
 
-Consumers must select behaviour by `schema_version` and may ignore unknown future fields. Removing a required field,
-changing a field's type or changing an enum value requires a new schema version. The v1 schema is otherwise closed so
-producers can detect accidental field drift.
+Findings and suppressed findings are ordered by their primary span's file name, start line, start column, end line, end
+column and then rule code. Errors are ordered by file name and line where present; rules are ordered by code. Output
+contains no timing or other run-dependent values. Usage errors and crashes emit no diagnostics document.
+
+Consumers must select behaviour by `schema_version` and ignore unknown fields. Producers validate strictly against the
+schema. Adding an optional field is compatible; removing a field or changing its type or meaning requires a new version.

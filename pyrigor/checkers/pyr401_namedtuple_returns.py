@@ -2,12 +2,13 @@
 
 import ast
 
-from pyrigor.checkers._shared import WalkedNodes, find_function_violations, is_bare_multi_value_tuple
+from pyrigor.checkers._shared import WalkedNodes, find_function_findings, is_bare_multi_value_tuple
+from pyrigor.finding_builder import FindingContext
+from pyrigor.findings import Finding
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation
 
 
-def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+def _has_finding(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """Check whether a function definition violates PYR401.
 
     Args:
@@ -20,14 +21,15 @@ def _has_violation(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return is_bare_multi_value_tuple(annotation=node.returns)
 
 
-def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
-    """Find PYR401 violations in already-walked nodes.
+def find_findings(*, nodes: WalkedNodes, context: FindingContext) -> list[Finding]:
+    """Find PYR401 findings in already-walked nodes.
 
     Args:
         nodes: Every relevant node in the file, from walk_once.
+        context: Source positions and names used to build findings.
 
     Returns:
-        A list of violations found, one per offending function.
+        A list of findings found, one per offending function.
     """
     # noinspection PyTypeChecker
-    return find_function_violations(nodes=nodes.function_nodes, predicate=_has_violation, rule=Rule.PYR401)
+    return find_function_findings(nodes=nodes.function_nodes, predicate=_has_finding, rule=Rule.PYR401, context=context)

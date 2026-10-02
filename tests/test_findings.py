@@ -288,6 +288,9 @@ def test_every_applicability_serialises_and_validates(*, applicability: Applicab
         pytest.param(
             EnclosingSymbol(kind=SymbolKind.FUNCTION, name="outer.<locals>.\U00010000"), id="astral-nested-function"
         ),
+        pytest.param(
+            EnclosingSymbol(kind=SymbolKind.FUNCTION, name="\U00010400tape"), id="astral-function-with-ascii-suffix"
+        ),
     ],
 )
 def test_enclosing_symbol_serialises_and_validates(*, symbol: EnclosingSymbol) -> None:

@@ -11,7 +11,14 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Added
 
 - Defined the v2 diagnostics document schema for tool identity, kept and suppressed findings, selected-rule metadata,
-  operational errors and the file-count summary (#288). CLI emission remains part of #269.
+  operational errors and the file-count summary (#288).
+
+### Changed
+
+- Migrated all checkers and consumers to canonical findings and shared original-byte positions (#269). JSON output now
+  emits the v2 document, including suppressed findings and selected-rule metadata, replacing v1. Function findings span
+  the signature through its colon. Body comments no longer suppress signature findings. Human locations use Unicode
+  code-point columns. Findings include enclosing symbols and empty fixes.
 
 ### Removed
 

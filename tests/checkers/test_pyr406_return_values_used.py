@@ -1,14 +1,11 @@
 """Tests for the PYR406 checker (return values used)."""
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
-# pylint: disable=magic-value-comparison
-
-import ast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import walk_once
-from pyrigor.checkers.pyr406_return_values_used import find_violations
+from pyrigor.checkers.pyr406_return_values_used import find_findings
 from pyrigor.rules import Rule
+from tests.checker_helpers import check_source
 
 
 def test_flags_bare_call_to_local_function_with_non_none_return() -> None:
@@ -19,16 +16,16 @@ def compute_total(items) -> float:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
-    # The rule a violation carries decides its code, message and severity, and no other
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
+    # The rule a finding carries decides its code, message and severity, and no other
     # test in this module looks at it.
-    assert violations[0].rule is Rule.PYR406
+    assert findings[0].code is Rule.PYR406
 
 
-def test_no_violation_when_return_value_is_assigned() -> None:
+def test_no_finding_when_return_value_is_assigned() -> None:
     """A call whose result is assigned should not be flagged."""
     source = """
 def compute_total(items) -> float:
@@ -36,12 +33,12 @@ def compute_total(items) -> float:
 
 total = compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_when_call_used_as_argument() -> None:
+def test_no_finding_when_call_used_as_argument() -> None:
     """A call whose result is passed to another call, not discarded, should not be flagged."""
     source = """
 def compute_total(items) -> float:
@@ -52,12 +49,12 @@ def log(value):
 
 log(compute_total(items))
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_function_returning_none() -> None:
+def test_no_finding_for_function_returning_none() -> None:
     """A function explicitly annotated -> None should never be flagged, even if its call is bare."""
     source = """
 def log_event(message) -> None:
@@ -65,12 +62,12 @@ def log_event(message) -> None:
 
 log_event("started")
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_unannotated_function() -> None:
+def test_no_finding_for_unannotated_function() -> None:
     """A function with no return annotation at all is outside PYR406's scope (return type unknown)."""
     source = """
 def compute_total(items):
@@ -78,12 +75,12 @@ def compute_total(items):
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_noreturn_annotated_function() -> None:
+def test_no_finding_for_noreturn_annotated_function() -> None:
     """A function annotated -> NoReturn never returns control, nothing to discard."""
     source = """
 def fail(message) -> NoReturn:
@@ -91,12 +88,12 @@ def fail(message) -> NoReturn:
 
 fail("boom")
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_never_annotated_function() -> None:
+def test_no_finding_for_never_annotated_function() -> None:
     """A function annotated `-> Never` never returns control, nothing to discard."""
     source = """
 def fail(message) -> Never:
@@ -104,12 +101,12 @@ def fail(message) -> Never:
 
 fail("boom")
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_attribute_style_noreturn_annotation() -> None:
+def test_no_finding_for_attribute_style_noreturn_annotation() -> None:
     """A NoReturn annotation written via attribute access (`typing.NoReturn`) should still be excluded."""
     source = """
 def fail(message) -> typing.NoReturn:
@@ -117,12 +114,12 @@ def fail(message) -> typing.NoReturn:
 
 fail("boom")
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_unrecognized_annotation_shape() -> None:
+def test_no_finding_for_unrecognized_annotation_shape() -> None:
     """An annotation shape PYR406 cannot resolve to a simple name (a call expression) should not be flagged."""
     source = """
 def compute_total(items) -> some_registry.lookup("total"):
@@ -130,12 +127,12 @@ def compute_total(items) -> some_registry.lookup("total"):
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_generator_annotated_function() -> None:
+def test_no_finding_for_generator_annotated_function() -> None:
     """A generator-annotated function (Iterator[X]) is covered by PYR407 instead, not PYR406."""
     source = """
 def iter_items(items) -> Iterator[int]:
@@ -143,19 +140,19 @@ def iter_items(items) -> Iterator[int]:
 
 iter_items(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_external_function_call() -> None:
+def test_no_finding_for_external_function_call() -> None:
     """A call to a name that is not defined locally should never be flagged."""
     source = """
 print(compute_elsewhere())
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_bare_call_to_local_async_function_with_non_none_return() -> None:
@@ -166,10 +163,10 @@ async def compute_total(items) -> float:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_flags_bare_call_to_nested_function() -> None:
@@ -181,10 +178,10 @@ def outer():
 
     helper()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "helper"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'helper' ")
 
 
 def test_does_not_flag_shadowed_bare_function_with_none_return() -> None:
@@ -198,8 +195,8 @@ def outer() -> None:
         return None
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_flags_protected_shadowing_local_function() -> None:
@@ -213,8 +210,8 @@ def outer() -> None:
         return 1
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert len(violations) == 1
+    findings = check_source(source=source, checker=find_findings)
+    assert len(findings) == 1
 
 
 def test_ignores_unresolved_bare_call_inside_nested_function() -> None:
@@ -225,8 +222,8 @@ def outer() -> None:
         return 1
     missing()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_uses_last_same_scope_definition_for_bare_call() -> None:
@@ -240,8 +237,8 @@ def value() -> int:
 
 value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert len(violations) == 1
+    findings = check_source(source=source, checker=find_findings)
+    assert len(findings) == 1
 
 
 # The shadowing tests below share the value/outer fixture convention every other test in
@@ -259,8 +256,8 @@ def outer() -> None:
     value = lambda: None
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_tracks_vararg_binding() -> None:
@@ -279,8 +276,8 @@ def outer(*value):
 
 value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_tracks_kwarg_binding() -> None:
@@ -297,8 +294,8 @@ def outer(**value):
 
 value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_does_not_flag_imported_name_shadowing_protected_function() -> None:
@@ -312,8 +309,8 @@ def outer() -> None:
     {import_statement}
     value()
 """
-        violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-        assert violations == []
+        findings = check_source(source=source, checker=find_findings)
+        assert findings == []
 
 
 def test_does_not_flag_exception_alias_shadowing_protected_function() -> None:
@@ -328,8 +325,8 @@ def outer() -> None:
     except Exception as value:
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_does_not_flag_match_binding_shadowing_protected_function() -> None:
@@ -343,8 +340,8 @@ def outer(item) -> None:
         case value:
             value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_wildcard_match_pattern_does_not_shadow_protected_function() -> None:
@@ -358,9 +355,9 @@ def outer(item) -> None:
         case _:
             value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert len(violations) == 1
-    assert violations[0].context_name == "value"
+    findings = check_source(source=source, checker=find_findings)
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'value' ")
 
 
 def test_tracks_star_and_mapping_pattern_bindings() -> None:
@@ -376,8 +373,8 @@ def outer(item) -> None:
         case {**value}:
             value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_flags_bare_call_to_function_returning_a_subscripted_generic() -> None:
@@ -392,10 +389,10 @@ def build(items) -> list[int]:
 
 build(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "build"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'build' ")
 
 
 def test_mapping_pattern_rest_alone_stops_outer_function_resolution() -> None:
@@ -413,9 +410,9 @@ def outer(item) -> None:
         case {"key": 1, **value}:
             value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_does_not_flag_local_class_shadowing_protected_function() -> None:
@@ -429,8 +426,8 @@ def outer() -> None:
         pass
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert violations == []
+    findings = check_source(source=source, checker=find_findings)
+    assert findings == []
 
 
 def test_flags_nonlocal_protected_function_reference() -> None:
@@ -444,8 +441,8 @@ def outer() -> None:
         nonlocal value
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
-    assert len(violations) == 1
+    findings = check_source(source=source, checker=find_findings)
+    assert len(findings) == 1
 
 
 def test_flags_self_call_to_same_class_method() -> None:
@@ -458,10 +455,10 @@ class Foo:
     def handle(self, items):
         self.compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_flags_self_call_to_staticmethod() -> None:
@@ -475,13 +472,13 @@ class Foo:
     def handle(self, items):
         self.compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
-def test_no_violation_for_self_call_to_inherited_method() -> None:
+def test_no_finding_for_self_call_to_inherited_method() -> None:
     """A self.foo() call where foo() is inherited, not defined directly on this class, is not detected."""
     source = """
 class Base:
@@ -492,12 +489,12 @@ class Foo(Base):
     def handle(self, items):
         self.compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_classmethod_call_via_cls() -> None:
+def test_no_finding_for_classmethod_call_via_cls() -> None:
     """A cls.foo() call is out of scope for this pass — same-class detection covers self only."""
     source = """
 class Foo:
@@ -509,12 +506,12 @@ class Foo:
     def handle(cls, items):
         cls.compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_nested_class_with_own_self() -> None:
+def test_no_finding_for_nested_class_with_own_self() -> None:
     """A nested class's own self.foo() call must not be attributed to the enclosing class."""
     source = """
 class Outer:
@@ -526,9 +523,9 @@ class Outer:
     def foo(self) -> float:
         ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_self_call_via_nested_closure() -> None:
@@ -543,22 +540,22 @@ class Foo:
             self.compute_total(items)
         inner()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
-def test_no_violation_for_lambda_call() -> None:
+def test_no_finding_for_lambda_call() -> None:
     """A lambda assigned to a name and called bare is not a FunctionDef, so it is outside PYR406's scope."""
     source = """
 compute_total = lambda items: sum(items)
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_bare_call_for_pep604_union_return() -> None:
@@ -569,10 +566,10 @@ def compute_total(items) -> int | str:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_flags_bare_call_for_pep604_union_with_none() -> None:
@@ -583,10 +580,10 @@ def parse(s) -> int | None:
 
 parse(s)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "parse"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'parse' ")
 
 
 def test_flags_bare_call_for_chained_pep604_union() -> None:
@@ -597,13 +594,13 @@ def compute_total(items) -> int | str | None:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
-def test_no_violation_for_non_union_binop_annotation() -> None:
+def test_no_finding_for_non_union_binop_annotation() -> None:
     """A BinOp annotation that is not a union (for example, arithmetic) should not be treated as protected."""
     source = """
 def compute_total(items) -> int + str:
@@ -611,12 +608,12 @@ def compute_total(items) -> int + str:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_module_level_function_with_self_first_parameter() -> None:
+def test_no_finding_for_module_level_function_with_self_first_parameter() -> None:
     """A module-level function whose first parameter is `self` stays out of the protected set."""
     source = """
 def helper(self) -> int:
@@ -624,12 +621,12 @@ def helper(self) -> int:
 
 helper(None)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_module_level_function_with_cls_first_parameter() -> None:
+def test_no_finding_for_module_level_function_with_cls_first_parameter() -> None:
     """A module-level function whose first parameter is `cls` stays out of the protected set."""
     source = """
 def helper(cls) -> int:
@@ -637,12 +634,12 @@ def helper(cls) -> int:
 
 helper(None)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_module_level_function_with_positional_only_self() -> None:
+def test_no_finding_for_module_level_function_with_positional_only_self() -> None:
     """A positional-only `self` counts too, which is why both parameter lists are read."""
     source = """
 def helper(self, /) -> int:
@@ -650,9 +647,9 @@ def helper(self, /) -> int:
 
 helper(None)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_no_false_positive_when_class_staticmethod_shares_name_with_unprotected_function() -> None:
@@ -674,6 +671,6 @@ class Example:
 
 helper()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings

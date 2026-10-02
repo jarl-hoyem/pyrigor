@@ -1,13 +1,55 @@
 # Performance
 
 Real-world timing data from running `pyrigor` against codebases of increasing size, gathered while validating pyrigor's
-suitability for large-scale use. All runs used pyrigor's local, unreleased source (via `uv run` from within the pyrigor
-project itself), on a Windows machine, Python 3.14.
+suitability for large-scale use. Runs use a local source on Windows with Python 3.14. The historical measurements used
+`uv run`; the migration measurements below use the worktree's own interpreter and the same CLI checking pipeline.
 
-The results below reflect two distinct architectural states. The original table (Results section) predates PYR301 and
-PYR403 and predates the shared-AST-walk refactor, kept as historical data since the qualitative findings (per-file cost
-scales with code complexity, not file count. No crashes on either large codebase) remain valid. The "Shared AST walk"
-section below is current, five checkers, one `ast.walk` per file.
+The historical Results table predates PYR301, PYR403 and the shared-AST-walk refactor. The Shared AST walk section
+measures five checkers. The canonical finding migration measures the current six checkers, including PYR406. These
+tables describe different rule sets, so their timings cannot be compared directly.
+
+## Canonical finding migration
+
+The pre-migration baseline is commit `032c900cc9bda7b43ce24012034ecaae786d20c3`, using pyrigor 0.13.1. Sources were
+frozen with `git show` before any checker changes. The portable characterisation archive separately preserves the 36
+committed Python files under `pyrigor/`, `tests/checkers/` and `manual-tests/`. It records 70 raw detections, of which
+10 are kept and 60 suppressed, by file, rule and starting line.
+
+Timing runs use Python 3.14.3 on Windows 11 (build 26200). Both corpora use every registered rule and default directory
+exclusions. Each run uses CLI file collection and `_check_file`, without rendering findings or JSON. Timing starts after
+collecting, matching the CLI's checking timer. These are single wall-clock observations on a shared machine, without
+controlled filesystem cache or system load. Treat their differences as rough indications.
+
+| Codebase            | Files  | Kept findings | Before  | After    |
+| ------------------- | ------ | ------------- | ------- | -------- |
+| CPython stdlib      | 1,844  | 21,209        | 60.913s | 33.233s  |
+| Home Assistant core | 18,187 | 90,488        | 83.826s | 104.597s |
+
+The CPython corpus is `C:/Python314/Lib`, excluding `site-packages`. It has three expected non-UTF-8 read failures and
+one expected parse failure. Home Assistant is `C:/Users/jarl/smallgig/core` at
+`80fd0c5fbbe147412c65f55b75f13c1e0ea22f35`, version 2026.9.0.dev0, with no operational failures. Neither corpus contains
+suppressed findings. Per-rule baseline counts are:
+
+| Codebase            | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
+| ------------------- | ------ | ------ | ------ | ------ | ------ | ------ |
+| CPython stdlib      | 6      | 39     | 8,591  | 12,560 | 4      | 9      |
+| Home Assistant core | 55     | 579    | 58,485 | 30,786 | 420    | 163    |
+
+The baseline command from the isolated worktree was:
+
+```powershell
+./.venv/Scripts/python.exe .venv/269-artifacts/benchmark_269.py
+./.venv/Scripts/python.exe .venv/269-artifacts/benchmark_269_after.py
+```
+
+The original observation is retained in `.cache/269-baseline.json`. The paired repeat is recorded in
+`.cache/269-before-resume.json` and `.cache/269-after-resume.json`. The baseline script imports the frozen original
+package rather than the migrated sources.
+
+Before and after runs were sequential under the same execution context. Finding counts, suppression counts and
+operational failures match on both corpora. The standard-library run became faster while the Home Assistant run became
+slower. Cache and system load were not controlled, so these observations do not establish a general speedup or isolate
+the cost of the migration.
 
 ## Results
 

@@ -3,6 +3,7 @@
 # pylint: disable=magic-value-comparison
 
 import json
+from os.path import relpath
 from pathlib import Path
 
 import pytest
@@ -15,12 +16,12 @@ from pyrigor.checkers.cli import (
     _check_file,  # pyright: ignore[reportPrivateUsage]
     _file_sort_key,  # pyright: ignore[reportPrivateUsage]
     _files_in_directory,  # pyright: ignore[reportPrivateUsage]
-    _violation_sort_key,  # pyright: ignore[reportPrivateUsage]
+    _finding_sort_key,  # pyright: ignore[reportPrivateUsage]
     main,
 )
 from pyrigor.rules import Rule
 from pyrigor.suppression import SuppressionResult
-from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
+from tests.checker_helpers import finding_at
 
 
 def _without_elapsed_time(*, output: str) -> str:
@@ -28,24 +29,11 @@ def _without_elapsed_time(*, output: str) -> str:
     return "\n".join(line for line in output.splitlines() if not line.startswith("Checked "))
 
 
-def _violation(*, line: int, end_line: int, column: int, end_column: int, rule: Rule) -> Violation:
-    """Build a minimal Violation for sort-key tests, only the position and rule vary."""
-    return Violation(
-        line=line,
-        end_line=end_line,
-        column=column,
-        end_column=end_column,
-        context_name="x",
-        context_kind="Function",
-        rule=rule,
-    )
-
-
-def test_violation_sort_key_reads_position_fields_by_name() -> None:
+def test_finding_sort_key_reads_position_fields_by_name() -> None:
     """The sort key exposes line, column and end position by name, not only by tuple position."""
-    violation = _violation(line=3, end_line=4, column=5, end_column=6, rule=Rule.PYR402)
+    finding = finding_at(line=3, end_line=4, column=5, end_column=6, rule=Rule.PYR402)
 
-    key = _violation_sort_key(violation=violation)
+    key = _finding_sort_key(finding=finding)
 
     assert key.line == 3
     assert key.column == 5
@@ -53,44 +41,44 @@ def test_violation_sort_key_reads_position_fields_by_name() -> None:
     assert key.end_column == 6
 
 
-def test_violation_sort_key_reads_rule_code_field_by_name() -> None:
+def test_finding_sort_key_reads_rule_code_field_by_name() -> None:
     """The sort key exposes the rule's code by name, not only by tuple position."""
-    violation = _violation(line=1, end_line=1, column=1, end_column=1, rule=Rule.PYR402)
+    finding = finding_at(line=1, end_line=1, column=1, end_column=1, rule=Rule.PYR402)
 
-    key = _violation_sort_key(violation=violation)
+    key = _finding_sort_key(finding=finding)
 
     assert key.rule_code == "PYR402"
 
 
-def test_violation_sort_key_orders_by_line_then_column() -> None:
-    """Violations at different positions sort by line first, then column."""
-    later = _violation(line=5, end_line=5, column=1, end_column=2, rule=Rule.PYR402)
-    earlier_same_line_later_column = _violation(line=2, end_line=2, column=9, end_column=10, rule=Rule.PYR402)
-    earliest = _violation(line=2, end_line=2, column=1, end_column=2, rule=Rule.PYR402)
+def test_finding_sort_key_orders_by_line_then_column() -> None:
+    """Findings at different positions sort by line first, then column."""
+    later = finding_at(line=5, end_line=5, column=1, end_column=2, rule=Rule.PYR402)
+    earlier_same_line_later_column = finding_at(line=2, end_line=2, column=9, end_column=10, rule=Rule.PYR402)
+    earliest = finding_at(line=2, end_line=2, column=1, end_column=2, rule=Rule.PYR402)
 
-    ordered = sorted([later, earlier_same_line_later_column, earliest], key=lambda v: _violation_sort_key(violation=v))
+    ordered = sorted([later, earlier_same_line_later_column, earliest], key=lambda v: _finding_sort_key(finding=v))
 
     assert ordered == [earliest, earlier_same_line_later_column, later]
 
 
-def test_violation_sort_key_breaks_a_tied_start_by_end_position() -> None:
-    """Two violations sharing a start position order by end position next."""
-    shorter = _violation(line=1, end_line=1, column=1, end_column=3, rule=Rule.PYR402)
-    longer = _violation(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR401)
+def test_finding_sort_key_breaks_a_tied_start_by_end_position() -> None:
+    """Two findings sharing a start position order by end position next."""
+    shorter = finding_at(line=1, end_line=1, column=1, end_column=3, rule=Rule.PYR402)
+    longer = finding_at(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR401)
 
-    ordered = sorted([longer, shorter], key=lambda v: _violation_sort_key(violation=v))
+    ordered = sorted([longer, shorter], key=lambda v: _finding_sort_key(finding=v))
 
     assert ordered == [shorter, longer]
 
 
-def test_violation_sort_key_breaks_a_tied_position_by_rule_code() -> None:
-    """Two violations sharing the same start and end position order by rule code last."""
-    pyr402_violation = _violation(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR402)
-    pyr401_violation = _violation(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR401)
+def test_finding_sort_key_breaks_a_tied_position_by_rule_code() -> None:
+    """Two findings sharing the same start and end position order by rule code last."""
+    pyr402_finding = finding_at(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR402)
+    pyr401_finding = finding_at(line=1, end_line=1, column=1, end_column=10, rule=Rule.PYR401)
 
-    ordered = sorted([pyr402_violation, pyr401_violation], key=lambda v: _violation_sort_key(violation=v))
+    ordered = sorted([pyr402_finding, pyr401_finding], key=lambda v: _finding_sort_key(finding=v))
 
-    assert ordered == [pyr401_violation, pyr402_violation]
+    assert ordered == [pyr401_finding, pyr402_finding]
 
 
 def test_file_sort_key_normalizes_windows_separators_to_forward_slashes() -> None:
@@ -116,11 +104,10 @@ def test_file_sort_key_orders_a_path_separator_before_any_letter() -> None:
     assert ordered == ["a/b/c.py", "a/bb.py"]
 
 
-def test_check_file_orders_suppressed_violations_by_position(*, tmp_path: Path) -> None:
-    """Suppressed violations from different rules come back ordered by position, not checker registration order.
+def test_check_file_orders_suppressed_findings_by_position(*, tmp_path: Path) -> None:
+    """Suppressed findings from different rules come back ordered by position, not checker registration order.
 
-    No current output format prints suppressed violations individually (only their counts), so this exercises
-    _check_file directly rather than through main().
+    Exercise the partition before it is serialised into JSON.
     """
     source_file = tmp_path / "bad.py"
     source_file.write_text(
@@ -135,27 +122,28 @@ def test_check_file_orders_suppressed_violations_by_position(*, tmp_path: Path) 
 
     result = _check_file(path=str(source_file), checkers=CHECKERS)
 
-    assert [violation.line for violation in result.suppressed] == [1, 6]
+    assert [next(span for span in finding.spans if span.is_primary).line_start for finding in result.suppressed] == [
+        1,
+        6,
+    ]
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
-def test_check_file_sorts_kept_and_suppressed_by_the_explicit_key_not_tuple_identity(
+# pyrigor 402 # pytest fixture injection, not a real finding
+def test_check_file_sorts_kept_and_suppressed_by_the_explicit_position_key(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Kept and suppressed both sorts by the explicit (line, column, end_line, end_column, rule) key.
 
-    Violation's own field order is (line, end_line, column, ...). These two violations share a line: the
-    explicit key ranks the smaller-column one first, but Violation's own tuple identity would rank the
-    smaller-end_line one first instead, the opposite order. Proves _check_file uses the real key, not
-    whatever order Violation's fields happen to be declared in.
+    These findings share a line but have different columns and end lines. The smaller column must win,
+    regardless of the end line or the order returned by the suppression filter.
     """
     source_file = tmp_path / "source.py"
     source_file.write_text("x = 1\n")
-    small_column_large_end_line = _violation(line=1, end_line=8, column=3, end_column=4, rule=Rule.PYR402)
-    large_column_small_end_line = _violation(line=1, end_line=2, column=10, end_column=11, rule=Rule.PYR401)
+    small_column_large_end_line = finding_at(line=1, end_line=8, column=3, end_column=4, rule=Rule.PYR402)
+    large_column_small_end_line = finding_at(line=1, end_line=2, column=10, end_column=11, rule=Rule.PYR401)
     fixed_result = SuppressionResult(
-        kept=KeptViolations([large_column_small_end_line, small_column_large_end_line]),
-        suppressed=SuppressedViolations([large_column_small_end_line, small_column_large_end_line]),
+        kept=[large_column_small_end_line, small_column_large_end_line],
+        suppressed=[large_column_small_end_line, small_column_large_end_line],
     )
 
     def fake_filter_suppressed(**_ignored: object) -> SuppressionResult:
@@ -170,11 +158,11 @@ def test_check_file_sorts_kept_and_suppressed_by_the_explicit_key_not_tuple_iden
     assert result.suppressed == [small_column_large_end_line, large_column_small_end_line]
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
-def test_main_json_diagnostics_are_ordered_by_file_then_position(
+# pyrigor 402 # pytest fixture injection, not a real finding
+def test_main_json_findings_are_ordered_by_file_then_position(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """JSON diagnostics come out ordered by file, then by position within a file, in absolute terms.
+    """JSON findings come out ordered by relative file name, then by position within a file.
 
     Complements the enumeration-order-independence test above, which only checks that two runs agree with each
     other, not that the agreed-upon order is the expected one.
@@ -187,19 +175,19 @@ def test_main_json_diagnostics_are_ordered_by_file_then_position(
     main(paths=[str(tmp_path)], output_format="json")
 
     document = json.loads(capsys.readouterr().out)
-    locations = [(d["file"], d["location"]["start"]["line"]) for d in document["diagnostics"]]
+    locations = [(d["spans"][0]["file_name"], d["spans"][0]["line_start"]) for d in document["findings"]]
     assert locations == [
-        (str(tmp_path / "a.py"), 1),
-        (str(tmp_path / "a.py"), 6),
-        (str(tmp_path / "b.py"), 1),
+        (Path(relpath(tmp_path / "a.py")).as_posix(), 1),
+        (Path(relpath(tmp_path / "a.py")).as_posix(), 6),
+        (Path(relpath(tmp_path / "b.py")).as_posix(), 1),
     ]
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
-def test_main_orders_violations_within_a_file_by_position_not_checker_registration_order(
+# pyrigor 402 # pytest fixture injection, not a real finding
+def test_main_orders_findings_within_a_file_by_position_not_checker_registration_order(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """A file with two rules' violations prints them by line, even though PYR401 is checked before PYR402."""
+    """A file with two rules' findings prints them by line, even though PYR401 is checked before PYR402."""
     source_file = tmp_path / "bad.py"
     source_file.write_text(
         "def apply_correction(weight, bias):\n    ...\n\n\n\ndef returns_pair() -> tuple[int, int]:\n    ...\n"
@@ -212,7 +200,7 @@ def test_main_orders_violations_within_a_file_by_position_not_checker_registrati
     assert diagnostic_lines[1].startswith(f"{source_file}:6:")
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real finding
 def test_main_output_is_independent_of_path_argument_order(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Checking 'b.py a.py' and 'a.py b.py' produce identical output."""
     a_file = tmp_path / "a.py"
@@ -228,7 +216,7 @@ def test_main_output_is_independent_of_path_argument_order(tmp_path: Path, capsy
     assert reordered_output == natural_output
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real finding
 def test_main_orders_files_by_normalized_key_not_native_separator_comparison(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -249,7 +237,7 @@ def test_main_orders_files_by_normalized_key_not_native_separator_comparison(
     assert nested_position < sibling_position
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real finding
 def test_main_output_is_independent_of_directory_enumeration_order(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -284,7 +272,7 @@ def test_main_output_is_independent_of_directory_enumeration_order(
         assert reversed_output == shuffled_output, f"{output_format} output depended on enumeration order"
 
 
-# pyrigor 402 # pytest fixture injection, not a real violation
+# pyrigor 402 # pytest fixture injection, not a real finding
 def test_main_orders_operational_errors_by_file_in_stderr_and_json(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -301,4 +289,6 @@ def test_main_orders_operational_errors_by_file_in_stderr_and_json(
     main(paths=[str(z_unreadable), str(a_unparseable)], output_format="json")
     captured = capsys.readouterr()
     document = json.loads(captured.out)
-    assert [error["file"] for error in document["errors"]] == [str(a_unparseable), str(z_unreadable)]
+    assert [error["file_name"] for error in document["errors"]] == [
+        Path(relpath(path)).as_posix() for path in (a_unparseable, z_unreadable)
+    ]

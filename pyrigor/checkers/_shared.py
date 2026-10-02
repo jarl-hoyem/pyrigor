@@ -4,8 +4,9 @@ import ast
 from collections.abc import Iterator
 from typing import Final, NamedTuple, Protocol
 
+from pyrigor.finding_builder import FindingContext, make_finding
+from pyrigor.findings import Finding
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation, make_violation
 
 _UNBOUNDED_TUPLE_SLICE_LENGTH: Final = 2  # tuple[X, ...] always has exactly [type, Ellipsis]
 _MINIMUM_MULTI_VALUE_COUNT: Final = 2  # two or more elements means "multiple values"
@@ -114,42 +115,46 @@ class _AssignPredicateFun(Protocol):  # pylint: disable=too-few-public-methods
         ...
 
 
-def find_function_violations(
+def find_function_findings(
     *,
     nodes: list[ast.FunctionDef | ast.AsyncFunctionDef],
     predicate: _FunctionPredicateFun,
     rule: Rule,
-) -> list[Violation]:
-    """Flag every function node matching a predicate as a violation.
+    context: FindingContext,
+) -> list[Finding]:
+    """Flag every function node matching a predicate as a finding.
 
     Args:
         nodes: Every function node in the file, already collected by walk_once.
         predicate: Returns True for a function node that violates the rule.
-        rule: Which rule to record the violation against.
+        rule: Which rule to record the finding against.
+        context: Source positions and names used to build findings.
 
     Returns:
-        A list of violations found, one per matching function.
+        A list of findings found, one per matching function.
     """
-    return [make_violation(node=node, rule=rule) for node in nodes if predicate(node=node)]
+    return [make_finding(node=node, rule=rule, context=context) for node in nodes if predicate(node=node)]
 
 
-def find_assign_violations(
+def find_assign_findings(
     *,
     nodes: list[ast.AnnAssign],
     predicate: _AssignPredicateFun,
     rule: Rule,
-) -> list[Violation]:
-    """Flag every annotated-assignment node matching a predicate as a violation.
+    context: FindingContext,
+) -> list[Finding]:
+    """Flag every annotated-assignment node matching a predicate as a finding.
 
     Args:
         nodes: Every annotated-assignment node in the file, already collected by walk_once.
         predicate: Returns True for an annotated assignment that violates the rule.
-        rule: Which rule to record the violation against.
+        rule: Which rule to record the finding against.
+        context: Source positions and names used to build findings.
 
     Returns:
-        A list of violations found, one per matching assignment.
+        A list of findings found, one per matching assignment.
     """
-    return [make_violation(node=node, rule=rule) for node in nodes if predicate(node=node)]
+    return [make_finding(node=node, rule=rule, context=context) for node in nodes if predicate(node=node)]
 
 
 class WalkedNodes(NamedTuple):
@@ -207,7 +212,7 @@ def call_statement_value(*, node: ast.AST) -> ast.Call | None:
     return node.value if isinstance(node.value, ast.Call) else None
 
 
-# Single-pass node classification is the point of this function, splitting it further means walking the tree twice again
+# Keep node classification and parent collection in one traversal so all checkers reuse the same results.
 def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
     """Walk a tree exactly once, splitting nodes by kind for every checker to reuse.
 
