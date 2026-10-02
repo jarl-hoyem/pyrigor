@@ -129,13 +129,37 @@ def test_complex_signature_suppression_and_fixes_preserve_original_bytes(
     assert (caught.value.code, captured.err, source_file.read_bytes()) == (0, "", expected)
 
 
+class _BlankLineCase(NamedTuple):
+    """Original leading bytes and independently specified diff context."""
+
+    prefix: bytes
+    newline: bytes
+    diff_context: str
+    lines: int
+
+
 @pytest.mark.parametrize("option", ["--fix", "--diff"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        _BlankLineCase(b"\r\r", b"\r", " \r \r", 4),
+        _BlankLineCase(b"# comment\r\r", b"\r", " # comment\r \r", 4),
+        _BlankLineCase(b"\r", b"\r", " \r", 3),
+        _BlankLineCase(b"\r\n\r\n", b"\r\n", " \r\n \r\n", 4),
+    ],
+    ids=["cr-blank", "cr-comment-blank", "single-cr-control", "crlf-blank-control"],
+)
 def test_cr_only_blank_lines_do_not_crash_fix_or_diff(
-    *, tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, option: str
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    option: str,
+    case: _BlankLineCase,
 ) -> None:
-    """The #348 reproduction preserves both blank lines and every original carriage return."""
-    original = b"\r\rdef f(a, b):\r    pass\r"
-    fixed = b"\r\rdef f(*, a, b):\r    pass\r"
+    """The #348 reproductions and negative controls preserve all original line-ending bytes."""
+    original = case.prefix + b"def f(a, b):" + case.newline + b"    pass" + case.newline
+    fixed = original.replace(b"def f(a, b):", b"def f(*, a, b):")
     source_file = tmp_path / "cr_only.py"
     source_file.write_bytes(original)
     monkeypatch.setattr(sys, "argv", ["pyrigor", option, "--select=PYR402", str(source_file)])
@@ -146,7 +170,14 @@ def test_cr_only_blank_lines_do_not_crash_fix_or_diff(
     expected_output = {
         "--fix": f"Fixed {source_file}\n",
         "--diff": (
-            f"--- {source_file}\n+++ {source_file}\n@@ -1,4 +1,4 @@\n \r \r-def f(a, b):\r+def f(*, a, b):\r     pass\r"
+            f"--- {source_file}\n+++ {source_file}\n@@ -1,{case.lines} +1,{case.lines} @@\n"
+            + case.diff_context
+            + "-def f(a, b):"
+            + case.newline.decode()
+            + "+def f(*, a, b):"
+            + case.newline.decode()
+            + "     pass"
+            + case.newline.decode()
         ),
     }[option]
     assert (caught.value.code, captured.err, captured.out, source_file.read_bytes()) == (

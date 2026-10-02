@@ -3,6 +3,8 @@
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
+import pytest
+
 from pyrigor.rules import Rule
 
 # noinspection PyProtectedMember
@@ -11,6 +13,24 @@ from pyrigor.suppression import (
     filter_suppressed,
 )
 from tests.checker_helpers import finding_at
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("comment", ["# pyrigor 402 # reason", "# pyrigor: 402 # reason", "# unrelated"])
+def test_raw_line_breaks_preserve_comment_boundaries(*, newline: str, comment: str) -> None:
+    """Standalone suppression scanning uses Python line breaks and retains warning text."""
+    source = newline.join(["pass", comment, "def flagged(a, b): pass", ""])
+    findings = [finding_at(line=3, end_line=3, column=1, rule=Rule.PYR402)]
+    result = filter_suppressed(findings=findings, source=source)
+    valid = comment == "# pyrigor 402 # reason"
+    assert result.kept == ([] if valid else findings)
+    assert result.suppressed == (findings if valid else [])
+    expected_messages = (
+        ["comment mentions 'pyrigor' but does not match '# pyrigor CODE[,CODE] # reason' -- ignoring: " + comment]
+        if comment == "# pyrigor: 402 # reason"
+        else []
+    )
+    assert [error.message for error in result.errors] == expected_messages
 
 
 def test_suppressed_violation_is_filtered_out() -> None:

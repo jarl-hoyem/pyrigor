@@ -87,18 +87,11 @@ class _FixSourceFailed(NamedTuple):
 _FixSourceResult = _FixSourceOk | _FixSourceFailed
 
 
-class _PreparedFix(NamedTuple):
-    """A fixer result and whether the original source had a BOM."""
-
-    result: FixResult
-    bom: bool
-
-
 class _FixInput(NamedTuple):
     """A readable source and its prepared fixer result."""
 
     original: bytes
-    prepared: _PreparedFix
+    prepared: FixResult
 
 
 class _RunOptions(NamedTuple):
@@ -325,7 +318,6 @@ class FileCheckResult(NamedTuple):
     kept: list[Finding]
     suppressed: list[Finding]
     errors: list[CheckError]
-    source: str | None
 
 
 def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCheckResult:
@@ -336,7 +328,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
             kept=[],
             suppressed=[],
             errors=[source_result.error],
-            source=None,
         )
 
     checker_result = _run_checkers(
@@ -347,7 +338,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
             kept=[],
             suppressed=[],
             errors=[checker_result.error],
-            source=source_result.source,
         )
 
     result = filter_suppressed(
@@ -357,7 +347,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
         kept=sorted(result.kept, key=lambda finding: _finding_sort_key(finding=finding)),
         suppressed=sorted(result.suppressed, key=lambda finding: _finding_sort_key(finding=finding)),
         errors=list(result.errors),
-        source=source_result.source,
     )
 
 
@@ -745,7 +734,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--output-format",
         action="append",
         choices=("human", "json"),
-        default=None,
         help="Output format (default: human).",
     )
     parser.add_argument(
@@ -878,14 +866,13 @@ def _fix_path(*, path: str, diff: bool) -> None:
     fix_input = _read_and_prepare_fix(path=path)
     if fix_input is None:
         return
-    original, prepared = fix_input
-    result, bom = prepared
+    original, result = fix_input
     if result.status is FixStatus.UNCHANGED:
         return
     if diff:
         _print_fix_diff(path=path, original=original, fixed=cast("bytes", result.source))
         return
-    Path(path).write_bytes((b"\xef\xbb\xbf" if bom else b"") + cast("bytes", result.source))
+    Path(path).write_bytes(cast("bytes", result.source))
     print(f"Fixed {path}")
 
 
@@ -896,17 +883,11 @@ def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
         print(f"{path}: {source_result.error.message}", file=sys.stderr)
         return None
     try:
-        prepared = _fix_source(source=source_result.source)
+        prepared = fix_source(source=source_result.source)
     except (FixRejectedError, UnicodeDecodeError) as error:
         print(f"{path}: fix rejected: {error}", file=sys.stderr)
         return None
     return _FixInput(original=source_result.source, prepared=prepared)
-
-
-def _fix_source(*, source: bytes) -> _PreparedFix:
-    """Run the fixer after removing an optional UTF-8 BOM."""
-    bom = source.startswith(b"\xef\xbb\xbf")
-    return _PreparedFix(result=fix_source(source=source[3:] if bom else source), bom=bom)
 
 
 def _print_fix_diff(*, path: str, original: bytes, fixed: bytes) -> None:

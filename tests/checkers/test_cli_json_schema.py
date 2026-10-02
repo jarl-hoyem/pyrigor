@@ -40,6 +40,48 @@ _SHIFTED_LINE_SOURCE = "X = 'a{character}b'\nif X:\n if X:\n        def bad(a, b
 _MULTIBYTE_LINE_SOURCE = "X = 'a{character}b'\n\u00e9 = X\nif \u00e9:\n    def bad(a, b):\n        ...\n"
 
 
+@pytest.mark.parametrize("offset", [None, -1, 0, 1, 7])
+def test_parser_columns_keep_only_positive_offsets(
+    *, offset: int | None, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
+) -> None:
+    """Unavailable parser columns are omitted, while positive columns and lines survive JSON output."""
+    path = tmp_path / "broken.py"
+    path.write_text("pass\n", encoding="utf-8")
+    error = SyntaxError("invalid syntax")
+    error.lineno = 1
+    error.offset = offset
+    with patch("pyrigor.checkers.cli.ast.parse", side_effect=error):
+        assert not main(paths=[str(path)], output_format="json")
+    document = json.loads(capsys.readouterr().out)
+    _assert_valid_schema(document=document, schema=schema)
+    diagnostic = document["errors"][0]
+    assert diagnostic["line"] == 1
+    assert diagnostic.get("column") == (offset if offset is not None and offset > 0 else None)
+    assert not document["findings"]
+
+
+def test_malformed_comments_are_sorted_by_source_position(
+    *, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
+) -> None:
+    """Checker registration order and warning wording cannot reorder diagnostics within a file."""
+    path = tmp_path / "warnings.py"
+    path.write_text(
+        "def flagged(a, b): # pyrigor 402\n    value: tuple[int, int] # PYRIGOR 301 # reason\n    pass\n",
+        encoding="utf-8",
+    )
+    assert main(paths=[str(path)], output_format="json")
+    document = json.loads(capsys.readouterr().out)
+    _assert_valid_schema(document=document, schema=schema)
+    assert [error["line"] for error in document["errors"]] == [1, 2]
+    assert [error["message"] for error in document["errors"]] == [
+        "suppression on line 1 for PYR402 is missing required reason, ignoring.",
+        (
+            "comment mentions 'pyrigor' but does not match '# pyrigor CODE[,CODE] # reason' "
+            "-- ignoring: # PYRIGOR 301 # reason"
+        ),
+    ]
+
+
 @pytest.fixture
 def schema() -> dict[str, object]:  # pyright: ignore[reportReturnType]
     """Load the JSON schema for validation."""

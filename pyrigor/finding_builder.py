@@ -55,8 +55,8 @@ class FindingContext:
     file_name: FileName
     parents: dict[ast.AST, ast.AST]
     _token_data: _TokenData | None = field(default=None, init=False, repr=False)
-    _headers: dict[_FunctionNode, ast.Expr] = field(
-        default_factory=dict[_FunctionNode, ast.Expr], init=False, repr=False
+    _headers: dict[_FunctionNode, ast.Pass] = field(
+        default_factory=dict[_FunctionNode, ast.Pass], init=False, repr=False
     )
 
     def _tokens(self) -> _TokenData:
@@ -74,14 +74,14 @@ class FindingContext:
         """The shared token stream, created only when a finding needs it."""
         return self._tokens().tokens
 
-    def header_node(self, *, node: _FunctionNode) -> ast.Expr:
+    def header_node(self, *, node: _FunctionNode) -> ast.Pass:
         """Return the cached source range from the function keyword through its signature colon.
 
         Args:
             node: The function whose signature is the finding's focal range.
 
         Returns:
-            A positioned expression node for the canonical span constructor.
+            A positioned statement node for the canonical span constructor.
         """
         if node not in self._headers:
             self._headers[node] = _header_node(node=node, index=self.index, token_data=self._tokens())
@@ -105,13 +105,12 @@ def _body_position(*, node: _FunctionNode, index: PositionIndex) -> _TokenPositi
     return position
 
 
-def _header_node(*, node: _FunctionNode, index: PositionIndex, token_data: _TokenData) -> ast.Expr:
+def _header_node(*, node: _FunctionNode, index: PositionIndex, token_data: _TokenData) -> ast.Pass:
     """Find the final signature colon before the body and preserve the AST's original byte-based start."""
     if node.end_lineno is None or node.end_col_offset is None:
         raise ValueError("node has no end position")
     token = _signature_colon(node=node, index=index, token_data=token_data)
-    return ast.Expr(
-        value=ast.Constant(value=None),
+    return ast.Pass(
         lineno=node.lineno,
         col_offset=node.col_offset,
         end_lineno=token.end[0],

@@ -75,6 +75,7 @@ def _text(*, parsed: _Parsed, finding: Finding) -> str:
         ("def flagged(item):\n    return item\n", "def flagged(item):"),
         ("async def flagged(item):\n    return item\n", "async def flagged(item):"),
         ("def flagged(item): return {'body': item}\n", "def flagged(item):"),
+        ("def flagged(a,b):x:dict[str,int]={}\n", "def flagged(a,b):"),
         ("@decorate({'key': 1})\ndef flagged(item):\n    pass\n", "def flagged(item):"),
         ("def flagged(item='a:b'):\n    pass\n", "def flagged(item='a:b'):"),
         ("def flagged(item=lambda value: value):\n    pass\n", "def flagged(item=lambda value: value):"),
@@ -389,15 +390,15 @@ def test_function_without_an_end_position_is_rejected() -> None:
     parsed = _parse(source="def flagged(item): pass\n")
     node = _function(tree=parsed.tree, name="flagged")
     node.end_lineno = None
-    with pytest.raises(ValueError, match="node has no end position"):
+    with pytest.raises(ValueError, match=r"^node has no end position$"):
         make_finding(node=node, rule=Rule.PYR402, context=parsed.context)
 
 
 def test_function_with_a_mismatched_source_context_is_rejected() -> None:
     """A missing signature colon exposes an invalid context instead of producing a fabricated span."""
-    parsed = _parse(source="def flagged(item): pass\n")
-    parsed.context.source = "def flagged(item)  pass\n"
-    with pytest.raises(ValueError, match="function signature has no colon"):
+    parsed = _parse(source="def earlier(): pass\ndef flagged(item): pass\n")
+    parsed.context.source = "def earlier(): pass\ndef flagged(item)  pass\n"
+    with pytest.raises(ValueError, match=r"^function signature has no colon in its source context$"):
         make_finding(node=_function(tree=parsed.tree, name="flagged"), rule=Rule.PYR402, context=parsed.context)
 
 
@@ -406,5 +407,5 @@ def test_non_name_subject_without_its_source_range_is_rejected() -> None:
     parsed = _parse(source="data[0]: tuple[int, int]\n")
     node = _node(tree=parsed.tree, node_type=ast.AnnAssign)
     node.target.end_lineno = None
-    with pytest.raises(ValueError, match="finding subject has no source range"):
+    with pytest.raises(ValueError, match=r"^finding subject has no source range$"):
         make_finding(node=node, rule=Rule.PYR301, context=parsed.context)

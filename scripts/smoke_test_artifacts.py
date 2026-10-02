@@ -15,7 +15,7 @@ from jsonschema import validate
 
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
-SCHEMA = ROOT / "schemas" / "pyrigor-diagnostics-v1.json"
+SCHEMA = ROOT / "schemas" / "pyrigor-diagnostics-v2.json"
 EXPECTED_ARTIFACT_COUNT = 2
 WINDOWS_PLATFORM = "nt"
 FIXER_INPUT = "def apply(left, right):\n    ...\n"
