@@ -123,6 +123,12 @@ string literal it writes.
 Control characters are rejected in shown text too, including tabs and line breaks. A terminal escape sequence in a
 message can recolour or overwrite output, and a line break can forge a line that looks like another finding.
 
+A symbol name may contain an escape for a character this rule rejects: a backslash, `u` and four lowercase hexadecimal
+digits, or a backslash, `U` and eight. Python accepts a few such characters in identifiers, so the escape is how a
+symbol named with one is reported. A real identifier cannot contain a backslash, so the escape is unambiguous, and the
+name stays a stable identity. The schema checks only the shape of an escape. That it stands for a rejected character,
+and that its code point is at most U+10FFFF, are producer rules.
+
 ### Fixes are structured actions
 
 A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed and
