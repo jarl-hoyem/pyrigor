@@ -1076,3 +1076,19 @@ that name, not because a requirement asked for it. The test it shipped with,
 which passes identically without `--show-fixes`: a test that cannot fail is not a test (`guidelines/PRINCIPLES.md`). If
 pyrigor grows enough fixable rules that `--fix` listing every file becomes noise, ruff's split is the right answer then,
 decided against the real need rather than held open against a hypothetical one.
+
+### The producer writes rejected characters as escapes
+
+Python accepts five characters in identifiers (U+200C, U+200D, U+034F, U+115F and U+1160) that the "Text cannot disguise
+itself" rule rejects in `message` and in `enclosing_symbol.name`. The producer writes every character that rule rejects
+as a visible `\uXXXX` or `\UXXXXXXXX` escape in both fields. An identifier cannot contain a backslash, so an escape in a
+name is unambiguous: the name is a reversible function of the real one and stays a stable identity for baselines. No
+invisible text is emitted, so the rule stands. Rejected: an operational error for the file, which hides every finding in
+it, and are allowing the raw characters, which weakens the rule. Names need a schema change to allow escapes. See #342.
+
+### A file with no relative form is a usage error
+
+`FileName` is relative, so one file has one spelling on every machine. On Windows a file on another drive has none
+(`os.path.relpath` raises `ValueError`). The command line stops before checking, emits no document and exits with code
+2, naming the path. Rejected: skipping the file with a warning, which lets a CI run pass with files unchecked, and an
+absolute path, which breaks baseline matching. See #342.
