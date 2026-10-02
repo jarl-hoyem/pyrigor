@@ -282,6 +282,12 @@ def test_every_applicability_serialises_and_validates(*, applicability: Applicab
         pytest.param(EnclosingSymbol(kind=SymbolKind.MODULE, name="<module>"), id="module"),
         pytest.param(EnclosingSymbol(kind=SymbolKind.FUNCTION, name="outer.<locals>.inner"), id="nested-function"),
         pytest.param(EnclosingSymbol(kind=SymbolKind.CLASS, name="Outer." + chr(0x3A9)), id="non-ascii-class"),
+        pytest.param(EnclosingSymbol(kind=SymbolKind.FUNCTION, name="\U00010000"), id="astral-function"),
+        pytest.param(EnclosingSymbol(kind=SymbolKind.FUNCTION, name="\U00020000"), id="cjk-extension-b-function"),
+        pytest.param(EnclosingSymbol(kind=SymbolKind.METHOD, name="\U00010000.\U00020000"), id="astral-method"),
+        pytest.param(
+            EnclosingSymbol(kind=SymbolKind.FUNCTION, name="outer.<locals>.\U00010000"), id="astral-nested-function"
+        ),
     ],
 )
 def test_enclosing_symbol_serialises_and_validates(*, symbol: EnclosingSymbol) -> None:
@@ -559,6 +565,17 @@ def test_non_relative_file_name_is_rejected(*, build: _FileNameBuilder, file_nam
     """Finding file names are relative and use forward slashes."""
     with pytest.raises(ValueError, match=r"^file_name must be a relative path with forward slashes$"):
         build(file_name=file_name)
+
+
+@pytest.mark.parametrize("file_name", [FileName("../app.py"), FileName("../../project/app.py")], ids=["one", "two"])
+def test_file_name_outside_the_working_directory_serialises_and_validates(*, file_name: FileName) -> None:
+    """A file outside the working directory starts with parent segments, which the types and the schema both allow."""
+    fix = dataclasses.replace(_FIX, edits=(_edit_with_file_name(file_name=file_name),))
+    finding = dataclasses.replace(_FINDING, spans=(_span_with_file_name(file_name=file_name),), fixes=(fix,))
+
+    document = _serialised(finding=finding)
+
+    assert cast("list[Json]", document["spans"])[0]["file_name"] == file_name
 
 
 @pytest.mark.parametrize(

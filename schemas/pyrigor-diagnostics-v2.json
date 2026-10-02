@@ -530,8 +530,8 @@
           "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
         },
         {
-          "description": "No parent-directory segment.",
-          "pattern": "^(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
+          "description": "A parent-directory segment only at the start, then an ordinary segment.",
+          "pattern": "^(?:[.][.]/)*(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
         },
         {
           "description": "No current-directory segment.",
@@ -646,7 +646,7 @@
             },
             {
               "description": "Identifier characters, dots and angle brackets only. Non-ASCII is checked loosely.",
-              "pattern": "^[0-9A-Za-z_.<>\u0080-\uffff]*$"
+              "pattern": "^(?:[0-9A-Za-z_.<>]|[^\\x00-\\x7F])*$"
             },
             {
               "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
