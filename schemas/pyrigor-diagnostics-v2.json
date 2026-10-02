@@ -31,6 +31,8 @@
     "file_name is in Unicode normalisation form NFC.",
     "A symbol name is in Unicode normalisation form NFKC, the form Python gives an identifier.",
     "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely.",
+    "An escape in a symbol name is a backslash, u and four lowercase hexadecimal digits, or a backslash, U and eight.",
+    "An escape stands for that code point up to U+10FFFF. The name stands for the decoded name.",
     "Every byte offset does not exceed the referenced file's byte length and falls on a UTF-8 code-point boundary.",
     "code names a rule pyrigor defines.",
     "level is the severity pyrigor assigns to the rule named by code.",
@@ -645,8 +647,8 @@
               "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
             },
             {
-              "description": "Identifier characters, dots and angle brackets only. Non-ASCII is checked loosely.",
-              "pattern": "^(?:[0-9A-Za-z_.<>]|[^\\x00-\\x7F])*$"
+              "description": "Identifier characters, dots, angle brackets and escapes. Non-ASCII is checked loosely.",
+              "pattern": "^(?:[0-9A-Za-z_.<>]|\\\\u[0-9a-f]{4}|\\\\U[0-9a-f]{8}|[^\\x00-\\x7F])*$"
             },
             {
               "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
