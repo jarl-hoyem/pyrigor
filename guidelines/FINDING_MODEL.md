@@ -108,9 +108,9 @@ it.
 ### One spelling per file
 
 Sorting findings and matching them against a baseline both compare file names as strings. The same file must therefore
-always be written the same way: relative, with forward slashes, without `.` segments, without whitespace at the edges of
-a segment and in Unicode normalisation form NFC. Any other spelling of a path pyrigor reports would make one file look
-like two.
+always be written the same way: relative, with forward slashes, without `.` segments, with `..` segments only at the
+start (a file outside the working directory is `../app.py`), without whitespace at the edges of a segment and in Unicode
+normalisation form NFC. Any other spelling of a path pyrigor reports would make one file look like two.
 
 ### Text cannot disguise itself
 

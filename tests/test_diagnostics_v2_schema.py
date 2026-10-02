@@ -466,9 +466,13 @@ _HOSTILE_FILE_NAMES = {
     "backslash": "src\\app.py",
     "absolute": "/src/app.py",
     "drive-letter": "C:/app.py",
-    "parent-segment-at-start": "../app.py",
     "parent-segment-inside": "src/../app.py",
     "parent-segment-at-end": "src/..",
+    "parent-segment-after-leading-parents": "../src/../app.py",
+    "parent-segment-alone": "..",
+    "parent-segments-alone": "../..",
+    "parent-segment-then-dot-segment": "../.",
+    "parent-segment-then-trailing-slash": "../",
     "trailing-newline": "src/app.py\n",
     "tab": "src/\tapp.py",
     "c1-control-character": "src/\x85app.py",
@@ -685,6 +689,15 @@ def test_non_identifier_symbol_name_is_rejected(*, name: str) -> None:
         ),
         pytest.param(_finding(spans=[_span(file_name="src/..app.py")]), id="dots-inside-a-segment"),
         pytest.param(_finding(spans=[_span(file_name="src/.hidden/app.py")]), id="hidden-directory"),
+        pytest.param(_finding(spans=[_span(file_name="../app.py")]), id="file-outside-working-directory"),
+        pytest.param(_finding(spans=[_span(file_name="../../project/app.py")]), id="file-two-levels-outside"),
+        pytest.param(_with_fix(edits=[_edit(file_name="../app.py")]), id="edit-in-file-outside-working-directory"),
+        pytest.param(_symbol(kind="function", name="\U00010000"), id="astral-identifier"),
+        pytest.param(_symbol(kind="function", name="\U00020000"), id="cjk-extension-b-identifier"),
+        pytest.param(_symbol(kind="method", name="\U00010000.\U00020000"), id="astral-class-and-method"),
+        pytest.param(_symbol(kind="function", name="outer.<locals>.\U00010000"), id="astral-nested-function"),
+        pytest.param(_finding(spans=[_span(file_name=".../app.py")]), id="three-dot-segment"),
+        pytest.param(_finding(spans=[_span(file_name="../..hidden/app.py")]), id="parent-then-dot-prefixed-segment"),
         pytest.param(_finding(spans=[_span(byte_end=_LARGEST_SAFE_INTEGER)]), id="largest-safe-integer"),
         pytest.param(_finding(message="Function 'apply' has positional parameters"), id="message-with-spaces"),
     ],
@@ -692,6 +705,26 @@ def test_non_identifier_symbol_name_is_rejected(*, name: str) -> None:
 def test_boundary_finding_is_accepted(*, finding: Json) -> None:
     """A finding at the edge of a rule is still accepted."""
     assert _is_valid(definition="Finding", instance=finding)
+
+
+@pytest.mark.parametrize(
+    ("file_name", "accepted"),
+    [
+        pytest.param("../missing.py", True, id="one-level-outside"),
+        pytest.param("../../project/missing.py", True, id="two-levels-outside"),
+        pytest.param("src/../missing.py", False, id="parent-segment-inside"),
+        pytest.param("../src/../missing.py", False, id="parent-segment-after-leading-parents"),
+        pytest.param("..", False, id="parent-segment-alone"),
+    ],
+)
+def test_operational_error_file_name_follows_the_finding_rules(*, file_name: str, accepted: bool) -> None:
+    """An error names a file outside the working directory the way a finding does and rejects the same spellings.
+
+    Running pyrigor on a sibling project reports an unreadable file as a path with leading parent segments.
+    """
+    error: Json = {"file_name": file_name, "kind": "read_error", "message": "Permission denied"}
+
+    assert _is_valid(definition="OperationalError", instance=error) is accepted
 
 
 @pytest.mark.parametrize(
@@ -759,6 +792,8 @@ def test_boundary_finding_is_accepted(*, finding: Json) -> None:
         pytest.param(_finding(message=chr(0xE0100)), id="variation-selector-17-as-message"),
         pytest.param(_finding(message=chr(0x2800)), id="braille-pattern-blank-as-message"),
         pytest.param(_symbol(kind="function", name=chr(0xFF2B)), id="non-nfkc-symbol-name"),
+        pytest.param(_symbol(kind="function", name="a￿"), id="highest-basic-plane-symbol-name"),
+        pytest.param(_symbol(kind="function", name="a\U0010ffff"), id="highest-code-point-symbol-name"),
     ],
 )
 def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Json) -> None:
