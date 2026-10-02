@@ -792,7 +792,7 @@ def test_operational_error_file_name_follows_the_finding_rules(*, file_name: str
         pytest.param(_finding(message=chr(0xE0100)), id="variation-selector-17-as-message"),
         pytest.param(_finding(message=chr(0x2800)), id="braille-pattern-blank-as-message"),
         pytest.param(_symbol(kind="function", name=chr(0xFF2B)), id="non-nfkc-symbol-name"),
-        pytest.param(_symbol(kind="function", name="a￿"), id="highest-basic-plane-symbol-name"),
+        pytest.param(_symbol(kind="function", name="a" + chr(0xFFFF)), id="highest-basic-plane-symbol-name"),
         pytest.param(_symbol(kind="function", name="a\U0010ffff"), id="highest-code-point-symbol-name"),
     ],
 )
