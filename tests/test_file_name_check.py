@@ -283,6 +283,7 @@ def test_every_bad_path_is_named_in_sorted_order_up_to_a_limit(
         outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=[str(tmp_path)])
     lines = outcome.err.splitlines()
     assert [line.split("': ")[0] for line in lines[: len(named)]] == [f"pyrigor: '{path}" for path in named]
+    # noinspection IncorrectFormatting
     assert lines[len(named) :] == _remaining_line(count=count)
     assert _GOOD_FILE not in outcome.err
 
