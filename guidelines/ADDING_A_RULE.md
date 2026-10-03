@@ -77,12 +77,12 @@ the rule is implemented, add the matching `RuleInfo` entry and make the synchron
 ## 5. If the rule is enforced, write the checker
 
 - File: `pyrigor/checkers/pyrXXX_<symbolic-name>.py`.
-- Signature: `find_violations(*, nodes: WalkedNodes) -> list[Violation]`. Do not call `ast.parse()` or walk the tree
-  yourself inside the checker. Every checker receives the same pre-walked `WalkedNodes` (built once by `walk_once()` in
-  `pyrigor/checkers/_shared.py`), shared across all registered checkers, so the tree is walked once per every file, not
-  once per checker.
-- Use `make_violation(node=node, rule=Rule.PYRxxx)` from `pyrigor/violations.py` to construct violations, rather than
-  building `Violation` by hand.
+- Signature: `find_findings(*, nodes: WalkedNodes, context: FindingContext) -> list[Finding]`. Do not call `ast.parse()`
+  or walk the tree yourself inside the checker. Every checker receives the same pre-walked `WalkedNodes` (built once by
+  `walk_once()` in `pyrigor/checkers/_shared.py`), shared across all registered checkers, so the tree is walked once per
+  every file, not once per checker.
+- Use `make_finding` from `pyrigor/finding_builder.py` with the shared context and `Rule.PYRxxx`. It supplies the
+  primary span, subject message, enclosing symbol and empty fixes using canonical `Finding` types.
 - Check `pyrigor/checkers/_shared.py` for existing reusable logic before writing new AST-walking code. If the new
   checker needs logic that is a near-duplicate of an existing checker's, extract it to `_shared.py` rather than copying
   it.
@@ -115,15 +115,15 @@ instead of adding irrelevant tests.
 
 ## 7. Register the checker
 
-Add the checker's `find_violations` to `CHECKERS` in `pyrigor/checkers/__init__.py`:
+Add the checker's `find_findings` to `CHECKERS` in `pyrigor/checkers/__init__.py`:
 
 ```python
-from pyrigor.checkers.pyrXXX_<symbolic_name> import find_violations as _pyrXXX
+from pyrigor.checkers.pyrXXX_<symbolic_name> import find_findings as _pyrXXX
 
 CHECKERS: tuple[RegisteredChecker, ...] = (
-    RegisteredChecker(rule=Rule.PYR401, find_violations=_pyr401),
-    RegisteredChecker(rule=Rule.PYR402, find_violations=_pyr402),
-    RegisteredChecker(rule=Rule.PYRxxx, find_violations=_pyrXXX),
+    RegisteredChecker(rule=Rule.PYR401, find_findings=_pyr401),
+    RegisteredChecker(rule=Rule.PYR402, find_findings=_pyr402),
+    RegisteredChecker(rule=Rule.PYRxxx, find_findings=_pyrXXX),
 )
 ```
 

@@ -1,14 +1,11 @@
 """Tests for the PYR403 checker (keyword-only single argument)."""
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
-# pylint: disable=magic-value-comparison
-
-import ast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import walk_once
-from pyrigor.checkers.pyr403_keyword_only_single_argument import find_violations
+from pyrigor.checkers.pyr403_keyword_only_single_argument import find_findings
 from pyrigor.rules import Rule
+from tests.checker_helpers import check_source
 
 
 def test_flags_single_positional_parameter() -> None:
@@ -17,33 +14,33 @@ def test_flags_single_positional_parameter() -> None:
 def load_config(path):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "load_config"
-    assert violations[0].rule is Rule.PYR403
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'load_config' ")
+    assert findings[0].code is Rule.PYR403
 
 
-def test_no_violation_for_already_keyword_only_single_parameter() -> None:
+def test_no_finding_for_already_keyword_only_single_parameter() -> None:
     """A single parameter that is already keyword-only should not be flagged."""
     source = """
 def load_config(*, path):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_two_parameters() -> None:
+def test_no_finding_for_two_parameters() -> None:
     """A function with two parameters is not PYR403's territory. It belongs to PYR402."""
     source = """
 def compute(a, b):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_method_with_self_and_one_positional_parameter() -> None:
@@ -53,21 +50,21 @@ class Loader:
     def load(self, path):
         ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "load"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'load' ")
 
 
-def test_no_violation_for_zero_parameters() -> None:
+def test_no_finding_for_zero_parameters() -> None:
     """A function with no parameters at all should not be flagged."""
     source = """
 def run() -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_async_function_with_single_positional_parameter() -> None:
@@ -76,7 +73,7 @@ def test_flags_async_function_with_single_positional_parameter() -> None:
 async def load_config(path):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "load_config"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'load_config' ")

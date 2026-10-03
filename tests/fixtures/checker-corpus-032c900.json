@@ -1,0 +1,711 @@
+{
+  "commit": "032c900cc9bda7b43ce24012034ecaae786d20c3",
+  "files_checked": 36,
+  "skipped": [],
+  "records": [
+    {
+      "file": "manual-tests/cli/nested/nested_violations.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "manual-tests/cli/suppressed.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "manual-tests/cli/unicode.py",
+      "code": "PYR402",
+      "line": 7
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR401",
+      "line": 6
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR402",
+      "line": 11
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR406",
+      "line": 23
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR406",
+      "line": 24
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR401",
+      "line": 6
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR402",
+      "line": 11
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR406",
+      "line": 23
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR406",
+      "line": 25
+    },
+    {
+      "file": "manual-tests/pycharm/watcher_suppressed.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "pyrigor/checkers/cli.py",
+      "code": "PYR403",
+      "line": 718
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 28
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 40
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 54
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 71
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 745
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 761
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 777
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 796
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 815
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 826
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 837
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 853
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 869
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 955
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 978
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 992
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1012
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1028
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1042
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1053
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1066
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1143
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1156
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1169
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1185
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1199
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1214
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1226
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1244
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1256
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1274
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1286
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1302
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1320
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1334
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1345
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1362
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1413
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1431
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1447
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1463
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1481
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1499
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1517
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1533
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1551
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1587
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1605
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 261
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 967
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 1373
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 174
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 199
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 216
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 232
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 253
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 288
+    }
+  ],
+  "kept_records": [
+    {
+      "file": "manual-tests/cli/nested/nested_violations.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "manual-tests/cli/unicode.py",
+      "code": "PYR402",
+      "line": 7
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR401",
+      "line": 6
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR402",
+      "line": 11
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR406",
+      "line": 23
+    },
+    {
+      "file": "manual-tests/cli/violations.py",
+      "code": "PYR406",
+      "line": 24
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR401",
+      "line": 6
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR402",
+      "line": 11
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR406",
+      "line": 23
+    },
+    {
+      "file": "manual-tests/pycharm/watcher.py",
+      "code": "PYR406",
+      "line": 25
+    }
+  ],
+  "suppressed_records": [
+    {
+      "file": "manual-tests/cli/suppressed.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "manual-tests/pycharm/watcher_suppressed.py",
+      "code": "PYR402",
+      "line": 4
+    },
+    {
+      "file": "pyrigor/checkers/cli.py",
+      "code": "PYR403",
+      "line": 718
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 28
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 40
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 54
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 71
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 745
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 761
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 777
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 796
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 815
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 826
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 837
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 853
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 869
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 955
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 978
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 992
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1012
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1028
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1042
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1053
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1066
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1143
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1156
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1169
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1185
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1199
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1214
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1226
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1244
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1256
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1274
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1286
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1302
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1320
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1334
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1345
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1362
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1413
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1431
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1447
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1463
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1481
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1499
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1517
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1533
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1551
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1587
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR402",
+      "line": 1605
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 261
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 967
+    },
+    {
+      "file": "tests/checkers/test_cli.py",
+      "code": "PYR403",
+      "line": 1373
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 174
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 199
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 216
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 232
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 253
+    },
+    {
+      "file": "tests/checkers/test_cli_ordering.py",
+      "code": "PYR402",
+      "line": 288
+    }
+  ]
+}

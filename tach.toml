@@ -11,8 +11,12 @@ source_roots = [
 ]
 
 [[modules]]
-path = "pyrigor.violations"
-depends_on = ["pyrigor.rules"]
+path = "pyrigor.finding_builder"
+depends_on = ["pyrigor.findings", "pyrigor.rules"]
+
+[[modules]]
+path = "pyrigor.diagnostics"
+depends_on = ["pyrigor.findings", "pyrigor.rules"]
 
 [[modules]]
 path = "tests"
@@ -20,7 +24,8 @@ depends_on = []
 
 [[modules]]
 path = "pyrigor.checkers.cli"
-depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.violations", "pyrigor.suppression"]
+depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.findings", "pyrigor.finding_builder",
+  "pyrigor.diagnostics", "pyrigor.suppression", "pyrigor.fixers.pyr402_keyword_only_arguments_fixer"]
 
 [[modules]]
 path = "pyrigor.rules"
@@ -28,7 +33,7 @@ depends_on = []
 
 [[modules]]
 path = "pyrigor.checkers.pyr402_keyword_only_arguments"
-depends_on = ["pyrigor.violations", "pyrigor.rules", "pyrigor.checkers._shared"]
+depends_on = ["pyrigor.findings", "pyrigor.finding_builder", "pyrigor.rules", "pyrigor.checkers._shared"]
 
 [[modules]]
 path = "scripts"
@@ -36,31 +41,31 @@ depends_on = []
 
 [[modules]]
 path = "pyrigor.suppression"
-depends_on = ["pyrigor.violations"]
+depends_on = ["pyrigor.findings", "pyrigor.diagnostics"]
 
 [[modules]]
 path = "pyrigor.checkers.pyr401_namedtuple_returns"
-depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.violations"]
+depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.findings", "pyrigor.finding_builder"]
 
 [[modules]]
 path = "pyrigor.checkers.pyr406_return_values_used"
-depends_on = ["pyrigor.violations", "pyrigor.checkers._shared", "pyrigor.rules"]
+depends_on = ["pyrigor.findings", "pyrigor.finding_builder", "pyrigor.checkers._shared", "pyrigor.rules"]
 
 [[modules]]
 path = "pyrigor.checkers._shared"
-depends_on = ["pyrigor.rules", "pyrigor.violations"]
+depends_on = ["pyrigor.rules", "pyrigor.findings", "pyrigor.finding_builder"]
 
 [[modules]]
 path = "pyrigor.checkers.pyr301_namedtuple_values"
-depends_on = ["pyrigor.violations", "pyrigor.rules", "pyrigor.checkers._shared"]
+depends_on = ["pyrigor.findings", "pyrigor.finding_builder", "pyrigor.rules", "pyrigor.checkers._shared"]
 
 [[modules]]
 path = "pyrigor.checkers.pyr405_namedtuple_parameters"
-depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.violations"]
+depends_on = ["pyrigor.checkers._shared", "pyrigor.rules", "pyrigor.findings", "pyrigor.finding_builder"]
 
 [[modules]]
 path = "pyrigor.checkers.pyr403_keyword_only_single_argument"
-depends_on = ["pyrigor.checkers._shared", "pyrigor.violations", "pyrigor.rules"]
+depends_on = ["pyrigor.checkers._shared", "pyrigor.findings", "pyrigor.finding_builder", "pyrigor.rules"]
 
 [[modules]]
 path = "pyrigor.findings"

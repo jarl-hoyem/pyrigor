@@ -15,6 +15,7 @@
       <w>Pyrigor</w>
       <w>actionlint</w>
       <w>automerge</w>
+      <w>basetemp</w>
       <w>binop</w>
       <w>booleaness</w>
       <w>buildx</w>
@@ -62,11 +63,15 @@
       <w>pythonutf</w>
       <w>rxxx</w>
       <w>sele</w>
+      <w>serialiser</w>
       <w>smallgig</w>
       <w>subscripted</w>
       <w>tach</w>
       <w>taiki</w>
+      <w>tokenisation</w>
+      <w>tokenisations</w>
       <w>ufeff</w>
+      <w>uffa</w>
     </words>
   </dictionary>
 </component>

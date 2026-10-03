@@ -1,14 +1,11 @@
 """Tests for the PYR405 checker (NamedTuple parameters)."""
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
-# pylint: disable=magic-value-comparison
-
-import ast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import walk_once
-from pyrigor.checkers.pyr405_namedtuple_parameters import find_violations
+from pyrigor.checkers.pyr405_namedtuple_parameters import find_findings
 from pyrigor.rules import Rule
+from tests.checker_helpers import check_source
 
 
 def test_flags_function_with_bare_tuple_parameter() -> None:
@@ -17,22 +14,22 @@ def test_flags_function_with_bare_tuple_parameter() -> None:
 def step_bot(*, action: tuple[int, int]) -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "step_bot"
-    assert violations[0].rule is Rule.PYR405
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'step_bot' ")
+    assert findings[0].code is Rule.PYR405
 
 
-def test_no_violation_for_normal_parameters() -> None:
+def test_no_finding_for_normal_parameters() -> None:
     """A function with ordinary, non-tuple parameter types should not be flagged."""
     source = """
 def step_bot(*, row: int, col: int) -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_positional_only_tuple_parameter() -> None:
@@ -41,9 +38,9 @@ def test_flags_positional_only_tuple_parameter() -> None:
 def step_bot(action: tuple[int, int], /) -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
+    assert len(findings) == 1
 
 
 def test_flags_async_function_with_bare_tuple_parameter() -> None:
@@ -52,30 +49,30 @@ def test_flags_async_function_with_bare_tuple_parameter() -> None:
 async def step_bot(*, action: tuple[int, int]) -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
+    assert len(findings) == 1
 
 
-def test_no_violation_for_single_element_tuple_parameter() -> None:
+def test_no_finding_for_single_element_tuple_parameter() -> None:
     """A parameter typed as tuple[X] with only one element is not a multi-value tuple."""
     source = """
 def wrap_value(*, value: tuple[int]) -> None:
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_method_with_bare_tuple_parameter_alongside_self() -> None:
-    """A method with self (unannotated) plus a bare-tuple parameter should still be flagged, on the real violation."""
+    """A method with self (unannotated) plus a bare-tuple parameter should still be flagged, on the real finding."""
     source = """
 class Bot:
     def step(self, *, action: tuple[int, int]) -> None:
         ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "step"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'step' ")

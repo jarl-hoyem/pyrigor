@@ -10,7 +10,8 @@ from typing import cast
 _WINDOWS_OS_NAME = "nt"
 _SUCCESS_EXIT_CODE = 0
 _USAGE_ERROR_EXIT_CODE = 2
-_NO_VIOLATIONS = "0 violations"
+_SCHEMA_VERSION = 2
+_NO_FINDINGS = "0 findings"
 _EMPTY_RULE_SELECTION_ERROR = "pyrigor: --select and --ignore combine to leave no rules to check\n"
 _REPEATED_OUTPUT_FORMAT_ERROR = "--output-format can only be given once"
 _JSON_OPTION = "--output-format=json"
@@ -31,6 +32,7 @@ def _run_cli(*, arguments: list[str]) -> subprocess.CompletedProcess[str]:
         [_installed_cli(), *arguments],
         capture_output=True,
         check=False,
+        encoding="utf-8",
         text=True,
     )
 
@@ -53,28 +55,28 @@ def test_installed_cli_reports_clean_file(*, tmp_path: Path) -> None:
     result = _run_cli(arguments=[str(source)])
 
     assert result.returncode == _SUCCESS_EXIT_CODE
-    assert _NO_VIOLATIONS in result.stdout
+    assert _NO_FINDINGS in result.stdout
 
 
 def test_installed_cli_reports_json_diagnostic(*, tmp_path: Path) -> None:
-    """A violation has a schema-valid JSON diagnostic through the installed CLI."""
-    source = tmp_path / "violation.py"
+    """A finding has a schema-valid JSON diagnostic through the installed CLI."""
+    source = tmp_path / "finding.py"
     source.write_text("def apply(left, right):\n    return left + right\n", encoding="utf-8")
 
     result = _run_cli(arguments=[_JSON_OPTION, str(source)])
 
     document = _json_document(result=result)
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
-    value = document["diagnostics"]
+    value = document["findings"]
     # noinspection GrazieInspection
     diagnostics = cast("list[dict[str, object]]", value)  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
     assert result.returncode == 1
-    assert document["schema_version"] == 1
+    assert document["schema_version"] == _SCHEMA_VERSION
     assert [diagnostic["code"] for diagnostic in diagnostics] == ["PYR402"]
 
 
 def test_installed_cli_reports_suppressed_diagnostic(*, tmp_path: Path) -> None:
-    """A suppressed violation is absent from diagnostics but present in the summary."""
+    """A suppressed finding is absent from findings but retained in the suppressed array."""
     source = tmp_path / "suppressed.py"
     source.write_text(
         "def apply(left, right):  # pyrigor PYR402 # external API\n    return left + right\n",
@@ -84,13 +86,14 @@ def test_installed_cli_reports_suppressed_diagnostic(*, tmp_path: Path) -> None:
     result = _run_cli(arguments=[_JSON_OPTION, str(source)])
 
     document = _json_document(result=result)
+    value = document["suppressed"]
     # PyCharm rejects valid quoted cast types required by Ruff TC006.
     # noinspection GrazieInspection
-    summary = cast("dict[str, object]", document["summary"])  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
+    suppressed = cast("list[dict[str, object]]", value)  # type: ignore[pycharm:PyTypeChecker, unused-ignore]
     assert result.returncode == _SUCCESS_EXIT_CODE
-    assert document["diagnostics"] == []
-    assert summary["suppressed"] == 1
-    assert summary["suppressed_by_rule"] == {"PYR402": 1}
+    assert document["findings"] == []
+    assert [finding["code"] for finding in suppressed] == ["PYR402"]
+    assert document["summary"] == {"files_checked": 1}
 
 
 def test_installed_cli_reports_parse_error(*, tmp_path: Path) -> None:
@@ -110,7 +113,7 @@ def test_installed_cli_reports_parse_error(*, tmp_path: Path) -> None:
 
 def test_installed_cli_rejects_empty_rule_selection(*, tmp_path: Path) -> None:
     """Conflicting select and ignore options leave no rules to check."""
-    source = tmp_path / "violation.py"
+    source = tmp_path / "finding.py"
     source.write_text("def apply(left, right):\n    return left + right\n", encoding="utf-8")
 
     result = _run_cli(arguments=["--select=PYR402", "--ignore=PYR402", str(source)])

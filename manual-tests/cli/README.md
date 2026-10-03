@@ -32,8 +32,9 @@ is `1`.
 uv run pyrigor --output-format=json manual-tests/cli/violations.py
 ```
 
-Expected stdout is one JSON document containing diagnostics with codes `PYR401`, `PYR402`, and `PYR406`. The summary
-reports four diagnostics. The exit code is `1`.
+Expected stdout is one v2 JSON document with four `findings`, including codes `PYR401`, `PYR402` and `PYR406`. The
+document also includes `tool`, `suppressed`, selected `rules`, `errors` and `summary.files_checked`. Each finding
+includes a primary span, enclosing symbol and empty fixes. The exit code is `1`.
 
 ## Path exclusion
 
@@ -64,16 +65,18 @@ suppressed and Unicode fixtures. The Unicode fixture produces one diagnostic, so
 uv run pyrigor --output-format=json manual-tests/cli/suppressed.py
 ```
 
-Expected JSON has an empty `diagnostics` array and a summary containing:
+Expected JSON has an empty `findings` array and one finding in `suppressed`:
 
 ```json
 {
-  "suppressed": 1,
-  "suppressed_by_rule": { "PYR402": 1 }
+  "schema_version": 2,
+  "findings": [],
+  "summary": { "files_checked": 1 }
 }
 ```
 
-The exit code is `0`.
+The exit code is `0`. Suppression checks the preceding line and primary-span lines. For a function, a comment on a later
+body line must not suppress the signature finding.
 
 ## Rule selection and ignoring
 
@@ -87,8 +90,7 @@ Expected human output contains `PYR402` and does not contain `PYR301` or `PYR406
 uv run pyrigor --output-format=json --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected JSON contains `PYR401` and `PYR406`, but not `PYR402`. The summary reports three diagnostics, and the exit code
-is `1`.
+Expected JSON contains three findings with `PYR401` and `PYR406`, but not `PYR402`. The exit code is `1`.
 
 ```powershell
 uv run pyrigor --output-format=json --select=PYR401,PYR402 --ignore=PYR402 manual-tests/cli/violations.py
@@ -117,8 +119,8 @@ files. The exit code is `1`.
 uv run pyrigor --output-format=json manual-tests/cli/unicode.py
 ```
 
-Expected JSON contains a diagnostic whose location uses character columns after the non-ASCII text. The exit code is
-`1`.
+Expected JSON contains a finding whose primary span uses code-point columns after the non-ASCII text. Human output uses
+those columns too. The exit code is `1`.
 
 ## Parse errors
 
@@ -126,7 +128,7 @@ Expected JSON contains a diagnostic whose location uses character columns after 
 powershell -ExecutionPolicy Bypass -File manual-tests/cli/parse-error.ps1
 ```
 
-Expected stdout is valid JSON with an empty `diagnostics` array and an error whose kind is `parse_error`. A warning is
+Expected stdout is valid v2 JSON with an empty `findings` array and an error whose kind is `parse_error`. A warning is
 printed to stderr. The temporary invalid Python file is removed afterward. The exit code is `0`.
 
 ## Empty selection

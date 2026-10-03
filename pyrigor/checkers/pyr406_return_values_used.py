@@ -10,8 +10,9 @@ from pyrigor.checkers._shared import (
     function_scopes,
     nearest_function_scope,
 )
+from pyrigor.finding_builder import FindingContext, make_finding
+from pyrigor.findings import Finding
 from pyrigor.rules import Rule
-from pyrigor.violations import Violation, make_violation
 
 _NONE_ANNOTATION_NAME: Final = "None"
 
@@ -389,7 +390,7 @@ def _same_scope_nodes(*, class_def: ast.ClassDef) -> Iterator[ast.AST]:
         yield from _iter_same_scope(node=method)
 
 
-def _same_class_violations(*, class_def: ast.ClassDef) -> list[ast.Call]:
+def _same_class_findings(*, class_def: ast.ClassDef) -> list[ast.Call]:
     """Find self.<name>() calls within a class's own methods, matching a protected method.
 
     Args:
@@ -442,17 +443,18 @@ def _same_class_call_matches(*, class_nodes: list[ast.ClassDef]) -> list[ast.Cal
         Every matching Call node, one class's results at a time,
         concatenated.
     """
-    return [call for class_def in class_nodes for call in _same_class_violations(class_def=class_def)]
+    return [call for class_def in class_nodes for call in _same_class_findings(class_def=class_def)]
 
 
-def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
-    """Find PYR406 violations in already-walked nodes.
+def find_findings(*, nodes: WalkedNodes, context: FindingContext) -> list[Finding]:
+    """Find PYR406 findings in already-walked nodes.
 
     Args:
         nodes: Every relevant node in the file, from walk_once.
+        context: Source positions and names used to build findings.
 
     Returns:
-        A list of violations: one per bare-statement call to a
+        A list of findings: one per bare-statement call to a
         locally defined, non-None-returning function, whether called
         by bare name or, when defined on the same class, via self.
     """
@@ -460,4 +462,4 @@ def find_violations(*, nodes: WalkedNodes) -> list[Violation]:
     matched_calls = _bare_name_call_matches(nodes=nodes, protected_names=protected_names) + _same_class_call_matches(
         class_nodes=nodes.class_nodes,
     )
-    return [make_violation(node=call, rule=Rule.PYR406) for call in matched_calls]
+    return [make_finding(node=call, rule=Rule.PYR406, context=context) for call in matched_calls]

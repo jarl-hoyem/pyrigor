@@ -8,13 +8,12 @@ import ast
 import pytest
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import walk_once
-
 # noinspection PyProtectedMember
 from pyrigor.checkers.pyr406_return_values_used import (
     _binding_position,  # pyright: ignore[reportPrivateUsage]
-    find_violations,
+    find_findings,
 )
+from tests.checker_helpers import check_source
 
 
 def test_comprehension_target_does_not_shadow_outer_protected_function() -> None:
@@ -27,10 +26,10 @@ def handle(items):
     [compute_total for compute_total in items]
     compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_tuple_comprehension_target_does_not_shadow_outer_protected_function() -> None:
@@ -47,10 +46,10 @@ def handle(pairs):
     [first for (compute_total, first) in pairs]
     compute_total(pairs)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_class_body_binding_does_not_shadow_module_function() -> None:
@@ -64,10 +63,10 @@ class Example:
 
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "compute_total"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'compute_total' ")
 
 
 def test_class_body_bare_call_is_out_of_scope() -> None:
@@ -79,12 +78,12 @@ def compute_total(items) -> float:
 class Example:
     compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_when_protected_function_is_rebound_by_lambda() -> None:
+def test_no_finding_when_protected_function_is_rebound_by_lambda() -> None:
     """A later lambda binding replaces the protected function for bare-name resolution."""
     source = """
 def compute_total(items) -> float:
@@ -93,12 +92,12 @@ def compute_total(items) -> float:
 compute_total = lambda items: None
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_when_protected_function_is_rebound_by_import() -> None:
+def test_no_finding_when_protected_function_is_rebound_by_import() -> None:
     """A later import binding replaces the protected function for bare-name resolution."""
     source = """
 def compute_total(items) -> float:
@@ -107,9 +106,9 @@ def compute_total(items) -> float:
 from other import compute_total
 compute_total(items)
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_later_lambda_binding_stops_outer_function_resolution() -> None:
@@ -122,9 +121,9 @@ def outer() -> None:
     value()
     value = lambda: None
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_later_import_binding_stops_outer_function_resolution() -> None:
@@ -137,9 +136,9 @@ def outer() -> None:
     value()
     from other import value
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_comprehension_target_does_not_shadow_before_or_after_comprehension() -> None:
@@ -153,9 +152,9 @@ def outer(items) -> None:
     [value for value in items]
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 2
+    assert len(findings) == 2
 
 
 def test_class_body_binding_does_not_shadow_calls_before_or_after_class() -> None:
@@ -171,9 +170,9 @@ class Example:
 
 value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 2
+    assert len(findings) == 2
 
 
 def test_class_body_binding_does_not_stop_collecting_later_bindings() -> None:
@@ -193,9 +192,9 @@ def outer() -> None:
     value = None
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 # The shadowing tests below share the value/outer fixture convention every other test in
@@ -213,9 +212,9 @@ def outer() -> None:
     value()
     value = None
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_loop_target_stops_outer_function_resolution() -> None:
@@ -228,9 +227,9 @@ def outer(items) -> None:
     for value in items:
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_context_manager_target_stops_outer_function_resolution() -> None:
@@ -243,9 +242,9 @@ def outer() -> None:
     with resource() as value:
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_global_declaration_resolves_to_module_function() -> None:
@@ -258,10 +257,10 @@ def outer() -> None:
     global value
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "value"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'value' ")
 
 
 def test_named_expression_target_stops_outer_function_resolution() -> None:
@@ -274,9 +273,9 @@ def outer(item) -> None:
     (value := item)
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_later_nested_function_definition_stops_outer_function_resolution() -> None:
@@ -291,9 +290,9 @@ def outer() -> None:
     def value() -> None:
         return None
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_augmented_assignment_stops_outer_function_resolution() -> None:
@@ -306,9 +305,9 @@ def outer() -> None:
     value()
     value += 1
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_delete_target_stops_outer_function_resolution() -> None:
@@ -321,9 +320,9 @@ def outer() -> None:
     value()
     del value
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_named_expression_in_comprehension_stops_outer_function_resolution() -> None:
@@ -336,9 +335,9 @@ def outer(items) -> None:
     [(value := item) for item in items]
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_named_expression_in_a_comprehension_condition_binds_in_the_enclosing_scope() -> None:
@@ -355,9 +354,9 @@ def outer(items) -> None:
     [item for item in items if (value := item)]
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_plain_dotted_import_stops_outer_function_resolution() -> None:
@@ -370,9 +369,9 @@ def outer() -> None:
     import value.helper
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_aliased_from_import_does_not_shadow_outer_function() -> None:
@@ -385,10 +384,10 @@ def outer() -> None:
     from other import value as other_value
     value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "value"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Call 'value' ")
 
 
 def test_destructuring_loop_target_stops_outer_function_resolution() -> None:
@@ -401,9 +400,9 @@ def outer(items) -> None:
     for _, value in items:
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_destructuring_context_target_stops_outer_function_resolution() -> None:
@@ -416,9 +415,9 @@ def outer() -> None:
     with resource() as (_, value):
         value()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 def test_does_not_flag_bare_call_when_name_is_rebound_to_a_class() -> None:
@@ -432,9 +431,9 @@ class helper:
 
 helper()
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations == []
+    assert findings == []
 
 
 @pytest.mark.parametrize(

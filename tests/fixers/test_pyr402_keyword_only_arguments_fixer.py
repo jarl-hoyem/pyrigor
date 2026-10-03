@@ -1,12 +1,37 @@
 """Tests for the opt-in PYR402 fixer."""
 # pylint: disable=magic-value-comparison
 
+import tokenize
 from typing import SupportsIndex
+from unittest.mock import patch
 
 import pytest
 
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixStatus, fix_source
 from tests.line_breaks import LINE_BREAK_IDS, NON_PYTHON_LINE_BREAKS
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("as_bytes", [False, True])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_direct_fixer_preserves_bom_and_raw_line_breaks(*, newline: str, as_bytes: bool, dry_run: bool) -> None:
+    """The public fixer accepts BOM input independently of the CLI and preserves its representation."""
+    original = "\ufeff" + newline.join(["", "def flagged(a, b): pass", ""])
+    expected = original if dry_run else original.replace("flagged(", "flagged(*, ")
+    source = original.encode() if as_bytes else original
+    result = fix_source(source=source, dry_run=dry_run)
+    assert result.source == (expected.encode() if as_bytes else expected)
+    assert result.status is (FixStatus.WOULD_CHANGE if dry_run else FixStatus.CHANGED)
+
+
+@pytest.mark.parametrize("source", ["def clean(*, a, b): pass\n", "def flagged(a, b): pass\n"])
+def test_fixer_shares_tokens_only_when_findings_need_them(*, source: str) -> None:
+    """Suppression reuses signature tokens and clean files never create a token stream."""
+    with patch("pyrigor.finding_builder.tokenize.generate_tokens", wraps=tokenize.generate_tokens) as tokenise:
+        result = fix_source(source=source)
+    changed = "flagged" in source
+    assert tokenise.call_count == int(changed)
+    assert result.status is (FixStatus.CHANGED if changed else FixStatus.UNCHANGED)
 
 
 def test_adds_bare_star_before_positional_parameters() -> None:

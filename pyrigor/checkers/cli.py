@@ -4,19 +4,35 @@ import argparse
 import ast
 import difflib
 import json
+import os
 import sys
 import time
+import tokenize
+import unicodedata
 from collections import Counter
 from importlib.metadata import version
+from io import TextIOWrapper
 from pathlib import Path
 from typing import Final, Literal, NamedTuple, Never, cast
 
 from pyrigor.checkers import CHECKERS, RegisteredChecker
 from pyrigor.checkers._shared import walk_once
+from pyrigor.diagnostics import (
+    CheckError,
+    DiagnosticInputError,
+    DiagnosticsDocument,
+    RuleMetadata,
+    Summary,
+    ToolMetadata,
+    document_to_json,
+    require_supported_errors,
+    require_supported_findings,
+)
+from pyrigor.finding_builder import FindingContext
+from pyrigor.findings import FileName, Finding, PositionIndex
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixResult, FixStatus, fix_source
-from pyrigor.rules import Applicability, Rule
+from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
-from pyrigor.violations import KeptViolations, SuppressedViolations, Violation
 
 _MISSING_PATHS_MESSAGE: Final = "the following arguments are required: paths"
 _EXIT_CODE_USAGE_ERROR: Final = 2
@@ -37,31 +53,24 @@ _DEFAULT_EXCLUDES: Final = frozenset(
 )
 
 OutputFormat = Literal["human", "json"]
-CheckErrorKind = Literal["read_error", "parse_error"]
 _JSON_OUTPUT_FORMAT: Final = "json"
-
-
-class CheckError(NamedTuple):
-    """A file-level problem that prevented normal checking."""
-
-    file: str
-    kind: CheckErrorKind
-    message: str
+_MALFORMED_SUPPRESSION: Final = "malformed_suppression"
 
 
 class _SourceOk(NamedTuple):
     """A file's source, read successfully."""
 
     source: str
+    position_index: PositionIndex
 
 
-class _SourceFailed(NamedTuple):
-    """A file's source could not be read."""
+class _FileFailed(NamedTuple):
+    """A file could not be read or parsed."""
 
     error: CheckError
 
 
-_SourceResult = _SourceOk | _SourceFailed
+_SourceResult = _SourceOk | _FileFailed
 
 
 class _FixSourceOk(NamedTuple):
@@ -79,18 +88,11 @@ class _FixSourceFailed(NamedTuple):
 _FixSourceResult = _FixSourceOk | _FixSourceFailed
 
 
-class _PreparedFix(NamedTuple):
-    """A fixer result and whether the original source had a BOM."""
-
-    result: FixResult
-    bom: bool
-
-
 class _FixInput(NamedTuple):
     """A readable source and its prepared fixer result."""
 
     original: bytes
-    prepared: _PreparedFix
+    prepared: FixResult
 
 
 class _RunOptions(NamedTuple):
@@ -106,10 +108,10 @@ class _RunOptions(NamedTuple):
 
 
 class _CheckerResult(NamedTuple):
-    """The parser/checker result and any associated file error."""
+    """Findings and shared tokens from a successfully parsed file."""
 
-    violations: list[Violation]
-    error: CheckError | None
+    findings: list[Finding]
+    tokens: tuple[tokenize.TokenInfo, ...] | None
 
 
 def _is_excluded(*, path: Path) -> bool:
@@ -219,8 +221,8 @@ def _file_sort_key(*, path: str) -> str:
     return path.replace("\\", "/")
 
 
-class _ViolationSortKey(NamedTuple):
-    """A deterministic ordering key for one violation within its file."""
+class _FindingSortKey(NamedTuple):
+    """A deterministic ordering key for one finding within its file."""
 
     line: int
     column: int
@@ -229,38 +231,41 @@ class _ViolationSortKey(NamedTuple):
     rule_code: str
 
 
-def _violation_sort_key(*, violation: Violation) -> _ViolationSortKey:
-    """Return a deterministic sort key for one violation within its file.
-
-    Args:
-        violation: The violation to key.
-
-    Returns:
-        Line, column, end line, end column, then the rule's code as a string, so two violations at the same
-        position still order deterministically, independent of which checker produced them.
-    """
-    return _ViolationSortKey(
-        line=violation.line,
-        column=violation.column,
-        end_line=violation.end_line,
-        end_column=violation.end_column,
-        rule_code=violation.rule.name,
+def _finding_sort_key(*, finding: Finding) -> _FindingSortKey:
+    """Order by the primary start, end and rule code, independent of registration."""
+    primary = next(span for span in finding.spans if span.is_primary)
+    return _FindingSortKey(
+        line=primary.line_start,
+        column=primary.column_start,
+        end_line=primary.line_end,
+        end_column=primary.column_end,
+        rule_code=finding.code.name,
     )
 
 
-def _read_source(*, path: str) -> _SourceResult:
-    """Read a file's source, handling decode/OS errors gracefully.
-
-    Args:
-        path: The file to read.
-
-    Returns:
-        The file's source text and an error if it could not be read.
-    """
+def _file_name(*, path: str) -> FileName:
+    """Return an NFC path relative to the working directory with forward slashes."""
     try:
-        return _SourceOk(source=Path(path).read_text(encoding="utf-8-sig"))
+        relative = Path(os.path.relpath(path)).as_posix()
+    except ValueError as error:
+        raise DiagnosticInputError(
+            f"{path!r}: no path relative to the working directory exists; run from the file's drive"
+        ) from error
+    return FileName(unicodedata.normalize("NFC", relative))
+
+
+def _read_source(*, path: str) -> _SourceResult:
+    """Read and decode original source bytes, returning structured read errors."""
+    try:
+        return _decode_source(raw=Path(path).read_bytes())
     except (UnicodeDecodeError, OSError) as error:
-        return _SourceFailed(error=CheckError(file=path, kind="read_error", message=str(error)))
+        return _FileFailed(error=CheckError(file_name=_file_name(path=path), kind="read_error", message=str(error)))
+
+
+def _decode_source(*, raw: bytes) -> _SourceOk:
+    """Decode the same bytes used by the position index with universal newlines."""
+    source = raw.decode("utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
+    return _SourceOk(source=source, position_index=PositionIndex(raw=raw))
 
 
 def _read_fix_source(*, path: str) -> _FixSourceResult:
@@ -268,322 +273,287 @@ def _read_fix_source(*, path: str) -> _FixSourceResult:
     try:
         return _FixSourceOk(source=Path(path).read_bytes())
     except OSError as error:
-        return _FixSourceFailed(error=CheckError(file=path, kind="read_error", message=str(error)))
+        return _FixSourceFailed(
+            error=CheckError(file_name=_file_name(path=path), kind="read_error", message=str(error))
+        )
 
 
-def _run_checkers(*, path: str, source: str, checkers: tuple[RegisteredChecker, ...]) -> _CheckerResult:
-    """Run every registered checker against a source string, handling parse errors.
+def _syntax_column(*, error: SyntaxError) -> int | None:
+    """Retain only positive parser columns in the diagnostics document."""
+    return error.offset if error.offset is not None and error.offset > 0 else None
 
-    Args:
-        path: The file's path, for the warning message on failure.
-        source: The file's source text.
-        checkers: The checkers to run.
 
-    Returns:
-        Every violation is found and an error if the source could not be parsed.
-    """
+def _run_checkers(
+    *, path: str, source: str, index: PositionIndex, checkers: tuple[RegisteredChecker, ...]
+) -> _CheckerResult | _FileFailed:
+    """Run selected checkers on shared source positions, returning structured parse errors."""
     try:
         tree = ast.parse(source)
     except SyntaxError as error:
-        return _CheckerResult(
-            violations=[],
-            error=CheckError(file=path, kind="parse_error", message=str(error)),
+        return _FileFailed(
+            error=CheckError(
+                file_name=_file_name(path=path),
+                kind="parse_error",
+                message=str(error),
+                line=error.lineno,
+                column=_syntax_column(error=error),
+            ),
         )
 
     nodes = walk_once(tree=tree)
+    context = FindingContext(source=source, index=index, file_name=_file_name(path=path), parents=nodes.parents)
+    findings = [finding for entry in checkers for finding in entry.find_findings(nodes=nodes, context=context)]
+    require_supported_findings(findings=findings, path=path)
     return _CheckerResult(
-        violations=[v for entry in checkers for v in entry.find_violations(nodes=nodes)],
-        error=None,
+        findings=findings,
+        tokens=context.tokens if findings else None,
     )
 
 
 class FileCheckResult(NamedTuple):
-    """A single file's checked violations, split by suppression."""
+    """A single file's checked findings, split by suppression."""
 
-    kept: KeptViolations
-    suppressed: SuppressedViolations
+    kept: list[Finding]
+    suppressed: list[Finding]
     errors: list[CheckError]
-    source: str | None
 
 
 def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCheckResult:
-    """Check a single file and print any kept violations found.
-
-    Args:
-        path: The file to check.
-        checkers: The checkers to run.
-
-    Returns:
-        The kept and suppressed violations, file errors, and source text.
-    """
+    """Build canonical findings and partition them by primary-span suppression comments."""
     source_result = _read_source(path=path)
-    if isinstance(source_result, _SourceFailed):
+    if isinstance(source_result, _FileFailed):
+        require_supported_errors(errors=[source_result.error], path=path)
         return FileCheckResult(
-            kept=KeptViolations([]),
-            suppressed=SuppressedViolations([]),
+            kept=[],
+            suppressed=[],
             errors=[source_result.error],
-            source=None,
         )
 
-    checker_result = _run_checkers(path=path, source=source_result.source, checkers=checkers)
-    if checker_result.error is not None:
+    checker_result = _run_checkers(
+        path=path, source=source_result.source, index=source_result.position_index, checkers=checkers
+    )
+    if isinstance(checker_result, _FileFailed):
+        require_supported_errors(errors=[checker_result.error], path=path)
         return FileCheckResult(
-            kept=KeptViolations([]),
-            suppressed=SuppressedViolations([]),
+            kept=[],
+            suppressed=[],
             errors=[checker_result.error],
-            source=source_result.source,
         )
 
-    result = filter_suppressed(violations=checker_result.violations, source=source_result.source)
+    result = filter_suppressed(findings=checker_result.findings, tokens=checker_result.tokens)
+    require_supported_errors(errors=list(result.errors), path=path)
     return FileCheckResult(
-        kept=KeptViolations(sorted(result.kept, key=lambda violation: _violation_sort_key(violation=violation))),
-        suppressed=SuppressedViolations(
-            sorted(result.suppressed, key=lambda violation: _violation_sort_key(violation=violation))
-        ),
-        errors=[],
-        source=source_result.source,
+        kept=sorted(result.kept, key=lambda finding: _finding_sort_key(finding=finding)),
+        suppressed=sorted(result.suppressed, key=lambda finding: _finding_sort_key(finding=finding)),
+        errors=list(result.errors),
     )
 
 
-def _rule_count_breakdown(*, violations: list[Violation], suffix: str = "") -> str:
-    """Build a per-rule violation count breakdown string, optionally suffixed.
+def _rule_count_breakdown(*, findings: list[Finding], suffix: str = "") -> str:
+    """Build a per-rule finding count breakdown string, optionally suffixed.
 
     Args:
-        violations: Violations to count, grouped by rule.
+        findings: Findings to count, grouped by rule.
         suffix: Text appended after each count (for example, "suppressed"), or "" for none.
 
     Returns:
         A comma-separated "Rule: count[suffix]" breakdown, sorted by rule name.
     """
-    counts = Counter(v.rule.name for v in violations)
+    counts = Counter(v.code.name for v in findings)
     return ", ".join(f"{rule}: {count}{suffix}" for rule, count in sorted(counts.items()))
 
 
-def _format_rule_breakdown(*, violations: KeptViolations) -> str:
-    """Build a per-rule violation count breakdown string.
+def _format_rule_breakdown(*, findings: list[Finding]) -> str:
+    """Build a per-rule finding count breakdown string.
 
     Args:
-        violations: Every violation found across all files.
+        findings: Every finding across all files.
 
     Returns:
         A comma-separated "Rule: count" breakdown, for example, "PYR401: 2, PYR402: 5".
     """
-    return _rule_count_breakdown(violations=violations)
+    return _rule_count_breakdown(findings=findings)
 
 
-def _format_suppressed_breakdown(*, suppressed: SuppressedViolations) -> str:
-    """Build a per-rule suppressed-violation count breakdown string.
+def _format_suppressed_breakdown(*, suppressed: list[Finding]) -> str:
+    """Build a per-rule suppressed-finding count breakdown string.
 
     Args:
-        suppressed: Every violation that was suppressed across all files.
+        suppressed: Suppressed findings across all files.
 
     Returns:
         A comma-separated "Rule: count suppressed" breakdown.
     """
-    return _rule_count_breakdown(violations=suppressed, suffix=" suppressed")
+    return _rule_count_breakdown(findings=suppressed, suffix=" suppressed")
 
 
-def _print_file_breakdown(*, violations_by_file: dict[str, KeptViolations]) -> None:
-    """Print each file's own violation count, skipping clean files.
+def _print_file_breakdown(*, findings_by_file: dict[str, list[Finding]]) -> None:
+    """Print each file's own finding count, skipping clean files.
 
     Args:
-        violations_by_file: Each checked file's own violations.
+        findings_by_file: Each checked file's own findings.
     """
-    for path, file_violations in violations_by_file.items():
-        if file_violations:
-            print(f"{path}: {len(file_violations)}")
+    for path, file_findings in findings_by_file.items():
+        if file_findings:
+            print(f"{path}: {len(file_findings)}")
 
 
 def _print_summary(
     *,
     files: list[str],
     elapsed: float,
-    violations: KeptViolations,
-    violations_by_file: dict[str, KeptViolations],
-    suppressed: SuppressedViolations,
+    findings: list[Finding],
+    findings_by_file: dict[str, list[Finding]],
+    suppressed: list[Finding],
 ) -> None:
-    """Print the per-file breakdown, per-rule breakdown, suppression breakdown, and timing summary.
+    """Print the per-file breakdown, per-rule breakdown, suppression breakdown and timing summary.
 
     Args:
         files: The files that were checked.
         elapsed: Elapsed time in seconds.
-        violations: Every violation found across all files.
-        violations_by_file: Each checked file's own violations.
-        suppressed: The suppressed violations from every file.
+        findings: Every finding across all files.
+        findings_by_file: Each checked file's own findings.
+        suppressed: The suppressed findings from every file.
     """
-    if violations:
-        _print_file_breakdown(violations_by_file=violations_by_file)
-        print(_format_rule_breakdown(violations=violations))
+    if findings:
+        _print_file_breakdown(findings_by_file=findings_by_file)
+        print(_format_rule_breakdown(findings=findings))
 
     if suppressed:
         print(_format_suppressed_breakdown(suppressed=suppressed))
 
     file_word = "file" if len(files) == 1 else "files"
-    violation_word = "violation" if len(violations) == 1 else "violations"
-    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s -- {len(violations)} {violation_word}")
+    finding_word = "finding" if len(findings) == 1 else "findings"
+    print(f"Checked {len(files)} {file_word} in {elapsed:.2f}s -- {len(findings)} {finding_word}")
 
 
 def _print_human_results(*, results_by_file: dict[str, FileCheckResult]) -> None:
     """Print file warnings and diagnostics in the existing human format."""
     for path, result in results_by_file.items():
         for error in result.errors:
-            print(f"Warning: skipping {error.file}: {error.message}", file=sys.stderr)
-        for violation in result.kept:
-            location = f"{path}:{violation.line}:{violation.column}"
-            print(
-                f"{location}: {violation.rule.name} {violation.context_kind} '{violation.context_name}' "
-                f"{violation.rule.problem} ({violation.rule.symbolic_name})",
-            )
+            _print_error(path=path, error=error)
+        for finding in result.kept:
+            _print_finding(path=path, finding=finding)
 
 
-def _codepoint_column(*, source: str, line: int, utf8_column: int) -> int:
-    """Convert a 1-based UTF-8 byte column into a 1-based code-point column.
-
-    The source was read with universal newlines, so its lines break only where Python's parser breaks them. The method
-    str.splitlines() breaks on more characters, such as U+2028, which would read the wrong line.
-    """
-    line_text = source.split("\n")[line - 1]
-    prefix = line_text.encode()[: utf8_column - 1]
-    return len(prefix.decode()) + 1
+def _print_finding(*, path: str, finding: Finding) -> None:
+    """Render one finding at its primary span in the human format."""
+    primary = next(span for span in finding.spans if span.is_primary)
+    location = f"{path}:{primary.line_start}:{primary.column_start}"
+    print(f"{location}: {finding.code.name} {finding.message} ({finding.code.symbolic_name})")
 
 
-def _json_diagnostic(*, path: str, violation: Violation, source: str) -> dict[str, object]:
-    """Build one v1 JSON diagnostic from a violation."""
+def _print_error(*, path: str, error: CheckError) -> None:
+    """Report malformed comments as warnings and unreadable source as skipped files."""
+    if error.kind == _MALFORMED_SUPPRESSION:
+        print(f"Warning: {error.message}", file=sys.stderr)
+    else:
+        print(f"Warning: skipping {path}: {error.message}", file=sys.stderr)
+
+
+def _selected_rules(*, checkers: tuple[RegisteredChecker, ...], release: str) -> dict[Rule, RuleMetadata]:
+    """Include every selected rule with a guideline URL pinned to the producing release."""
+    # noinspection IncorrectFormatting
     return {
-        "file": path,
-        "location": {
-            "start": {
-                "line": violation.line,
-                "column": _codepoint_column(source=source, line=violation.line, utf8_column=violation.column),
-            },
-            "end": {
-                "line": violation.end_line,
-                "column": _codepoint_column(
-                    source=source,
-                    line=violation.end_line,
-                    utf8_column=violation.end_column,
-                ),
-            },
-        },
-        "code": violation.rule.name,
-        "name": violation.rule.symbolic_name,
-        "message": f"{violation.context_kind} '{violation.context_name}' {violation.rule.problem}",
-        "context": {"kind": violation.context_kind, "name": violation.context_name},
-        "severity": violation.rule.severity.value,
-        # v1 schema locks fixability to {safe_fix, suggestion, guidance} with no "unsafe" value.
-        # Per #289, v1 stays wrong for PYR402/PYR403 until #269 removes v1 entirely.
-        "fixability": "safe_fix" if violation.rule.applicability == Applicability.UNSAFE else "guidance",
-    }
-
-
-def _print_json_errors(*, errors: list[CheckError]) -> None:
-    """Print JSON-mode operational errors to stderr."""
-    for error in errors:
-        print(f"Warning: skipping {error.file}: {error.message}", file=sys.stderr)
-
-
-def _json_diagnostics(*, results_by_file: dict[str, FileCheckResult]) -> list[dict[str, object]]:
-    """Serialize all kept violations for a JSON result."""
-    diagnostics: list[dict[str, object]] = []
-    for path, result in results_by_file.items():
-        if result.source is not None:
-            diagnostics.extend(
-                _json_diagnostic(path=path, violation=violation, source=result.source) for violation in result.kept
-            )
-    return diagnostics
-
-
-def _json_summary(
-    *, files: list[str], results_by_file: dict[str, FileCheckResult], results: "_CheckResults"
-) -> dict[str, object]:
-    """Build the JSON summary for a scan result."""
-    suppressed_by_rule = Counter(
-        violation.rule.name for result in results_by_file.values() for violation in result.suppressed
-    )
-    return {
-        "files_checked": len(files),
-        "diagnostics": len(results.all_violations),
-        "suppressed": len(results.all_suppressed),
-        "suppressed_by_rule": dict(sorted(suppressed_by_rule.items())),
+        entry.rule: RuleMetadata(
+            symbolic_name=entry.rule.symbolic_name,
+            fix_availability=entry.rule.fix_availability,
+            applicability=entry.rule.applicability,
+            url=f"https://github.com/jarl-hoyem/pyrigor/blob/v{release}/guidelines/"
+            f"{entry.rule.name}-{entry.rule.symbolic_name}.md",
+        )
+        for entry in sorted(checkers, key=lambda entry: entry.rule.name)
     }
 
 
 def _print_json_results(
-    *, files: list[str], results_by_file: dict[str, FileCheckResult], results: "_CheckResults"
+    *,
+    files: list[str],
+    results_by_file: dict[str, FileCheckResult],
+    results: "_CheckResults",
+    checkers: tuple[RegisteredChecker, ...],
 ) -> None:
-    """Print one complete v1 JSON diagnostics document."""
-    _print_json_errors(errors=results.errors)
-    document = {
-        "schema_version": 1,
-        "diagnostics": _json_diagnostics(results_by_file=results_by_file),
-        "errors": [error._asdict() for error in results.errors],
-        "summary": _json_summary(files=files, results_by_file=results_by_file, results=results),
-    }
-    print(json.dumps(document, ensure_ascii=False, indent=2))
+    """Print one complete v2 document, leaving operational warnings on stderr."""
+    for path, result in results_by_file.items():
+        for error in result.errors:
+            _print_error(path=path, error=error)
+    release = version("pyrigor")
+    document = DiagnosticsDocument(
+        tool=ToolMetadata(name="pyrigor", version=release),
+        findings=results.all_findings,
+        suppressed=results.all_suppressed,
+        rules=_selected_rules(checkers=checkers, release=release),
+        errors=results.errors,
+        summary=Summary(files_checked=len(files)),
+    )
+    print(json.dumps(document_to_json(document=document), ensure_ascii=False, indent=2))
 
 
 class _CheckResults(NamedTuple):
     """Aggregated results across every checked file."""
 
-    all_violations: KeptViolations
-    all_suppressed: SuppressedViolations
-    kept_by_file: dict[str, KeptViolations]
+    all_findings: list[Finding]
+    all_suppressed: list[Finding]
+    kept_by_file: dict[str, list[Finding]]
     errors: list[CheckError]
 
 
-def _collect_all_violations(*, results_by_file: dict[str, FileCheckResult]) -> KeptViolations:
-    """Flatten every file's kept violations into one list.
+def _collect_all_findings(*, results_by_file: dict[str, FileCheckResult]) -> list[Finding]:
+    """Flatten every file's kept findings into one list.
 
     Args:
-        results_by_file: Each file's own kept and suppressed violations.
+        results_by_file: Each file's own kept and suppressed findings.
 
     Returns:
-        Every kept violation across all files.
+        Every kept finding across all files.
     """
-    return KeptViolations([v for result in results_by_file.values() for v in result.kept])
+    return [finding for result in results_by_file.values() for finding in result.kept]
 
 
-def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> SuppressedViolations:
-    """Flatten every file's suppressed violations into one list.
+def _collect_all_suppressed(*, results_by_file: dict[str, FileCheckResult]) -> list[Finding]:
+    """Flatten every file's suppressed findings into one list.
 
     Args:
-        results_by_file: Each file's own kept and suppressed violations.
+        results_by_file: Each file's own kept and suppressed findings.
 
     Returns:
-        Every suppressed violation across all files.
+        Every suppressed finding across all files.
     """
-    return SuppressedViolations([v for result in results_by_file.values() for v in result.suppressed])
+    return [finding for result in results_by_file.values() for finding in result.suppressed]
 
 
-def _kept_by_file(*, results_by_file: dict[str, FileCheckResult]) -> dict[str, KeptViolations]:
-    """Extract each file's kept violations, for the per-file breakdown.
+def _kept_by_file(*, results_by_file: dict[str, FileCheckResult]) -> dict[str, list[Finding]]:
+    """Extract each file's kept findings, for the per-file breakdown.
 
     Args:
-        results_by_file: Each file's own kept and suppressed violations.
+        results_by_file: Each file's own kept and suppressed findings.
 
     Returns:
-        A path-to-kept-violations mapping.
+        A path-to-kept-findings mapping.
     """
     return {path: result.kept for path, result in results_by_file.items()}
 
 
 def _collect_errors(*, results_by_file: dict[str, FileCheckResult]) -> list[CheckError]:
     """Flatten every file error into one list."""
-    return [error for result in results_by_file.values() for error in result.errors]
+    return sorted(
+        (error for result in results_by_file.values() for error in result.errors),
+        key=lambda error: (error.file_name, error.line or 0),
+    )
 
 
 def _aggregate_results(*, results_by_file: dict[str, FileCheckResult]) -> _CheckResults:
     """Flatten per-file check results into overall totals.
 
     Args:
-        results_by_file: Each file's own kept and suppressed violations.
+        results_by_file: Each file's own kept and suppressed findings.
 
     Returns:
-        Every kept violation, every suppressed violation, and a
-        path-to-kept-violations mapping for the per-file breakdown.
+        Every kept finding, every suppressed finding and a
+        path-to-kept-findings mapping for the per-file breakdown.
     """
     return _CheckResults(
-        all_violations=_collect_all_violations(results_by_file=results_by_file),
+        all_findings=_collect_all_findings(results_by_file=results_by_file),
         all_suppressed=_collect_all_suppressed(results_by_file=results_by_file),
         kept_by_file=_kept_by_file(results_by_file=results_by_file),
         errors=_collect_errors(results_by_file=results_by_file),
@@ -595,10 +565,10 @@ def _matches_rule_filter(*, rule: Rule, tokens: set[str]) -> bool:
 
     Args:
         rule: The rule to check.
-        tokens: Tokens to match against, each is a full code, bare number, or symbolic name.
+        tokens: Tokens to match against, each is a full code, bare number or symbolic name.
 
     Returns:
-        True if the rule's code, numeric shorthand, or symbolic name is in tokens.
+        True if the rule's code, numeric shorthand or symbolic name is in tokens.
     """
     code = rule.name
     shorthand = code.removeprefix("PYR")
@@ -671,26 +641,29 @@ def main(
         output_format: The output format, either human or JSON.
 
     Returns:
-        0 if no violations were found, 1 otherwise.
+        0 if no findings were found, 1 otherwise.
     """
-    files = sorted(_collect_python_files(paths=paths, excludes=excludes), key=lambda path: _file_sort_key(path=path))
+    files = sorted(
+        _collect_python_files(paths=paths, excludes=excludes),
+        key=lambda path: _file_sort_key(path=_file_name(path=path)),
+    )
     checkers = _filter_checkers(select=select, ignore=ignore)
     start = time.perf_counter()
 
     results_by_file = {path: _check_file(path=path, checkers=checkers) for path in files}
     results = _aggregate_results(results_by_file=results_by_file)
-    exit_code = 1 if results.all_violations else 0
+    exit_code = 1 if results.all_findings else 0
 
     elapsed = time.perf_counter() - start
     if output_format == _JSON_OUTPUT_FORMAT:
-        _print_json_results(files=files, results_by_file=results_by_file, results=results)
+        _print_json_results(files=files, results_by_file=results_by_file, results=results, checkers=checkers)
     else:
         _print_human_results(results_by_file=results_by_file)
         _print_summary(
             files=files,
             elapsed=elapsed,
-            violations=results.all_violations,
-            violations_by_file=results.kept_by_file,
+            findings=results.all_findings,
+            findings_by_file=results.kept_by_file,
             suppressed=results.all_suppressed,
         )
 
@@ -730,7 +703,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Build the console-script's argument parser.
 
     Returns:
-        A parser recognising --version/-V, --select, --ignore, --output-format, and paths.
+        A parser recognising --version/-V, --select, --ignore, --output-format and paths.
     """
     parser = _PyrigorArgumentParser(prog="pyrigor", allow_abbrev=False)
     parser.add_argument(
@@ -761,7 +734,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--output-format",
         action="append",
         choices=("human", "json"),
-        default=None,
         help="Output format (default: human).",
     )
     parser.add_argument(
@@ -894,14 +866,13 @@ def _fix_path(*, path: str, diff: bool) -> None:
     fix_input = _read_and_prepare_fix(path=path)
     if fix_input is None:
         return
-    original, prepared = fix_input
-    result, bom = prepared
+    original, result = fix_input
     if result.status is FixStatus.UNCHANGED:
         return
     if diff:
         _print_fix_diff(path=path, original=original, fixed=cast("bytes", result.source))
         return
-    Path(path).write_bytes((b"\xef\xbb\xbf" if bom else b"") + cast("bytes", result.source))
+    Path(path).write_bytes(cast("bytes", result.source))
     print(f"Fixed {path}")
 
 
@@ -912,17 +883,11 @@ def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
         print(f"{path}: {source_result.error.message}", file=sys.stderr)
         return None
     try:
-        prepared = _fix_source(source=source_result.source)
+        prepared = fix_source(source=source_result.source)
     except (FixRejectedError, UnicodeDecodeError) as error:
         print(f"{path}: fix rejected: {error}", file=sys.stderr)
         return None
     return _FixInput(original=source_result.source, prepared=prepared)
-
-
-def _fix_source(*, source: bytes) -> _PreparedFix:
-    """Run the fixer after removing an optional UTF-8 BOM."""
-    bom = source.startswith(b"\xef\xbb\xbf")
-    return _PreparedFix(result=fix_source(source=source[3:] if bom else source), bom=bom)
 
 
 def _print_fix_diff(*, path: str, original: bytes, fixed: bytes) -> None:
@@ -940,6 +905,16 @@ def _print_fix_diff(*, path: str, original: bytes, fixed: bytes) -> None:
     )
 
 
+def _configure_output(*, output_format: OutputFormat) -> None:
+    """Ensure a real JSON output stream writes UTF-8, leaving text captures alone."""
+    if output_format != _JSON_OUTPUT_FORMAT:
+        return
+    stdout = sys.stdout
+    # JSON retains Unicode characters, so a redirected stream must not inherit a legacy Windows encoding.
+    if isinstance(stdout, TextIOWrapper):
+        stdout.reconfigure(encoding="utf-8")
+
+
 def run() -> None:
     """Console-script entry point: parse argv and run main()."""
     parser = _build_parser()
@@ -948,19 +923,30 @@ def run() -> None:
     if options.fix or options.diff:
         sys.exit(_run_fixes(paths=options.paths, excludes=options.excludes, diff=options.diff))
 
+    _configure_output(output_format=options.output_format)
+
     try:
-        exit_code = main(
+        exit_code = _run_diagnostics(options=options)
+    except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
+        print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
+        sys.exit(_EXIT_CODE_USAGE_ERROR)
+    else:
+        sys.exit(exit_code)
+
+
+def _run_diagnostics(*, options: _RunOptions) -> int:
+    """Report known producer limitations as clear usage errors before emitting any output."""
+    try:
+        return main(
             paths=options.paths,
             select=options.select,
             ignore=options.ignore,
             output_format=options.output_format,
             excludes=options.excludes,
         )
-    except Exception as error:  # noqa: BLE001  # pylint: disable=broad-exception-caught
-        print(f"pyrigor crashed unexpectedly: {error}", file=sys.stderr)
-        sys.exit(_EXIT_CODE_USAGE_ERROR)
-    else:
-        sys.exit(exit_code)
+    except DiagnosticInputError as error:
+        print(f"pyrigor: {error}", file=sys.stderr)
+        return _EXIT_CODE_USAGE_ERROR
 
 
 def _parse_run_options(*, args: argparse.Namespace) -> _RunOptions:

@@ -1,14 +1,11 @@
 """Tests for the PYR402 checker (force keyword-only arguments)."""
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
-# pylint: disable=magic-value-comparison
-
-import ast
 
 # noinspection PyProtectedMember
-from pyrigor.checkers._shared import walk_once
-from pyrigor.checkers.pyr402_keyword_only_arguments import find_violations
+from pyrigor.checkers.pyr402_keyword_only_arguments import find_findings
 from pyrigor.rules import Rule
+from tests.checker_helpers import check_source
 
 
 def test_flags_function_with_positional_parameter() -> None:
@@ -17,33 +14,33 @@ def test_flags_function_with_positional_parameter() -> None:
 def apply_correction(weight, bias):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "apply_correction"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'apply_correction' ")
 
 
-def test_no_violation_for_already_keyword_only_function() -> None:
+def test_no_finding_for_already_keyword_only_function() -> None:
     """A function with only keyword-only parameters should not be flagged."""
     source = """
 def apply_correction(*, weight, bias):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_method_with_only_self() -> None:
+def test_no_finding_for_method_with_only_self() -> None:
     """A method with only `self` before the keyword-only params should not be flagged."""
     source = """
 class Foo:
     def bar(self, *, weight, bias):
         ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_function_with_positional_only_parameter() -> None:
@@ -52,24 +49,24 @@ def test_flags_function_with_positional_only_parameter() -> None:
 def apply_correction(weight, bias, /):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "apply_correction"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'apply_correction' ")
 
 
-def test_no_violation_for_args_kwargs_only_function() -> None:
+def test_no_finding_for_args_kwargs_only_function() -> None:
     """A function with only *args/**kwargs (no named positional params) should not be flagged."""
     source = """
 def apply_correction(*args, **kwargs):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_single_named_param_before_args() -> None:
+def test_no_finding_for_single_named_param_before_args() -> None:
     """A single named param before *args is exempt from PYR402 (see PYR403).
 
     The arguments *args/**kwargs are already exempt, leaving only one real param.
@@ -78,9 +75,9 @@ def test_no_violation_for_single_named_param_before_args() -> None:
 def apply_correction(weight, *args, **kwargs):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_two_named_params_before_args() -> None:
@@ -89,21 +86,21 @@ def test_flags_two_named_params_before_args() -> None:
 def apply_correction(weight, bias, *args, **kwargs):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "apply_correction"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'apply_correction' ")
 
 
-def test_no_violation_for_keyword_only_after_args() -> None:
+def test_no_finding_for_keyword_only_after_args() -> None:
     """A param after *args is automatically keyword-only and should not be flagged."""
     source = """
 def apply_correction(*args, weight, **kwargs):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_flags_async_function_with_positional_parameter() -> None:
@@ -112,10 +109,10 @@ def test_flags_async_function_with_positional_parameter() -> None:
 async def apply_correction(weight, bias):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "apply_correction"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'apply_correction' ")
 
 
 def test_flags_nested_function_with_positional_parameter() -> None:
@@ -126,20 +123,20 @@ def outer():
         ...
     return inner
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert len(violations) == 1
-    assert violations[0].context_name == "inner"
+    assert len(findings) == 1
+    assert findings[0].message.startswith("Function 'inner' ")
 
 
-def test_no_violation_for_lambda_with_positional_parameters() -> None:
+def test_no_finding_for_lambda_with_positional_parameters() -> None:
     """A lambda is exempt from PYR402, regardless of its parameters."""
     source = """
 sort_key = lambda weight, bias: weight + bias
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
 def test_known_limitation_staticmethod_with_only_self_param() -> None:
@@ -157,32 +154,32 @@ class Foo:
     def bar(self):
         ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
     # Documenting current (incorrect but accepted) behaviour: this SHOULD be
     # flagged (self isn't special here — it is a plain, badly named param),
     # but isn't, because the checker doesn't inspect decorators or class
     # context before applying the self/cls exemption.
-    assert not violations
+    assert not findings
 
 
-def test_no_violation_for_single_parameter_function() -> None:
+def test_no_finding_for_single_parameter_function() -> None:
     """A single-parameter function is exempt from PYR402 (see PYR403 instead)."""
     source = """
 def main(paths):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert not violations
+    assert not findings
 
 
-def test_violation_has_correct_rule() -> None:
-    """A PYR402 violation should carry Rule PYR402."""
+def test_finding_has_correct_rule() -> None:
+    """A PYR402 finding should carry Rule PYR402."""
     source = """
 def apply_correction(weight, bias):
     ...
 """
-    violations = find_violations(nodes=walk_once(tree=ast.parse(source)))
+    findings = check_source(source=source, checker=find_findings)
 
-    assert violations[0].rule == Rule.PYR402
+    assert findings[0].code == Rule.PYR402

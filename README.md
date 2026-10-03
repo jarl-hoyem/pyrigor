@@ -109,7 +109,8 @@ without writing. Fixer modes require explicit PYR402 selection; ordinary linting
 `--select PYR402` and `--select=PYR402` are accepted.
 
 For the machine-readable editor or tooling integration, use `--output-format=json`. It emits one JSON document
-containing diagnostics, read/parse errors and suppression counts. The default human-readable format is unchanged. See
+containing kept and suppressed findings, selected-rule metadata, tool identity, operational errors and a file count.
+Both JSON and human locations use 1-based Unicode code-point columns. See
 [`guidelines/JSON_DIAGNOSTICS.md`](./guidelines/JSON_DIAGNOSTICS.md) for the contract and schema.
 
 To suppress a specific violation, add a same-line comment with a reason:
@@ -128,18 +129,17 @@ When stacking with another tool's own suppression comment on the same line (`# n
 pyrigor's own comment last — `# nosec  # pyrigor PYR402 # reason`. The pyrigor comment must come after any other tool's
 comment, since its reason captures to the end of the line.
 
-A suppression comment may also go on the line directly above the violation, or anywhere within a multi-line statement's
-own span — useful when a long, descriptive name plus the mandatory reason would not fit on the violating line itself:
+A suppression comment may also go on the line directly above the finding, or on any line in its primary span. For
+functions, that span runs from `def` or `async def` through the signature colon. A comment elsewhere in the function
+body does not suppress a signature finding. Assignment and call findings span the whole statement. The line above is
+useful when the mandatory reason would not fit on the starting line:
 
 ```python
 # pyrigor PYR402 # long test names plus a mandatory reason need more room
 def apply_correction_for_the_pytest_fixture_injection_case(weight, bias): ...
 ```
 
-The same-line still works exactly as before — these are additional locations, not a replacement. This flexibility is a
-deliberate design advantage over tools like ruff or bandit, which require the suppression comment to sit on the exact
-physical line of the violation, making it easy to place incorrectly on wrapped statements. The pyrigor suppression works
-anywhere within the violation's span, so placement matters less.
+Same-line comments continue to work. On wrapped statements, comments on any primary-span line work too.
 
 ## Adding pyrigor to your own project
 
@@ -186,7 +186,7 @@ Two settings are not straightforward. The `Show console: Never` matters because 
 anything, so any other value opens a console on every save. And `Output filters` is not a plain text field, it needs the
 browse button next to it, otherwise the value is silently discarded.
 
-Violations then appear in the Problems view, clickable, as you save.
+Findings then appear in the Problems view, clickable, as you save.
 
 Other editors read the same lines. In Vim or Neovim, `makeprg=pyrigor\ %` with `errorformat=%f:%l:%c:\ %m` fills the
 quickfix list from `:make`. In Emacs, `M-x compile` running `pyrigor .` needs no configuration at all, because
@@ -195,8 +195,8 @@ compilation mode already recognises this format. In Visual Studio Code, a task i
 it reaches everyone on the project. Sublime Text takes the same expression as a build system's `file_regex`.
 
 The text line is the lowest common denominator. Where an editor can consume structured output, `--output-format=json`
-carries more: a severity per violation, the end line and column, the symbolic name and whether a safe fix exists. An
-integration built on that can show ranges and colour them by severity, which the plain line cannot express.
+carries more: severity, raw byte ranges, code-point ranges, enclosing symbols and selected-rule metadata. An integration
+can show ranges and colour them by severity. Findings currently carry an empty `fixes` list.
 
 ## What this is
 
