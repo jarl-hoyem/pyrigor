@@ -1,4 +1,4 @@
-"""Partition findings using real comments besides their primary spans."""
+"""Partition findings using comments on a primary span's lines or the preceding line."""
 
 import re
 import tokenize
@@ -28,9 +28,13 @@ class SuppressionResult(NamedTuple):
     errors: tuple[CheckError, ...] = ()
 
 
-def _comments_by_line(*, source: str, tokens: Iterable[tokenize.TokenInfo] | None) -> dict[int, tokenize.TokenInfo]:
+def _comments_by_line(
+    *, source: str | None, tokens: Iterable[tokenize.TokenInfo] | None
+) -> dict[int, tokenize.TokenInfo]:
     """Exclude comment-shaped text inside strings and normalise Python line breaks."""
     if tokens is None:
+        if source is None:
+            raise ValueError("suppression requires source text or tokens")
         normalised = source.replace("\r\n", "\n").replace("\r", "\n")
         tokens = tokenize.generate_tokens(StringIO(normalised).readline)
     return {token.start[0]: token for token in tokens if token.type == tokenize.COMMENT}
@@ -97,9 +101,9 @@ def _is_suppressed(
 
 
 def filter_suppressed(
-    *, findings: list[Finding], source: str, tokens: Iterable[tokenize.TokenInfo] | None = None
+    *, findings: list[Finding], source: str | None = None, tokens: Iterable[tokenize.TokenInfo] | None = None
 ) -> SuppressionResult:
-    """Partition canonical findings and return warnings for the CLI to report."""
+    """Partition findings using shared tokens or source text when no tokens are supplied."""
     if not findings:
         return SuppressionResult(kept=[], suppressed=[])
     comments = _comments_by_line(source=source, tokens=tokens)

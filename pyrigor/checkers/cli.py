@@ -25,6 +25,7 @@ from pyrigor.diagnostics import (
     Summary,
     ToolMetadata,
     document_to_json,
+    require_supported_errors,
     require_supported_findings,
 )
 from pyrigor.finding_builder import FindingContext
@@ -63,13 +64,13 @@ class _SourceOk(NamedTuple):
     position_index: PositionIndex
 
 
-class _SourceFailed(NamedTuple):
-    """A file's source could not be read."""
+class _FileFailed(NamedTuple):
+    """A file could not be read or parsed."""
 
     error: CheckError
 
 
-_SourceResult = _SourceOk | _SourceFailed
+_SourceResult = _SourceOk | _FileFailed
 
 
 class _FixSourceOk(NamedTuple):
@@ -107,11 +108,10 @@ class _RunOptions(NamedTuple):
 
 
 class _CheckerResult(NamedTuple):
-    """The parser/checker result and any associated file error."""
+    """Findings and shared tokens from a successfully parsed file."""
 
     findings: list[Finding]
-    error: CheckError | None
-    tokens: tuple[tokenize.TokenInfo, ...] | None = None
+    tokens: tuple[tokenize.TokenInfo, ...] | None
 
 
 def _is_excluded(*, path: Path) -> bool:
@@ -259,7 +259,7 @@ def _read_source(*, path: str) -> _SourceResult:
     try:
         return _decode_source(raw=Path(path).read_bytes())
     except (UnicodeDecodeError, OSError) as error:
-        return _SourceFailed(error=CheckError(file_name=_file_name(path=path), kind="read_error", message=str(error)))
+        return _FileFailed(error=CheckError(file_name=_file_name(path=path), kind="read_error", message=str(error)))
 
 
 def _decode_source(*, raw: bytes) -> _SourceOk:
@@ -285,13 +285,12 @@ def _syntax_column(*, error: SyntaxError) -> int | None:
 
 def _run_checkers(
     *, path: str, source: str, index: PositionIndex, checkers: tuple[RegisteredChecker, ...]
-) -> _CheckerResult:
+) -> _CheckerResult | _FileFailed:
     """Run selected checkers on shared source positions, returning structured parse errors."""
     try:
         tree = ast.parse(source)
     except SyntaxError as error:
-        return _CheckerResult(
-            findings=[],
+        return _FileFailed(
             error=CheckError(
                 file_name=_file_name(path=path),
                 kind="parse_error",
@@ -307,7 +306,6 @@ def _run_checkers(
     require_supported_findings(findings=findings, path=path)
     return _CheckerResult(
         findings=findings,
-        error=None,
         tokens=context.tokens if findings else None,
     )
 
@@ -323,7 +321,8 @@ class FileCheckResult(NamedTuple):
 def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCheckResult:
     """Build canonical findings and partition them by primary-span suppression comments."""
     source_result = _read_source(path=path)
-    if isinstance(source_result, _SourceFailed):
+    if isinstance(source_result, _FileFailed):
+        require_supported_errors(errors=[source_result.error], path=path)
         return FileCheckResult(
             kept=[],
             suppressed=[],
@@ -333,16 +332,16 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     checker_result = _run_checkers(
         path=path, source=source_result.source, index=source_result.position_index, checkers=checkers
     )
-    if checker_result.error is not None:
+    if isinstance(checker_result, _FileFailed):
+        require_supported_errors(errors=[checker_result.error], path=path)
         return FileCheckResult(
             kept=[],
             suppressed=[],
             errors=[checker_result.error],
         )
 
-    result = filter_suppressed(
-        findings=checker_result.findings, source=source_result.source, tokens=checker_result.tokens
-    )
+    result = filter_suppressed(findings=checker_result.findings, tokens=checker_result.tokens)
+    require_supported_errors(errors=list(result.errors), path=path)
     return FileCheckResult(
         kept=sorted(result.kept, key=lambda finding: _finding_sort_key(finding=finding)),
         suppressed=sorted(result.suppressed, key=lambda finding: _finding_sort_key(finding=finding)),
@@ -368,7 +367,7 @@ def _format_rule_breakdown(*, findings: list[Finding]) -> str:
     """Build a per-rule finding count breakdown string.
 
     Args:
-        findings: Every finding that is found across all files.
+        findings: Kept findings across all files.
 
     Returns:
         A comma-separated "Rule: count" breakdown, for example, "PYR401: 2, PYR402: 5".
@@ -380,7 +379,7 @@ def _format_suppressed_breakdown(*, suppressed: list[Finding]) -> str:
     """Build a per-rule suppressed-finding count breakdown string.
 
     Args:
-        suppressed: Every finding that was suppressed across all files.
+        suppressed: Suppressed findings across all files.
 
     Returns:
         A comma-separated "Rule: count suppressed" breakdown.
@@ -412,7 +411,7 @@ def _print_summary(
     Args:
         files: The files that were checked.
         elapsed: Elapsed time in seconds.
-        findings: Every finding that is found across all files.
+        findings: Kept findings across all files.
         findings_by_file: Each checked file's own findings.
         suppressed: The suppressed findings from every file.
     """
@@ -454,6 +453,7 @@ def _print_error(*, path: str, error: CheckError) -> None:
 
 def _selected_rules(*, checkers: tuple[RegisteredChecker, ...], release: str) -> dict[Rule, RuleMetadata]:
     """Include every selected rule with a guideline URL pinned to the producing release."""
+    # noinspection IncorrectFormatting
     return {
         entry.rule: RuleMetadata(
             symbolic_name=entry.rule.symbolic_name,

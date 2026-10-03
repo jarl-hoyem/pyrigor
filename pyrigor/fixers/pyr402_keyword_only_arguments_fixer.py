@@ -75,7 +75,7 @@ def fix_source(*, source: str | bytes, dry_run: bool = False) -> FixResult:
 def _kept_positions(*, context: FindingContext, nodes: WalkedNodes) -> set[int]:
     """Locate kept function signatures without tokenising clean files."""
     findings = find_pyr402_findings(nodes=nodes, context=context)
-    kept = filter_suppressed(findings=findings, source=context.source, tokens=context.tokens if findings else None).kept
+    kept = filter_suppressed(findings=findings, tokens=context.tokens if findings else None).kept
     # Original byte offsets match AST nodes without mixing human code-point columns with AST byte columns.
     return {next(span.byte_start for span in finding.spans if span.is_primary) for finding in kept}
 

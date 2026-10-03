@@ -22,7 +22,7 @@ _FindingNode: TypeAlias = _FunctionNode | ast.AnnAssign | ast.Call
 
 
 class _TokenPosition(NamedTuple):
-    """A token's '1-based' line and '0-based' code-point column."""
+    """The line number and code-point column of a token, counted from one and zero respectively."""
 
     line: int
     column: int
@@ -151,6 +151,8 @@ def _source_subject(*, node: ast.expr, source: str) -> str:
 def _subject(*, node: _FindingNode, source: str) -> _Subject:
     """Identify a function, assignment target or callee for the rule's message."""
     if isinstance(node, ast.AnnAssign):
+        # PyCharm does not recognise these assignment targets as expression nodes.
+        # noinspection PyTypeChecker
         return _Subject(kind="Variable", name=_source_name(node=node.target, source=source))
     if isinstance(node, ast.Call):
         return _Subject(kind="Call", name=_source_name(node=node.func, source=source))
@@ -200,6 +202,8 @@ def _span_node(*, node: _FindingNode, context: FindingContext) -> ast.stmt | ast
         return context.header_node(node=node)
     parent = context.parents.get(node)
     if isinstance(node, ast.Call) and isinstance(parent, ast.Expr):
+        # PyCharm does not recognise ast.Expr as a statement node.
+        # noinspection PyTypeChecker
         return parent
     return node
 

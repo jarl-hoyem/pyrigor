@@ -19,6 +19,10 @@ default for incremental changes. Minor bumps are reserved for changes that shift
   emits the v2 document, including suppressed findings and selected-rule metadata, replacing v1. Function findings span
   the signature through its colon. Body comments no longer suppress signature findings. Human locations use Unicode
   code-point columns. Findings include enclosing symbols and empty fixes.
+- Human summaries now use "findings" rather than "violations" (#269).
+- Checking stops with exit code 2 and no stdout if a file has no path relative to the working directory. The same
+  interim failure applies to diagnostic text the v2 invisible-text rules reject, including operational errors (#269).
+  Visible escapes for affected findings remain separate work in #344.
 
 ### Removed
 

@@ -3,6 +3,10 @@
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
+import tokenize
+from io import StringIO
+from typing import NamedTuple
+
 import pytest
 
 from pyrigor.rules import Rule
@@ -15,22 +19,74 @@ from pyrigor.suppression import (
 from tests.checker_helpers import finding_at
 
 
+@pytest.mark.parametrize("as_iterator", [False, True])
+def test_cached_tokens_do_not_require_an_unused_source_argument(*, as_iterator: bool) -> None:
+    """The pipeline can pass its single shared stream without retaining a redundant source argument."""
+    source = "# pyrigor 402 # reason\ndef flagged(a, b): pass\n"
+    findings = [finding_at(line=2, end_line=2, column=1, rule=Rule.PYR402)]
+    tokens = tuple(tokenize.generate_tokens(StringIO(source).readline))
+    result = filter_suppressed(findings=findings, tokens=iter(tokens) if as_iterator else tokens)
+    assert result.kept == []
+    assert result.suppressed == findings
+    assert result.errors == ()
+
+
+def test_nonempty_findings_require_a_suppression_input() -> None:
+    """Missing text and tokens is a caller error, while an empty list needs no tokenisation."""
+    assert not filter_suppressed(findings=[]).kept
+    with pytest.raises(ValueError, match=r"^suppression requires source text or tokens$"):
+        filter_suppressed(findings=[finding_at(line=1, end_line=1, column=1, rule=Rule.PYR402)])
+
+
+class _CommentCase(NamedTuple):
+    """A raw comment and its expected partition sizes and located warnings."""
+
+    comment: str
+    kept: int
+    suppressed: int
+    errors: tuple[tuple[str, int, int], ...]
+
+
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
-@pytest.mark.parametrize("comment", ["# pyrigor 402 # reason", "# pyrigor: 402 # reason", "# unrelated"])
-def test_raw_line_breaks_preserve_comment_boundaries(*, newline: str, comment: str) -> None:
+@pytest.mark.parametrize(
+    "case",
+    [
+        _CommentCase("# pyrigor 402 # reason", 0, 1, ()),
+        _CommentCase(
+            "# pyrigor: 402 # reason",
+            1,
+            0,
+            (
+                (
+                    (
+                        "comment mentions 'pyrigor' but does not match '# pyrigor CODE[,CODE] # reason' "
+                        "-- ignoring: # pyrigor: 402 # reason"
+                    ),
+                    3,
+                    1,
+                ),
+            ),
+        ),
+        _CommentCase("# unrelated", 1, 0, ()),
+    ],
+)
+def test_raw_line_breaks_preserve_comment_boundaries(
+    *,
+    newline: str,
+    case: _CommentCase,
+) -> None:
     """Standalone suppression scanning uses Python line breaks and retains warning text."""
-    source = newline.join(["pass", comment, "def flagged(a, b): pass", ""])
-    findings = [finding_at(line=3, end_line=3, column=1, rule=Rule.PYR402)]
+    comment, kept, suppressed, errors = case
+    source = newline.join(["pass", "pass", comment, "def flagged(a, b): pass", ""])
+    findings = [finding_at(line=4, end_line=4, column=1, rule=Rule.PYR402)]
     result = filter_suppressed(findings=findings, source=source)
-    valid = comment == "# pyrigor 402 # reason"
-    assert result.kept == ([] if valid else findings)
-    assert result.suppressed == (findings if valid else [])
-    expected_messages = (
-        ["comment mentions 'pyrigor' but does not match '# pyrigor CODE[,CODE] # reason' -- ignoring: " + comment]
-        if comment == "# pyrigor: 402 # reason"
-        else []
-    )
-    assert [error.message for error in result.errors] == expected_messages
+    assert (
+        len(result.kept),
+        len(result.suppressed),
+        result.kept + result.suppressed,
+        tuple((error.message, error.line, error.column) for error in result.errors),
+    ) == (kept, suppressed, findings, errors)
 
 
 def test_suppressed_violation_is_filtered_out() -> None:

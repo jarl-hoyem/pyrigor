@@ -25,8 +25,8 @@ controlled filesystem cache or system load. Treat their differences as rough ind
 | CPython stdlib      | 1,844  | 21,209        | 60.913s | 33.233s  |
 | Home Assistant core | 18,187 | 90,488        | 83.826s | 104.597s |
 
-The CPython corpus is `C:/Python314/Lib`, excluding `site-packages`. It has three expected non-UTF-8 read failures and
-one expected parse failure. Home Assistant is `C:/Users/jarl/smallgig/core` at
+The CPython corpus is Python 3.14.3's standard library, excluding `site-packages`. It has three expected non-UTF-8 read
+failures and one expected parse failure. Home Assistant is the core repository at
 `80fd0c5fbbe147412c65f55b75f13c1e0ea22f35`, version 2026.9.0.dev0, with no operational failures. Neither corpus contains
 suppressed findings. Per-rule baseline counts are:
 
@@ -35,15 +35,8 @@ suppressed findings. Per-rule baseline counts are:
 | CPython stdlib      | 6      | 39     | 8,591  | 12,560 | 4      | 9      |
 | Home Assistant core | 55     | 579    | 58,485 | 30,786 | 420    | 163    |
 
-The baseline command from the isolated worktree was:
-
-```powershell
-./.venv/Scripts/python.exe .venv/269-artifacts/benchmark_269.py
-./.venv/Scripts/python.exe .venv/269-artifacts/benchmark_269_after.py
-```
-
-The original observation is retained in `.cache/269-baseline.json`. The paired repeat is recorded in
-`.cache/269-before-resume.json` and `.cache/269-after-resume.json`. The baseline script imports the frozen original
+The timing harness and raw logs were local scratch files and are not published with this repository. These observations
+are recorded for context, rather than as a reproducible benchmark. The baseline harness imported the frozen original
 package rather than the migrated sources.
 
 Before and after runs were sequential under the same execution context. Finding counts, suppression counts and

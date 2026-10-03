@@ -40,6 +40,18 @@ _SHIFTED_LINE_SOURCE = "X = 'a{character}b'\nif X:\n if X:\n        def bad(a, b
 _MULTIBYTE_LINE_SOURCE = "X = 'a{character}b'\n\u00e9 = X\nif \u00e9:\n    def bad(a, b):\n        ...\n"
 
 
+@pytest.mark.parametrize("paths", [["one.py"], ["one.py", "two.py"]])
+def test_console_preserves_path_argument_list(*, paths: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+    """The checking boundary receives a list for one path as well as several, without reading files."""
+    monkeypatch.setattr(sys, "argv", ["pyrigor", *paths])
+    with patch("pyrigor.checkers.cli.main", return_value=0) as check, pytest.raises(SystemExit) as caught:
+        run()
+    check.assert_called_once()
+    assert not caught.value.code
+    assert check.call_args is not None
+    assert check.call_args.kwargs["paths"] == paths
+
+
 @pytest.mark.parametrize("offset", [None, -1, 0, 1, 7])
 def test_parser_columns_keep_only_positive_offsets(
     *, offset: int | None, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
@@ -95,6 +107,7 @@ def _assert_valid_schema(*, document: dict[str, object], schema: dict[str, objec
     jsonschema.Draft202012Validator(schema).validate(document)  # pyright: ignore[reportUnknownMemberType]
 
 
+# noinspection IncorrectFormatting
 def test_json_output_reports_clean_summary(
     *, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
 ) -> None:
@@ -220,6 +233,7 @@ def test_json_output_leaves_non_ascii_text_unescaped(*, tmp_path: Path, capsys: 
     assert _ESCAPED_NON_ASCII not in raw
 
 
+# noinspection IncorrectFormatting
 def test_json_output_counts_suppressed_findings(
     *, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object]
 ) -> None:
@@ -335,6 +349,7 @@ def _expected_location(*, source_file: Path) -> dict[str, dict[str, int]]:
     }
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("character", NON_PYTHON_LINE_BREAKS, ids=LINE_BREAK_IDS)
 @pytest.mark.parametrize("template", [_SHIFTED_LINE_SOURCE, _MULTIBYTE_LINE_SOURCE], ids=["shifted", "multibyte"])
 def test_json_location_survives_a_break_only_splitlines_recognises(
@@ -394,6 +409,7 @@ def test_json_output_includes_exactly_selected_rules(
     assert document["summary"] == {"files_checked": 1}
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("comment", ["# pyrigor 402", "# pyrigor 402 #", "# PyRigor 402 # reason"])
 def test_json_output_reports_malformed_suppressions_separately(
     *, tmp_path: Path, capsys: pytest.CaptureFixture[str], schema: dict[str, object], comment: str
@@ -459,6 +475,7 @@ def test_json_output_reads_raw_source_once(
     assert len(json.loads(capsys.readouterr().out)["findings"]) == 1
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("line_break", [b"\n", b"\r\n", b"\r"], ids=["lf", "crlf", "cr"])
 @pytest.mark.parametrize("bom", [b"", b"\xef\xbb\xbf"], ids=["plain", "bom"])
 def test_json_output_retains_raw_offsets_and_normalised_positions(
@@ -501,6 +518,7 @@ class _RuleCase(NamedTuple):
     symbol: str
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize(
     "case",
     [
@@ -587,6 +605,7 @@ class _TokenisationCase(NamedTuple):
     tokenisations: int
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize(
     "case",
     [
@@ -669,6 +688,7 @@ def test_json_output_normalises_qualified_symbol_and_retains_raw_span(
     assert source_file.read_bytes()[span["byte_start"] : span["byte_end"]].decode() == _NORMALISED_HEADER_SOURCE
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("encoding", ["ascii", "cp1252"])
 def test_json_entry_point_writes_utf8_to_a_pipe_with_a_legacy_encoding(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, schema: dict[str, object], encoding: str

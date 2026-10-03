@@ -34,5 +34,11 @@ Findings and suppressed findings are ordered by their primary span's file name, 
 column and then rule code. Errors are ordered by file name and line where present; rules are ordered by code. Output
 contains no timing or other run-dependent values. Usage errors and crashes emit no diagnostics document.
 
+The current producer stops with exit code 2 and no stdout if a file has no path relative to the working directory. On
+Windows, run pyrigor from the file's drive. This applies to both human and JSON checking output. Until #344 implements
+visible escapes, diagnostic text containing characters the invisible-text rules reject also stops the whole run with
+exit code 2 and no stdout. The stderr message names the file and offending code point. This interim limit covers
+findings, enclosing symbols and operational errors. No partial document is emitted.
+
 Consumers must select behaviour by `schema_version` and ignore unknown fields. Producers validate strictly against the
 schema. Adding an optional field is compatible; removing a field or changing its type or meaning requires a new version.

@@ -7,7 +7,10 @@ from pyrigor.findings import FileName, Finding, JsonObject, finding_to_json
 from pyrigor.rules import Applicability, FixAvailability, Rule
 
 ErrorKind = Literal["read_error", "parse_error", "malformed_suppression"]
-_UNSUPPORTED_IDENTIFIER_TEXT: Final = re.compile("[\u034f\u115f\u1160\u200c\u200d]")
+_UNSUPPORTED_TEXT: Final = re.compile(
+    "[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff"
+    "\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb]"
+)
 
 
 class DiagnosticInputError(ValueError):
@@ -18,13 +21,15 @@ def require_supported_findings(*, findings: list[Finding], path: str) -> None:
     """Fail explicitly until #344 implements visible escapes for rejected identifier characters."""
     for finding in findings:
         _require_supported_text(text=finding.message, path=path)
+        for span in finding.spans:
+            _require_supported_text(text=span.file_name, path=path)
         if finding.enclosing_symbol is not None:
             _require_supported_text(text=finding.enclosing_symbol.name, path=path)
 
 
 def _require_supported_text(*, text: str, path: str) -> None:
-    """Reject the known valid identifier characters forbidden literally by the v2 text rules."""
-    unsupported = _UNSUPPORTED_IDENTIFIER_TEXT.search(text)
+    """Reject literal characters forbidden by the v2 text rules until visible escapes are implemented."""
+    unsupported = _UNSUPPORTED_TEXT.search(text)
     if unsupported is not None:
         code_point = f"U+{ord(unsupported.group()):04X}"
         raise DiagnosticInputError(
@@ -40,6 +45,13 @@ class CheckError(NamedTuple):
     message: str
     line: int | None = None
     column: int | None = None
+
+
+def require_supported_errors(*, errors: list[CheckError], path: str) -> None:
+    """Keep parser and suppression warnings from bypassing the interim document text limit."""
+    for error in errors:
+        _require_supported_text(text=error.file_name, path=path)
+        _require_supported_text(text=error.message, path=path)
 
 
 class ToolMetadata(NamedTuple):
@@ -98,7 +110,7 @@ def _rule_to_json(*, metadata: RuleMetadata) -> JsonObject:
 
 
 def document_to_json(*, document: DiagnosticsDocument) -> JsonObject:
-    """Serialise the wrapper using the canonical finding serializer."""
+    """Serialise the wrapper using the canonical finding serialiser."""
     return {
         "schema_version": 2,
         "tool": document.tool._asdict(),
