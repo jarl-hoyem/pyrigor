@@ -10,7 +10,8 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
+from unittest.mock import call, patch
 
 import pytest
 
@@ -97,6 +98,136 @@ def test_run_fix_select_pyr402_writes_changed_file(
     assert exc_info.value.code == 0
     assert source_file.read_text() == "def apply(*, weight, bias):\n    ...\n"
     assert "source.py" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("file_count", "failed_indices"),
+    [
+        (0, ()),
+        (1, ()),
+        (1, (0,)),
+        (3, ()),
+        (3, (0,)),
+        (3, (1,)),
+        (3, (2,)),
+        (3, (0, 1)),
+        (3, (0, 2)),
+        (3, (1, 2)),
+        (3, (0, 1, 2)),
+    ],
+)
+@pytest.mark.parametrize(
+    "write_error",
+    [PermissionError("permission denied"), OSError("disk full"), OSError("I/O error")],
+)
+def test_run_fix_continues_after_write_errors(
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    file_count: int,
+    failed_indices: tuple[int, ...],
+    write_error: OSError,
+) -> None:
+    """Report failed writes and fix every other file in the controlled order."""
+    original = b"def apply(weight, bias):\n    ...\n"
+    fixed = b"def apply(*, weight, bias):\n    ...\n"
+    source_files = _prepare_fix_sources(tmp_path=tmp_path, file_count=file_count, source=original)
+    original_write_bytes = Path.write_bytes
+
+    def write_bytes(*args: Path | bytes) -> int:
+        """Accept the unbound Path method's positional arguments and simulate selected failures."""
+        path = cast("Path", args[0])
+        if source_files.index(path) in failed_indices:
+            raise type(write_error)(*write_error.args)
+        return original_write_bytes(path, cast("bytes", args[1]))
+
+    with (
+        patch("sys.argv", ["pyrigor", "--fix", "--select=PYR402", str(tmp_path)]),
+        patch("pyrigor.checkers.cli._collect_python_files", return_value=[str(path) for path in source_files]),
+        patch.object(Path, "write_bytes", autospec=True, side_effect=write_bytes) as writer,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        run()
+
+    assert exc_info.value.code == (1 if failed_indices else 0)
+    assert writer.call_args_list == [call(path, fixed) for path in source_files]
+    _assert_fix_write_output(
+        capsys=capsys, source_files=source_files, failed_indices=failed_indices, write_error=write_error
+    )
+    _assert_fix_write_bytes(source_files=source_files, failed_indices=failed_indices, original=original, fixed=fixed)
+
+
+def _prepare_fix_sources(*, tmp_path: Path, file_count: int, source: bytes) -> list[Path]:
+    """Create source files in the order used by the mocked discovery."""
+    source_files = [tmp_path / f"source_{index}.py" for index in range(file_count)]
+    for source_file in source_files:
+        source_file.write_bytes(source)
+    return source_files
+
+
+def _assert_fix_write_output(
+    *,
+    capsys: pytest.CaptureFixture[str],
+    source_files: list[Path],
+    failed_indices: tuple[int, ...],
+    write_error: OSError,
+) -> None:
+    """Check the complete success and error output for the ordered files."""
+    captured = capsys.readouterr()
+    assert captured.err == "".join(
+        f"{source_files[index]}: cannot write fixed file: {write_error}\n" for index in failed_indices
+    )
+    assert captured.out == "".join(
+        f"Fixed {path}\n" for index, path in enumerate(source_files) if index not in failed_indices
+    )
+
+
+def _assert_fix_write_bytes(
+    *, source_files: list[Path], failed_indices: tuple[int, ...], original: bytes, fixed: bytes
+) -> None:
+    """Check that successful writes use the fixed bytes and rejected writes leave the original bytes."""
+    for index, path in enumerate(source_files):
+        assert path.read_bytes() == (original if index in failed_indices else fixed)
+
+
+@pytest.mark.parametrize(
+    ("mode", "source"),
+    [
+        ("--fix", b"def apply(*, weight, bias):\n    ...\n"),
+        ("--diff", b"def apply(*, weight, bias):\n    ...\n"),
+        ("--diff", b"def apply(weight, bias):\n    ...\n"),
+    ],
+)
+def test_run_fix_modes_skip_unneeded_writes(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str, source: bytes
+) -> None:
+    """Clean files and diff previews never attempt source-file writes."""
+    source_file = tmp_path / "source.py"
+    source_file.write_bytes(source)
+    monkeypatch.setattr("sys.argv", ["pyrigor", mode, "--select=PYR402", str(source_file)])
+
+    with (
+        patch.object(Path, "write_bytes", side_effect=AssertionError("unexpected write")) as writer,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        run()
+
+    assert exc_info.value.code == 0
+    writer.assert_not_called()
+    assert source_file.read_bytes() == source
+
+
+def test_run_fix_does_not_catch_unexpected_write_exceptions(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unexpected write exceptions remain outside the OSError handling."""
+    source_file = tmp_path / "source.py"
+    source_file.write_bytes(b"def apply(weight, bias):\n    ...\n")
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select=PYR402", str(source_file)])
+
+    with (
+        patch.object(Path, "write_bytes", side_effect=RuntimeError("unexpected failure")),
+        pytest.raises(RuntimeError, match="unexpected failure"),
+    ):
+        run()
 
 
 def test_run_diff_does_not_write_and_shows_patch(
