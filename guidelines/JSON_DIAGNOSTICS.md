@@ -34,11 +34,17 @@ Findings and suppressed findings are ordered by their primary span's file name, 
 column and then rule code. Errors are ordered by file name and line where present; rules are ordered by code. Output
 contains no timing or other run-dependent values. Usage errors and crashes emit no diagnostics document.
 
-The current producer stops with exit code 2 and no stdout if a file has no path relative to the working directory. On
-Windows, run pyrigor from the file's drive. This applies to both human and JSON checking output. Until #344 implements
-visible escapes, diagnostic text containing characters the invisible-text rules reject also stops the whole run with
-exit code 2 and no stdout. The stderr message names the file and offending code point. This interim limit covers
-findings, enclosing symbols and operational errors. No partial document is emitted.
+A path whose file name the schema would reject stops the run with exit code 2 and no stdout, in human and JSON output
+alike, before any file is read. The cases are a path with no relative form, a character the invisible-text rules reject,
+a backslash, a leading drive letter and colon and a segment that starts or ends with whitespace. On Windows a path on
+another drive, a UNC path and an extended-length path have no relative form, and an extended-length path has none even
+on the current drive. A drive-relative path on the current drive, such as `C:a.py` from drive C, is an ordinary name.
+The stderr message names every such path in sorted order, up to ten and then a count. For a drive problem, run pyrigor
+from the file's drive. For any other name, skip the file with `--exclude`.
+
+Until #344 implements visible escapes, diagnostic text containing characters the invisible-text rules reject also stops
+the whole run with exit code 2 and no stdout. The stderr message names the file and offending code point. This interim
+limit covers findings, enclosing symbols and operational errors. No partial document is emitted.
 
 Consumers must select behaviour by `schema_version` and ignore unknown fields. Producers validate strictly against the
 schema. Adding an optional field is compatible; removing a field or changing its type or meaning requires a new version.

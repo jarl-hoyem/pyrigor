@@ -83,11 +83,14 @@ def _require_valid_unicode(*, text: str, field: str) -> None:
     _require(condition=_LONE_SURROGATE.search(text) is None, message=f"{field} contains a lone surrogate")
 
 
-def _require_file_name(*, file_name: FileName) -> None:
+def require_file_name(*, file_name: FileName) -> None:
     """Reject a file name that is not valid Unicode in normalisation form NFC.
 
     Args:
         file_name: The file name to check.
+
+    Raises:
+        ValueError: If the name is empty, absolute, has a backslash or a drive letter or is not NFC.
     """
     _require_valid_unicode(text=file_name, field="file_name")
     # Ruff formats this condition correctly, but PyCharm reports a false positive.
@@ -131,7 +134,7 @@ class Span:  # pylint: disable=too-many-instance-attributes # the v2 schema fixe
 
     def __post_init__(self) -> None:
         """Reject a span that ends before it starts or holds text that is not valid Unicode."""
-        _require_file_name(file_name=self.file_name)
+        require_file_name(file_name=self.file_name)
         _require_byte_range(byte_start=self.byte_start, byte_end=self.byte_end)
         on_one_line = self.line_start == self.line_end
         _require(
@@ -182,7 +185,7 @@ class Edit:
 
     def __post_init__(self) -> None:
         """Reject an edit that ends before it starts or holds text that is not valid Unicode."""
-        _require_file_name(file_name=self.file_name)
+        require_file_name(file_name=self.file_name)
         _require_byte_range(byte_start=self.byte_start, byte_end=self.byte_end)
         _require_valid_unicode(text=self.content, field="content")
 
