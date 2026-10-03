@@ -1085,9 +1085,14 @@ name is unambiguous: the name is a reversible function of the real one and stays
 invisible text is emitted, so the rule stands. Rejected: an operational error for the file, which hides every finding in
 it, and are allowing the raw characters, which weakens the rule. Names need a schema change to allow escapes. See #342.
 
-### A file with no relative form is a usage error
+### A file with no valid file name is a usage error
 
-`FileName` is relative, so one file has one spelling on every machine. On Windows a file on another drive has none
-(`os.path.relpath` raises `ValueError`). The command line stops before checking, emits no document and exits with code
-2, naming the path. Rejected: skipping the file with a warning, which lets a CI run pass with files unchecked, and an
-absolute path, which breaks baseline matching. See #342.
+`FileName` is relative, so one file has one spelling on every machine. A path with no valid name stops the command line
+before any file is read. That covers a file on another Windows drive (`os.path.relpath` raises `ValueError`), a
+backslash, a drive-letter prefix and an invisible character. It emits no document, exits with code 2, names the path and
+suggests `--exclude`, in human and JSON output alike. This follows ruff, which exits 2 with no results when the
+invocation is wrong but reports a bad file as a finding and continues. A path problem is an invocation problem, and a
+name the schema rejects cannot enter the document. Rejected: skipping the file with a warning, which lets a CI run pass
+with files unchecked; continuing in human mode only, which gives one input two behaviours and no help to JSON consumers;
+and an absolute path, which breaks baseline matching. Text in messages is content, and #344 escapes it. See #342 and
+#345.
