@@ -5,15 +5,14 @@ rather than importing its internals — scripts/ is not a package, and this
 matches REVIEW_CHECKLIST.md's own preference for testing the actual, real
 invocation over a convenient proxy for it.
 """
-# Independent subprocess setup is deliberate in this test module.
-# pylint: disable=duplicate-code
 # test assertions compare against expected literal values by design,
 # not a magic-value problem
 # pylint: disable=magic-value-comparison
 
-import subprocess  # nosec -- fixed git commands only, no untrusted input
 import sys
 from pathlib import Path
+
+from tests.git_isolation import FixtureResult, run_in_fixture
 
 
 def _run_git(*, args: list[str], cwd: Path) -> None:
@@ -23,7 +22,7 @@ def _run_git(*, args: list[str], cwd: Path) -> None:
         args: The git subcommand and its arguments.
         cwd: The repository to run inside.
     """
-    subprocess.run(["git", *args], cwd=cwd, capture_output=True, check=True)  # nosec # noqa: S603, S607
+    run_in_fixture(command=["git", *args], cwd=cwd).check_returncode()
 
 
 def _init_repo(*, path: Path) -> None:
@@ -41,7 +40,7 @@ def _init_repo(*, path: Path) -> None:
     _run_git(args=["commit", "-m", "init"], cwd=path)
 
 
-def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
+def _run_script(*, cwd: Path) -> FixtureResult:
     """Run check_definition_of_done.py against a real git repo.
 
     Args:
@@ -61,15 +60,7 @@ def _run_script(*, cwd: Path) -> subprocess.CompletedProcess[str]:
                 script_path = candidate
                 break
 
-    # Required by ruff and pylint
-    # noinspection PyArgumentEqualDefault
-    return subprocess.run(  # nosec -- fixed script path, throwaway test repo # noqa: S603
-        [sys.executable, str(script_path)],
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    return run_in_fixture(command=[sys.executable, str(script_path)], cwd=cwd)
 
 
 # pyrigor 403 # pytest fixture injection, not a real violation
