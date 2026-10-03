@@ -35,6 +35,8 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ### Fixed
 
+- Report source-file write errors without a traceback in `--fix` mode and continue fixing other files. Exit code 1
+  indicates at least one write failure, and failed writes never print `Fixed` (#350).
 - Fixed output order depending on filesystem directory-enumeration order and command-line path-argument order.
   Diagnostics, suppressed diagnostics and errors are now ordered deterministically: files by path, then findings by
   line, column, end line, end column and rule code (#239).

@@ -876,24 +876,28 @@ def _validate_fixer_selection(*, fix: bool, diff: bool, select: set[str] | None)
 
 def _run_fixes(*, paths: list[str], excludes: list[str] | None, diff: bool) -> int:
     """Apply or preview the selected safe fixes."""
-    for path in _collect_python_files(paths=paths, excludes=excludes):
-        _fix_path(path=path, diff=diff)
-    return 0
+    files = _collect_python_files(paths=paths, excludes=excludes)
+    return max((_fix_path(path=path, diff=diff) for path in files), default=0)
 
 
-def _fix_path(*, path: str, diff: bool) -> None:
-    """Apply or preview a fix for one path."""
+def _fix_path(*, path: str, diff: bool) -> int:
+    """Apply or preview one path, returning False only for a writing error."""
     fix_input = _read_and_prepare_fix(path=path)
     if fix_input is None:
-        return
+        return 0
     original, result = fix_input
     if result.status is FixStatus.UNCHANGED:
-        return
+        return 0
     if diff:
         _print_fix_diff(path=path, original=original, fixed=cast("bytes", result.source))
-        return
-    Path(path).write_bytes(cast("bytes", result.source))
+        return 0
+    try:
+        Path(path).write_bytes(cast("bytes", result.source))
+    except OSError as error:
+        print(f"{path}: cannot write fixed file: {error}", file=sys.stderr)
+        return 1
     print(f"Fixed {path}")
+    return 0
 
 
 def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
