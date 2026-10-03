@@ -31,6 +31,7 @@ _DRIVE_ADVICE = "run from the file's drive"
 _SKIP_WARNING = "Warning: skipping"
 _BACKSLASH = chr(0x5C)
 _GRAPHEME_JOINER = chr(0x34F)
+_COLON_NAME = "a:b.py"
 _WINDOWS_NAME = "nt"
 _WINDOWS = os.name == _WINDOWS_NAME
 _SURROGATES = range(0xD800, 0xE000)  # the code points UTF-16 reserves, which are not characters
@@ -191,7 +192,7 @@ def test_the_check_agrees_with_the_schema_on_every_whitespace_character() -> Non
     [
         ("dir/ a.py", "file_name has a segment that starts or ends with whitespace"),
         ("a//b.py", "file_name has an empty, current-directory or misplaced parent-directory segment"),
-        ("a:b.py", "file_name must be a relative path with forward slashes"),
+        (_COLON_NAME, "file_name must be a relative path with forward slashes"),
         (f"a{chr(0xD800)}.py", "file_name contains a lone surrogate"),
         (f"a{_GRAPHEME_JOINER}.py", "the file name contains U+034F, which the current v2 producer cannot represent"),
     ],
@@ -299,7 +300,7 @@ def test_a_name_with_a_drive_letter_is_a_usage_error_for_findings_and_errors(
     """On POSIX such a name reaches the document, as a crash for a finding and as an invalid error entry."""
     path = tmp_path / "real.py"
     path.write_text(source, encoding="utf-8")
-    with patch("pyrigor.checkers.cli.os.path.relpath", return_value="a:b.py"):
+    with patch("pyrigor.checkers.cli.os.path.relpath", return_value=_COLON_NAME):
         outcome = _run_cli(
             monkeypatch=monkeypatch,
             capsys=capsys,
@@ -347,7 +348,7 @@ def test_fix_and_diff_are_not_stopped_by_a_bad_file_name(
 
 
 @pytest.mark.skipif(_WINDOWS, reason="Windows cannot create these file names")
-@pytest.mark.parametrize("name", [f"x{_BACKSLASH}y.py", "a:b.py"], ids=["backslash", "letter-and-colon"])
+@pytest.mark.parametrize("name", [f"x{_BACKSLASH}y.py", _COLON_NAME], ids=["backslash", "letter-and-colon"])
 @pytest.mark.parametrize("output_format", ["human", "json"])
 def test_a_real_posix_file_name_the_schema_rejects_stops_the_run(
     *,
@@ -357,15 +358,29 @@ def test_a_real_posix_file_name_the_schema_rejects_stops_the_run(
     name: str,
     output_format: str,
 ) -> None:
-    """The names are legal on Linux and macOS, so a real file can carry them."""
+    """The names are legal on Linux and macOS. A leading drive letter counts only at the start of the relative name."""
     (tmp_path / name).write_text(_FINDING_SOURCE, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
     outcome = _run_cli(
         monkeypatch=monkeypatch,
         capsys=capsys,
-        arguments=[f"--output-format={output_format}", str(tmp_path)],
+        arguments=[f"--output-format={output_format}", "."],
     )
-    observed = (outcome.code, outcome.out, _EXCLUDE in outcome.err, _CRASH_MESSAGE in outcome.err)
-    assert observed == (_USAGE_ERROR, "", True, False)
+    observed = (outcome.code, outcome.out, name in outcome.err, _EXCLUDE in outcome.err, _CRASH_MESSAGE in outcome.err)
+    assert observed == (_USAGE_ERROR, "", True, True, False)
+
+
+@pytest.mark.skipif(_WINDOWS, reason="Windows cannot create this file name")
+def test_a_letter_and_colon_deeper_in_the_path_is_an_ordinary_name(
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """From another directory the name is ../.../a:b.py, so the colon is no drive letter."""
+    (tmp_path / _COLON_NAME).write_text(_FINDING_SOURCE, encoding="utf-8")
+    outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=[str(tmp_path)])
+    assert (outcome.code, _COLON_NAME in outcome.out, outcome.err) == (1, True, "")
 
 
 def _current_drive() -> str:
