@@ -35,9 +35,11 @@ suppressed findings. Per-rule baseline counts are:
 | CPython stdlib      | 6      | 39     | 8,591  | 12,560 | 4      | 9      |
 | Home Assistant core | 55     | 579    | 58,485 | 30,786 | 420    | 163    |
 
-The timing harness and raw logs were local scratch files and are not published with this repository. These observations
-are recorded for context, rather than as a reproducible benchmark. The baseline harness imported the frozen original
-package rather than the migrated sources.
+To repeat the comparison, check out the baseline and candidate revisions in separate directories outside the corpora.
+Run each checkout in a separate process with its own import path, using the same Python version and corpus revisions.
+Collect Python files with the CLI's file collection and default exclusions. Start a wall-clock timer after a collection,
+then call `_check_file` for each file with every registered checker. Stop the timer after the final file, without
+rendering the results. Total the kept and suppressed findings, operational failures and per-rule counts for comparison.
 
 Before and after runs were sequential under the same execution context. Finding counts, suppression counts and
 operational failures match on both corpora. The standard-library run became faster while the Home Assistant run became

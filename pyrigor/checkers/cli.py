@@ -367,7 +367,7 @@ def _format_rule_breakdown(*, findings: list[Finding]) -> str:
     """Build a per-rule finding count breakdown string.
 
     Args:
-        findings: Kept findings across all files.
+        findings: Every finding across all files.
 
     Returns:
         A comma-separated "Rule: count" breakdown, for example, "PYR401: 2, PYR402: 5".
@@ -411,7 +411,7 @@ def _print_summary(
     Args:
         files: The files that were checked.
         elapsed: Elapsed time in seconds.
-        findings: Kept findings across all files.
+        findings: Every finding across all files.
         findings_by_file: Each checked file's own findings.
         suppressed: The suppressed findings from every file.
     """

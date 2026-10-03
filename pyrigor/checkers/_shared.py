@@ -180,6 +180,8 @@ def nearest_function_scope(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) ->
     if current is None:
         raise ValueError("node has no recorded parent")
     if isinstance(current, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+        # PyCharm does not recognise function and module nodes as AST subclasses.
+        # noinspection PyTypeChecker
         return current
     return nearest_function_scope(node=current, parents=parents)
 
@@ -221,7 +223,7 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
 
     Returns:
         Every function, annotated-assignment, bare call-statement,
-        and class definition node that is found.
+        and class definition node.
     """
     function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
     assign_nodes: list[ast.AnnAssign] = []
