@@ -20,9 +20,12 @@ default for incremental changes. Minor bumps are reserved for changes that shift
   the signature through its colon. Body comments no longer suppress signature findings. Human locations use Unicode
   code-point columns. Findings include enclosing symbols and empty fixes.
 - Human summaries now use "findings" rather than "violations" (#269).
-- Checking stops with exit code 2 and no stdout if a file has no path relative to the working directory. The same
-  interim failure applies to diagnostic text the v2 invisible-text rules reject, including operational errors (#269).
-  Visible escapes for affected findings remain separate work in #344.
+- Checking stops with exit code 2 and no stdout, before any file is read, if a path has no file name, the v2 schema
+  accepts. That means no relative form, a character the invisible-text rules reject, a backslash, a leading drive letter
+  and colon or a segment that starts or ends with whitespace. The message names the file and suggests `--exclude`
+  (#345).
+- Diagnostic text the v2 invisible-text rules reject also stops the run for now, including operational errors. Visible
+  escapes for affected findings remain separate work in #344.
 
 ### Removed
 

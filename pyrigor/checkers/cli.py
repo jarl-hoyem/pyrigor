@@ -25,6 +25,7 @@ from pyrigor.diagnostics import (
     Summary,
     ToolMetadata,
     document_to_json,
+    require_representable_file_name,
     require_supported_errors,
     require_supported_findings,
 )
@@ -251,7 +252,9 @@ def _file_name(*, path: str) -> FileName:
         raise DiagnosticInputError(
             f"{path!r}: no path relative to the working directory exists; run from the file's drive"
         ) from error
-    return FileName(unicodedata.normalize("NFC", relative))
+    file_name = FileName(unicodedata.normalize("NFC", relative))
+    require_representable_file_name(file_name=file_name, path=path)
+    return file_name
 
 
 def _read_source(*, path: str) -> _SourceResult:
