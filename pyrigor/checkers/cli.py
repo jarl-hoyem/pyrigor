@@ -37,6 +37,7 @@ from pyrigor.suppression import filter_suppressed
 
 _MISSING_PATHS_MESSAGE: Final = "the following arguments are required: paths"
 _EXIT_CODE_USAGE_ERROR: Final = 2
+_MAX_REPORTED_PATHS: Final = 10  # a directory on another drive would otherwise list every file, documented as ten
 
 _DEFAULT_EXCLUDES: Final = frozenset(
     {
@@ -255,6 +256,23 @@ def _file_name(*, path: str) -> FileName:
     file_name = FileName(unicodedata.normalize("NFC", relative))
     require_representable_file_name(file_name=file_name, path=path)
     return file_name
+
+
+def _file_names(*, paths: list[str]) -> dict[str, FileName]:
+    """Build every file name before any file is read and report each path that cannot have a valid one."""
+    names: dict[str, FileName] = {}
+    problems: list[str] = []
+    for path in sorted(paths):
+        try:
+            names[path] = _file_name(path=path)
+        except DiagnosticInputError as error:
+            problems.append(str(error))
+    if problems:
+        lines = problems[:_MAX_REPORTED_PATHS]
+        if len(problems) > _MAX_REPORTED_PATHS:
+            lines.append(f"... and {len(problems) - _MAX_REPORTED_PATHS} more paths with no valid file name")
+        raise DiagnosticInputError("\npyrigor: ".join(lines))
+    return names
 
 
 def _read_source(*, path: str) -> _SourceResult:
@@ -646,10 +664,9 @@ def main(
     Returns:
         0 if no findings were found, 1 otherwise.
     """
-    files = sorted(
-        _collect_python_files(paths=paths, excludes=excludes),
-        key=lambda path: _file_sort_key(path=_file_name(path=path)),
-    )
+    collected = _collect_python_files(paths=paths, excludes=excludes)
+    names = _file_names(paths=collected)
+    files = sorted(collected, key=lambda path: _file_sort_key(path=names[path]))
     checkers = _filter_checkers(select=select, ignore=ignore)
     start = time.perf_counter()
 

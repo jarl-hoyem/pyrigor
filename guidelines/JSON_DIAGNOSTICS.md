@@ -39,8 +39,8 @@ alike, before any file is read. The cases are a path with no relative form, a ch
 a backslash, a leading drive letter and colon and a segment that starts or ends with whitespace. On Windows a path on
 another drive, a UNC path and an extended-length path have no relative form, and an extended-length path has none even
 on the current drive. A drive-relative path on the current drive, such as `C:a.py` from drive C, is an ordinary name.
-The stderr message names the file. For a drive problem, run pyrigor from the file's drive. For any other name, skip the
-file with `--exclude`.
+The stderr message names every such path in sorted order, up to ten and then a count. For a drive problem, run pyrigor
+from the file's drive. For any other name, skip the file with `--exclude`.
 
 Until #344 implements visible escapes, diagnostic text containing characters the invisible-text rules reject also stops
 the whole run with exit code 2 and no stdout. The stderr message names the file and offending code point. This interim

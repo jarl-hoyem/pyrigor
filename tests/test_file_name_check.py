@@ -1,11 +1,13 @@
 """Check, before any file is read, that every path has a file name the v2 schema accepts."""
 
+import itertools
 import os
 import re
 import shutil
 import string
 import sys
 import tempfile
+import unicodedata
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -31,8 +33,11 @@ _BACKSLASH = chr(0x5C)
 _GRAPHEME_JOINER = chr(0x34F)
 _WINDOWS_NAME = "nt"
 _WINDOWS = os.name == _WINDOWS_NAME
-_SURROGATES = range(0xD800, 0xE000)
+_SURROGATES = range(0xD800, 0xE000)  # the code points UTF-16 reserves, which are not characters
 _FINDING_SOURCE = "def flagged(a, b): pass\n"
+_FIXED_SOURCE = "def flagged(*, a, b): pass\n"
+_MAX_REPORTED = 10  # written out, not imported, so that changing the limit in cli.py fails these tests
+_FIRST_POSITION = ":1:1:"
 _PARSE_ERROR_SOURCE = "def broken(: pass\n"
 
 _CHARACTER_RULES = (
@@ -48,6 +53,21 @@ _STRUCTURAL_VIOLATORS = {
     "No current-directory segment.": ["./a.py", "a/./b.py"],
     "No segment starts or ends with whitespace.": [" a.py", "a.py ", "a/ b.py", "a /b.py"],
 }
+_SHORT_NAME_ALPHABET = [
+    "a",
+    "/",
+    ".",
+    _BACKSLASH,
+    ":",
+    " ",
+    chr(0),
+    _GRAPHEME_JOINER,
+    chr(0xE9),
+    chr(0x2028),
+]
+_PATH_PIECES = ["a", "b", "/", "..", ".", "a b"]
+_WHITESPACE = [chr(code_point) for code_point in range(0x3100) if chr(code_point).isspace()]
+_WHITESPACE_TEMPLATES = ("{ch}a.py", "a{ch}.py", "d{ch}/a.py", "{ch}/a.py", "d/a{ch}")
 _ACCEPTED_NAMES = [
     "a.py",
     "dir/a.py",
@@ -126,6 +146,46 @@ def test_a_name_that_is_not_valid_unicode_is_rejected() -> None:
         require_representable_file_name(file_name=FileName("a" + chr(0xD800) + ".py"), path="x.py")
 
 
+def _check_accepts(*, name: str) -> bool:
+    """Report whether the check lets a name through."""
+    try:
+        require_representable_file_name(file_name=FileName(name), path="x.py")
+    except DiagnosticInputError:
+        return False
+    return True
+
+
+def _disagreements(*, names: list[str]) -> list[str]:
+    """List the names that the schema and the check judge differently.
+
+    The command line normalises a name to NFC before the check, so only names already in NFC reach it.
+    """
+    validator = definition_validator(definition="FileName")
+    return [
+        name
+        for name in names
+        if unicodedata.normalize("NFC", name) == name and validator.is_valid(name) != _check_accepts(name=name)
+    ]
+
+
+def test_the_check_agrees_with_the_schema_on_every_short_name() -> None:
+    """Rules interact in short names such as "a:" and "/.", so every combination is compared."""
+    names = [
+        "".join(combination)
+        for pieces, longest in ((_SHORT_NAME_ALPHABET, 3), (_PATH_PIECES, 4))
+        for length in range(1, longest + 1)
+        for combination in itertools.product(pieces, repeat=length)
+    ]
+    assert not _disagreements(names=names)
+
+
+def test_the_check_agrees_with_the_schema_on_every_whitespace_character() -> None:
+    """Python and the schema define whitespace differently, so each character is tried at the edges."""
+    names = [template.format(ch=ch) for ch in _WHITESPACE for template in _WHITESPACE_TEMPLATES]
+    assert _WHITESPACE
+    assert not _disagreements(names=names)
+
+
 @pytest.mark.parametrize(
     ("name", "reason"),
     [
@@ -144,13 +204,15 @@ def test_the_message_names_the_path_the_rule_and_the_way_to_skip_the_file(*, nam
     assert str(caught.value) == f"'dir/file.py': {reason}; use --exclude to skip this file"
 
 
+@pytest.mark.parametrize("explicit_file", [False, True], ids=["directory", "file"])
 @pytest.mark.parametrize("output_format", ["human", "json"])
-def test_a_bad_name_under_a_directory_stops_the_run_before_any_file_is_read(
+def test_a_bad_name_stops_the_run_before_any_file_is_read(
     *,
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
     output_format: str,
+    explicit_file: bool,
 ) -> None:
     """A good file read before the bad name was reached would show as a read, not as the usage error."""
     (tmp_path / "a_good.py").write_text(_FINDING_SOURCE, encoding="utf-8")
@@ -160,7 +222,7 @@ def test_a_bad_name_under_a_directory_stops_the_run_before_any_file_is_read(
         outcome = _run_cli(
             monkeypatch=monkeypatch,
             capsys=capsys,
-            arguments=[f"--output-format={output_format}", str(tmp_path)],
+            arguments=[f"--output-format={output_format}", str(bad if explicit_file else tmp_path)],
         )
     observed = (
         outcome.code,
@@ -186,6 +248,42 @@ def test_excluding_the_bad_file_lets_the_run_report_the_others(
     bad.write_text(_FINDING_SOURCE, encoding="utf-8")
     outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=[f"--exclude={bad}", str(tmp_path)])
     assert (outcome.code, _GOOD_FILE in outcome.out, outcome.err) == (1, True, "")
+
+
+def _remaining_line(*, count: int) -> list[str]:
+    """Return the closing line that counts the paths left out, or nothing when every path was named."""
+    left_out = count - _MAX_REPORTED
+    return [f"pyrigor: ... and {left_out} more paths with no valid file name"] if left_out > 0 else []
+
+
+def _write_bad_files(*, directory: Path, count: int) -> list[str]:
+    """Create the bad files and return their paths in sorted order."""
+    paths = [directory / f"bad_{index:02d}{_GRAPHEME_JOINER}.py" for index in reversed(range(count))]
+    for path in paths:
+        path.write_text(_FINDING_SOURCE, encoding="utf-8")
+    return sorted(str(path) for path in paths)
+
+
+@pytest.mark.parametrize("count", [1, 2, _MAX_REPORTED, _MAX_REPORTED + 1, _MAX_REPORTED + 3])
+def test_every_bad_path_is_named_in_sorted_order_up_to_a_limit(
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    count: int,
+) -> None:
+    """One run lists the paths to exclude, so the user need not rerun once per file."""
+    good = tmp_path / _GOOD_FILE
+    good.write_text(_FINDING_SOURCE, encoding="utf-8")
+    ordered = _write_bad_files(directory=tmp_path, count=count)
+    named = ordered[:_MAX_REPORTED]
+    # Collection order depends on the file system, so the run is given the paths in the worst order.
+    with patch("pyrigor.checkers.cli._collect_python_files", return_value=[*reversed(ordered), str(good)]):
+        outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=[str(tmp_path)])
+    lines = outcome.err.splitlines()
+    assert [line.split("': ")[0] for line in lines[: len(named)]] == [f"pyrigor: '{path}" for path in named]
+    assert lines[len(named) :] == _remaining_line(count=count)
+    assert _GOOD_FILE not in outcome.err
 
 
 @pytest.mark.parametrize("source", [_FINDING_SOURCE, _PARSE_ERROR_SOURCE], ids=["finding", "parse-error"])
@@ -215,6 +313,37 @@ def test_a_name_with_a_drive_letter_is_a_usage_error_for_findings_and_errors(
         _CRASH_MESSAGE in outcome.err,
     )
     assert observed == (_USAGE_ERROR, "", True, True, False)
+
+
+class _FixCase(NamedTuple):
+    """A fixing option, what it prints and what the file holds afterwards."""
+
+    option: str
+    marker: str
+    final_source: str
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        _FixCase("--diff", "+def flagged(*, a, b)", _FINDING_SOURCE),
+        _FixCase("--fix", "Fixed", _FIXED_SOURCE),
+    ],
+    ids=["diff", "fix"],
+)
+def test_fix_and_diff_are_not_stopped_by_a_bad_file_name(
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    case: _FixCase,
+) -> None:
+    """Fixing writes no file name into a document, so the name does not matter."""
+    bad = tmp_path / f"bad{_GRAPHEME_JOINER}.py"
+    bad.write_text(_FINDING_SOURCE, encoding="utf-8")
+    outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=[case.option, "--select=PYR402", str(bad)])
+    observed = (outcome.code, case.marker in outcome.out, bad.read_text(encoding="utf-8"))
+    assert observed == (0, True, case.final_source)
 
 
 @pytest.mark.skipif(_WINDOWS, reason="Windows cannot create these file names")
@@ -341,3 +470,18 @@ def test_a_real_file_on_a_second_drive_is_a_usage_error(
         )
     observed = (outcome.code, outcome.out, _DRIVE_ADVICE in outcome.err, _CRASH_MESSAGE in outcome.err)
     assert observed == (_USAGE_ERROR, "", True, False)
+
+
+def test_files_are_ordered_by_their_normalised_names_not_by_the_paths_as_given(
+    *,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The path ./b.py sorts before a.py as typed, but its file name b.py sorts after."""
+    for name in ("a.py", "b.py"):
+        (tmp_path / name).write_text(_FINDING_SOURCE, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    outcome = _run_cli(monkeypatch=monkeypatch, capsys=capsys, arguments=["./b.py", "a.py"])
+    located = [line for line in outcome.out.splitlines() if _FIRST_POSITION in line]
+    assert [line.split(_FIRST_POSITION)[0] for line in located] == ["a.py", "./b.py"]
