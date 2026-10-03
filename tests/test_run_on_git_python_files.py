@@ -6,10 +6,11 @@ receives, so a test sees exactly which files the wrapper passed on.
 """
 
 import shutil
-import subprocess  # nosec B404 -- test runs git and the wrapper script in a throwaway repository
 import sys
 from pathlib import Path
 from typing import NamedTuple
+
+from tests.git_isolation import FixtureResult, run_in_fixture
 
 _PRINT_ARGUMENTS = "import sys; sys.stdout.buffer.write(chr(10).join(sys.argv[1:]).encode())"
 _TOOL_EXIT_CODE = 3
@@ -38,17 +39,9 @@ def _wrapper_path() -> Path:
     raise FileNotFoundError("scripts/run_on_git_python_files.py")
 
 
-def _run(*, command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run a command in the throwaway repository, capturing its output as UTF-8 text."""
-    # ruff PLW1510 and pylint W1510 require an explicit check argument.
-    # noinspection PyArgumentEqualDefault
-    return subprocess.run(  # nosec B603 # noqa: S603 -- git and the wrapper, with fixed test arguments
-        command,
-        cwd=cwd,
-        capture_output=True,
-        encoding="utf-8",
-        check=False,
-    )
+def _run(*, command: list[str], cwd: Path) -> FixtureResult:
+    """Run a command in the throwaway repository, cut off from the repository that runs the tests."""
+    return run_in_fixture(command=command, cwd=cwd)
 
 
 def _git(*, args: list[str], cwd: Path) -> None:
