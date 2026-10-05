@@ -50,6 +50,29 @@ def _resolve_union(*, op: ast.operator) -> str | None:
     return "UnionType" if isinstance(op, ast.BitOr) else None
 
 
+def _quoted_annotation_name(*, annotation: ast.Constant) -> str | None:
+    """Resolve a quoted return annotation by reading its text as the expression it names.
+
+    Args:
+        annotation: A constant annotation. It names a type only when its value is a string.
+
+    Returns:
+        What the same annotation written without quotes would resolve to. None if the value is not a string, if the
+        text is not an expression Python can parse, or if the text is itself a constant, such as a nested string or a
+        quoted None. Python rejects those as types too.
+    """
+    if not isinstance(annotation.value, str):
+        return None
+    try:
+        expression = ast.parse(annotation.value, mode="eval").body
+    except (SyntaxError, ValueError, RecursionError):
+        # ValueError is what Python 3.11 raises for a null byte, and RecursionError what a huge expression raises.
+        return None
+    if isinstance(expression, ast.Constant):
+        return None
+    return _annotation_name(annotation=expression)
+
+
 def _annotation_name(*, annotation: ast.expr | None) -> str | None:
     """Extract the base name of a return annotation, resolving through a subscript.
 
@@ -60,15 +83,18 @@ def _annotation_name(*, annotation: ast.expr | None) -> str | None:
         The bare name for a Name or Attribute annotation (including
         the base of a subscripted generic like Iterator[X]), a
         synthetic "UnionType" name for a PEP 604 union (X | Y), or
-        None if there is no annotation, it is a constant (including an
-        explicit -> None), or it does not otherwise resolve to a
-        simple name. A constant annotation needs no name of its own:
-        _is_protected_return already treats "no name" as unprotected,
-        the same outcome an explicit -> None reaches through
-        _EXCLUDED_RETURN_NAMES.
+        None if there is no annotation, or it does not otherwise
+        resolve to a simple name. A quoted annotation resolves like
+        the same annotation written without quotes. A constant that
+        is not such a string, including an explicit -> None, needs no
+        name of its own: _is_protected_return already treats "no
+        name" as unprotected, the same outcome an explicit -> None
+        reaches through _EXCLUDED_RETURN_NAMES.
     """
-    if annotation is None or isinstance(annotation, ast.Constant):
+    if annotation is None:
         return None
+    if isinstance(annotation, ast.Constant):
+        return _quoted_annotation_name(annotation=annotation)
     if isinstance(annotation, ast.Subscript):
         return _annotation_name(annotation=annotation.value)
     if isinstance(annotation, ast.BinOp):

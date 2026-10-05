@@ -35,6 +35,9 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ### Fixed
 
+- Fixed PYR406 missing a discarded call to a function whose return annotation is a quoted string, such as `-> "int"`. A
+  quoted annotation now gives the same result as the same annotation without quotes. Text that does not parse as an
+  expression leaves the call unflagged (#277).
 - Report source-file write errors without a traceback in `--fix` mode and continue fixing other files. Exit code 1
   indicates at least one write failure, and failed writes never print `Fixed` (#350).
 - Fixed output order depending on filesystem directory-enumeration order and command-line path-argument order.
