@@ -10,6 +10,10 @@ from jsonschema.protocols import Validator
 from pyrigor.rules import Applicability, FixAvailability
 from tests.diagnostics_v2_support import FILE_NAME, Json, load_v2_schema
 
+# The file, group, record and unit separators and the byte-order mark. The whitespace class of the schema leaves out
+# U+001C to U+001F and U+FEFF on purpose, because the control and hidden-character rules reject them elsewhere.
+_SEPARATORS_AND_BOM = (0x1C, 0x1D, 0x1E, 0x1F, 0xFEFF)
+
 
 def _rule(**overrides: object) -> Json:
     """Build metadata for a selected rule, with optional replacements."""
@@ -176,6 +180,15 @@ def test_document_rejects_non_rule_keys(*, code: str) -> None:
         ("symbolic_name", "UpperCase"),
         ("symbolic_name", "name\n"),
         ("symbolic_name", "name\n\n"),
+        ("symbolic_name", "name\n\n\n"),
+        ("symbolic_name", "-name"),
+        ("symbolic_name", "name-"),
+        ("symbolic_name", "na--me"),
+        ("symbolic_name", "1name"),
+        ("symbolic_name", "na_me"),
+        ("symbolic_name", "na me"),
+        *[("symbolic_name", f"na{chr(code_point)}me") for code_point in _SEPARATORS_AND_BOM],
+        *[("url", f"{_rule()['url']}{chr(code_point)}") for code_point in _SEPARATORS_AND_BOM],
         ("symbolic_name", 402),
         ("symbolic_name", None),
         ("fix_availability", "safe_fix"),

@@ -475,6 +475,7 @@ _HOSTILE_FILE_NAMES = {
     "parent-segment-then-trailing-slash": "../",
     "trailing-newline": "src/app.py\n",
     "two-trailing-newlines": "src/app.py\n\n",
+    "three-trailing-newlines": "src/app.py\n\n\n",
     "tab": "src/\tapp.py",
     "c1-control-character": "src/\x85app.py",
     "empty-segment": "src//app.py",
@@ -508,6 +509,7 @@ _INVISIBLE_CHARACTERS = {
     "halfwidth-hangul-filler": chr(0xFFA0),
     "interlinear-annotation-anchor": chr(0xFFF9),
     "interlinear-annotation-terminator": chr(0xFFFB),
+    "byte-order-mark": chr(0xFEFF),
 }
 
 _CONTROL_CHARACTERS = {
@@ -517,6 +519,10 @@ _CONTROL_CHARACTERS = {
     "line-feed": chr(0x0A),
     "carriage-return": chr(0x0D),
     "escape": chr(0x1B),
+    "file-separator": chr(0x1C),
+    "group-separator": chr(0x1D),
+    "record-separator": chr(0x1E),
+    "unit-separator": chr(0x1F),
     "delete": chr(0x7F),
     "next-line": chr(0x85),
     "control-sequence-introducer": chr(0x9B),
@@ -535,6 +541,8 @@ def _control_character_findings() -> list[object]:
                 "fix-message",
                 _finding(fixes=[{"applicability": "safe", "message": f"apply{character}text", "edits": [_edit()]}]),
             ),
+            ("symbol-name", _symbol(kind="function", name=f"ap{character}ply")),
+            ("method-name", _symbol(kind="method", name=f"Report.re{character}nder")),
         )
     ]
 
@@ -562,6 +570,7 @@ def _invisible_character_findings() -> list[object]:
             ("span-file-name", _finding(spans=[_span(file_name=f"src/ap{character}p.py")])),
             ("edit-file-name", _with_fix(edits=[_edit(file_name=f"src/ap{character}p.py")])),
             ("symbol-name", _symbol(kind="function", name=f"ap{character}ply")),
+            ("method-name", _symbol(kind="method", name=f"Report.re{character}nder")),
             ("message", _finding(message=f"ok{character}")),
             ("message-of-only-that-character", _finding(message=character)),
             ("label", _finding(spans=[_span(label=f"here{character}")])),
@@ -614,10 +623,6 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
         pytest.param(_symbol(kind="module", name="apply"), id="module-kind-with-function-name"),
         pytest.param(_symbol(kind="function", name="<module>"), id="function-kind-named-module"),
         pytest.param(_symbol(kind="function", name="not a name"), id="symbol-name-with-spaces"),
-        pytest.param(_symbol(kind="function", name="apply\n"), id="symbol-name-with-trailing-newline"),
-        pytest.param(_symbol(kind="method", name="Report.render\n"), id="method-name-with-trailing-newline"),
-        pytest.param(_symbol(kind="function", name="apply\n\n"), id="symbol-name-with-two-trailing-newlines"),
-        pytest.param(_symbol(kind="method", name="Report.render\n\n"), id="method-name-with-two-trailing-newlines"),
         pytest.param(_symbol(kind="method", name="Class..method"), id="symbol-name-with-empty-segment"),
         pytest.param(_symbol(kind="function", name=".apply"), id="symbol-name-starting-with-dot"),
         pytest.param(_symbol(kind="function", name="outer.<lambda>"), id="lambda-as-symbol"),
@@ -766,12 +771,8 @@ def test_operational_error_file_name_follows_the_finding_rules(*, file_name: str
         pytest.param(_finding(message="line\u2028break"), id="line-separator-inside-message"),
         pytest.param(_finding(spans=[_span(file_name="src/a\u2029p.py")]), id="paragraph-separator-in-file-name"),
         pytest.param(_finding(message="tag\U000e0041"), id="tag-character-in-message"),
-        pytest.param(
-            _finding(spans=[_span(file_name="src/a" + chr(0xE0001) + "b.py")]), id="tag-character-in-file-name"
-        ),
-        pytest.param(
-            _finding(spans=[_span(file_name="src/a" + chr(0xE0100) + "b.py")]), id="variation-selector-17-in-file-name"
-        ),
+        pytest.param(_finding(spans=[_span(file_name="src/a" + chr(0xE0001) + "b.py")]), id="astral-tag-in-file-name"),
+        pytest.param(_finding(spans=[_span(file_name="src/a" + chr(0xE0100) + "b.py")]), id="selector-17-in-file-name"),
         pytest.param(_symbol(kind="function", name="a" + chr(0xE0001)), id="tag-character-in-symbol-name"),
         pytest.param(_symbol(kind="function", name=chr(0x660) + "a"), id="non-ascii-digit-starting-symbol-name"),
         pytest.param(_symbol(kind="method", name="Report." + chr(0x660)), id="non-ascii-digit-starting-method-name"),
