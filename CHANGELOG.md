@@ -8,6 +8,8 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+## [0.14.0] 2026-10-05
+
 ### Added
 
 - Defined the v2 diagnostics document schema for tool identity, kept and suppressed findings, selected-rule metadata,

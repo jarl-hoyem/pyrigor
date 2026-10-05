@@ -110,7 +110,8 @@ without writing. Fixer modes require explicit PYR402 selection; ordinary linting
 
 In diagnostic mode, exit code 1 means findings were reported. In fix mode, it means at least one source-file write
 failed. Each writing error names the file and operating system error on stderr. Other files are still processed, and
-only successful writes print `Fixed`. Successful fix runs exit 0. Usage errors exit 2.
+only successful writes print `Fixed`. Successful fix runs exit 0. Usage errors exit 2. That includes a file name that
+the v2 diagnostics schema cannot represent, which stops the run before any file is read.
 
 For the machine-readable editor or tooling integration, use `--output-format=json`. It emits one JSON document
 containing kept and suppressed findings, selected-rule metadata, tool identity, operational errors and a file count.
