@@ -53,11 +53,18 @@ Run all quality gates (same checks CI runs via pre-commit, so there is no separa
 just check
 ```
 
-`pytest` and `pip-audit` run on push rather than on every commit, so a commit costs about 18 seconds less. Run them
-before offering a commit message:
+`pytest` runs on push rather than on every commit, so a commit costs about 15 seconds less. Run it before offering a
+commit message:
 
 ```bash
 just check pre-push
+```
+
+The dependency audit runs in CI only because a vulnerability published overnight would otherwise fail an unrelated push.
+It audits the exact `uv.lock` versions. Run it locally with:
+
+```bash
+just check manual
 ```
 
 Individual tools, if needed outside pre-commit: `uv run mypy .`,

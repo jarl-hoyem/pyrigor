@@ -947,6 +947,13 @@ The cost is that one commit in a series can contain failing tests. That is accep
 until it is pushed, and bisecting over a local commit is rare compared with the time a full suite takes on every commit.
 Parallel runs of the remaining checks are a separate question (#199), and the measurements above are recorded there.
 
+### The dependency audit runs in CI only
+
+The fast pip-audit hook, which audited the installed environment on push, was removed on 2026-10-05. A newly published
+advisory failed pushes that had not touched any dependency. The exact-lock audit (`pip-audit-locked`) already runs in CI
+on every pull request, so the fast hook only duplicated it. Only pytest stays on the pre-push stage. Run the audit
+locally with `just check manual`.
+
 ### Prettier runs from the locked package, with one pin
 
 Prettier's version was stated twice. The first place was `package.json` and `package-lock.json`, which PyCharm's

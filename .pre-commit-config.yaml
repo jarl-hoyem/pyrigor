@@ -354,18 +354,10 @@ repos:
         types: [python]
         pass_filenames: false
         stages: [pre-commit]
-      # The two slowest checks run on push, not on every commit. Measured on
-      # 2026-09-18: pytest 15s and pip-audit 3s, against 34s for a whole commit
-      # touching one Python file. Nothing reaches a branch without them, CI runs
-      # both stages, and the environment they audit cannot change between
-      # commits without the lock changing too. See DECISIONS.md.
-      - id: pip-audit
-        name: pip-audit (fast, local environment)
-        language: system
-        entry: uv run --extra dev pip-audit --local
-        pass_filenames: false
-        always_run: true
-        stages: [pre-push]
+      # The slowest check runs on push, not on every commit. Measured on
+      # 2026-09-18: pytest 15s, against 34s for a whole commit touching one
+      # Python file. Nothing reaches a branch without it, and CI runs every
+      # stage. See DECISIONS.md.
       # Tests.
       - id: pytest
         name: pytest
