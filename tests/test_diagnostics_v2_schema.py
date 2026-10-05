@@ -614,6 +614,7 @@ def test_hostile_file_name_is_rejected_in_spans_and_edits(*, finding: Json) -> N
         pytest.param(_symbol(kind="function", name="<module>"), id="function-kind-named-module"),
         pytest.param(_symbol(kind="function", name="not a name"), id="symbol-name-with-spaces"),
         pytest.param(_symbol(kind="function", name="apply\n"), id="symbol-name-with-trailing-newline"),
+        pytest.param(_symbol(kind="method", name="Report.render\n"), id="method-name-with-trailing-newline"),
         pytest.param(_symbol(kind="method", name="Class..method"), id="symbol-name-with-empty-segment"),
         pytest.param(_symbol(kind="function", name=".apply"), id="symbol-name-starting-with-dot"),
         pytest.param(_symbol(kind="function", name="outer.<lambda>"), id="lambda-as-symbol"),
@@ -762,6 +763,15 @@ def test_operational_error_file_name_follows_the_finding_rules(*, file_name: str
         pytest.param(_finding(message="line\u2028break"), id="line-separator-inside-message"),
         pytest.param(_finding(spans=[_span(file_name="src/a\u2029p.py")]), id="paragraph-separator-in-file-name"),
         pytest.param(_finding(message="tag\U000e0041"), id="tag-character-in-message"),
+        pytest.param(
+            _finding(spans=[_span(file_name="src/a" + chr(0xE0001) + "b.py")]), id="tag-character-in-file-name"
+        ),
+        pytest.param(
+            _finding(spans=[_span(file_name="src/a" + chr(0xE0100) + "b.py")]), id="variation-selector-17-in-file-name"
+        ),
+        pytest.param(_symbol(kind="function", name="a" + chr(0xE0001)), id="tag-character-in-symbol-name"),
+        pytest.param(_symbol(kind="function", name=chr(0x660) + "a"), id="non-ascii-digit-starting-symbol-name"),
+        pytest.param(_symbol(kind="method", name="Report." + chr(0x660)), id="non-ascii-digit-starting-method-name"),
         pytest.param(_symbol(kind="function", name="\u00e9\u00a7"), id="non-ascii-non-identifier-symbol-name"),
         pytest.param(_finding(spans=[_span(byte_start=4.0)]), id="integral-float-offset"),
         pytest.param(_finding(spans=[_span(), _span(is_primary=False), _span(is_primary=False)]), id="duplicate-spans"),
@@ -803,9 +813,10 @@ def test_schema_cannot_reject_what_only_the_producer_can_enforce(*, finding: Jso
 
     If the schema ever rejects one, move the case to the hostile tests and remove it from x-invariants.
 
-    Several cases wait for the portable patterns in #291. Those are the line and paragraph separators inside text, the
-    tag characters outside the Basic Multilingual Plane, the invisible marks and the blank Braille pattern. None of
-    them is whitespace, so the rule asking for a non-whitespace character accepts them.
+    Several cases are limits of the portable patterns. Those are the line and paragraph separators inside text, the
+    format characters above U+FFFF, the invisible marks and the blank Braille pattern. None of them is whitespace, so
+    the rule asking for a non-whitespace character accepts them. The hidden-character invariant in x-invariants records
+    the limit.
     """
     assert _is_valid(definition="Finding", instance=finding)
 

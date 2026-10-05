@@ -1,7 +1,6 @@
 """Make temporary producer limits explicit instead of emitting invalid v2 documents."""
 
 import json
-import re
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -14,7 +13,12 @@ from pyrigor.checkers.cli import run
 from pyrigor.diagnostics import require_supported_findings
 from pyrigor.rules import Rule
 from tests.checker_helpers import finding_at
-from tests.diagnostics_v2_support import definition_validator, load_v2_schema
+from tests.diagnostics_v2_support import (
+    HIDDEN_TEXT_REFERENCE,
+    definition_validator,
+    forbidden_hidden_characters,
+    load_v2_schema,
+)
 
 _USAGE_ERROR = 2
 _RELATIVE_FRAGMENT = "relative"
@@ -181,16 +185,10 @@ def test_already_escaped_parser_errors_remain_valid_diagnostics(
 
 def test_interim_guard_matches_the_schemas_rejected_text_characters() -> None:
     """Every forbidden literal text character is rejected, including printable fillers."""
-    message_schema = load_v2_schema()["$defs"]["Finding"]["properties"]["message"]
-    classes = [
-        part["pattern"].removeprefix("^(?![\\s\\S]*").removesuffix(")")
-        for part in message_schema["allOf"]
-        if part["description"].startswith("No ")
-    ]
-    # Extract forbidden classes independently of the schema, so a new range cannot bypass the producer guard.
-    forbidden = set(re.findall("|".join(classes), "".join(chr(code_point) for code_point in range(0x110000))))
+    message_rules = load_v2_schema()["$defs"]["Finding"]["properties"]["message"]["allOf"]
+    assert HIDDEN_TEXT_REFERENCE in message_rules
     base = finding_at(line=1, end_line=1, column=1, rule=Rule.PYR402)
-    for character in forbidden:
+    for character in forbidden_hidden_characters():
         with pytest.raises(ValueError, match=rf"U\+{ord(character):04X}"):
             require_supported_findings(findings=[replace(base, message="Subject " + character)], path="test.py")
 
