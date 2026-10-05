@@ -160,23 +160,66 @@ def _is_protected_definition(
     )
 
 
-def _bound_nodes_by_scope(*, nodes: WalkedNodes) -> dict[ast.AST, dict[str, list[ast.AST]]]:
-    """Collect name-binding nodes by lexical scope, in source order."""
-    bound: dict[ast.AST, dict[str, list[ast.AST]]] = {}
+_NamesByScope = dict[ast.AST, dict[str, list[ast.AST]]]
+
+
+class _ScopeBindings(NamedTuple):
+    """The name bindings of a file, as Python scopes them.
+
+    A name that a function declares global is never local to it, so its bindings in that function belong to the
+    module scope, as in Python's own scope analysis. They are also kept per declaring function, because inside that
+    function the order of its own stores decides what a call reaches.
+    """
+
+    lexical: _NamesByScope
+    global_stores: _NamesByScope
+    declared_global: dict[ast.AST, set[str]]
+
+
+def _global_scope(*, node: ast.Global, parents: dict[ast.AST, ast.AST]) -> ast.AST | None:
+    """Find the function scope that a global statement declares names in, or None when it declares nothing.
+
+    A global statement at module level has no effect, and one in a class body belongs to the class.
+    """
+    if _inside_class_body(node=node, parents=parents):
+        return None
+    scope = nearest_function_scope(node=node, parents=parents)
+    return None if isinstance(scope, ast.Module) else scope
+
+
+def _global_declarations(*, nodes: WalkedNodes) -> dict[ast.AST, set[str]]:
+    """Collect the names that each function scope declares global."""
+    declared: dict[ast.AST, set[str]] = {}
+    for node in nodes.parents:
+        if isinstance(node, ast.Global):
+            scope = _global_scope(node=node, parents=nodes.parents)
+            if scope is not None:
+                declared.setdefault(scope, set()).update(node.names)
+    return declared
+
+
+def _bound_nodes_by_scope(*, nodes: WalkedNodes) -> _ScopeBindings:
+    """Collect name-binding nodes by scope, in source order."""
+    bindings = _ScopeBindings(lexical={}, global_stores={}, declared_global=_global_declarations(nodes=nodes))
     for node in nodes.parents:
         if _inside_class_body(node=node, parents=nodes.parents):
             continue
         if _is_comprehension_target(node=node, parents=nodes.parents):
             continue
         scope = nearest_function_scope(node=node, parents=nodes.parents)
-        _add_bindings(bound=bound, scope=scope, node=node)
-    return bound
+        _add_bindings(bindings=bindings, scope=scope, node=node, parents=nodes.parents)
+    return bindings
 
 
-def _add_bindings(*, bound: dict[ast.AST, dict[str, list[ast.AST]]], scope: ast.AST, node: ast.AST) -> None:
-    """Add one node's bindings to its lexical scope."""
+def _add_bindings(*, bindings: _ScopeBindings, scope: ast.AST, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> None:
+    """Add one node's bindings to the scope that holds each name, which is the module for a global name."""
     for name in _node_bindings(node=node):
-        bound.setdefault(scope, {}).setdefault(name, []).append(node)
+        if name in bindings.declared_global.get(scope, set()):
+            bindings.global_stores.setdefault(scope, {}).setdefault(name, []).append(node)
+            holder = list(function_scopes(scope=scope, parents=parents))[-1]
+        else:
+            holder = scope
+        bindings.lexical.setdefault(holder, {}).setdefault(name, []).append(node)
 
 
 def _inside_class_body(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
@@ -306,24 +349,59 @@ def _binding_is_protected(*, call: ast.Call, bindings: list[ast.AST], protected_
     )
 
 
+def _own_global_bindings(
+    *, call: ast.Call, name: str, scope: ast.AST, bindings: _ScopeBindings, parents: dict[ast.AST, ast.AST]
+) -> list[ast.AST] | None:
+    """List what a call reaches when its own function declares the name global, or None when it does not.
+
+    A store in the same function that comes before the call decides it. Without one, the call reaches what the module
+    holds, except the function's own later stores, which have not run yet.
+    """
+    if name not in bindings.declared_global.get(scope, set()):
+        return None
+    own = bindings.global_stores.get(scope, {}).get(name, [])
+    call_position = _binding_position(node=call)
+    before = [node for node in own if _binding_position(node=node) < call_position]
+    if before:
+        return before
+    return _module_bindings_without(name=name, excluded=own, scope=scope, bindings=bindings, parents=parents)
+
+
+def _module_bindings_without(
+    *, name: str, excluded: list[ast.AST], scope: ast.AST, bindings: _ScopeBindings, parents: dict[ast.AST, ast.AST]
+) -> list[ast.AST]:
+    """List the module's bindings of a name, leaving out the given nodes."""
+    module = list(function_scopes(scope=scope, parents=parents))[-1]
+    return [node for node in bindings.lexical.get(module, {}).get(name, []) if node not in excluded]
+
+
+def _reachable_bindings(
+    *, call: ast.Call, name: str, scope: ast.AST, bindings: _ScopeBindings, parents: dict[ast.AST, ast.AST]
+) -> list[ast.AST]:
+    """List the bindings that a call to a name reaches, from the innermost scope that holds any."""
+    own = _own_global_bindings(call=call, name=name, scope=scope, bindings=bindings, parents=parents)
+    if own is not None:
+        return own
+    for candidate_scope in function_scopes(scope=scope, parents=parents):
+        found = bindings.lexical.get(candidate_scope, {}).get(name, [])
+        if found:
+            return found
+    return []
+
+
 def _bare_call_is_protected(
     *,
     call: ast.Call,
     nodes: WalkedNodes,
     protected_names: set[str],
-    bound_nodes: dict[ast.AST, dict[str, list[ast.AST]]],
+    bindings: _ScopeBindings,
 ) -> bool:
-    """Resolve one bare call through its lexical scopes."""
-    if not isinstance(call.func, ast.Name):
-        return False
-    if _inside_class_body(node=call, parents=nodes.parents):
+    """Resolve one bare call through its scopes."""
+    if not isinstance(call.func, ast.Name) or _inside_class_body(node=call, parents=nodes.parents):
         return False
     scope = nearest_function_scope(node=call, parents=nodes.parents)
-    for candidate_scope in function_scopes(scope=scope, parents=nodes.parents):
-        bindings = bound_nodes.get(candidate_scope, {}).get(call.func.id, [])
-        if bindings:
-            return _binding_is_protected(call=call, bindings=bindings, protected_names=protected_names)
-    return False
+    found = _reachable_bindings(call=call, name=call.func.id, scope=scope, bindings=bindings, parents=nodes.parents)
+    return bool(found) and _binding_is_protected(call=call, bindings=found, protected_names=protected_names)
 
 
 def _direct_methods(*, class_def: ast.ClassDef) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -446,7 +524,7 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
         Every bare-statement Call node whose func is a Name matching
         a protected function name.
     """
-    bound_nodes = _bound_nodes_by_scope(nodes=nodes)
+    bindings = _bound_nodes_by_scope(nodes=nodes)
     return [
         call
         for call in nodes.call_statement_nodes
@@ -454,7 +532,7 @@ def _bare_name_call_matches(*, nodes: WalkedNodes, protected_names: set[str]) ->
             call=call,
             nodes=nodes,
             protected_names=protected_names,
-            bound_nodes=bound_nodes,
+            bindings=bindings,
         )
     ]
 

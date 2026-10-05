@@ -35,6 +35,10 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ### Fixed
 
+- Fixed PYR406 treating an assignment to a name that a function declares `global` as a binding local to that function.
+  Such a name now belongs to the module scope, as in Python. A call in the declaring function is decided by that
+  function's own earlier stores, a function nested inside it reaches the module, and a function defined only through a
+  `global` declaration is resolved. A call before the rebinding is no longer missed (#276).
 - Fixed PYR406 missing a discarded call to a function whose return annotation is a quoted string, such as `-> "int"`. A
   quoted annotation now gives the same result as the same annotation without quotes. Text that does not parse as an
   expression leaves the call unflagged (#277).
