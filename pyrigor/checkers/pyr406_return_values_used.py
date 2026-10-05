@@ -334,18 +334,83 @@ def _binding_position(*, node: ast.AST) -> _BindingPosition:
     return _BindingPosition(line=lineno, column=col_offset)
 
 
-def _latest_binding(*, bindings: list[ast.AST]) -> ast.AST:
-    """Return the effective source-order binding from a non-empty list."""
-    return max(bindings, key=lambda node: _binding_position(node=node))
+_BranchArms = dict[ast.AST, int]
 
 
-def _binding_is_protected(*, call: ast.Call, bindings: list[ast.AST], protected_names: set[str]) -> bool:
-    """Classify the effective binding for a name at one call site."""
-    latest = _latest_binding(bindings=bindings)
-    return isinstance(latest, (ast.FunctionDef, ast.AsyncFunctionDef)) and _is_protected_definition(
-        call=call,
-        definitions=[latest],
-        protected_names=protected_names,
+def _arm_index(*, child: ast.AST, parent: ast.AST) -> int | None:
+    """Return which arm of an if statement or a match statement a child sits in, or None when it sits in neither."""
+    if isinstance(parent, ast.Match) and isinstance(child, ast.match_case):
+        return parent.cases.index(child)
+    if isinstance(parent, ast.If) and child is not parent.test:
+        return int(child in parent.orelse)
+    return None
+
+
+def _branch_arms(*, node: ast.AST, parents: dict[ast.AST, ast.AST]) -> _BranchArms:
+    """Map each if or match statement that holds a node within its scope to the arm that holds it."""
+    parent = parents.get(node)
+    if parent is None or isinstance(parent, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+        return {}
+    arms = _branch_arms(node=parent, parents=parents)
+    index = _arm_index(child=node, parent=parent)
+    if index is not None:
+        arms[parent] = index
+    return arms
+
+
+def _in_other_arm(*, arms: _BranchArms, other: _BranchArms) -> bool:
+    """Check whether two nodes sit in different arms of one branching statement so that both never run."""
+    return any(other.get(statement, arm) != arm for statement, arm in arms.items())
+
+
+def _runs_with(*, arms: _BranchArms, other: _BranchArms) -> bool:
+    """Check whether every arm that holds a node also holds the other, so the node runs whenever the other does."""
+    return all(other.get(statement) == arm for statement, arm in arms.items())
+
+
+def _is_replaced(
+    *, binding: ast.AST, possible: list[ast.AST], arms: dict[ast.AST, _BranchArms], call_arms: _BranchArms
+) -> bool:
+    """Check whether a later binding runs on every path to the call from this one, which leaves this one unreachable."""
+    position = _binding_position(node=binding)
+    return any(
+        _binding_position(node=later) > position
+        and (_runs_with(arms=arms[later], other=arms[binding]) or _runs_with(arms=arms[later], other=call_arms))
+        for later in possible
+    )
+
+
+def _possible_bindings(
+    *, bindings: list[ast.AST], arms: dict[ast.AST, _BranchArms], call_arms: _BranchArms
+) -> list[ast.AST]:
+    """Keep the bindings that are not in another arm than the call's own."""
+    return [node for node in bindings if not _in_other_arm(arms=arms[node], other=call_arms)]
+
+
+def _reaching_bindings(*, call: ast.Call, bindings: list[ast.AST], parents: dict[ast.AST, ast.AST]) -> list[ast.AST]:
+    """List the bindings that can be the one a call reaches.
+
+    Only an if statement and a match statement count as alternative paths, so a loop or a try statement stays
+    sequential. A binding in another arm than the call's own never runs before it. A later binding replaces an earlier
+    one when it runs whenever the earlier one does or whenever the call does. A binding inside a branch therefore
+    leaves the bindings before the branch is reachable.
+    """
+    call_arms = _branch_arms(node=call, parents=parents)
+    arms = {node: _branch_arms(node=node, parents=parents) for node in bindings}
+    possible = _possible_bindings(bindings=bindings, arms=arms, call_arms=call_arms)
+    return [
+        node for node in possible if not _is_replaced(binding=node, possible=possible, arms=arms, call_arms=call_arms)
+    ]
+
+
+def _binding_is_protected(
+    *, call: ast.Call, bindings: list[ast.AST], protected_names: set[str], parents: dict[ast.AST, ast.AST]
+) -> bool:
+    """Check whether any binding that a call can reach is a protected definition."""
+    return any(
+        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and _is_protected_definition(call=call, definitions=[node], protected_names=protected_names)
+        for node in _reaching_bindings(call=call, bindings=bindings, parents=parents)
     )
 
 
@@ -401,7 +466,7 @@ def _bare_call_is_protected(
         return False
     scope = nearest_function_scope(node=call, parents=nodes.parents)
     found = _reachable_bindings(call=call, name=call.func.id, scope=scope, bindings=bindings, parents=nodes.parents)
-    return bool(found) and _binding_is_protected(call=call, bindings=found, protected_names=protected_names)
+    return _binding_is_protected(call=call, bindings=found, protected_names=protected_names, parents=nodes.parents)
 
 
 def _direct_methods(*, class_def: ast.ClassDef) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:

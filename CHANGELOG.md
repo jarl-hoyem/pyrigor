@@ -37,11 +37,15 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 - Fixed PYR406 treating an assignment to a name that a function declares `global` as a binding local to that function.
   Such a name now belongs to the module scope, as in Python. A call in the declaring function is decided by that
-  function's own earlier stores, a function nested inside it reaches the module, and a function defined only through a
+  function's own earlier stores, a function nested inside it reaches the module and a function defined only through a
   `global` declaration is resolved. A call before the rebinding is no longer missed (#276).
 - Fixed PYR406 missing a discarded call to a function whose return annotation is a quoted string, such as `-> "int"`. A
   quoted annotation now gives the same result as the same annotation without quotes. Text that does not parse as an
   expression leaves the call unflagged (#277).
+- Fixed PYR406 missing a discarded call when an `if` or `match` statement binds the name in the alternative arms. A call
+  is now flagged when any binding that can reach it is a protected definition. A binding in another arm than the call's
+  own is ignored, and a later binding replaces an earlier one only when it runs on every path to the call. Loops and
+  `try` statements still count as sequential (#279).
 - Report source-file write errors without a traceback in `--fix` mode and continue fixing other files. Exit code 1
   indicates at least one write failure, and failed writes never print `Fixed` (#350).
 - Fixed output order depending on filesystem directory-enumeration order and command-line path-argument order.
