@@ -153,7 +153,7 @@ Add pyrigor to your own `.pre-commit-config.yaml` as a pinned, remote hook, the 
 
 ```yaml
 - repo: https://github.com/jarl-hoyem/pyrigor
-  rev: v0.13.1
+  rev: v0.14.0
   hooks:
     - id: pyrigor
       args: [--exclude, generated]
