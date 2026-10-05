@@ -107,8 +107,9 @@ source = ["pyrigor"]
 
 [tool.mutmut]
 source_paths = ["pyrigor/"]
-# The schema tests read schemas/, which mutmut does not copy into its workspace by default.
-also_copy = ["schemas/"]
+# The schema tests read schemas/, and the tests of the cross-engine pattern check run scripts/ and read the pre-commit
+# configuration. Mutmut copies none of them into its workspace by default.
+also_copy = ["schemas/", "scripts/", ".pre-commit-config.yaml"]
 pytest_add_cli_args = ["--no-cov"]
 
 [tool.pytest.ini_options]

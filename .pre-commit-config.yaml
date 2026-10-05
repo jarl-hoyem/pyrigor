@@ -111,6 +111,14 @@ repos:
         entry: node node_modules/prettier/bin/prettier.cjs --write --ignore-unknown
         files: "\\.(md|ya?ml|json)$"
         stages: [pre-commit]
+      - id: schema-pattern-portability
+        name: schema patterns read the same in Python and Node
+        language: system
+        entry: uv run python scripts/check_schema_pattern_portability.py
+        # Runs when the schema or the check changes and reads the schema itself, so it takes no file arguments.
+        files: "^(schemas/.*\\.json|scripts/check_schema_pattern_portability\\.py)$"
+        pass_filenames: false
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: ruff-check

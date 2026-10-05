@@ -129,6 +129,57 @@ symbol named with one is reported. A real identifier cannot contain a backslash,
 name stays a stable identity. The schema checks only the shape of an escape. That it stands for a rejected character,
 and that its code point is at most U+10FFFF, are producer rules.
 
+The hidden-character rules list code points up to U+FFFF only. A pattern cannot match a character above U+FFFF the same
+way everywhere. ECMAScript reads it as two surrogate code units unless the `u` flag is set, and a schema cannot set that
+flag. Python's `re` module has no `\p{...}` category match to use instead. The schema therefore accepts astral format
+characters, such as the tag characters U+E0000 to U+E007F and the variation selectors U+E0100 to U+E01EF, in messages,
+labels, file names and symbol names. Tests pin this limit, so a later change that enforces it does so deliberately.
+
+### Patterns are portable across regex engines
+
+JSON Schema's `pattern` keyword is ECMAScript regex by specification, but every validator runs it through its own
+language's engine. The schema is a contract for consumers beyond pyrigor's own Python validator, including editors
+written in JavaScript or TypeScript and future Rust tooling, so every pattern avoids constructs engines disagree on
+rather than relying on Python's own `re` behaviour.
+
+No pattern uses a lookahead or a backreference. Engines built on RE2, such as Rust's `regex` crate and Go's `regexp`,
+have no lookaheads at all, so a validator using one would reject the schema outright. A rule that reads naturally as "no
+forbidden character anywhere" is instead written with JSON Schema's own `not` combined with a plain, unanchored
+`pattern`. That needs no lookahead and no anchor, since "does the forbidden pattern match anywhere" is exactly what
+`not` plus a search already means.
+
+No pattern anchors a character-class exclusion with a bare trailing `$`. In Python, `$` also matches just before a final
+line feed, not only at the true end of the string. A character class built to exclude line breaks still lets one through
+right at the end, because `$` accepts the position before it. The `not`/`pattern` form above has no such problem, since
+it never anchors the end at all. It was reached only after a first attempt using `^[^...]*$` reintroduced exactly this
+defect, caught by the existing hostile-input test for a trailing newline in a symbol name.
+
+No pattern relies on `\s` or `\d`. Python's `\s` includes U+001C to U+001F. ECMAScript additionally includes U+FEFF,
+which Python's does not. Both are replaced everywhere with an explicit character class of Unicode's actual `White_Space`
+characters, deliberately excluding both engine-specific extras, since neither is genuine whitespace. The schema's
+hidden-character rules already reject both characters outright wherever the whitespace class is checked alongside them.
+A future field that checks whitespace without also rejecting hidden characters would need to revisit this.
+
+Python's `\d` matches any Unicode decimal digit. ECMAScript's matches only ASCII `0` to `9`. The enclosing symbol's
+identifier grammar therefore uses `[0-9]` where it used `\d`. This loosens one rule. A segment of a symbol name may now
+start with a non-ASCII decimal digit, such as U+0660, which the old pattern rejected. A Python identifier never starts
+with a decimal digit, so such a name cannot be real, and the producer's own type still rejects it. The schema already
+checks non-ASCII characters loosely because a pattern cannot carry Unicode categories portably, so this is one more
+character the schema leaves to the producer. A test pins that the schema accepts it.
+
+Five patterns anchor a grammar of allowed characters with `$`: the symbolic name of a rule, the whitespace rule for a
+file name segment, the two grammars of a symbol name and the grammar of a method name. Python's `$` also matches before
+a final line feed and ECMAScript's does not. No anchored pattern closes that gap because one engine can skip a final
+line feed that the other has to consume. Each of these patterns therefore ends in `\n*$`, so it accepts any run of final
+line feeds in both engines and reads the same everywhere. Rejecting a line feed is left to the shared rule for control
+characters and, for the symbolic name of a rule, to its own rule against whitespace. Both reject a line feed wherever it
+stands. A pattern that has to reject a line feed itself needs a `not` rule with an unanchored search instead.
+
+The check in `scripts/check_schema_pattern_portability.py` runs every pattern in Python and in Node against more than
+twenty thousand strings, each also tried with a final line feed. Node runs twice, without flags and with the `u` flag
+that ajv, the most common JavaScript validator, sets by default. The check fails the commit when Python and either run
+of Node disagree, so a pattern that reintroduces the gap is caught before it reaches a consumer.
+
 ### Fixes are structured actions
 
 A fix is more than replacement text. Consumers need to know what kind of change is proposed, why it is proposed and

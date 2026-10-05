@@ -19,7 +19,12 @@ import pytest
 from pyrigor.checkers.cli import run
 from pyrigor.diagnostics import DiagnosticInputError, require_representable_file_name
 from pyrigor.findings import FileName
-from tests.diagnostics_v2_support import definition_validator, load_v2_schema
+from tests.diagnostics_v2_support import (
+    HIDDEN_TEXT_REFERENCE,
+    definition_validator,
+    hidden_character_classes,
+    load_v2_schema,
+)
 
 _USAGE_ERROR = 2
 _CRASH_MESSAGE = "pyrigor crashed unexpectedly"
@@ -32,6 +37,7 @@ _SKIP_WARNING = "Warning: skipping"
 _BACKSLASH = chr(0x5C)
 _GRAPHEME_JOINER = chr(0x34F)
 _COLON_NAME = "a:b.py"
+_REFERENCE_KEY = "$ref"
 _WINDOWS_NAME = "nt"
 _WINDOWS = os.name == _WINDOWS_NAME
 _SURROGATES = range(0xD800, 0xE000)  # the code points UTF-16 reserves, which are not characters
@@ -50,8 +56,13 @@ _STRUCTURAL_VIOLATORS = {
     "Relative, so not starting with a slash or a drive letter.": ["/a.py", "C:a.py", "c:/a.py"],
     "Forward slashes only.": [f"dir{_BACKSLASH}a.py", f"{_BACKSLASH}a.py"],
     "No empty segment, and no trailing slash.": ["a//b.py", "a/b/"],
-    "A parent-directory segment only at the start, then an ordinary segment.": ["a/../b.py", "..", "../.."],
-    "No current-directory segment.": ["./a.py", "a/./b.py"],
+    "A parent-directory segment only at the start; no other segment is exactly '.' or '..'.": [
+        "a/../b.py",
+        "..",
+        "../..",
+        "./a.py",
+        "a/./b.py",
+    ],
     "No segment starts or ends with whitespace.": [" a.py", "a.py ", "a/ b.py", "a /b.py"],
 }
 _SHORT_NAME_ALPHABET = [
@@ -105,21 +116,27 @@ def _run_cli(
     return _Outcome(code=caught.value.code, out=captured.out, err=captured.err.replace("\\\\", "\\"))
 
 
-def _schema_rules() -> dict[str, str]:
-    """Map each rule of the schema's file name to its pattern."""
-    return {part["description"]: part["pattern"] for part in load_v2_schema()["$defs"]["FileName"]["allOf"]}
+def _file_name_rule_descriptions() -> set[str]:
+    """List the descriptions of the schema's file name rules, following the reference to its hidden-text rules."""
+    descriptions: set[str] = set()
+    for part in load_v2_schema()["$defs"]["FileName"]["allOf"]:
+        if _REFERENCE_KEY in part:
+            assert part == HIDDEN_TEXT_REFERENCE
+            descriptions |= set(hidden_character_classes())
+        else:
+            descriptions.add(part["description"])
+    return descriptions
 
 
 def _forbidden_names(*, rule: str) -> list[str]:
-    """Build one name per character a character rule of the schema forbids, taken from its own pattern."""
-    forbidden_class = _schema_rules()[rule].removeprefix("^(?![\\s\\S]*").removesuffix(")")
+    """Build one name per character a character rule of the schema forbids, taken from its own character class."""
     every_character = "".join(chr(code_point) for code_point in range(0x110000) if code_point not in _SURROGATES)
-    return [f"a{character}b.py" for character in re.findall(forbidden_class, every_character)]
+    return [f"a{character}b.py" for character in re.findall(hidden_character_classes()[rule], every_character)]
 
 
 def test_the_checked_rules_are_exactly_the_rules_of_the_schema() -> None:
     """A rule added to the schema's file name fails here until the check and this list cover it."""
-    assert set(_schema_rules()) == {*_CHARACTER_RULES, *_STRUCTURAL_VIOLATORS}
+    assert _file_name_rule_descriptions() == {*_CHARACTER_RULES, *_STRUCTURAL_VIOLATORS}
 
 
 @pytest.mark.parametrize("rule", [*_CHARACTER_RULES, *_STRUCTURAL_VIOLATORS])

@@ -28,6 +28,7 @@
     "A finding's primary span is in the file the finding belongs to.",
     "Spans within a finding, fixes within a finding and edits within a fix are each unique.",
     "Strings are valid Unicode, so they contain no lone surrogates.",
+    "Shown text contains no hidden character that the schema's lists do not name. That includes every format character above U+FFFF, such as tag characters and variation selectors.",
     "file_name is in Unicode normalisation form NFC.",
     "A symbol name is in Unicode normalisation form NFKC, the form Python gives an identifier.",
     "Symbol name segments are Python identifiers. The schema checks ASCII characters exactly and others loosely.",
@@ -305,7 +306,10 @@
               "$ref": "#/$defs/Finding/properties/message"
             },
             {
-              "pattern": "^(?![\\s\\S]*\\s)"
+              "description": "No whitespace.",
+              "not": {
+                "pattern": "[\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+              }
             }
           ]
         }
@@ -332,10 +336,13 @@
           "minLength": 1,
           "allOf": [
             {
-              "pattern": "^(?![\\s\\S]*\\s)"
+              "description": "No whitespace.",
+              "not": {
+                "pattern": "[\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+              }
             },
             {
-              "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+              "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\n*$"
             }
           ]
         },
@@ -350,7 +357,10 @@
           "type": "string",
           "allOf": [
             {
-              "pattern": "^(?![\\s\\S]*\\s)"
+              "description": "No whitespace.",
+              "not": {
+                "pattern": "[\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+              }
             },
             {
               "pattern": "^https://github[.]com/jarl-hoyem/pyrigor/blob/v[^/]+/guidelines/PYR[0-9]{3}-[^/]+[.]md$"
@@ -449,21 +459,10 @@
           "type": "string",
           "minLength": 1,
           "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
-            },
-            {
-              "description": "No invisible filler, joiner or annotation characters.",
-              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
-            },
+            { "$ref": "#/$defs/TextWithoutHiddenCharacters" },
             {
               "description": "At least one visible character.",
-              "pattern": "\\S"
+              "pattern": "[^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
             }
           ]
         },
@@ -502,46 +501,47 @@
         }
       }
     },
+    "TextWithoutHiddenCharacters": {
+      "allOf": [
+        {
+          "description": "No control characters.",
+          "not": { "pattern": "[\\x00-\\x1f\\x7f-\\x9f]" }
+        },
+        {
+          "description": "No zero-width, bidirectional control or byte-order mark characters.",
+          "not": { "pattern": "[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]" }
+        },
+        {
+          "description": "No invisible filler, joiner or annotation characters.",
+          "not": { "pattern": "[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb]" }
+        }
+      ]
+    },
     "FileName": {
       "description": "A path relative to the working directory, with forward slashes.",
       "type": "string",
       "minLength": 1,
       "allOf": [
-        {
-          "description": "No control characters.",
-          "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-        },
-        {
-          "description": "No zero-width, bidirectional control or byte-order mark characters.",
-          "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
-        },
-        {
-          "description": "No invisible filler, joiner or annotation characters.",
-          "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
-        },
+        { "$ref": "#/$defs/TextWithoutHiddenCharacters" },
         {
           "description": "Relative, so not starting with a slash or a drive letter.",
-          "pattern": "^(?!/)(?![A-Za-z]:)"
+          "pattern": "^(?:[^A-Za-z/][\\s\\S]*|[A-Za-z]$|[A-Za-z][^:][\\s\\S]*)$"
         },
         {
           "description": "Forward slashes only.",
-          "pattern": "^(?![\\s\\S]*\\\\)"
+          "pattern": "^[^\\\\]*$"
         },
         {
           "description": "No empty segment, and no trailing slash.",
-          "pattern": "^(?![\\s\\S]*//)(?![\\s\\S]*/$)"
+          "pattern": "^[^/]*(?:/[^/]+)*$"
         },
         {
-          "description": "A parent-directory segment only at the start, then an ordinary segment.",
-          "pattern": "^(?:[.][.]/)*(?!(?:[\\s\\S]*/)?[.][.](?:/|$))"
-        },
-        {
-          "description": "No current-directory segment.",
-          "pattern": "^(?!(?:[\\s\\S]*/)?[.](?:/|$))"
+          "description": "A parent-directory segment only at the start; no other segment is exactly '.' or '..'.",
+          "pattern": "^(?:[.][.]/)*(?:[^./]|[^./][^/]|[.][^./]|[^/][^/]+[^/])(?:/(?:[^./]|[^./][^/]|[.][^./]|[^/][^/]+[^/]))*$"
         },
         {
           "description": "No segment starts or ends with whitespace.",
-          "pattern": "^(?![\\s\\S]*(?:^|/)\\s)(?![\\s\\S]*\\s(?:/|$))"
+          "pattern": "^(?:[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]|[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000][^/]*[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000])(?:/(?:[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]|[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000][^/]*[^/\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]))*\\n*$"
         }
       ]
     },
@@ -601,21 +601,10 @@
           "type": "string",
           "minLength": 1,
           "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
-            },
-            {
-              "description": "No invisible filler, joiner or annotation characters.",
-              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
-            },
+            { "$ref": "#/$defs/TextWithoutHiddenCharacters" },
             {
               "description": "At least one visible character.",
-              "pattern": "\\S"
+              "pattern": "[^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
             }
           ]
         }
@@ -634,25 +623,14 @@
           "type": "string",
           "minLength": 1,
           "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
-            },
-            {
-              "description": "No invisible filler, joiner or annotation characters.",
-              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
-            },
+            { "$ref": "#/$defs/TextWithoutHiddenCharacters" },
             {
               "description": "Identifier characters, dots, angle brackets and escapes. Non-ASCII is checked loosely.",
-              "pattern": "^(?:[0-9A-Za-z_.<>]|\\\\u[0-9a-f]{4}|\\\\U[0-9a-f]{8}|[^\\x00-\\x7F])*$"
+              "pattern": "^(?:[0-9A-Za-z_.<>]|\\\\u[0-9a-f]{4}|\\\\U[0-9a-f]{8}|[^\\x00-\\x7F])*\\n*$"
             },
             {
               "description": "<module>, or identifiers joined by dots, with <locals> only between two identifiers.",
-              "pattern": "^(?:<module>|[^\\s\\d.<>][^\\s.<>]*(?:[.](?:<locals>[.])?[^\\s\\d.<>][^\\s.<>]*)*)$"
+              "pattern": "^(?:<module>|[^0-9\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>][^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>]*(?:[.](?:<locals>[.])?[^0-9\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>][^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>]*)*)\\n*$"
             }
           ]
         }
@@ -705,7 +683,7 @@
             "properties": {
               "name": {
                 "description": "A method is defined directly in a class, so its class is the segment before it.",
-                "pattern": "^(?:[\\s\\S]*[.])?[^\\s\\d.<>][^\\s.<>]*[.][^\\s\\d.<>][^\\s.<>]*$"
+                "pattern": "^(?:[\\s\\S]*[.])?[^0-9\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>][^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>]*[.][^0-9\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>][^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000.<>]*\\n*$"
               }
             }
           }
@@ -744,21 +722,10 @@
           "type": "string",
           "minLength": 1,
           "allOf": [
-            {
-              "description": "No control characters.",
-              "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f])"
-            },
-            {
-              "description": "No zero-width, bidirectional control or byte-order mark characters.",
-              "pattern": "^(?![\\s\\S]*[\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff])"
-            },
-            {
-              "description": "No invisible filler, joiner or annotation characters.",
-              "pattern": "^(?![\\s\\S]*[\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb])"
-            },
+            { "$ref": "#/$defs/TextWithoutHiddenCharacters" },
             {
               "description": "At least one visible character.",
-              "pattern": "\\S"
+              "pattern": "[^\\t\\n\\x0b\\x0c\\r \\x85\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
             }
           ]
         },
