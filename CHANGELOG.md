@@ -24,8 +24,8 @@ default for incremental changes. Minor bumps are reserved for changes that shift
   accepts. That means no relative form, a character the invisible-text rules reject, a backslash, a leading drive letter
   and colon or a segment that starts or ends with whitespace. The message names every such path, up to ten, and suggests
   `--exclude` (#345).
-- Diagnostic text the v2 invisible-text rules reject also stops the run for now, including operational errors. Visible
-  escapes for affected findings remain separate work in #344.
+- Render schema-rejected characters in finding messages, symbol names and operational errors as visible escapes. Human
+  and JSON output use the same spelling, and affected diagnostic text no longer aborts other files (#344).
 
 ### Removed
 

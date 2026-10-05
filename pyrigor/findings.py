@@ -2,7 +2,7 @@
 
 The output contract is schemas/pyrigor-diagnostics-v2.json. The types reject the structural mistakes a finding can be
 built with and the invariants the schema cannot express. The schema checks everything else when a serialised finding
-is validated, so its patterns are not repeated here.
+is validated. A shared matcher applies its hidden-character rules at output boundaries, with exhaustive schema tests.
 """
 
 import ast
@@ -33,6 +33,10 @@ _CONTINUATION_BYTE_MASK: Final = 0b1100_0000
 _CONTINUATION_BYTE_BITS: Final = 0b1000_0000
 _WINDOWS_DRIVE: Final = re.compile(r"^[A-Za-z]:")
 _WINDOWS_PATH_SEPARATOR: Final = "\\"
+REJECTED_DIAGNOSTIC_TEXT: Final = re.compile(
+    "[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff"
+    "\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb]"
+)
 
 
 class Applicability(Enum):
@@ -81,6 +85,29 @@ def _require_valid_unicode(*, text: str, field: str) -> None:
         field: The field name for the error message.
     """
     _require(condition=_LONE_SURROGATE.search(text) is None, message=f"{field} contains a lone surrogate")
+
+
+def escape_diagnostic_text(*, text: str, escape_nonprintable: bool = False) -> str:
+    """Render rejected characters visibly while preserving ordinary text.
+
+    Args:
+        text: Diagnostic content, without its surrounding output format.
+        escape_nonprintable: Keep the existing display spelling of source expressions.
+
+    Returns:
+        Text with lowercase visible escapes and unchanged literal backslashes.
+    """
+    # Searching in C first keeps the common case, text with nothing to escape, inexpensive.
+    escaped = REJECTED_DIAGNOSTIC_TEXT.sub(lambda match: ascii(match.group())[1:-1], text)
+    # Source expressions already escape non-printable characters; other text keeps permitted Unicode.
+    return _escape_nonprintable(text=escaped) if escape_nonprintable else escaped
+
+
+def _escape_nonprintable(*, text: str) -> str:
+    """Write each non-printable character as Python's own visible escape, leaving printable text as it is."""
+    if text.isprintable():
+        return text
+    return "".join(character if character.isprintable() else ascii(character)[1:-1] for character in text)
 
 
 def require_file_name(*, file_name: FileName) -> None:
@@ -446,14 +473,14 @@ def finding_to_json(*, finding: Finding) -> JsonObject:
     """
     result: JsonObject = {
         "code": finding.code.name,
-        "message": finding.message,
+        "message": escape_diagnostic_text(text=finding.message),
         "level": finding.level.value,
         "spans": [_span_to_json(span=span) for span in finding.spans],
     }
     if finding.enclosing_symbol is not None:
         result["enclosing_symbol"] = {
             "kind": finding.enclosing_symbol.kind.value,
-            "name": finding.enclosing_symbol.name,
+            "name": escape_diagnostic_text(text=finding.enclosing_symbol.name),
         }
     result["fixes"] = [_fix_to_json(fix=fix) for fix in finding.fixes]
     return result

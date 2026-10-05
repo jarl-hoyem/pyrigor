@@ -1,41 +1,26 @@
 """Version two diagnostics documents and their operational errors."""
 
-import re
 from collections.abc import Sequence
 from itertools import dropwhile
 from typing import Final, Literal, NamedTuple
 
-from pyrigor.findings import FileName, Finding, JsonObject, finding_to_json, require_file_name
+from pyrigor.findings import (
+    REJECTED_DIAGNOSTIC_TEXT,
+    FileName,
+    Finding,
+    JsonObject,
+    escape_diagnostic_text,
+    finding_to_json,
+    require_file_name,
+)
 from pyrigor.rules import Applicability, FixAvailability, Rule
 
 _PARENT_SEGMENT: Final = ".."
 ErrorKind = Literal["read_error", "parse_error", "malformed_suppression"]
-_UNSUPPORTED_TEXT: Final = re.compile(
-    "[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff"
-    "\u00ad\u034f\u115f\u1160\u180e\u3164\uffa0\ufff9-\ufffb]"
-)
 
 
 class DiagnosticInputError(ValueError):
     """Input that the current diagnostics producer cannot represent faithfully."""
-
-
-def require_supported_findings(*, findings: list[Finding], path: str) -> None:
-    """Fail explicitly until #344 implements visible escapes for rejected identifier characters."""
-    for finding in findings:
-        _require_supported_text(text=finding.message, path=path)
-        if finding.enclosing_symbol is not None:
-            _require_supported_text(text=finding.enclosing_symbol.name, path=path)
-
-
-def _require_supported_text(*, text: str, path: str) -> None:
-    """Reject literal characters forbidden by the v2 text rules until visible escapes are implemented."""
-    unsupported = _UNSUPPORTED_TEXT.search(text)
-    if unsupported is not None:
-        code_point = f"U+{ord(unsupported.group()):04X}"
-        raise DiagnosticInputError(
-            f"{path!r}: diagnostic text contains {code_point}, which the current v2 producer cannot represent"
-        )
 
 
 def require_representable_file_name(*, file_name: FileName, path: str) -> None:
@@ -55,7 +40,7 @@ def require_representable_file_name(*, file_name: FileName, path: str) -> None:
 
 def _file_name_problem(*, file_name: FileName) -> str | None:
     """Name the first rule of the schema's FileName that the name breaks, or None when it keeps them all."""
-    unsupported = _UNSUPPORTED_TEXT.search(file_name)
+    unsupported = REJECTED_DIAGNOSTIC_TEXT.search(file_name)
     if unsupported is not None:
         code_point = f"U+{ord(unsupported.group()):04X}"
         return f"the file name contains {code_point}, which the current v2 producer cannot represent"
@@ -90,12 +75,6 @@ class CheckError(NamedTuple):
     message: str
     line: int | None = None
     column: int | None = None
-
-
-def require_supported_errors(*, errors: list[CheckError], path: str) -> None:
-    """Keep parser and suppression warnings from bypassing the interim document text limit."""
-    for error in errors:
-        _require_supported_text(text=error.message, path=path)
 
 
 class ToolMetadata(NamedTuple):
@@ -133,7 +112,11 @@ class DiagnosticsDocument(NamedTuple):
 
 def error_to_json(*, error: CheckError) -> JsonObject:
     """Omit unavailable positions rather than serialising nulls."""
-    result: JsonObject = {"file_name": error.file_name, "kind": error.kind, "message": error.message}
+    result: JsonObject = {
+        "file_name": error.file_name,
+        "kind": error.kind,
+        "message": escape_diagnostic_text(text=error.message),
+    }
     if error.line is not None:
         result["line"] = error.line
     if error.column is not None:

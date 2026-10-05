@@ -26,11 +26,9 @@ from pyrigor.diagnostics import (
     ToolMetadata,
     document_to_json,
     require_representable_file_name,
-    require_supported_errors,
-    require_supported_findings,
 )
 from pyrigor.finding_builder import FindingContext
-from pyrigor.findings import FileName, Finding, PositionIndex
+from pyrigor.findings import FileName, Finding, PositionIndex, escape_diagnostic_text
 from pyrigor.fixers.pyr402_keyword_only_arguments_fixer import FixRejectedError, FixResult, FixStatus, fix_source
 from pyrigor.rules import Rule
 from pyrigor.suppression import filter_suppressed
@@ -324,7 +322,6 @@ def _run_checkers(
     nodes = walk_once(tree=tree)
     context = FindingContext(source=source, index=index, file_name=_file_name(path=path), parents=nodes.parents)
     findings = [finding for entry in checkers for finding in entry.find_findings(nodes=nodes, context=context)]
-    require_supported_findings(findings=findings, path=path)
     return _CheckerResult(
         findings=findings,
         tokens=context.tokens if findings else None,
@@ -343,7 +340,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
     """Build canonical findings and partition them by primary-span suppression comments."""
     source_result = _read_source(path=path)
     if isinstance(source_result, _FileFailed):
-        require_supported_errors(errors=[source_result.error], path=path)
         return FileCheckResult(
             kept=[],
             suppressed=[],
@@ -354,7 +350,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
         path=path, source=source_result.source, index=source_result.position_index, checkers=checkers
     )
     if isinstance(checker_result, _FileFailed):
-        require_supported_errors(errors=[checker_result.error], path=path)
         return FileCheckResult(
             kept=[],
             suppressed=[],
@@ -362,7 +357,6 @@ def _check_file(*, path: str, checkers: tuple[RegisteredChecker, ...]) -> FileCh
         )
 
     result = filter_suppressed(findings=checker_result.findings, tokens=checker_result.tokens)
-    require_supported_errors(errors=list(result.errors), path=path)
     return FileCheckResult(
         kept=sorted(result.kept, key=lambda finding: _finding_sort_key(finding=finding)),
         suppressed=sorted(result.suppressed, key=lambda finding: _finding_sort_key(finding=finding)),
@@ -461,15 +455,17 @@ def _print_finding(*, path: str, finding: Finding) -> None:
     """Render one finding at its primary span in the human format."""
     primary = next(span for span in finding.spans if span.is_primary)
     location = f"{path}:{primary.line_start}:{primary.column_start}"
-    print(f"{location}: {finding.code.name} {finding.message} ({finding.code.symbolic_name})")
+    message = escape_diagnostic_text(text=finding.message)
+    print(f"{location}: {finding.code.name} {message} ({finding.code.symbolic_name})")
 
 
 def _print_error(*, path: str, error: CheckError) -> None:
     """Report malformed comments as warnings and unreadable source as skipped files."""
+    message = escape_diagnostic_text(text=error.message)
     if error.kind == _MALFORMED_SUPPRESSION:
-        print(f"Warning: {error.message}", file=sys.stderr)
+        print(f"Warning: {message}", file=sys.stderr)
     else:
-        print(f"Warning: skipping {path}: {error.message}", file=sys.stderr)
+        print(f"Warning: skipping {path}: {message}", file=sys.stderr)
 
 
 def _selected_rules(*, checkers: tuple[RegisteredChecker, ...], release: str) -> dict[Rule, RuleMetadata]:
@@ -894,7 +890,8 @@ def _fix_path(*, path: str, diff: bool) -> int:
     try:
         Path(path).write_bytes(cast("bytes", result.source))
     except OSError as error:
-        print(f"{path}: cannot write fixed file: {error}", file=sys.stderr)
+        message = escape_diagnostic_text(text=str(error))
+        print(f"{path}: cannot write fixed file: {message}", file=sys.stderr)
         return 1
     print(f"Fixed {path}")
     return 0
@@ -904,12 +901,14 @@ def _read_and_prepare_fix(*, path: str) -> _FixInput | None:
     """Read one file and prepare its safe fix, reporting rejected inputs."""
     source_result = _read_fix_source(path=path)
     if isinstance(source_result, _FixSourceFailed):
-        print(f"{path}: {source_result.error.message}", file=sys.stderr)
+        message = escape_diagnostic_text(text=source_result.error.message)
+        print(f"{path}: {message}", file=sys.stderr)
         return None
     try:
         prepared = fix_source(source=source_result.source)
     except (FixRejectedError, UnicodeDecodeError) as error:
-        print(f"{path}: fix rejected: {error}", file=sys.stderr)
+        message = escape_diagnostic_text(text=str(error))
+        print(f"{path}: fix rejected: {message}", file=sys.stderr)
         return None
     return _FixInput(original=source_result.source, prepared=prepared)
 

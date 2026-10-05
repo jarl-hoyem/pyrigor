@@ -7,6 +7,10 @@ import sys
 from pathlib import Path
 from typing import cast
 
+import pytest
+
+from tests.diagnostics_v2_support import definition_validator
+
 _WINDOWS_OS_NAME = "nt"
 _SUCCESS_EXIT_CODE = 0
 _USAGE_ERROR_EXIT_CODE = 2
@@ -14,6 +18,7 @@ _SCHEMA_VERSION = 2
 _NO_FINDINGS = "0 findings"
 _EMPTY_RULE_SELECTION_ERROR = "pyrigor: --select and --ignore combine to leave no rules to check\n"
 _REPEATED_OUTPUT_FORMAT_ERROR = "--output-format can only be given once"
+_JSON_OUTPUT_FORMAT = "json"
 _JSON_OPTION = "--output-format=json"
 _CLI_NAME = "pyrigor.exe" if os.name == _WINDOWS_OS_NAME else "pyrigor"
 
@@ -131,3 +136,49 @@ def test_installed_cli_rejects_repeated_output_format(*, tmp_path: Path) -> None
 
     assert result.returncode == _USAGE_ERROR_EXIT_CODE
     assert _REPEATED_OUTPUT_FORMAT_ERROR in result.stderr
+
+
+@pytest.mark.parametrize("output_format", ["human", "json"])
+@pytest.mark.parametrize(
+    ("source", "character", "visible"),
+    [
+        ("def a\u034f(left, right): pass\n", "\u034f", r"\u034f"),
+        ("data['\u3164']: tuple[int, str]\n", "\u3164", r"\u3164"),
+    ],
+)
+def test_installed_cli_escapes_finding_text(
+    *, tmp_path: Path, output_format: str, source: str, character: str, visible: str
+) -> None:
+    """The installed entry point renders affected findings visibly in both output modes."""
+    path = tmp_path / "finding.py"
+    path.write_text(source, encoding="utf-8")
+    result = _run_cli(arguments=[f"--output-format={output_format}", "--select=PYR301,PYR402", str(path)])
+    assert (result.returncode, result.stderr, character in result.stdout, visible in result.stdout) == (
+        1,
+        "",
+        False,
+        True,
+    )
+    if output_format == _JSON_OUTPUT_FORMAT:
+        document = _json_document(result=result)
+        definition_validator(definition="Document").validate(json.loads(result.stdout))
+        assert document["findings"]
+
+
+@pytest.mark.parametrize("output_format", ["human", "json"])
+def test_installed_cli_escapes_operational_warning(*, tmp_path: Path, output_format: str) -> None:
+    """A malformed comment remains reportable through the installed CLI without raw bidi text."""
+    path = tmp_path / "warning.py"
+    path.write_text("def flagged(left, right): # PYRIGOR 402 \u202e\n    pass\n", encoding="utf-8")
+    result = _run_cli(arguments=[f"--output-format={output_format}", "--select=PYR402", str(path)])
+    character = "\u202e"
+    visible = r"\u202e"
+    assert (
+        result.returncode,
+        character in result.stdout + result.stderr,
+        visible in result.stdout + result.stderr,
+    ) == (1, False, True)
+    if output_format == _JSON_OUTPUT_FORMAT:
+        document = _json_document(result=result)
+        definition_validator(definition="Document").validate(json.loads(result.stdout))
+        assert document["errors"]

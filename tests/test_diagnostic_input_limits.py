@@ -1,8 +1,7 @@
-"""Make temporary producer limits explicit instead of emitting invalid v2 documents."""
+"""Report escaped diagnostic text while preserving file-name usage errors."""
 
 import json
 import sys
-from dataclasses import replace
 from pathlib import Path
 from typing import NamedTuple
 from unittest.mock import patch
@@ -10,7 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from pyrigor.checkers.cli import run
-from pyrigor.diagnostics import require_supported_findings
+from pyrigor.findings import REJECTED_DIAGNOSTIC_TEXT, finding_to_json
 from pyrigor.rules import Rule
 from tests.checker_helpers import finding_at
 from tests.diagnostics_v2_support import (
@@ -20,6 +19,7 @@ from tests.diagnostics_v2_support import (
     load_v2_schema,
 )
 
+_JSON_OUTPUT_FORMAT = "json"
 _USAGE_ERROR = 2
 _RELATIVE_FRAGMENT = "relative"
 _CRASH_MESSAGE = "pyrigor crashed unexpectedly"
@@ -40,6 +40,18 @@ class _ErrorTextCase(NamedTuple):
 
     character: str
     template: str
+    visible: str
+
+
+def _assert_function_is_visible(*, output: str, output_format: str, visible: str, in_message: bool) -> None:
+    """Check the escaped function name in the JSON symbol and, for a rule that names it, in the message."""
+    if output_format != _JSON_OUTPUT_FORMAT:
+        assert (visible in output) == in_message
+        return
+    document = json.loads(output)
+    definition_validator(definition="Document").validate(document)
+    finding = document["findings"][0]
+    assert (finding["enclosing_symbol"]["name"], visible in finding["message"]) == (f"flagged{visible}", in_message)
 
 
 # noinspection IncorrectFormatting
@@ -56,7 +68,7 @@ class _ErrorTextCase(NamedTuple):
     ],
     ids=lambda case: f"U+{case.code_point:04X}-{case.rule.name}",
 )
-def test_rejected_identifiers_fail_without_emitting_a_document(
+def test_rejected_identifier_characters_are_reported_visibly(
     *,
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -68,7 +80,7 @@ def test_rejected_identifiers_fail_without_emitting_a_document(
     name = "flagged" + chr(case.code_point)
     if not name.isidentifier():
         pytest.skip("This Python version rejects the character during parsing")
-    source_file = tmp_path / "unsupported.py"
+    source_file = tmp_path / "escaped.py"
     source_file.write_text(case.template.format(name=name), encoding="utf-8")
     monkeypatch.setattr(
         sys, "argv", ["pyrigor", f"--output-format={output_format}", f"--select={case.rule.name}", str(source_file)]
@@ -76,8 +88,13 @@ def test_rejected_identifiers_fail_without_emitting_a_document(
     with pytest.raises(SystemExit) as caught:
         run()
     captured = capsys.readouterr()
-    assert (caught.value.code, captured.out, f"U+{case.code_point:04X}" in captured.err) == (_USAGE_ERROR, "", True)
-    assert str(source_file) in captured.err.replace("\\\\", "\\")
+    assert (caught.value.code, captured.err, chr(case.code_point) in captured.out) == (1, "", False)
+    _assert_function_is_visible(
+        output=captured.out,
+        output_format=output_format,
+        visible=f"\\u{case.code_point:04x}",
+        in_message=case.rule is Rule.PYR402,
+    )
 
 
 @pytest.mark.parametrize("output_format", ["human", "json"])
@@ -100,13 +117,16 @@ def test_a_path_with_no_relative_form_is_a_clear_usage_error(
 
 
 def test_plain_findings_without_optional_symbols_remain_supported() -> None:
-    """The temporary guard preserves the canonical model's optional enclosing symbol."""
-    require_supported_findings(findings=[finding_at(line=1, end_line=1, column=1, rule=Rule.PYR402)], path="test.py")
+    """Serialisation preserves the canonical model's optional enclosing symbol."""
+    payload = finding_to_json(finding=finding_at(line=1, end_line=1, column=1, rule=Rule.PYR402))
+    optional_field = "enclosing_symbol"
+    assert optional_field not in payload
+    definition_validator(definition="Finding").validate(json.loads(json.dumps(payload)))
 
 
 @pytest.mark.parametrize("output_format", ["human", "json"])
 @pytest.mark.parametrize("character", ["\u3164", "\uffa0"])
-def test_invisible_fillers_in_subscript_subjects_fail_explicitly(
+def test_invisible_fillers_in_subscript_subjects_are_escaped(
     *,
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -114,30 +134,42 @@ def test_invisible_fillers_in_subscript_subjects_fail_explicitly(
     character: str,
     output_format: str,
 ) -> None:
-    """Printable filler characters in literal subjects cannot bypass the interim text guard."""
+    """Printable fillers in source subjects remain visible without aborting the run."""
     path = tmp_path / "subject.py"
     path.write_text(f"data['{character}']: tuple[int, str]\n", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["pyrigor", f"--output-format={output_format}", str(path)])
     with pytest.raises(SystemExit) as caught:
         run()
     captured = capsys.readouterr()
-    assert caught.value.code == _USAGE_ERROR
-    assert not captured.out
-    assert f"U+{ord(character):04X}" in captured.err
+    assert (caught.value.code, captured.err, character in captured.out) == (1, "", False)
+    if output_format == _JSON_OUTPUT_FORMAT:
+        document = json.loads(captured.out)
+        definition_validator(definition="Document").validate(document)
+        message = document["findings"][0]["message"]
+    else:
+        message = captured.out
+    assert f"\\u{ord(character):04x}" in message
 
 
 # noinspection IncorrectFormatting
 @pytest.mark.parametrize(
     "case",
     [
-        _ErrorTextCase(character, template)
-        for character in ("\u034f", "\u202e", "\u200b", "\x01")
+        _ErrorTextCase(character, template, visible)
+        for character, visible in (
+            ("\u034f", r"\u034f"),
+            ("\u202e", r"\u202e"),
+            ("\u200b", r"\u200b"),
+            ("\x01", r"\x01"),
+            ("\u00ad", r"\xad"),
+            ("\x80", r"\x80"),
+        )
         for template in ("def bad(a, b): # PYRIGOR 402 {character}\n    pass\n",)
     ]
-    + [_ErrorTextCase("\u034f", "{character} = 1\n")],
+    + [_ErrorTextCase("\u034f", "{character} = 1\n", r"\u034f")],
 )
 @pytest.mark.parametrize("output_format", ["human", "json"])
-def test_rejected_error_text_never_emits_invalid_or_partial_output(
+def test_rejected_error_text_is_reported_without_aborting_other_files(
     *,
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -145,8 +177,8 @@ def test_rejected_error_text_never_emits_invalid_or_partial_output(
     case: _ErrorTextCase,
     output_format: str,
 ) -> None:
-    """An operational warning is subject to the same interim text limit as a rule finding."""
-    character, template = case
+    """An affected warning remains reportable alongside findings from other files."""
+    character, template, visible = case
     good = tmp_path / "a_good.py"
     good.write_text("def flagged(a, b): pass\n", encoding="utf-8")
     bad = tmp_path / "z_bad.py"
@@ -157,11 +189,22 @@ def test_rejected_error_text_never_emits_invalid_or_partial_output(
     captured = capsys.readouterr()
     assert (
         caught.value.code,
-        captured.out,
+        bool(captured.out),
         _CRASH_MESSAGE in captured.err,
-        f"U+{ord(character):04X}" in captured.err,
-        str(bad) in captured.err.replace("\\\\", "\\"),
-    ) == (_USAGE_ERROR, "", False, True, True)
+        character in captured.out + captured.err,
+        visible in captured.err,
+    ) == (1, True, False, False, True)
+    if output_format == _JSON_OUTPUT_FORMAT:
+        document = json.loads(captured.out)
+        assert (
+            document["summary"]["files_checked"],
+            len(document["errors"]),
+            bool(document["findings"]),
+        ) == (2, 1, True)
+        definition_validator(definition="Document").validate(document)
+    else:
+        expected_subject = "flagged"
+        assert expected_subject in captured.out
 
 
 @pytest.mark.parametrize("character", ["\u202e", "\u200b", "\x01"])
@@ -172,7 +215,7 @@ def test_already_escaped_parser_errors_remain_valid_diagnostics(
     monkeypatch: pytest.MonkeyPatch,
     character: str,
 ) -> None:
-    """Python's visible parser escapes remain reportable rather than triggering the literal-text guard."""
+    """Python's existing visible parser escapes remain reportable without double escaping."""
     path = tmp_path / "syntax.py"
     path.write_text(character + " = 1\n", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["pyrigor", "--output-format=json", str(path)])
@@ -183,14 +226,12 @@ def test_already_escaped_parser_errors_remain_valid_diagnostics(
     assert (caught.value.code, character in captured.out + captured.err) == (0, False)
 
 
-def test_interim_guard_matches_the_schemas_rejected_text_characters() -> None:
-    """Every forbidden literal text character is rejected, including printable fillers."""
+def test_runtime_matcher_equals_the_schemas_rejected_text_characters() -> None:
+    """The runtime matcher exactly rejects the schema's forbidden characters across Unicode."""
     message_rules = load_v2_schema()["$defs"]["Finding"]["properties"]["message"]["allOf"]
     assert HIDDEN_TEXT_REFERENCE in message_rules
-    base = finding_at(line=1, end_line=1, column=1, rule=Rule.PYR402)
-    for character in forbidden_hidden_characters():
-        with pytest.raises(ValueError, match=rf"U\+{ord(character):04X}"):
-            require_supported_findings(findings=[replace(base, message="Subject " + character)], path="test.py")
+    every_character = "".join(chr(code_point) for code_point in range(0x110000))
+    assert set(REJECTED_DIAGNOSTIC_TEXT.findall(every_character)) == forbidden_hidden_characters()
 
 
 # noinspection IncorrectFormatting

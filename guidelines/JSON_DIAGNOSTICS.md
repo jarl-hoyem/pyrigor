@@ -42,9 +42,11 @@ on the current drive. A drive-relative path on the current drive, such as `C:a.p
 The stderr message names every such path in sorted order, up to ten and then a count. For a drive problem, run pyrigor
 from the file's drive. For any other name, skip the file with `--exclude`.
 
-Until #344 implements visible escapes, diagnostic text containing characters the invisible-text rules reject also stops
-the whole run with exit code 2 and no stdout. The stderr message names the file and offending code point. This interim
-limit covers findings, enclosing symbols and operational errors. No partial document is emitted.
+Finding messages, enclosing symbol names and operational error messages render schema-rejected characters as visible
+escapes. Human output uses the same spelling as JSON string content. Existing escapes such as \t, \n and \xad are
+preserved. Other rejected characters use \uXXXX or \UXXXXXXXX with lowercase hexadecimal digits. Literal backslashes and
+ordinary Unicode text remain unchanged. Internal symbol names retain their real characters. Affected diagnostic text
+does not prevent other files from being reported. File-name usage errors remain unchanged.
 
 Consumers must select behaviour by `schema_version` and ignore unknown fields. Producers validate strictly against the
 schema. Adding an optional field is compatible; removing a field or changing its type or meaning requires a new version.

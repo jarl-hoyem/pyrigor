@@ -7,7 +7,15 @@ from bisect import bisect_left
 from dataclasses import dataclass, field
 from typing import Final, Literal, NamedTuple, TypeAlias
 
-from pyrigor.findings import EnclosingSymbol, FileName, Finding, PositionIndex, SymbolKind, make_span
+from pyrigor.findings import (
+    EnclosingSymbol,
+    FileName,
+    Finding,
+    PositionIndex,
+    SymbolKind,
+    escape_diagnostic_text,
+    make_span,
+)
 from pyrigor.rules import Rule
 
 _SIGNATURE_COLON: Final = ":"
@@ -145,7 +153,7 @@ def _source_subject(*, node: ast.expr, source: str) -> str:
     name = ast.get_source_segment(source, node)
     if name is None:
         raise ValueError("finding subject has no source range")
-    return "".join(character if character.isprintable() else repr(character)[1:-1] for character in name)
+    return escape_diagnostic_text(text=name, escape_nonprintable=True)
 
 
 def _subject(*, node: _FindingNode, source: str) -> _Subject:
