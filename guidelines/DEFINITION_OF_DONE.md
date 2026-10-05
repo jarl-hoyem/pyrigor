@@ -124,7 +124,7 @@ general knowledge only):
 5. **Run the Key Performance Indicators (KPI) scans** (`guidelines/PROJECT_KPIS.md`) and record the new rows, in their
    own commit.
 6. **Run pyscn's clone detection** (`uvx pyscn@latest analyze pyrigor scripts tests --select clones`), review real
-   findings against the known, deliberate architectural patterns (checker `find_violations` wrappers, `_shared.py`'s
+   findings against the known, deliberate architectural patterns (checker `find_findings` wrappers, `_shared.py`'s
    helper functions), file an issue for anything genuinely new. Name the directories rather than passing `.`, because
    pyscn does not read `.gitignore`: over `.` it also analyses a leftover `mutants/` workspace, where every generated
    mutant is a near-copy of its module, and it then reports most of the project as cloned.

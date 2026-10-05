@@ -13,9 +13,9 @@ The types, their fields and the position conventions are defined once, in
 
 ## Why this model
 
-The existing `Violation` type is intentionally small, but it mixes the concepts of a finding, its source location and
-the information needed by future consumers. That makes incremental extension a poor design strategy: adding fields one
-at a time would preserve assumptions from the old representation rather than defining a coherent diagnostic contract.
+The former `Violation` type was intentionally small, but it mixed the concepts of a finding, its source location and the
+information needed by future consumers. That made incremental extension a poor design strategy: adding fields one at a
+time would have preserved assumptions from the old representation rather than defining a coherent diagnostic contract.
 
 The target model therefore starts from the needs of a modern diagnostic consumer and then chooses established
 terminology wherever possible.
@@ -373,7 +373,7 @@ Child diagnostics and notebook cells can be added as optional fields under the e
 
 This document defines only the target model for findings.
 
-It does not prescribe how the existing `Violation` model is migrated, whether compatibility is maintained or how
-existing consumers are changed.
+It does not prescribe how the former `Violation` model was migrated, whether compatibility was maintained or how
+existing consumers were changed.
 
 Migration is a separate implementation decision and should reference this document as its target specification.

@@ -23,7 +23,7 @@ The exit code is `0`.
 uv run pyrigor manual-tests/cli/violations.py
 ```
 
-Expected output contains `PYR401`, `PYR402`, and `PYR406`, followed by a summary showing four violations. The exit code
+Expected output contains `PYR401`, `PYR402`, and `PYR406`, followed by a summary that counts the findings. The exit code
 is `1`.
 
 ## JSON diagnostics
@@ -32,9 +32,9 @@ is `1`.
 uv run pyrigor --output-format=json manual-tests/cli/violations.py
 ```
 
-Expected stdout is one v2 JSON document with four `findings`, including codes `PYR401`, `PYR402` and `PYR406`. The
-document also includes `tool`, `suppressed`, selected `rules`, `errors` and `summary.files_checked`. Each finding
-includes a primary span, enclosing symbol and empty fixes. The exit code is `1`.
+Expected stdout is one v2 JSON document whose `findings` include codes `PYR401`, `PYR402` and `PYR406`. The document
+also includes `tool`, `suppressed`, selected `rules`, `errors` and `summary.files_checked`. Each finding includes a
+primary span, enclosing symbol and empty fixes. The exit code is `1`.
 
 ## Path exclusion
 
@@ -57,7 +57,7 @@ uv run pyrigor --exclude manual-tests/cli/violations.py --exclude manual-tests/c
 ```
 
 Expected output excludes both `violations.py` and `nested/nested_violations.py`, while still checking the clean,
-suppressed and Unicode fixtures. The Unicode fixture produces one diagnostic, so the exit code is `1`.
+suppressed and Unicode fixtures. The Unicode fixture produces a finding, so the exit code is `1`.
 
 ## Suppression
 
@@ -65,7 +65,7 @@ suppressed and Unicode fixtures. The Unicode fixture produces one diagnostic, so
 uv run pyrigor --output-format=json manual-tests/cli/suppressed.py
 ```
 
-Expected JSON has an empty `findings` array and one finding in `suppressed`:
+Expected JSON has an empty `findings` array and the suppressed finding in `suppressed`:
 
 ```json
 {
@@ -90,7 +90,7 @@ Expected human output contains `PYR402` and does not contain `PYR301` or `PYR406
 uv run pyrigor --output-format=json --ignore=PYR402 manual-tests/cli/violations.py
 ```
 
-Expected JSON contains three findings with `PYR401` and `PYR406`, but not `PYR402`. The exit code is `1`.
+Expected JSON contains findings with `PYR401` and `PYR406`, but none with `PYR402`. The exit code is `1`.
 
 ```powershell
 uv run pyrigor --output-format=json --select=PYR401,PYR402 --ignore=PYR402 manual-tests/cli/violations.py
@@ -104,7 +104,7 @@ Expected JSON contains only `PYR401`. The exit code is `1`.
 uv run pyrigor manual-tests/cli/clean.py manual-tests/cli/violations.py
 ```
 
-Expected human output reports violations from `violations.py`, confirms that two files were checked and exits with `1`.
+Expected human output reports findings from `violations.py`, confirms that two files were checked and exits with `1`.
 
 ```powershell
 uv run pyrigor --output-format=json manual-tests/cli

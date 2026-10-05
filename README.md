@@ -126,8 +126,8 @@ def f(weight, bias):  # pyrigor PYR402 # matches a fixed external API
 
 Codes may be given as the full code (`PYR402`), the bare number (`402`) or the rule's symbolic name
 (`keyword-only-arguments`). Multiple codes: `# pyrigor 402,403 # reason`. A suppression comment without a reason is
-ignored, and a warning is printed. Suppressed violations are counted per rule in the summary (`PYR402: 1 suppressed`),
-not silently discarded.
+ignored, and a warning is printed. Suppressed findings are counted per rule in the summary (`PYR402: 1 suppressed`), not
+silently discarded.
 
 When stacking with another tool's own suppression comment on the same line (`# nosec`, `# complexipy: ignore`, ...), put
 pyrigor's own comment last — `# nosec  # pyrigor PYR402 # reason`. The pyrigor comment must come after any other tool's
