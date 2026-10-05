@@ -238,13 +238,17 @@ Any GitHub issue action that changes its state — creating, editing, commenting
 the user's explicit go-ahead first, the same as a file edit. Show what will be created, changed or said before doing it,
 not just describe the plan.
 
-Closing an issue always needs a closing comment summarising what shipped (the commit, what changed, what it resolves),
-even when the issue was already closed by the time the comment goes up. A bare close with no comment loses the "here is
-what actually happened" record a reader would otherwise have to reconstruct from commit history alone.
+An issue closed by a merged pull request needs no closing comment. The pull request description is the record of what
+shipped, what changed and what it resolves, and the issue timeline links the merged pull request. Write the description
+for a reader who starts from the issue. Closing an issue without a merged pull request that links it needs a closing
+comment summarising what happened. Examples are a duplicate, a decision not to build and a direct commit. A bare close
+loses the "here is what actually happened" record a reader would otherwise have to reconstruct from commit history
+alone.
 
 Wait for CI to pass before closing. A fix that is committed is not yet a fix that works everywhere, and an issue closed
-on a red build has to be reopened. This is why a commit message references an issue with `refs` rather than a closing
-keyword: the keyword closes it the moment the commit lands on the default branch, before any check has run.
+on a red build has to be reopened. A merged pull request has already met this because branch protection requires its CI
+to pass before the merge. This is why a commit message references an issue with `refs` rather than a closing keyword:
+the keyword closes it the moment the commit lands on the default branch, before any check has run.
 
 A commit merged by auto-merge has no CI run on `main`. GitHub starts no workflow for a push made with `GITHUB_TOKEN`,
 and auto-merge merges as `github-actions[bot]` with that token. Branch protection requires the pull request to be up to

@@ -175,6 +175,12 @@ line feeds in both engines and reads the same everywhere. Rejecting a line feed 
 characters and, for the symbolic name of a rule, to its own rule against whitespace. Both reject a line feed wherever it
 stands. A pattern that has to reject a line feed itself needs a `not` rule with an unanchored search instead.
 
+Three patterns match any character with the class `[\s\S]`. Every character is either whitespace or not, whatever each
+engine counts as whitespace, so the class matches everything in every engine. The usual alternatives are not portable.
+In ECMAScript `.` skips the carriage return and the separators U+2028 and U+2029 as well as `\n`, and in Python it skips
+only `\n`. The `[^]` is valid in ECMAScript only, and `(?s)` in Python only. The scan test allows exactly this class and
+no other shorthand, so do not tidy it back to `.`.
+
 The check in `scripts/check_schema_pattern_portability.py` runs every pattern in Python and in Node against more than
 twenty thousand strings, each also tried with a final line feed. Node runs twice, without flags and with the `u` flag
 that ajv, the most common JavaScript validator, sets by default. The check fails the commit when Python and either run
