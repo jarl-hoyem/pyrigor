@@ -175,6 +175,7 @@ def test_document_rejects_non_rule_keys(*, code: str) -> None:
         ("symbolic_name", ""),
         ("symbolic_name", "UpperCase"),
         ("symbolic_name", "name\n"),
+        ("symbolic_name", "name\n\n"),
         ("symbolic_name", 402),
         ("symbolic_name", None),
         ("fix_availability", "safe_fix"),

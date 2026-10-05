@@ -6,6 +6,7 @@ The failure paths that fake Node and the tests of the check's own arguments do n
 
 import json
 import os
+import re
 import shutil
 import stat
 import sys
@@ -27,6 +28,11 @@ _MAX_LISTED = 10  # written out, not imported from the script, so that changing 
 _PATTERN_PROPERTIES_REPORT = "/patternProperties/^a$: Python matches"
 _USAGE = "usage: check_schema_pattern_portability.py [SCHEMA]"
 _NODE_NOT_FOUND = "command not found: node"
+_CORPUS_SIZE = re.compile(r" on (?P<count>\d+) strings")
+_SETTING = re.compile(r"^ +(?P<key>\w+): (?P<value>.+)$", re.MULTILINE)
+_PRE_COMMIT_CONFIG = REPOSITORY_ROOT / ".pre-commit-config.yaml"
+_HOOK_ID = "schema-pattern-portability"
+_HOOK_ENTRY = "uv run python scripts/check_schema_pattern_portability.py"
 _FLAG_RUNS = 2  # Node is run without flags and with the Unicode flag, and each run lists its own disagreements
 _NODE_UNREADABLE = "/pattern: Node cannot read"
 _PYTHON_UNREADABLE = "/pattern: Python cannot read"
@@ -84,20 +90,61 @@ def test_the_real_schema_reads_the_same_in_both_engines(*, tmp_path: Path) -> No
 
 @_NEEDS_NODE
 @pytest.mark.parametrize(
-    ("pattern", "reported"),
+    ("pattern", "reported", "named"),
     [
-        pytest.param("^a$", [_PYTHON_ONLY], id="dollar-before-a-final-line-feed"),
-        pytest.param(f"^{_BACKSLASH}d$", [_PYTHON_ONLY], id="digit-beyond-ascii"),
-        pytest.param(f"^{_BACKSLASH}s$", [_PYTHON_ONLY, _NODE_ONLY], id="whitespace-set"),
+        pytest.param("^a$", [_PYTHON_ONLY], [f"'a{_BACKSLASH}n'"], id="dollar-before-a-final-line-feed"),
+        pytest.param(
+            "^a{3}$",
+            [_PYTHON_ONLY],
+            [f"'aaa{_BACKSLASH}n'"],
+            id="dollar-before-a-final-line-feed-after-three-characters",
+        ),
+        pytest.param(f"^{_BACKSLASH}d$", [_PYTHON_ONLY], [f"'{_BACKSLASH}u0660'"], id="digit-beyond-ascii"),
+        pytest.param(
+            f"^{_BACKSLASH}s$",
+            [_PYTHON_ONLY, _NODE_ONLY],
+            [f"'{_BACKSLASH}x1c'", f"'{_BACKSLASH}ufeff'"],
+            id="whitespace-set",
+        ),
+        pytest.param(
+            "^[^a]$",
+            [_PYTHON_ONLY],
+            [f"'{_BACKSLASH}U0001d400'"],
+            id="astral-letter-without-the-unicode-flag",
+        ),
     ],
 )
 def test_a_pattern_the_engines_read_differently_fails_the_check(
-    *, tmp_path: Path, pattern: str, reported: list[str]
+    *, tmp_path: Path, pattern: str, reported: list[str], named: list[str]
 ) -> None:
-    """A deliberately divergent pattern is named, with the engine that matches a string the other does not."""
+    """A divergent pattern is named, with the engine that matches a string the other does not and that string."""
     result = _run(arguments=[str(_schema(directory=tmp_path, content={"pattern": pattern}))], cwd=tmp_path)
     assert result.returncode == 1
     assert all(f"/pattern: {engine}" in result.stdout for engine in reported)
+    assert all(string in result.stdout for string in named)
+
+
+def _corpus_size(*, directory: Path, pattern: str) -> int:
+    """Run the check on a schema of one pattern and read how many strings it tried."""
+    result = _run(arguments=[str(_schema(directory=directory, content={"pattern": pattern}))], cwd=directory)
+    match = _CORPUS_SIZE.search(result.stdout)
+    assert match is not None
+    return int(match["count"])
+
+
+@_NEEDS_NODE
+@pytest.mark.parametrize(
+    "named",
+    [
+        pytest.param(f"{_BACKSLASH}u3456", id="unicode-escape"),
+        pytest.param(f"{_BACKSLASH}xe9", id="byte-escape"),
+        pytest.param(chr(0x3456), id="literal-character"),
+    ],
+)
+def test_a_code_point_a_pattern_names_adds_strings_to_the_corpus(*, tmp_path: Path, named: str) -> None:
+    """The characters at and next to each code point that a pattern names are tried, so a new range is probed."""
+    plain = _corpus_size(directory=tmp_path, pattern="[a-z]")
+    assert _corpus_size(directory=tmp_path, pattern=f"[a-z{named}]") > plain
 
 
 @_NEEDS_NODE
@@ -226,3 +273,44 @@ def test_a_node_that_fails_or_answers_badly_fails_the_check(*, tmp_path: Path, p
     result = _run(arguments=[str(schema)], cwd=tmp_path, path=str(bin_directory))
     assert result.returncode == 1
     assert message in result.stdout
+
+
+def _hook() -> dict[str, str]:
+    """Read the settings of the pre-commit hook that runs the check, failing when it is missing or listed twice.
+
+    The configuration is YAML, and the project has no YAML parser with type stubs, so this reads its lines of the form
+    `key: value` between the hook's own id and the next one.
+    """
+    blocks = [
+        block for block in _PRE_COMMIT_CONFIG.read_text(encoding="utf-8").split("- id: ") if block.startswith(_HOOK_ID)
+    ]
+    assert len(blocks) == 1
+    return dict(_SETTING.findall(blocks[0]))
+
+
+def test_the_hook_runs_the_check_on_the_default_schema_without_file_arguments() -> None:
+    """The hook is the only enforcement where Node is missing from the test image, so its definition is pinned."""
+    hook = _hook()
+    assert (hook["language"], hook["entry"], hook["pass_filenames"], hook["stages"]) == (
+        "system",
+        _HOOK_ENTRY,
+        "false",
+        "[pre-commit]",
+    )
+    assert _SCRIPT.is_file()
+
+
+@pytest.mark.parametrize(
+    ("path", "runs"),
+    [
+        pytest.param("schemas/pyrigor-diagnostics-v2.json", True, id="the-schema"),
+        pytest.param("scripts/check_schema_pattern_portability.py", True, id="the-check"),
+        pytest.param("schemas/another.json", True, id="another-schema"),
+        pytest.param("README.md", False, id="documentation"),
+        pytest.param("tests/test_schema_pattern_portability.py", False, id="a-test"),
+        pytest.param("scripts/check_text_hygiene.py", False, id="another-script"),
+    ],
+)
+def test_the_hook_runs_when_a_schema_or_the_check_changes(*, path: str, runs: bool) -> None:
+    """The hook's file filter matches the schemas and the check itself, and nothing else."""
+    assert bool(re.search(json.loads(_hook()["files"]), path)) is runs
