@@ -73,6 +73,7 @@
       <w>tokenisations</w>
       <w>ufeff</w>
       <w>uffa</w>
+      <w>uxxxxxxxx</w>
     </words>
   </dictionary>
 </component>

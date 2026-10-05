@@ -48,6 +48,7 @@ prepended, not appended.
 
 | Release | Corpus pin                       | Files | Total violations | Delta vs. prior           |
 | ------- | -------------------------------- | ----- | ---------------- | ------------------------- |
+| 0.14.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/0 vs 0.13.1             |
 | 0.13.1  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/0 vs 0.13.0             |
 | 0.13.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/0 vs 0.12.0             |
 | 0.12.0  | home-assistant/core @ `80fd0c5f` | 18187 | 90488            | 0/-13 vs 0.11.0           |
@@ -68,6 +69,7 @@ detection, but the pattern it corrects does not occur in home-assistant/core, so
 
 | Release | PYR301 | PYR401 | PYR402 | PYR403 | PYR405 | PYR406 |
 | ------- | ------ | ------ | ------ | ------ | ------ | ------ |
+| 0.14.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 | 0.13.1  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 | 0.13.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
 | 0.12.0  | 55     | 579    | 58485  | 30786  | 420    | 163    |
@@ -134,6 +136,7 @@ the newest first, so a new release is prepended, not appended.
 
 | Release | Files | LOC  | LLOC | SLOC | Comments | Multi | Single-line | Blank | Comment ratio | Delta vs. prior |
 | ------- | ----- | ---- | ---- | ---- | -------- | ----- | ----------- | ----- | ------------- | --------------- |
+| 0.14.0  | 17    | 3414 | 1780 | 1808 | 53       | 653   | 199         | 754   | 2.9%          | +0.4 pp         |
 | 0.13.1  | 16    | 2804 | 1327 | 1387 | 35       | 654   | 126         | 637   | 2.5%          | 0.0 pp          |
 | 0.13.0  | 15    | 2354 | 1094 | 1138 | 28       | 559   | 107         | 550   | 2.5%          | +0.3 pp         |
 | 0.12.0  | 15    | 2200 | 978  | 1034 | 23       | 559   | 88          | 519   | 2.2%          | -0.6 pp         |
@@ -142,6 +145,3 @@ the newest first, so a new release is prepended, not appended.
 | 0.9.0   | 13    | 1605 | 632  | 628  | 23       | 532   | 41          | 404   | 3.7%          | _(see note)_    |
 | 0.8.0   | 13    | 1483 | 588  | 558  | 22       | 501   | 39          | 385   | 3.9%          | _(see note)_    |
 | 0.7.4   | 13    | 1469 | 583  | 547  | 22       | 499   | 39          | 384   | 4.0%          | _(baseline)_    |
-
-The 233 logical lines added since 0.13.0 are `pyrigor/findings.py`, the canonical finding types from #287, which nothing
-uses yet.
