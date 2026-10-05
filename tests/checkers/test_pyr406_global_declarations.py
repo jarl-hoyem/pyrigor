@@ -121,6 +121,17 @@ def _count(*, source: str) -> int:
             0,
             id="another-name-in-the-same-function-stays-local",
         ),
+        pytest.param(
+            "def wrapper():\n    global missing\n    missing()\n",
+            0,
+            id="the-declared-name-is-bound-nowhere",
+        ),
+        pytest.param(
+            _PROTECTED_DEF + "def wrapper():\n    def inner():\n        global calculate\n        calculate()\n"
+            "        calculate = lambda: None\n",
+            1,
+            id="a-function-nested-two-deep-reaches-the-module-definition-before-its-own-rebinding",
+        ),
     ],
 )
 def test_a_call_in_the_function_that_declares_the_name_global(*, source: str, expected: int) -> None:
@@ -166,6 +177,13 @@ def test_a_call_in_the_function_that_declares_the_name_global(*, source: str, ex
             + "def wrapper():\n    global calculate\n    calculate = lambda: None\n\n\ndef user():\n    calculate()\n",
             0,
             id="another-function-reaches-the-module-and-the-latest-binding-is-the-store",
+        ),
+        pytest.param(
+            _PROTECTED_DEF
+            + "def wrapper():\n    def inner():\n        global calculate\n        calculate = lambda: None\n\n\n"
+            "calculate()\n",
+            0,
+            id="a-store-in-a-function-nested-two-deep-binds-the-module-name",
         ),
     ],
 )

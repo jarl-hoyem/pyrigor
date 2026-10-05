@@ -437,7 +437,12 @@ def _module_bindings_without(
 ) -> list[ast.AST]:
     """List the module's bindings of a name, leaving out the given nodes."""
     module = list(function_scopes(scope=scope, parents=parents))[-1]
-    return [node for node in bindings.lexical.get(module, {}).get(name, []) if node not in excluded]
+    return [node for node in _bindings_in_scope(bindings=bindings, scope=module, name=name) if node not in excluded]
+
+
+def _bindings_in_scope(*, bindings: _ScopeBindings, scope: ast.AST, name: str) -> list[ast.AST]:
+    """List the bindings of a name that one scope holds, which is none when the scope never binds it."""
+    return bindings.lexical.get(scope, {}).get(name, [])
 
 
 def _reachable_bindings(
@@ -448,7 +453,7 @@ def _reachable_bindings(
     if own is not None:
         return own
     for candidate_scope in function_scopes(scope=scope, parents=parents):
-        found = bindings.lexical.get(candidate_scope, {}).get(name, [])
+        found = _bindings_in_scope(bindings=bindings, scope=candidate_scope, name=name)
         if found:
             return found
     return []
