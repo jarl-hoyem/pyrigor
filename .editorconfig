@@ -12,6 +12,10 @@ max_line_length = 120
 [*.{yml,yaml,json,toml}]
 indent_size = 2
 
+[*.{yml,yaml}]
+# Prettier writes [a, b] without spaces inside the brackets, so PyCharm must not ask for them.
+ij_yaml_spaces_within_brackets = false
+
 [*.json]
 # Keep short arrays on one line, matching Prettier.
 ij_json_array_wrapping = normal
