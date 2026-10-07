@@ -1116,7 +1116,17 @@ and an absolute path, which breaks baseline matching. Text in messages is conten
 
 ### Workflow security is audited by zizmor, offline
 
-actionlint checks workflow syntax and gitleaks checks for secrets. Nothing checked unpinned actions, token scope or
+The actionlint checks workflow syntax and gitleaks checks for secrets. Nothing checked unpinned actions, token scope or
 spoofable conditions, which zizmor does. It has no dependencies, so it follows #248: a floor in the dev extras, an exact
 pin in `uv.lock` and a local hook that carries no version. The hook runs with `--offline`, so it needs no GitHub token
 and gives the same result everywhere. The cost is that the audits which query GitHub do not run. See #283.
+
+### Pylint's private-import extension is not loaded
+
+The extension skips a private import when a folder in the importing file's path has the imported package's name. In CI
+the checkout path always contains a `pyrigor` folder, so it never checked an import from `pyrigor`. In a worktree
+without that folder it flagged five test files that import internals on purpose, so the gate depended on the checkout
+path. Those five files were its only findings, and no import from another package was affected. Removing it makes the
+result the same in every checkout. The cost is that a private import from a third-party package is no longer reported.
+Rejected: a suppression in every test import, which repeats one reason across many lines, and rewriting the tests to
+avoid testing internals. See #354.
