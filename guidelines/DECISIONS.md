@@ -1113,3 +1113,10 @@ name the schema rejects cannot enter the document. Rejected: skipping the file w
 with files unchecked; continuing in human mode only, which gives one input two behaviours and no help to JSON consumers;
 and an absolute path, which breaks baseline matching. Text in messages is content, and #344 escapes it. See #342 and
 #345.
+
+### Workflow security is audited by zizmor, offline
+
+actionlint checks workflow syntax and gitleaks checks for secrets. Nothing checked unpinned actions, token scope or
+spoofable conditions, which zizmor does. It has no dependencies, so it follows #248: a floor in the dev extras, an exact
+pin in `uv.lock` and a local hook that carries no version. The hook runs with `--offline`, so it needs no GitHub token
+and gives the same result everywhere. The cost is that the audits which query GitHub do not run. See #283.

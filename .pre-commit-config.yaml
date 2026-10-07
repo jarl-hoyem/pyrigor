@@ -156,6 +156,13 @@ repos:
         types: [python]
         require_serial: true
         stages: [pre-commit]
+      # Workflow security audit. Offline, so it needs no GitHub token and gives the same result everywhere.
+      - id: zizmor
+        name: zizmor (workflow security, offline)
+        entry: uv run --extra dev zizmor --offline
+        language: system
+        files: ^\.github/(workflows/.*|dependabot)\.ya?ml$
+        stages: [pre-commit]
       - id: commitizen
         name: commitizen check
         entry: uv run --extra dev cz check
