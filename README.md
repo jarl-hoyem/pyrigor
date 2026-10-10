@@ -26,9 +26,8 @@
 Catches the class of bug type checkers structurally cannot: a NamedTuple/keyword-only-argument/return-value-usage rule
 set for Python, inspired by safety-critical coding guidelines from other languages.
 
-- Enforced rules catching real, silent bugs mypy strict mode passes clean
+- Finds risky patterns in code that passes strict type checking
 - Validated against real, public codebases: CPython's stdlib, Home Assistant, mypy, requests, hypothesis, abseil-py
-- Checks an 18,187-file real-world codebase in under a minute
 - Drop-in pre-commit integration, or run standalone
 
 > **The tool pyrigor complements Python's tooling ecosystem. It does not try to replace it.** If an established tool
@@ -52,31 +51,67 @@ set for Python, inspired by safety-critical coding guidelines from other languag
 
 ## The problem, in one example
 
-The Mars Climate Orbiter was lost because two teams silently disagreed about units. The code for that class of bug would
-still get past mypy today.
+The [Mars Climate Orbiter](https://www.jpl.nasa.gov/missions/mars-climate-orbiter/) was lost after a unit mismatch
+between ground software and navigation calculations. The values were numeric, but their meanings differed.
+
+The same risk of confusing numeric values appears in a simplified spacecraft burn-time calculation. Here the error is
+argument order. Correct units still need separate checks. Save this as `bad.py`:
 
 ```python
+def compute_burn_time(fuel_mass: float, fuel_flow: float) -> float:
+    return fuel_mass / fuel_flow
+
+
+fuel_mass = 100.0  # kg
+fuel_flow = 2.0  # kg/s
+burn_time = compute_burn_time(fuel_flow, fuel_mass)  # Swapped: 0.02 s instead of 50 s.
+```
+
+This passes `mypy --strict bad.py`. The implemented PYR402 rule flags the function's positional parameters. Running
+`pyrigor bad.py` reports this diagnostic and exits 1:
+
+```text
+bad.py:1:1: PYR402 Function 'compute_burn_time' has positional parameters; all parameters should be keyword-only (keyword-only-arguments)
+```
+
+Save this replacement as `good.py`:
+
+```python
+def compute_burn_time(*, fuel_mass: float, fuel_flow: float) -> float:
+    return fuel_mass / fuel_flow
+
+
+fuel_mass = 100.0  # kg
+fuel_flow = 2.0  # kg/s
+burn_time = compute_burn_time(fuel_mass=fuel_mass, fuel_flow=fuel_flow)  # 50 s.
+```
+
+Both `mypy --strict good.py` and `pyrigor good.py` pass. The linter exits 0 with no findings. A positional call such as
+`compute_burn_time(fuel_flow, fuel_mass)` now fails type checking and raises `TypeError` at runtime. PYR402 flags the
+definition, not a particular swapped call. Explicit names make intent visible, but values can still be assigned to the
+wrong keyword.
+
+Distinct types provide another layer of protection. A spacecraft interface can distinguish thrust and fuel mass with
+`NewType`. The calculation is omitted here; the signature is enough to demonstrate the type check:
+
+```python
+from typing import NewType
+
 Thrust = NewType("Thrust", float)
 FuelMass = NewType("FuelMass", float)
 
 
-def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float: ...
+def compute_burn_time(*, thrust: Thrust, fuel_mass: FuelMass) -> float:
+    raise NotImplementedError("Calculation omitted")
 
 
-# Both floats. Nothing about a bare float stops this from running,
-# type-checking cleanly, and silently swapping the two values.
-compute_burn_time(thrust=fuel_mass, fuel_mass=thrust)
+thrust = Thrust(120.0)
+fuel_mass = FuelMass(60.0)
+burn_time = compute_burn_time(thrust=fuel_mass, fuel_mass=thrust)
 ```
 
-This is pyrigor's PYR201 rule, `NewType` for same-typed values at risk of being swapped. It is documented today, not yet
-enforced. What pyrigor already catches, right now:
-
-```bash
-$ pyrigor launch_sequence.py
-launch_sequence.py:12:1: PYR402 Function 'compute_burn_time' has
-positional parameters; all parameters should be keyword-only
-(keyword-only-arguments)
-```
+The tool mypy rejects both swapped arguments: `FuelMass` is not `Thrust`, and `Thrust` is not `FuelMass`. PYR201
+recommends `NewType` for same-typed values at risk of being confused. It is documented but not yet enforced.
 
 ## Usage
 
