@@ -75,6 +75,7 @@ def _source(*, name: _Name, layout: _Layout) -> _Source:
     return _Source(original, raw_prefix, raw_signature, original.replace(insertion, insertion + b"*,"))
 
 
+# noinspection IncorrectFormatting
 @pytest.mark.parametrize("name", [_Name("\uff2b", "K"), _Name("\ufb03", "ffi"), _Name("\U00010000", "\U00010000")])
 @pytest.mark.parametrize(
     "layout",
