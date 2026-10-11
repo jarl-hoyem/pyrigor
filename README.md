@@ -288,6 +288,16 @@ publishing to PyPI through [trusted publishing](https://docs.pypi.org/trusted-pu
 involved. Every workflow's action references are pinned to a commit SHA rather than a mutable tag, checkout steps do not
 persist credentials unless the job needs to push, and jobs run under least-privilege token permissions.
 
+The [GitLab pipeline](.gitlab-ci.yaml) reuses the core gates on Linux with Python 3.14. Quality checks, tests and
+package builds run in parallel. Package verification waits for all three and tests the built wheel and source
+distribution without rebuilding them. Test reports and distributions use job artefacts. Dependency caches live under
+ignored, excluded `venv/.cache/`, separate from the project's `.venv`. GitHub Actions remain authoritative. Its
+operating-system and Python-version matrix, standard-library smoke tests, Docker mutation testing and release
+publication stay there to keep GitLab focused on portability of the core gates. GitLab requires no publishing secrets or
+privileged Docker runner.
+
+Set the GitLab project's CI/CD configuration file to `.gitlab-ci.yaml` under Settings > CI/CD > General pipelines.
+
 ## Philosophy
 
 Prefer explicit over implicit. Make illegal states unrepresentable. Do not rely on convention or code review where a
