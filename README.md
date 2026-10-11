@@ -298,6 +298,12 @@ privileged Docker runner.
 
 Set the GitLab project's CI/CD configuration file to `.gitlab-ci.yaml` under Settings > CI/CD > General pipelines.
 
+The public [GitLab project](https://gitlab.com/jarl-hoyem/pyrigor) includes the
+[successful main pipeline](https://gitlab.com/jarl-hoyem/pyrigor/-/pipelines/2935959298). The separate
+[consumer demo](https://gitlab.com/jarl-hoyem/pyrigor-gitlab-demo) shows a pinned PyPI installation, findings,
+operational errors and retained JSON diagnostics in a
+[passing pipeline](https://gitlab.com/jarl-hoyem/pyrigor-gitlab-demo/-/pipelines/2936176106).
+
 ## Philosophy
 
 Prefer explicit over implicit. Make illegal states unrepresentable. Do not rely on convention or code review where a
