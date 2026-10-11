@@ -72,7 +72,7 @@ def _source(*, name: _Name, layout: _Layout) -> _Source:
     raw_signature = signature.encode().replace(b"\n", layout.newline)
     original = raw_prefix + raw_signature + body.encode().replace(b"\n", layout.newline)
     insertion = f"async def {name.source}(".encode()
-    return _Source(original, raw_prefix, raw_signature, original.replace(insertion, insertion + b"*, "))
+    return _Source(original, raw_prefix, raw_signature, original.replace(insertion, insertion + b"*,"))
 
 
 @pytest.mark.parametrize("name", [_Name("\uff2b", "K"), _Name("\ufb03", "ffi"), _Name("\U00010000", "\U00010000")])

@@ -153,7 +153,8 @@ def _parameter_insertion(
     own body. That comma is always the first one to be found from `opening`.
     """
     if positional[0].arg not in {"self", "cls"}:
-        return _Insertion(opening + 1, "*, ")
+        separator = "*," if text.startswith(("\n", "\r"), opening + 1) else "*, "
+        return _Insertion(opening + 1, separator)
     comma = text.find(",", opening)
     if comma == -1:
         raise FixRejectedError(f"unsupported signature in {node.name}")

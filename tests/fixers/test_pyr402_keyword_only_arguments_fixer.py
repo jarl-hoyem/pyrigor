@@ -44,6 +44,19 @@ def test_adds_bare_star_before_positional_parameters() -> None:
     assert result.status is FixStatus.CHANGED
 
 
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"], ids=["lf", "crlf", "cr"])
+@pytest.mark.parametrize("as_bytes", [False, True], ids=["text", "bytes"])
+def test_inserts_bare_star_without_trailing_space_on_wrapped_signature(*, newline: str, as_bytes: bool) -> None:
+    """A wrapped signature does not gain whitespace before its line break."""
+    source = newline.join(["def wrapped(", "    first: int, second: int", ") -> None:", "    pass", ""])
+    expected = newline.join(["def wrapped(*,", "    first: int, second: int", ") -> None:", "    pass", ""])
+    input_source = source.encode() if as_bytes else source
+
+    result = fix_source(source=input_source)
+
+    assert result.source == (expected.encode() if as_bytes else expected)
+
+
 def test_preserves_self_before_keyword_only_parameters() -> None:
     """Methods retain the conventional leading self parameter."""
     source = "class Corrector:\n    def apply(self, weight, bias):\n        return weight + bias\n"
