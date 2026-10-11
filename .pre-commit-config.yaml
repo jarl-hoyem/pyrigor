@@ -43,6 +43,7 @@ repos:
         entry: uv run --extra dev mixed-line-ending
         language: system
         types: [text]
+        args: [--fix=lf]
         stages: [pre-commit]
       # Fast, basic file hygiene checks.
       - id: check-toml
