@@ -21,10 +21,19 @@ def _export_and_audit(*, export_path: str) -> subprocess.CompletedProcess[bytes]
     Returns:
         The completed process of the pip-audit, including its exit code.
     """
-    subprocess.run(  # nosec  # noqa: S603
-        ["uv", "export", "--format", "requirements-txt", "--no-hashes", "-o", export_path],  # noqa: S607
-        check=True,
-    )
+    export_command = [
+        "uv",
+        "export",
+        "--format",
+        "requirements-txt",
+        "--no-hashes",
+        "--extra",
+        "dev",
+        "--locked",
+        "-o",
+        export_path,
+    ]
+    subprocess.run(export_command, check=True)  # nosec  # noqa: S603
     # noinspection PyArgumentEqualDefault
     return subprocess.run(["pip-audit", "-r", export_path], check=False)  # nosec  # noqa: S603, S607
 
