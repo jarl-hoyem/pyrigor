@@ -99,6 +99,8 @@ general knowledge only):
   trade-off. Prefer the right design and update whatever needs updating.
 - **Non-functional properties, when relevant.** If a change plausibly affects performance, `PERFORMANCE.md` gets a note.
   Not required for every change, only ones where it is a real question.
+- **New work captured.** Before declaring work done, create a GitHub Issue for every relevant new item discovered during
+  the work that is outside the approved scope. Do not leave follow-up work only in comments, chat, or memory.
 - **Gaps found later.** If a gap is found after work was already called done, in this session or a future one, create a
   GitHub Issue for it immediately. Do not let it go undocumented while moving on to something else.
 - Close the corresponding GitHub Issue at the same time a CHANGELOG.md entry referencing it is added under [Unreleased],
