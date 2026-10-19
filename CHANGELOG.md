@@ -11,8 +11,9 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 ### Fixed
 
 - Fixed PYR402 and PYR403 flagging the narrowed parameter of a function returning `TypeGuard[...]` or `TypeIs[...]`,
-  which cannot be keyword-only. Further positional parameters are still flagged, and `--fix` leaves such functions
-  unchanged (#375).
+  which cannot be keyword-only. Further positional parameters are still flagged (#375).
+- Fixed `pyrigor --fix --select PYR402` making the guarded parameter of such a function keyword-only. It now inserts the
+  bare `*` after that parameter and leaves it positional (#388).
 
 ## [0.14.0] 2026-10-05
 

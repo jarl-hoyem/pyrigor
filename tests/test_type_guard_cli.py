@@ -12,6 +12,7 @@ from pyrigor.checkers.cli import run
 _PYR402: Final = "PYR402"
 _PYR403: Final = "PYR403"
 _GUARD_WITH_EXTRA = "def is_int(value, strict) -> TypeGuard[int]:\n    ...\n"
+_GUARD_FIXED = "def is_int(value, *, strict) -> TypeGuard[int]:\n    ...\n"
 
 
 def test_scan_accepts_a_lone_guard_parameter(
@@ -50,10 +51,10 @@ def test_scan_still_reports_a_further_positional_parameter(
     assert _PYR403 not in output
 
 
-def test_fix_leaves_guard_unchanged_and_fixes_ordinary_function(
+def test_fix_keeps_the_guarded_value_positional_and_fixes_an_ordinary_function(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """--fix skips the guard and still fixes another function in the same file."""
+    """--fix inserts the star after the guarded value and still fixes another function in the same file."""
     source_file = tmp_path / "source.py"
     source_file.write_text(_GUARD_WITH_EXTRA + "\n\ndef add(left, right):\n    ...\n")
 
@@ -63,13 +64,13 @@ def test_fix_leaves_guard_unchanged_and_fixes_ordinary_function(
         run()
 
     assert not exc_info.value.code
-    assert source_file.read_text() == _GUARD_WITH_EXTRA + "\n\ndef add(*, left, right):\n    ...\n"
+    assert source_file.read_text() == _GUARD_FIXED + "\n\ndef add(*, left, right):\n    ...\n"
 
 
-def test_fix_over_a_directory_skips_the_guard_file_and_fixes_the_other_file(
+def test_fix_over_a_directory_fixes_the_guard_file_and_the_other_files(
     *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A directory run leaves a guard file untouched and still fixes its sibling, in a nested folder too."""
+    """A directory run fixes a guard file besides its siblings, in a nested folder too."""
     guard_file = tmp_path / "guard.py"
     ordinary_file = tmp_path / "ordinary.py"
     nested_file = tmp_path / "package" / "nested.py"
@@ -83,7 +84,7 @@ def test_fix_over_a_directory_skips_the_guard_file_and_fixes_the_other_file(
         run()
 
     assert not exc_info.value.code
-    assert guard_file.read_text() == _GUARD_WITH_EXTRA
+    assert guard_file.read_text() == _GUARD_FIXED
     expected_ordinary = "def add(*, left, right):\n    ...\n"
     expected_nested = "def subtract(*, left, right):\n    ...\n"
     assert ordinary_file.read_text() == expected_ordinary

@@ -126,7 +126,12 @@ wrongly treated as a guard.
 Why: resolving a name through the module's imports means tracking scope and rebinding, which these two syntax-only rules
 do not otherwise need. The false negatives it leaves are inexpensive, since a missed alias is still flagged and can be
 suppressed. The false exemption needs a second class with the same name used as a return annotation. Import-aware
-recognition is tracked in #390, and inserting the star after the guard parameter in the fixer in #388.
+recognition is tracked in #390.
+
+The PYR402 fixer inserts its bare star after the guarded parameter and never before it (#388). It takes the end of that
+parameter from the syntax tree, which covers any annotation and default, and then reads forward to the first comma,
+skipping comments. A search for a comma from the start of the parameter would stop at one inside an annotation, a
+default or a comment.
 
 ### The --select/--ignore combines like ruff's select/ignore, and full-overlap combination errors
 
