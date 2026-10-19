@@ -116,6 +116,18 @@ is deliberate: the documented PYR407 generator-result rule has the same local-de
 the planned second consumer. The shared layer provides scope structure. Each rule retains its own return-value
 classification.
 
+### TypeGuard and TypeIs are recognised by name alone, not through imports (#375)
+
+PYR402 and PYR403 exempt the first positional parameter of a function whose return annotation is `TypeGuard[...]` or
+`TypeIs[...]`, written as a bare name, `typing.` or `typing_extensions.`. Recognition looks only at the spelling of the
+annotation. Import aliases and quoted annotations are not recognised, and a different class with the same name is
+wrongly treated as a guard.
+
+Why: resolving a name through the module's imports means tracking scope and rebinding, which these two syntax-only rules
+do not otherwise need. The false negatives it leaves are inexpensive, since a missed alias is still flagged and can be
+suppressed. The false exemption needs a second class with the same name used as a return annotation. Import-aware
+recognition is tracked in #390, and inserting the star after the guard parameter in the fixer in #388.
+
 ### The --select/--ignore combines like ruff's select/ignore, and full-overlap combination errors
 
 `--only` was renamed to `--select` (#68), and `--ignore` was added (#69) as its rule-axis opposite, matching ruff's own
