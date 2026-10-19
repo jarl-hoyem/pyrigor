@@ -2,7 +2,7 @@
 
 from typing import Final, NamedTuple, Protocol
 
-from pyrigor.checkers._shared import WalkedNodes, walk_once
+from pyrigor.checkers._shared import WalkedNodes, is_type_guard_function, walk_once
 from pyrigor.checkers.pyr301_namedtuple_values import find_findings as _pyr301
 from pyrigor.checkers.pyr401_namedtuple_returns import find_findings as _pyr401
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_findings as _pyr402
@@ -45,4 +45,4 @@ CHECKERS: Final[tuple[RegisteredChecker, ...]] = (
     RegisteredChecker(rule=Rule.PYR406, find_findings=_pyr406),
 )
 
-__all__ = ["CHECKERS", "RegisteredChecker", "WalkedNodes", "walk_once"]
+__all__ = ["CHECKERS", "RegisteredChecker", "WalkedNodes", "is_type_guard_function", "walk_once"]

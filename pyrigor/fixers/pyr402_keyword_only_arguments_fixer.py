@@ -6,7 +6,7 @@ import ast
 from enum import Enum
 from typing import Final, NamedTuple
 
-from pyrigor.checkers import WalkedNodes, walk_once
+from pyrigor.checkers import WalkedNodes, is_type_guard_function, walk_once
 from pyrigor.checkers.pyr402_keyword_only_arguments import find_findings as find_pyr402_findings
 from pyrigor.finding_builder import FindingContext
 from pyrigor.findings import FileName, PositionIndex
@@ -109,7 +109,13 @@ def _source_edits(
 def _function_edit(
     *, text: str, raw: bytes, node: ast.FunctionDef | ast.AsyncFunctionDef, index: PositionIndex
 ) -> _Insertion | None:
-    """Return a safe insertion for one function if it needs fixing."""
+    """Return a safe insertion for one function if it needs fixing.
+
+    A TypeGuard or TypeIs function is left alone because a leading bare star would make
+    its narrowed parameter keyword-only.
+    """
+    if is_type_guard_function(node=node):
+        return None
     if node.args.posonlyargs:
         raise FixRejectedError(f"positional-only parameters in {node.name}")
     positional = node.args.args

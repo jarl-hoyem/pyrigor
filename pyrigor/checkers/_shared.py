@@ -55,7 +55,7 @@ def is_bare_multi_value_tuple(*, annotation: ast.expr | None) -> bool:
 
     Args:
         annotation: The annotation to check (a return annotation, a
-            parameter annotation, or a variable/field annotation), or None.
+            parameter annotation or a variable/field annotation) or None.
 
     Returns:
         True if the annotation is tuple[A, B, ...]. With two or more
@@ -81,8 +81,45 @@ class _ParameterCounts(NamedTuple):
     total_params: int
 
 
+_TYPE_GUARD_NAMES: Final = frozenset({"TypeGuard", "TypeIs"})
+_TYPE_GUARD_MODULES: Final = frozenset({"typing", "typing_extensions"})
+
+
+def is_type_guard_function(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Check whether a function's return annotation is a TypeGuard or TypeIs subscript.
+
+    Recognition is syntactic. It matches TypeGuard[...] and TypeIs[...] written as a bare
+    name, as typing.X or as typing_extensions.X. Import aliases and quoted annotations
+    are not resolved.
+
+    Args:
+        node: The function definition to inspect.
+
+    Returns:
+        True if the return annotation is one of the supported guard forms.
+    """
+    returns = node.returns
+    if not isinstance(returns, ast.Subscript):
+        return False
+
+    target = returns.value
+    if isinstance(target, ast.Name):
+        return target.id in _TYPE_GUARD_NAMES
+
+    return (
+        isinstance(target, ast.Attribute)
+        and isinstance(target.value, ast.Name)
+        and target.value.id in _TYPE_GUARD_MODULES
+        and target.attr in _TYPE_GUARD_NAMES
+    )
+
+
 def count_parameters(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> _ParameterCounts:
     """Count a function's parameters, stripping a leading self/cls if present.
+
+    The first positional parameter of a TypeGuard or TypeIs function counts towards the
+    total but is left out of the positional args because a keyword-only guard cannot
+    narrow anything.
 
     Args:
         node: The function definition to inspect.
@@ -96,6 +133,9 @@ def count_parameters(*, node: ast.FunctionDef | ast.AsyncFunctionDef) -> _Parame
         positional_args = positional_args[1:]
 
     total_params = len(positional_args) + len(node.args.kwonlyargs)
+    if is_type_guard_function(node=node):
+        positional_args = positional_args[1:]
+
     return _ParameterCounts(positional_args=positional_args, total_params=total_params)
 
 
@@ -222,7 +262,7 @@ def walk_once(*, tree: ast.Module) -> WalkedNodes:  # complexipy: ignore
         tree: The parsed AST of a Python source file.
 
     Returns:
-        Every function, annotated-assignment, bare call-statement,
+        Every function, annotated-assignment, bare call-statement
         and class definition node.
     """
     function_nodes: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
