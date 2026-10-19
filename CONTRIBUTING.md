@@ -45,7 +45,8 @@ combination, not redundant.
 ## Development Setup
 
 The tool pyrigor targets Python 3.11+ (see `pyproject.toml` for the current floor and the supported-version policy).
-Development uses [uv](https://docs.astral.sh/uv/).
+Development uses Python 3.14 through [uv](https://docs.astral.sh/uv/). Python 3.15 is tested for compatibility in CI but
+is not yet the development interpreter because some development tools do not support it reliably.
 
 ```bash
 git clone https://github.com/jarl-hoyem/pyrigor.git
