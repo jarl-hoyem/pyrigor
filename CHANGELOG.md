@@ -8,6 +8,12 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed PYR402 and PYR403 flagging the narrowed parameter of a function returning `TypeGuard[...]` or `TypeIs[...]`,
+  which cannot be keyword-only. Further positional parameters are still flagged, and `--fix` leaves such functions
+  unchanged (#375).
+
 ## [0.14.0] 2026-10-05
 
 ### Added

@@ -82,7 +82,8 @@ consequence is already caught by mypy/pyright.
 - Functions with zero parameters — nothing to name.
 - Functions with two or more parameters — that is [PYR402](PYR402-keyword-only-arguments.md)'s territory, not PYR403's.
 - The narrowed value of a function returning `TypeGuard[...]` or `TypeIs[...]`, which must stay positional. The same
-  syntactic recognition applies as in [PYR402](PYR402-keyword-only-arguments.md).
+  syntactic recognition applies as in [PYR402](PYR402-keyword-only-arguments.md), including that the match is on the
+  name alone.
 - The same exceptions [PYR402](PYR402-keyword-only-arguments.md) lists apply here too: established positional
   conventions from a wrapped library or `dataclass`-generated code, and profiled hot paths where keyword-argument
   binding overhead has been shown to matter.

@@ -100,8 +100,9 @@ not only editor-time scenarios with few callers. Per #289's redefinition of `saf
 - The first positional parameter of a function returning `TypeGuard[...]` or `TypeIs[...]`. It is the value being
   narrowed, and a keyword-only guard cannot narrow anything. Recognition is syntactic and covers the bare name,
   `typing.` and `typing_extensions.` forms, for functions, methods and `async def`. Import aliases and quoted
-  annotations are not recognised. Further positional parameters are still flagged, and `--fix` leaves such a function
-  unchanged, because a leading bare `*` would make the guarded value keyword-only.
+  annotations are not recognised. The match is on the name alone, so a different class that is also called `TypeGuard`
+  or `TypeIs` is treated as a guard too. Further positional parameters are still flagged, and `--fix` leaves such a
+  function unchanged, because a leading bare `*` would make the guarded value keyword-only.
 - Well-established positional conventions from the standard library or a widely used third-party API that this codebase
   wraps or extends, where keyword-only would fight the convention callers already expect (for example, extending a
   `dataclass`-generated `__init__`).

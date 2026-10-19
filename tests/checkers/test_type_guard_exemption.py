@@ -156,6 +156,18 @@ def test_guard_with_only_keyword_only_parameter_is_not_flagged() -> None:
     assert not check_source(source=source, checker=find_pyr403_findings)
 
 
+@pytest.mark.parametrize(
+    "preamble",
+    ["from other_library import TypeGuard", "class TypeGuard: ...", "import typing\ntyping = None"],
+    ids=["imported-from-elsewhere", "defined-locally", "typing-rebound"],
+)
+def test_recognition_is_by_name_alone_so_shadowed_names_are_still_guards(*, preamble: str) -> None:
+    """Shadowing is partial: the exemption follows the spelling and does not resolve what the name refers to."""
+    source = f"{preamble}\n\n\ndef is_int(value) -> TypeGuard[int]: ...\n"
+
+    assert not check_source(source=source, checker=find_pyr403_findings)
+
+
 def test_guard_value_with_default_is_exempt() -> None:
     """A default on the narrowed value does not change the exemption."""
     source = "def is_int(value=None) -> TypeGuard[int]: ..."
