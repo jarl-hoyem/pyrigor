@@ -104,3 +104,20 @@ def test_suppression_comment_on_a_guard_is_honoured(
 
     assert not exc_info.value.code
     assert f"{source_file}:" not in capsys.readouterr().out
+
+
+def test_fix_leaves_a_suppressed_guard_unchanged(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--fix leaves a guard with reasoned suppression byte-identical, so the guarded value stays positional."""
+    source_file = tmp_path / "source.py"
+    original = "def is_int(value, strict) -> TypeGuard[int]:  # pyrigor PYR402 # public API\n    ...\n"
+    source_file.write_text(original)
+    monkeypatch.setattr("sys.argv", ["pyrigor", "--fix", "--select=PYR402", str(source_file)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    assert not exc_info.value.code
+    assert source_file.read_text() == original
+    assert not capsys.readouterr().out
