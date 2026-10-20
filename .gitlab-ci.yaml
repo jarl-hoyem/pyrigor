@@ -33,9 +33,22 @@ default:
 quality:
   stage: check
   timeout: 35 minutes
+  variables:
+    # The secret-scan job runs the current-tree scan on a clean checkout.
+    SKIP: gitleaks-tree
   script:
     - just check
     - just check manual
+
+secret-scan:
+  stage: check
+  timeout: 15 minutes
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git
+    - uv pip install --system pre-commit==4.6.2
+  script:
+    - pre-commit run gitleaks-tree --all-files --hook-stage manual
 
 tests:
   stage: check

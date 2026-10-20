@@ -142,6 +142,12 @@ repos:
     hooks:
       - id: gitleaks
         stages: [pre-commit]
+      - id: gitleaks
+        alias: gitleaks-tree
+        name: gitleaks (current tree)
+        entry: gitleaks dir . --redact --verbose
+        pass_filenames: false
+        stages: [manual]
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:

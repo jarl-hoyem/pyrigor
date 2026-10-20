@@ -65,7 +65,33 @@ jobs:
         run: just check pre-push
 
       - name: "Run quality checks (manual stage: pip-audit-locked)"
+        env:
+          # The dedicated secret-scan job runs the current-tree scan on a clean checkout.
+          SKIP: gitleaks-tree
         run: just check manual
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: Install pre-commit
+        run: |
+          uv tool install pre-commit==4.6.2
+          echo "$(uv tool dir --bin)" >> "$GITHUB_PATH"
+      - name: Scan the current tree for secrets
+        run: pre-commit run gitleaks-tree --all-files --hook-stage manual
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Install development dependencies
+        run: uv sync --extra dev
+      - name: Prove the gate fails on a planted credential
+        run: uv run pytest -m slow --no-cov tests/test_gitleaks_tree_gate.py
   stdlib-smoke-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

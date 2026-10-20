@@ -1,0 +1,13 @@
+# Extend the default rules. A custom config without this line replaces them, and the scan passes silently.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Third-party and generated directories, which are not repository content"
+paths = [
+  '''(^|/)\.venv/''',
+  '''(^|/)venv/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)htmlcov/''',
+  '''(^|/)\.(mypy|ruff|pytest)_cache/''',
+]

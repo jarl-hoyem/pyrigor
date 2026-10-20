@@ -971,6 +971,24 @@ advisory failed pushes that had not touched any dependency. The exact-lock audit
 on every pull request, so the fast hook only duplicated it. Only pytest stays on the pre-push stage. Run the audit
 locally with `just check manual`.
 
+### Secret scanning has a staged hook and a separate current-tree gate (#380)
+
+The `gitleaks` hook runs `gitleaks git --pre-commit --staged` and ignores the file list that `--all-files` passes, so a
+green run in CI says nothing about files that are not staged. A second hook, `gitleaks-tree`, reuses the same pinned
+repository and `rev` with its own entry, `gitleaks dir .`, in the `manual` stage. The version therefore has one source.
+
+The scan runs in a dedicated Linux job in both CI systems, on a checkout without installed dependencies. A working tree
+that holds `.venv` and `node_modules` reports 220 findings in third-party code (measured on 2026-10-20), whereas the
+tracked files report none. The `.gitleaks.toml` also allowlists those directories, so that a local `just check manual`
+stays usable. The main test matrix skips the hook with `SKIP=gitleaks-tree`, because 15 more copies of the same scan add
+nothing.
+
+The configuration extends the default rules with `useDefault = true`. Without that line a custom `.gitleaks.toml`
+replaces the default rules, and a planted credential passes the scan with exit code 0 (confirmed with Gitleaks v8.30.0).
+`tests/test_gitleaks_tree_gate.py` plants a generated token in a disposable repository and expects the gate to fail. It
+also expects the gate to pass on a clean tree and checks that the output does not repeat the token. The CI job runs it
+after the scan. Scanning history is a separate decision, tracked in #382.
+
 ### Prettier runs from the locked package, with one pin
 
 Prettier's version was stated twice. The first place was `package.json` and `package-lock.json`, which PyCharm's
