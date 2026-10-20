@@ -81,7 +81,7 @@ jobs:
       - name: Install pre-commit
         run: |
           uv tool install pre-commit==4.6.2
-          echo "$(uv tool dir --bin)" >> "$GITHUB_PATH"
+          uv tool dir --bin >> "$GITHUB_PATH"
       - name: Scan the current tree for secrets
         run: pre-commit run gitleaks-tree --all-files --hook-stage manual
       - name: Set up Python
