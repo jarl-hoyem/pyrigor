@@ -4,7 +4,7 @@
 [![Downloads](https://static.pepy.tech/badge/pyrigor)](https://pepy.tech/project/pyrigor)
 [![CI](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml)
 [![Publish](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml)
-[![Python 3.11-3.14](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11-3.15](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14%20%7C%203.15-blue.svg)](https://www.python.org/downloads/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Type hints: Pyright](https://img.shields.io/badge/type%20hints-Pyright-brightgreen.svg)](https://github.com/microsoft/pyright)
@@ -45,6 +45,7 @@ set for Python, inspired by safety-critical coding guidelines from other languag
 - [Engineering and CI](#engineering-and-ci)
 - [Philosophy](#philosophy)
 - [Contributing](#contributing)
+- [How this is built](#how-this-is-built)
 - [Acknowledgements](#acknowledgements)
 - [Contact](#contact)
 - [License](#license)
@@ -120,7 +121,7 @@ pip install pyrigor
 pyrigor path/to/file.py [path/to/another.py ...]
 ```
 
-Every rule marked enforced in [`guidelines/RULES.md`](./guidelines/RULES.md) runs automatically. A violation exits
+Every rule marked enforced in [`guidelines/RULES.md`](./guidelines/RULES.md) runs automatically. A finding exits
 non-zero and prints `path:line:col: PYRxxx message (symbolic-name)`.
 
 Run `pyrigor --version` to check the installed version. Use `--select=CODE,CODE` to restrict checking to specific rules,
@@ -153,7 +154,7 @@ containing kept and suppressed findings, selected-rule metadata, tool identity, 
 Both JSON and human locations use 1-based Unicode code-point columns. See
 [`guidelines/JSON_DIAGNOSTICS.md`](./guidelines/JSON_DIAGNOSTICS.md) for the contract and schema.
 
-To suppress a specific violation, add a same-line comment with a reason:
+To suppress a specific finding, add a same-line comment with a reason:
 
 ```python
 def f(weight, bias):  # pyrigor PYR402 # matches a fixed external API
@@ -276,8 +277,8 @@ lockfile is current.
 
 The gate includes strict typing across three checkers (mypy, pyright and ty), 100% branch-coverage enforcement and the
 security and quality checks listed in the badges above. Every run also builds the wheel and source distribution and
-smoke-tests them directly. Installing and running the packaged artefact rather than only the editable source checkout
-and runs pyrigor against the Python standard library to confirm it does not crash on real code.
+smoke-tests them directly: it installs and runs the packaged artefact, not only the editable source checkout, and runs
+pyrigor against the Python standard library to confirm it does not crash on real code.
 
 Mutation testing runs in its own Docker container, as a non-root user matching the calling user's ID so it can write to
 the bind-mounted checkout. It gates on a maximum number of surviving mutants rather than a bare score percentage, since
@@ -326,10 +327,17 @@ Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for full setup and workflow details.
 
+## How this is built
+
+Pyrigor's architecture, requirements and review decisions are the maintainer's. Implementation is largely done by LLM
+coding assistants, working under the project's Definition of Ready, Definition of Done and independent issue review. The
+maintainer is accountable for everything released. The verification behind that responsibility includes 100% branch
+coverage, mutation testing and the quality gates described above.
+
 ## Feedback
 
-Evaluating pyrigor for your own project? Open an [issue](https://github.com/jarl-hoyem/pyrigor/issues) and tell the team
-about your use case — the maintainers want to use real adoption signals to drive priorities.
+Evaluating pyrigor for your own project? Open an [issue](https://github.com/jarl-hoyem/pyrigor/issues) and tell the
+maintainer about your use case — real adoption signals drive priorities.
 
 ## Acknowledgements
 

@@ -1,6 +1,8 @@
 # Contributing to pyrigor
 
-Contributions are welcome. Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
+Contributions are welcome. Participation is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md). AI-assisted
+contributions are welcome, but the contributor remains responsible for understanding, reviewing and testing everything
+they submit.
 
 ## Creating Issues
 
