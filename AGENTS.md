@@ -152,6 +152,9 @@ Work efficiently with model tokens, tool calls, network access and the maintaine
 - Prepare one cohesive, exact diff for the approval instead of requesting a series of small edits.
 - Use targeted validation proportional to the change. Do not duplicate the full pre-commit suite when the maintainer's
   commit workflow runs it, unless targeted checks reveal risk or the maintainer requests it.
+- For changes limited to Markdown files, run only the relevant Markdown checks by default, such as Prettier,
+  markdownlint-cli2 and codespell. Run the full suite only when those checks reveal a cross-file risk or the maintainer
+  requests it.
 - Always run `just check` after the final changes and before providing a commit message. Do not hand validation back to
   the maintainer unless a hook fails and its failure is reported explicitly.
 - A passing `just check` does not guarantee a passing commit. It validates the working tree, whereas the commit-time
