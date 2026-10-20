@@ -24,6 +24,13 @@
 [![Dead code: vulture](https://img.shields.io/badge/dead%20code-vulture-brightgreen)](https://github.com/jendrikseipp/vulture)
 [![codespell](https://img.shields.io/badge/spelling-codespell-brightgreen)](https://github.com/codespell-project/codespell)
 [![Checked with pyrigor](https://img.shields.io/badge/checked%20with-pyrigor-blue)](https://github.com/jarl-hoyem/pyrigor)
+[![Mutation testing: mutmut](https://img.shields.io/badge/mutation%20testing-mutmut-brightgreen)](https://mutmut.readthedocs.io/)
+[![Secrets: gitleaks](https://img.shields.io/badge/secrets-gitleaks-brightgreen)](https://github.com/gitleaks/gitleaks)
+[![Dependencies: pip-audit](https://img.shields.io/badge/dependencies-pip--audit-brightgreen)](https://pypi.org/project/pip-audit/)
+[![Conventional Commits](https://img.shields.io/badge/commits-conventional-brightgreen)](https://www.conventionalcommits.org/)
+[![Workflows: zizmor](https://img.shields.io/badge/workflows-zizmor-brightgreen)](https://docs.zizmor.sh/)
+[![Module boundaries: tach](https://img.shields.io/badge/module%20boundaries-tach-brightgreen)](https://github.com/gauge-sh/tach)
+[![Typed: PEP 561](https://img.shields.io/badge/typing-PEP%20561-blue)](https://peps.python.org/pep-0561/)
 
 Catches the class of bug type checkers structurally cannot: a NamedTuple/keyword-only-argument/return-value-usage rule
 set for Python, inspired by safety-critical coding guidelines from other languages.
