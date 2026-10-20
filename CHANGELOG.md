@@ -273,7 +273,7 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ### Fixed
 
-- `BACKLOG.md`'s item #5 removed a stray "this session" reference, meaningless outside a live coding session.
+- Removed a stray "this session" reference from `BACKLOG.md`, meaningless outside a live coding session.
 - Summary print order: per-file breakdown, per-rule breakdown and the total line now print in that order, all three
   surviving scrolling off the screen on a large run. Found in two passes against Home Assistant core (18,187 files): the
   first fix only moved the total line, the per-rule breakdown was still printing before the per-file list and scrolling
