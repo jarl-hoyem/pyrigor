@@ -204,7 +204,7 @@ Show it in your own README:
 [![Checked with pyrigor](https://img.shields.io/badge/checked%20with-pyrigor-blue)](https://github.com/jarl-hoyem/pyrigor)
 ```
 
-### Seeing violations in your editor
+### Seeing findings in your editor
 
 The tool pyrigor writes `file:line:column: message`, which most editors parse without needing a plugin. Configuring your
 existing tools beats installing another one.

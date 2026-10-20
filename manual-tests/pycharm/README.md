@@ -1,8 +1,8 @@
 # Manual PyCharm integration tests
 
-This exercises the File Watcher described in the repository README under "Seeing violations in your editor". Configure
-it before starting. Every check is performed by editing a file and watching the Problems view, so none of them can run
-in CI.
+This exercises the File Watcher described in the repository README under "Seeing findings in your editor". Configure it
+before starting. Every check is performed by editing a file and watching the Problems view, so none of them can run in
+CI.
 
 Fixture names must be unique across every `manual-tests` subfolder. The folders are not packages, so mypy maps each file
 to a top-level module and rejects two of the same name. A file called `clean.py` or `violations.py` here would collide

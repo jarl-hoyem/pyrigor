@@ -86,7 +86,7 @@ See the `justfile` in the repository root for the full set of recipes.
 
 **Rule identity flows from one place.** The file `pyrigor/rules.py` defines the `Rule` enum. Each member's value is a
 `RuleInfo(symbolic_name, problem, severity)`. A symbolic name (used in suppression comments and CLI output), problem
-text (used in violation messages), and a severity (`Severity.ERROR`/`WARNING`/`INFO`, matching the Language Server
+text (used in finding messages), and a severity (`Severity.ERROR`/`WARNING`/`INFO`, matching the Language Server
 Protocol's own `DiagnosticSeverity` naming — see `DECISIONS.md`'s "Severity" entry) are declared once, here, not
 duplicated per-checker.
 

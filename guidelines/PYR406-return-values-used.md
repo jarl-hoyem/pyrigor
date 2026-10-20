@@ -3,7 +3,7 @@
 ## Rule
 
 A function defined within the codebase being checked, whose return type is not `None`, must have its return value used
-at every call site. Calling it as a bare expression statement and discarding the result is a violation.
+at every call site. Calling it as a bare expression statement and discarding the result is reported as a finding.
 
 ```python
 def compute_total(items: list[Item]) -> float: ...

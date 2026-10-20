@@ -2,7 +2,7 @@
 
 Each Rule member's value is a RuleInfo — the symbolic name (used in
 suppression comments and output) paired with the rule-specific
-problem description (used to build violation messages) and its
+problem description (used to build finding messages) and its
 severity. One declaration per rule. No separate lookup table to
 drift out of sync with the enum itself.
 """
@@ -115,7 +115,7 @@ class Rule(Enum):
 
     @property
     def problem(self) -> str:
-        """The rule-specific problem description, for violation messages."""
+        """The rule-specific problem description for finding messages."""
         return self.value.problem
 
     @property

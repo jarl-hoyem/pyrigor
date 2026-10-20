@@ -28,8 +28,8 @@ this rule.>
 
 **Fix availability:** `always` | `sometimes` | `none`
 
-- **`always`** — every violation of this rule can be mechanically fixed. Example: PYR402/PYR403 inserting `*,`.
-- **`sometimes`** — a fix can be constructed for some violations of this rule but not others, depending on what pyrigor
+- **`always`** — every finding of this rule can be mechanically fixed. Example: PYR402/PYR403 inserting `*,`.
+- **`sometimes`** — a fix can be constructed for some findings of this rule but not others, depending on what pyrigor
   can determine about the specific case.
 - **`none`** — no fix is ever attempted. The right answer depends on domain/design knowledge the tool has no way to
   infer. Example: PYR301/401/405 (needs an invented `NamedTuple`/field name), PYR406/407 (the correct handling of a

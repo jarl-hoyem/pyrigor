@@ -4,7 +4,7 @@
 
 A function defined within the codebase being checked, annotated to return `Iterator[X]`, `Generator[X, Y, Z]`, or
 `AsyncGenerator[X, Y]`, must have its result used at every call site. Calling it as a bare expression statement and
-discarding the result is a violation.
+discarding the result is reported as a finding.
 
 ```python
 def process_items(items: list[Item]) -> Iterator[Result]:

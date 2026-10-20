@@ -48,11 +48,11 @@ the cost of the migration.
 
 ## Results
 
-| Codebase                | Files  | Violations | Time           | Files/sec |
-| ----------------------- | ------ | ---------- | -------------- | --------- |
-| ML course repo          | 29     | 76         | 0.17s          | ~170      |
-| CPython stdlib (`Lib/`) | 1,844  | 8,634      | 15.89s–20.49s* | ~90–115   |
-| Home Assistant core     | 18,187 | 59,086     | 90.21s         | ~202      |
+| Codebase                | Files  | Findings | Time           | Files/sec |
+| ----------------------- | ------ | -------- | -------------- | --------- |
+| ML course repo          | 29     | 76       | 0.17s          | ~170      |
+| CPython stdlib (`Lib/`) | 1,844  | 8,634    | 15.89s–20.49s* | ~90–115   |
+| Home Assistant core     | 18,187 | 59,086   | 90.21s         | ~202      |
 
 \* Two runs in the same environment showed meaningful variance (15.89 s to 20.49 s). The likely cause is OS-level
 file-system caching between runs, not a real change in pyrigor's own behaviour. Treat these timings as rough
@@ -78,11 +78,11 @@ scaled linearly with checker count, confirmed directly by profiling (`python -m 
 Fixed by walking the tree exactly once per file (`walk_once()`), distributing the same collected nodes to every checker,
 rather than each checker re-walking the tree from scratch.
 
-| Codebase            | Files  | Violations | Time before | Time after | Speedup |
-| ------------------- | ------ | ---------- | ----------- | ---------- | ------- |
-| Home Assistant core | 18,187 | 90,325     | 388.20s     | 55.46s     | ~7x     |
+| Codebase            | Files  | Findings | Time before | Time after | Speedup |
+| ------------------- | ------ | -------- | ----------- | ---------- | ------- |
+| Home Assistant core | 18,187 | 90,325   | 388.20s     | 55.46s     | ~7x     |
 
-Violation counts identical before and after (PYR301: 55, PYR401: 579, PYR402: 58,485, PYR403: 30,786, PYR405: 420),
+Finding counts identical before and after (PYR301: 55, PYR401: 579, PYR402: 58,485, PYR403: 30,786, PYR405: 420),
 confirming the refactor changed only performance, not correctness. The speedup exceeds the ~5x predicted from the
 profiling data (five checkers reduced to one shared walk), likely because the earlier estimate did not fully account for
 the internal cost of `iter_child_nodes` and `iter_fields`, both called proportionally to walk count.
