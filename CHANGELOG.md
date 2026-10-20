@@ -8,12 +8,21 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ## [Unreleased]
 
+## [0.14.1] 2026-10-20
+
+### Changed
+
+- Corrected the README's opening example and its capability claims. The unsupported "under a minute" timing promise is
+  gone, and the package description no longer calls the linter "eventually" (#367).
+
 ### Fixed
 
 - Fixed PYR402 and PYR403 flagging the narrowed parameter of a function returning `TypeGuard[...]` or `TypeIs[...]`,
   which cannot be keyword-only. Further positional parameters are still flagged (#375).
 - Fixed `pyrigor --fix --select PYR402` making the guarded parameter of such a function keyword-only. It now inserts the
   bare `*` after that parameter and leaves it positional (#388).
+- Fixed `pyrigor --fix --select PYR402` leaving a trailing space after the inserted `*,` when the signature was already
+  wrapped (#371).
 
 ## [0.14.0] 2026-10-05
 
