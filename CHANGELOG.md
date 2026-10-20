@@ -12,6 +12,8 @@ default for incremental changes. Minor bumps are reserved for changes that shift
 
 ### Changed
 
+- Documented LLM-assisted development and maintainer accountability in the README, clarified the AI-assisted
+  contribution policy, and corrected README wording (#383).
 - Corrected the README's opening example and its capability claims. The unsupported "under a minute" timing promise is
   gone, and the package description no longer calls the linter "eventually" (#367).
 
