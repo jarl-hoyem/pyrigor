@@ -4,7 +4,9 @@
 [![Downloads](https://static.pepy.tech/badge/pyrigor)](https://pepy.tech/project/pyrigor)
 [![CI](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml)
 [![Publish](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml/badge.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/publish.yaml)
+[![GitLab pipeline](https://gitlab.com/jarl-hoyem/pyrigor/badges/main/pipeline.svg)](https://gitlab.com/jarl-hoyem/pyrigor/-/pipelines)
 [![Python 3.11-3.15](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14%20%7C%203.15-blue.svg)](https://www.python.org/downloads/)
+[![OS: Linux, macOS, Windows](https://img.shields.io/badge/os-linux%20%7C%20macos%20%7C%20windows-blue.svg)](https://github.com/jarl-hoyem/pyrigor/actions/workflows/ci.yaml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Type hints: Pyright](https://img.shields.io/badge/type%20hints-Pyright-brightgreen.svg)](https://github.com/microsoft/pyright)
@@ -189,7 +191,7 @@ Add pyrigor to your own `.pre-commit-config.yaml` as a pinned, remote hook, the 
 
 ```yaml
 - repo: https://github.com/jarl-hoyem/pyrigor
-  rev: v0.14.0
+  rev: v0.14.1
   hooks:
     - id: pyrigor
       args: [--exclude, generated]
