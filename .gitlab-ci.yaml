@@ -13,7 +13,7 @@ variables:
   PRE_COMMIT_HOME: "$CI_PROJECT_DIR/venv/.cache/pre-commit"
 
 default:
-  image: ghcr.io/astral-sh/uv:0.12.23-python3.14-trixie-slim
+  image: ghcr.io/astral-sh/uv:0.13.4-python3.14-trixie-slim
   interruptible: true
   before_script:
     - apt-get update
