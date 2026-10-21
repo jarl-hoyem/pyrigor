@@ -35,12 +35,18 @@
 Catches the class of bug type checkers structurally cannot: a NamedTuple/keyword-only-argument/return-value-usage rule
 set for Python, inspired by safety-critical coding guidelines from other languages.
 
+Python's failure modes are often silent: implicit type coercion, positional-argument swaps between same-typed
+parameters, mutable default arguments, float equality checks and tuple unpacking that "type-checks" while being
+semantically wrong are all real, tool-catchable classes of bugs that slip past mypy, pylint and ruff's default rule
+sets. The `pyrigor` project is a set of guidelines, with real, working tooling enforcing them today and more rules being
+built out.
+
 - Finds risky patterns in code that passes strict type checking
 - Validated against real, public codebases: CPython's stdlib, Home Assistant, mypy, requests, hypothesis, abseil-py
 - Drop-in pre-commit integration, or run standalone
 
 > **The tool pyrigor complements Python's tooling ecosystem. It does not try to replace it.** If an established tool
-> such as Pylint, Ruff, or a type checker already provides an adequate check, pyrigor will not duplicate that rule.
+> such as pylint, ruff, or a type checker already provides an adequate check, pyrigor will not duplicate that rule.
 > Instead, pyrigor focuses on gaps where it can add distinct value.
 
 ## Table of Contents
@@ -48,7 +54,6 @@ set for Python, inspired by safety-critical coding guidelines from other languag
 - [The problem, in one example](#the-problem-in-one-example)
 - [Usage](#usage)
 - [Adding pyrigor to your own project](#adding-pyrigor-to-your-own-project)
-- [What this is](#what-this-is)
 - [Status](#status)
 - [Guidelines](#guidelines)
 - [Engineering and CI](#engineering-and-ci)
@@ -248,15 +253,6 @@ The text line is the lowest common denominator. Where an editor can consume stru
 carries more: severity, raw byte ranges, code-point ranges, enclosing symbols and selected-rule metadata. An integration
 can show ranges and colour them by severity. Findings currently carry an empty `fixes` list.
 
-## What this is
-
-Python's failure modes are often silent: implicit type coercion, positional-argument swaps between same-typed
-parameters, mutable default arguments, float equality checks and tuple-unpacking that "type-checks" while being
-semantically wrong are all real, tool-catchable classes of bugs that slip past mypy, pylint and ruff's default rule
-sets.
-
-`pyrigor` is a set of guidelines, with real, working tooling enforcing them today, growing as more rules are built out.
-
 ## Status
 
 Early stage.
@@ -266,7 +262,7 @@ yet.
 
 - [x] Guideline documentation
 - [x] Standalone AST-based checkers (pre-commit local hooks)
-- [ ] Editor integration (deferred until real demand exists, see #152)
+- [ ] Editor integration (deferred until real demand exists)
 
 ## Guidelines
 
@@ -274,8 +270,7 @@ See [`guidelines/`](./guidelines) for the full list. Each guideline has a rule I
 implemented — a link to its enforcing check.
 
 [`guidelines/RULES.md`](./guidelines/RULES.md) has a generated table of every rule and whether it is enforced yet —
-generated from the real guideline docs and `CHECKERS`, never hand-maintained, so it cannot drift the way this table once
-did.
+generated from the real guideline docs and `CHECKERS`.
 
 ## Engineering and CI
 
@@ -320,8 +315,8 @@ Prefer explicit over implicit. Make illegal states unrepresentable. Do not rely 
 tool can enforce correctness instead.
 
 The tool pyrigor is prescriptive by design: each guideline does not just flag a risky pattern, it commits to one
-specific, verified fix. This is a deliberate choice, not an oversight — a codebase where every developer independently
-improvises their own fix for the same problem is exactly the inconsistency pyrigor exists to close.
+specific, verified fix. This is a deliberate choice. A codebase where every developer independently improvises their own
+fix for the same problem is exactly the inconsistency pyrigor exists to close.
 
 ## Contributing
 
