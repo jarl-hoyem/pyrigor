@@ -35,10 +35,12 @@
 Catches the class of bug type checkers structurally cannot: a NamedTuple/keyword-only-argument/return-value-usage rule
 set for Python, inspired by safety-critical coding guidelines from other languages.
 
-Python's failure modes are often silent: implicit type coercion, positional-argument swaps between same-typed
-parameters, mutable default arguments, float equality checks and tuple unpacking that "type-checks" while being
-semantically wrong are all real, tool-catchable classes of bugs that slip past mypy, pylint and ruff's default rule
-sets. The `pyrigor` project is a set of guidelines, with real, working tooling enforcing them today and more rules being
+Python's failure modes are often silent. Implicit type coercion, positional-argument swaps between same-typed
+parameters, mutable default arguments and float equality checks are real bugs that tools can catch. So is tuple
+unpacking that "type-checks" but is semantically wrong. All of these slip past the default rule sets of mypy, pylint and
+ruff.
+
+The `pyrigor` project is a set of guidelines. Working tooling enforces some of them today, and more rules are being
 built out.
 
 - Finds risky patterns in code that passes strict type checking
