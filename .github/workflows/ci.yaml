@@ -156,6 +156,16 @@ jobs:
             'pyproject.toml', 'uv.lock', 'docker/**', '.github/workflows/ci.yaml', '.pre-commit-config.yaml',
             'justfile', 'tach.toml') }}
 
+      - name: Report mutation cache status
+        env:
+          MUTATION_CACHE_HIT: ${{ steps.mutation-cache.outputs.cache-hit }}
+        run: |
+          if [ "$MUTATION_CACHE_HIT" = "true" ]; then
+            echo "Mutation cache: hit" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Mutation cache: miss" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Run mutation testing in Docker
         run: |
           time docker run --rm \
