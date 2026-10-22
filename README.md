@@ -100,7 +100,7 @@ def compute_burn_time(*, fuel_mass: float, fuel_flow: float) -> float:
 
 fuel_mass = 100.0  # kg
 fuel_flow = 2.0  # kg/s
-burn_time = compute_burn_time(fuel_mass=fuel_mass, fuel_flow=fuel_flow)  # 50 s.
+burn_time = compute_burn_time(fuel_mass=fuel_mass, fuel_flow=fuel_flow)  # correct 50 s.
 ```
 
 Both `mypy --strict good.py` and `pyrigor good.py` pass. The linter exits 0 with no findings. A positional call such as
