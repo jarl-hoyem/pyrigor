@@ -72,6 +72,19 @@ See [`guidelines/DEFINITION_OF_DONE.md`](./guidelines/DEFINITION_OF_DONE.md) for
 any change is considered finished, and [`guidelines/REVIEW_CHECKLIST.md`](./guidelines/REVIEW_CHECKLIST.md) for the
 earned, defect-derived checklist alongside it.
 
+## Editors
+
+The checks run in pre-commit and CI, so any editor works. PyCharm settings are in `.idea`, and VS Code and Cursor
+settings are in `.vscode`.
+
+- **VS Code and Cursor.** Open the repository and accept the recommended extensions. The Ruff and mypy extensions use
+  the versions pinned in `.venv`, and tool settings stay in `pyproject.toml`.
+- **Type checking.** In VS Code, Pylance reads the Pyright settings from `pyproject.toml`. Pylance is not available in
+  Cursor. The pinned Pyright in pre-commit is the authority in both editors.
+- **Agent instructions.** `AGENTS.md` holds the instructions for coding agents, and `CLAUDE.md` imports it. Cursor reads
+  `AGENTS.md` in the repository root. In VS Code, Copilot reads `AGENTS.md`, and the local agent reads it when
+  `chat.useAgentsMdFile` is on.
+
 ## Self-hosted pre-commit hook
 
 The tool pyrigor checks itself two ways, deliberately: a pinned entry (`repo: https://github.com/jarl-hoyem/pyrigor`,

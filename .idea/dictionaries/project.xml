@@ -19,6 +19,7 @@
       <w>binop</w>
       <w>booleaness</w>
       <w>buildx</w>
+      <w>charliermarsh</w>
       <w>cicd</w>
       <w>classmethod</w>
       <w>cner</w>
@@ -29,6 +30,7 @@
       <w>docparams</w>
       <w>docstyle</w>
       <w>elts</w>
+      <w>esbenp</w>
       <w>feff</w>
       <w>fffd</w>
       <w>ffff</w>
@@ -46,6 +48,7 @@
       <w>mutmut</w>
       <w>mutmut's</w>
       <w>ndarray</w>
+      <w>nefrob</w>
       <w>nfkc</w>
       <w>nonascii</w>
       <w>nosec</w>
@@ -75,6 +78,7 @@
       <w>ufeff</w>
       <w>uffa</w>
       <w>uxxxxxxxx</w>
+      <w>vscode</w>
     </words>
   </dictionary>
 </component>
