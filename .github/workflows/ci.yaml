@@ -146,6 +146,16 @@ jobs:
       - name: Build mutmut Docker image
         run: time docker build -t pyrigor-mutmut -f docker/mutmut.Dockerfile .
 
+      - name: Restore mutation results
+        id: mutation-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: mutants/
+          key:
+            mutation-v1-${{ hashFiles('pyrigor/**', 'tests/**', 'scripts/**', 'schemas/**', 'guidelines/**', '*.py',
+            'pyproject.toml', 'uv.lock', 'docker/**', '.github/workflows/ci.yaml', '.pre-commit-config.yaml',
+            'justfile', 'tach.toml') }}
+
       - name: Run mutation testing in Docker
         run: |
           time docker run --rm \
@@ -170,6 +180,13 @@ jobs:
             --user "$(id -u):$(id -g)" \
             --mount type=bind,source="$(pwd)",target=/project \
             --entrypoint python pyrigor-mutmut scripts/check_mutation_score.py
+
+      - name: Save mutation results
+        if: steps.mutation-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: mutants/
+          key: ${{ steps.mutation-cache.outputs.cache-primary-key }}
 
       - name: Clean up mutants directory
         if: always()
