@@ -289,8 +289,8 @@ pyrigor against the Python standard library to confirm it does not crash on real
 Mutation testing runs in its own Docker container, as a non-root user matching the calling user's ID so it can write to
 the bind-mounted checkout. It gates on a maximum number of surviving mutants rather than a bare score percentage, since
 a percentage can hide new survivors while the total mutant count also grows. CI caches mutation results only when the
-source, tests, fixtures, dependencies and mutation setup match. Mutmut run clean tests and the survivor gates on a cache
-hit. Changed inputs cause a full mutation run.
+source, tests, fixtures, dependencies and mutation setup match. The tool mutmut run clean tests and the survivor gates
+on a cache hit. Changed inputs cause a full mutation run.
 
 On release, the build is smoke-tested against a large, real external codebase (Home Assistant's `core`) before
 publishing to PyPI through [trusted publishing](https://docs.pypi.org/trusted-publishers/), with no long-lived API token
