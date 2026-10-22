@@ -14,9 +14,9 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 
 WORKDIR /project
 COPY pyproject.toml uv.lock ./
-RUN uv sync --locked --extra dev --no-install-project --no-cache
+RUN time uv sync --locked --extra dev --no-install-project --no-cache
 COPY . .
-RUN uv sync --locked --extra dev --no-cache
+RUN time uv sync --locked --extra dev --no-cache
 
 RUN useradd --create-home --uid 1000 mutmut
 USER mutmut
