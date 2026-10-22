@@ -167,6 +167,7 @@ jobs:
           fi
 
       - name: Run mutation testing in Docker
+        if: steps.mutation-cache.outputs.cache-hit != 'true'
         run: |
           time docker run --rm \
             --user "$(id -u):$(id -g)" \
