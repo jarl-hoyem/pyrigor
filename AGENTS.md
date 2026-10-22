@@ -41,10 +41,11 @@ uv run pyrigor --version
 Run tests:
 
 ```bash
-uv run pytest                                              # full suite, 100% coverage enforced (--cov-fail-under=100)
+uv run pytest                                     # full suite, 100% coverage enforced (--cov-fail-under=100)
 uv run pytest tests/checkers/test_pyr402_keyword_only_arguments.py   # single file
 uv run pytest tests/checkers/test_pyr402_keyword_only_arguments.py::test_name  # single test
-uv run pytest -m slow                                       # slow tests are deselected by default
+uv run pytest -m slow                             # slow tests are deselected by default
+just test-python 3.12                             # full suite on another Python version, in a throwaway environment
 ```
 
 Run all quality gates (same checks CI runs via pre-commit, so there is no separate CI-only config to drift):

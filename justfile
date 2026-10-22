@@ -43,6 +43,10 @@ test-single file test:
 test-slow:
     uv run pytest -m slow
 
+# Run the full test suite on another Python version, in a throwaway environment so .venv stays untouched
+test-python python_version:
+    uv run --isolated --locked --extra dev --python {{python_version}} pytest
+
 # Run all quality gates (pre-commit or pre-push stage)
 # The --intent-to-add first: pre-commit's --all-files enumerates `git ls-files`,
 # so an untracked new file is never checked, and every hook still reports
